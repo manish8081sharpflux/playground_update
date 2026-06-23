@@ -1,0 +1,2556 @@
+@import url('https://fonts.googleapis.com/css2?family=Patrick+Hand&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Patrick Hand', cursive;
+    background-color: #f5f5f5;
+    color: #333;
+}
+
+.sports-coach-dashboard {
+    /* display: flex; */
+    min-height: 100vh;
+    width: 100%;
+    max-width: 100%;
+}
+
+/* Header Styles */
+.header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 60px;
+
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    padding: 0.5rem 2rem;
+    background-color: #ffffff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
+    z-index: 1000;
+}
+.main-content {
+    margin-top: 60px;
+}
+
+.sports-user-info {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.user-info h2 {
+    margin: 0;
+    font-size: 1.2rem;
+    font-weight: 500;
+    color: #4361ee;
+}
+
+.avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: #4361ee;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    font-weight: bold;
+}
+
+.top-menu {
+    display: flex;
+    gap: 1.5rem;
+    overflow-x: auto;
+    padding: 0 1rem;
+}
+
+.scrollable-menu {
+    -ms-overflow-style: none;
+    /* IE and Edge */
+    scrollbar-width: none;
+    /* Firefox */
+}
+
+.scrollable-menu::-webkit-scrollbar {
+    display: none;
+    /* Chrome, Safari, Opera */
+}
+
+.menu-item {
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    border-radius: 4px;
+    white-space: nowrap;
+    transition: background-color 0.2s;
+    color: #4361ee;
+}
+
+.menu-item:hover {
+    background-color: #f1f3f5;
+}
+
+.menu-item.active {
+    background-color: #e9ecef;
+    font-weight: 500;
+    border-bottom: 2px solid #ffd166;
+}
+
+.logout-btn {
+    background-color: #ef476f;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: 'Patrick Hand', cursive;
+    font-size: 16px;
+    transition: background-color 0.2s;
+}
+
+.logout-btn:hover {
+    background-color: #e43b6f;
+}
+
+/* Main Content Styles */
+.sport-main-content {
+    flex: 1;
+    padding: 20px;
+    overflow-y: auto;
+    height: 100vh;
+}
+
+/* Dashboard Overview */
+.sport-dashboard-overview h2 {
+    margin-bottom: 20px;
+    color: #4361ee;
+}
+
+.sport-stats-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.sport-stat-card {
+    background-color: white;
+    border-radius: 15px;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    border: 2px solid #e0e0e0;
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.sport-stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+.sport-stat-icon {
+    font-size: 30px;
+    margin-right: 15px;
+}
+
+.sport-stat-info h3 {
+    font-size: 24px;
+    margin-bottom: 5px;
+    color: #4361ee;
+}
+
+.sport-stat-info p {
+    font-size: 16px;
+    color: #666;
+}
+
+.sport-dashboard-grid {
+    display: grid;
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.sport-dashboard-card {
+    background-color: white;
+    border-radius: 15px;
+    padding: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    border: 2px solid #e0e0e0;
+}
+
+.sport-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.sport-card-header h3 {
+    color: #4361ee;
+}
+
+.sport-session-list,
+.sport-performance-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.sport-session-item {
+    display: flex;
+    align-items: center;
+    padding: 15px;
+    border-radius: 10px;
+    background-color: #f9f9f9;
+    border-left: 4px solid #4361ee;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.sport-session-item:hover {
+    transform: translateX(5px);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.sport-session-time {
+    font-size: 18px;
+    font-weight: bold;
+    color: #4361ee;
+    margin-right: 15px;
+    min-width: 80px;
+}
+
+.sport-session-details {
+    flex: 1;
+}
+
+.sport-session-details h4 {
+    margin-bottom: 5px;
+}
+
+.sport-session-details p {
+    font-size: 14px;
+    color: #666;
+}
+
+.sport-session-actions {
+    display: flex;
+    gap: 5px;
+}
+
+.sport-view-all {
+    text-align: center;
+    margin-top: 10px;
+}
+
+.sport-view-all a {
+    color: #4361ee;
+    text-decoration: none;
+}
+
+.sport-performance-item {
+    display: flex;
+    padding: 15px;
+    border-radius: 10px;
+    background-color: #f9f9f9;
+    align-items: center;
+    transition: transform 0.2s;
+}
+
+.sport-performance-item:hover {
+    transform: translateX(5px);
+}
+
+.sport-student-name {
+    font-weight: bold;
+    min-width: 120px;
+}
+
+.sport-metric-details {
+    flex: 1;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.sport-metric-name {
+    color: #666;
+}
+
+.sport-metric-value {
+    font-weight: bold;
+}
+
+.sport-change {
+    margin-left: 10px;
+    font-size: 14px;
+}
+
+.sport-change.positive {
+    color: #06d6a0;
+}
+
+.sport-change.negative {
+    color: #ef476f;
+}
+
+.sport-tasks-overview {
+    margin-bottom: 30px;
+}
+
+.sport-tasks-table {
+    overflow-x: auto;
+}
+
+/* Section Styles */
+.sport-section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.sport-section-header h2 {
+    color: #4361ee;
+}
+
+.sport-search-filter {
+    display: flex;
+    gap: 10px;
+}
+
+.sport-search-filter input,
+.sport-search-filter select {
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    font-family: 'Patrick Hand', cursive;
+}
+
+.sport-action-button {
+    background-color: #ffd166;
+    color: #333;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: 'Patrick Hand', cursive;
+    font-size: 16px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s;
+}
+
+.sport-action-button:hover {
+    background-color: #ffbd00;
+    transform: translateY(-2px);
+}
+
+/* Table Styles */
+.sport-data-table {
+    background-color: white;
+    border-radius: 15px;
+    padding: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    overflow-x: auto;
+    border: 2px solid #e0e0e0;
+    margin-bottom: 20px;
+}
+
+.sport-data-table table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.sport-data-table th,
+.sport-data-table td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid #eee;
+}
+
+.sport-data-table th {
+    background-color: #f5f5f5;
+    color: #4361ee;
+    font-weight: bold;
+}
+
+.sport-data-table tr:hover {
+    background-color: #f9f9f9;
+}
+
+.sport-tag {
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-size: 14px;
+    display: inline-block;
+}
+
+.sport-status-active {
+    background-color: #06d6a0;
+    color: white;
+}
+
+.sport-status-draft {
+    background-color: #ffd166;
+    color: #333;
+}
+
+.sport-status-completed {
+    background-color: #118ab2;
+    color: white;
+}
+
+.sport-icon-button {
+    background: none;
+    border: none;
+    font-size: 18px;
+    cursor: pointer;
+    margin-right: 5px;
+    transition: transform 0.2s;
+}
+
+.sport-icon-button:hover {
+    transform: scale(1.2);
+}
+
+/* Calendar Styles */
+.sport-calendar-view {
+    background-color: white;
+    border-radius: 15px;
+    padding: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    margin-bottom: 30px;
+    border: 2px solid #e0e0e0;
+}
+
+.sport-calendar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.sport-calendar-nav {
+    background: none;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    color: #4361ee;
+}
+
+.sport-calendar-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 300px;
+    background-color: #f9f9f9;
+    border-radius: 10px;
+    border: 2px dashed #ccc;
+}
+
+.sport-calendar-grid {
+    width: 80%;
+    height: 200px;
+    background: linear-gradient(90deg, #f9f9f9 25%, #e9ecef 25%, #e9ecef 50%, #f9f9f9 50%, #f9f9f9 75%, #e9ecef 75%);
+    border-radius: 8px;
+    margin-top: 20px;
+    opacity: 0.5;
+}
+
+/* Performance and Reports Styles */
+.sport-performance-filters,
+.sport-task-filters {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.sport-performance-filters select,
+.sport-task-filters select,
+.sport-task-filters input {
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    font-family: 'Patrick Hand', cursive;
+}
+
+.sport-chart-container {
+    background-color: white;
+    border-radius: 15px;
+    padding: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    margin-bottom: 30px;
+    border: 2px solid #e0e0e0;
+}
+
+.sport-chart-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 300px;
+    background-color: #f9f9f9;
+    border-radius: 10px;
+    border: 2px dashed #ccc;
+}
+
+.sport-report-filters {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    background-color: white;
+    padding: 15px;
+    border-radius: 15px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    border: 2px solid #e0e0e0;
+}
+
+.sport-filter-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.sport-filter-group label {
+    font-weight: bold;
+    color: #4361ee;
+}
+
+.sport-filter-group select {
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    font-family: 'Patrick Hand', cursive;
+    font-size: 16px;
+}
+
+.sport-report-preview {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 20px;
+}
+
+.sport-report-chart,
+.sport-report-summary {
+    background-color: white;
+    border-radius: 15px;
+    padding: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    border: 2px solid #e0e0e0;
+}
+
+.sport-chart-placeholder {
+    width: 100%;
+    height: 300px;
+    background: linear-gradient(90deg, #4361ee 25%, #ffd166 25%, #ffd166 50%, #ef476f 50%, #ef476f 75%, #06d6a0 75%);
+    border-radius: 8px;
+    margin-top: 20px;
+    opacity: 0.2;
+}
+
+.sport-report-summary h3 {
+    margin-bottom: 15px;
+    color: #4361ee;
+}
+
+.sport-report-summary ul {
+    list-style: none;
+    margin-bottom: 20px;
+}
+
+.sport-report-summary li {
+    padding: 8px 0;
+    border-bottom: 1px dashed #eee;
+}
+
+/* Training Session Modal Styles */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background-color: white;
+    border-radius: 15px;
+    width: 90%;
+    max-width: 800px;
+    max-height: 90vh;
+    overflow-y: auto;
+    padding: 25px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    border: 2px solid #e0e0e0;
+    font-family: 'Patrick Hand', cursive;
+    overflow: scroll !important;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 2px dashed #4361ee;
+}
+
+.modal-header h2 {
+    margin: 0;
+    font-size: 1.8rem;
+    color: #4361ee;
+}
+
+.close-button {
+    background: none;
+    border: none;
+    font-size: 1.8rem;
+    cursor: pointer;
+    color: #ef476f;
+    transition: transform 0.2s;
+}
+
+.close-button:hover {
+    transform: rotate(90deg);
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: #4361ee;
+    font-size: 1.1rem;
+}
+
+.form-group input,
+.form-group textarea,
+.form-group select {
+    width: 100%;
+    padding: 10px 15px;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-family: 'Patrick Hand', cursive;
+    transition: border-color 0.3s;
+}
+
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus {
+    border-color: #4361ee;
+    outline: none;
+}
+
+.checkbox-group {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.checkbox-group label {
+    display: flex;
+    align-items: center;
+    font-weight: normal;
+    cursor: pointer;
+    color: #333;
+}
+
+.checkbox-group input {
+    margin-right: 8px;
+    width: auto;
+    cursor: pointer;
+}
+
+.form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 15px;
+    margin-top: 25px;
+}
+
+.cancel-button {
+    background-color: #f1f3f5;
+    color: #495057;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 500;
+    font-family: 'Patrick Hand', cursive;
+    font-size: 1rem;
+    transition: background-color 0.2s;
+}
+
+.cancel-button:hover {
+    background-color: #e9ecef;
+}
+
+.save-button {
+    background-color: #06d6a0;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 500;
+    font-family: 'Patrick Hand', cursive;
+    font-size: 1rem;
+    transition: background-color 0.2s, transform 0.2s;
+}
+
+.save-button:hover {
+    background-color: #05c091;
+    transform: translateY(-2px);
+}
+
+/* Performance Tracking Styles */
+.sport-performance-charts {
+    margin: 20px 0;
+}
+
+.performance-overview-chart {
+    background-color: white;
+    border-radius: 15px;
+    padding: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    border: 2px solid #e0e0e0;
+}
+
+.mock-overview-chart {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.overview-chart-item {
+    display: grid;
+    grid-template-columns: 150px 150px 1fr 80px 80px;
+    align-items: center;
+    gap: 15px;
+    padding: 15px;
+    background-color: #f9f9f9;
+    border-radius: 10px;
+    transition: transform 0.2s;
+}
+
+.overview-chart-item:hover {
+    transform: translateX(5px);
+}
+
+.progress-bar-container {
+    height: 20px;
+    background-color: #f1f3f5;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.progress-bar {
+    height: 100%;
+    border-radius: 10px;
+}
+
+.student-name {
+    font-weight: bold;
+    color: #4361ee;
+}
+
+.metric-name {
+    color: #666;
+}
+
+.current-value {
+    font-weight: bold;
+}
+
+.change-value {
+    font-weight: bold;
+}
+
+.positive {
+    color: #06d6a0;
+}
+
+.negative {
+    color: #ef476f;
+}
+
+.notification-tag {
+    margin-right: 5px;
+    font-size: 1.2rem;
+}
+
+.performance-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 15px;
+    margin-top: 20px;
+}
+
+/* Performance Detail Modal Styles */
+.performance-detail-content {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 25px;
+}
+
+.performance-chart {
+    grid-column: 1 / 3;
+}
+
+.chart-placeholder {
+    background-color: #f9f9f9;
+    border-radius: 10px;
+    padding: 20px;
+    border: 2px dashed #ccc;
+}
+
+.mock-chart {
+    display: flex;
+    height: 250px;
+    background-color: #f8f9fa;
+    border-radius: 10px;
+    padding: 20px;
+    margin-top: 15px;
+}
+
+.chart-y-axis {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding-right: 15px;
+    color: #666;
+}
+
+.chart-bars {
+    display: flex;
+    justify-content: space-around;
+    align-items: flex-end;
+    flex-grow: 1;
+    height: 100%;
+}
+
+.chart-bar-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 80px;
+}
+
+.chart-bar {
+    width: 50px;
+    border-radius: 8px 8px 0 0;
+    transition: height 0.5s ease-in-out;
+}
+
+.chart-date {
+    margin-top: 8px;
+    font-size: 0.9rem;
+    color: #666;
+}
+
+.chart-value {
+    font-weight: bold;
+    font-size: 1rem;
+    margin-top: 5px;
+}
+
+.performance-details {
+    background-color: #f9f9f9;
+    border-radius: 10px;
+    padding: 20px;
+}
+
+.detail-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.detail-table td {
+    padding: 10px;
+    border-bottom: 1px dashed #ddd;
+}
+
+.detail-table td:first-child {
+    font-weight: 500;
+    color: #4361ee;
+    width: 40%;
+}
+
+.coach-feedback {
+    grid-column: 1 / 3;
+    background-color: #f9f9f9;
+    border-radius: 10px;
+    padding: 20px;
+}
+
+.coach-feedback h3 {
+    color: #4361ee;
+    margin-bottom: 15px;
+}
+
+.coach-feedback textarea {
+    width: 100%;
+    padding: 15px;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    margin-top: 10px;
+    resize: vertical;
+    font-family: 'Patrick Hand', cursive;
+    font-size: 1rem;
+}
+
+.save-feedback {
+    background-color: #06d6a0;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    margin-top: 15px;
+    font-family: 'Patrick Hand', cursive;
+    font-size: 1rem;
+    transition: background-color 0.2s, transform 0.2s;
+}
+
+.save-feedback:hover {
+    background-color: #05c091;
+    transform: translateY(-2px);
+}
+
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 15px;
+    margin-top: 25px;
+    padding-top: 20px;
+    border-top: 2px dashed #ddd;
+}
+
+.export-button {
+    background-color: #4361ee;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: 'Patrick Hand', cursive;
+    font-size: 1rem;
+    transition: background-color 0.2s, transform 0.2s;
+}
+
+.export-button:hover {
+    background-color: #3a56c5;
+    transform: translateY(-2px);
+}
+
+.close-modal {
+    background-color: #f1f3f5;
+    color: #495057;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: 'Patrick Hand', cursive;
+    font-size: 1rem;
+}
+
+/* Weekly Calendar Styles */
+.weekly-calendar {
+    background-color: white;
+    border-radius: 15px;
+    padding: 20px;
+    margin-bottom: 30px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    border: 2px solid #e0e0e0;
+}
+
+.calendar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.calendar-title {
+    font-size: 1.3rem;
+    font-weight: 500;
+    color: #4361ee;
+}
+
+.calendar-navigation {
+    display: flex;
+    gap: 10px;
+}
+
+.calendar-nav-button {
+    background: none;
+    border: 2px solid #4361ee;
+    color: #4361ee;
+    border-radius: 8px;
+    padding: 5px 15px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: 'Patrick Hand', cursive;
+}
+
+.calendar-nav-button:hover {
+    background-color: #4361ee;
+    color: white;
+}
+
+.calendar-days {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.calendar-day-header {
+    text-align: center;
+    font-weight: 500;
+    padding: 10px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    color: #4361ee;
+}
+
+.calendar-day {
+    min-height: 150px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    border: 1px solid #e0e0e0;
+    transition: transform 0.2s;
+}
+
+.calendar-day:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.calendar-day.today {
+    background-color: #e7f5ff;
+    border: 2px solid #4361ee;
+}
+
+.calendar-day-number {
+    font-weight: 500;
+    text-align: center;
+    margin-bottom: 10px;
+    color: #4361ee;
+}
+
+.calendar-event {
+    padding: 8px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.calendar-event:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.calendar-event.type-visit {
+    background-color: #d3f9d8;
+    border-left: 3px solid #06d6a0;
+}
+
+.calendar-event.type-high {
+    background-color: #ffe3e3;
+    border-left: 3px solid #ef476f;
+}
+
+.calendar-event.type-medium {
+    background-color: #fff3bf;
+    border-left: 3px solid #ffd166;
+}
+
+.calendar-event.type-low {
+    background-color: #e7f5ff;
+    border-left: 3px solid #4361ee;
+}
+
+.calendar-event-title {
+    font-weight: 500;
+    margin-bottom: 5px;
+}
+
+.calendar-event-time {
+    color: #6c757d;
+    font-size: 0.8rem;
+}
+
+/* Sessions List Styles */
+.sport-sessions-list {
+    margin-top: 30px;
+}
+
+.sport-sessions-list h3 {
+    margin-bottom: 20px;
+    font-size: 1.3rem;
+    font-weight: 500;
+    color: #4361ee;
+}
+
+/* Mock Chart Styles */
+.mock-overview-chart {
+    padding: 15px;
+}
+
+/* Responsive Styles */
+@media (max-width: 1024px) {
+    .sport-dashboard-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .sport-report-preview {
+        grid-template-columns: 1fr;
+    }
+
+    .performance-detail-content {
+        grid-template-columns: 1fr;
+    }
+
+    .performance-chart,
+    .coach-feedback {
+        grid-column: 1;
+    }
+
+    .overview-chart-item {
+        grid-template-columns: 120px 120px 1fr 70px 70px;
+    }
+}
+
+@media (max-width: 768px) {
+    .sport-stats-cards {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .calendar-days {
+        grid-template-columns: repeat(3, 1fr);
+    }
+
+    .calendar-day-header:nth-child(n+4) {
+        display: none;
+    }
+
+    .calendar-day:nth-child(n+4) {
+        display: none;
+    }
+
+    .overview-chart-item {
+        grid-template-columns: 100px 100px 1fr 60px 60px;
+    }
+}
+
+@media (max-width: 576px) {
+    .sport-stats-cards {
+        grid-template-columns: 1fr;
+    }
+
+    .sport-section-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+    }
+
+    .sport-search-filter,
+    .sport-performance-filters,
+    .sport-task-filters {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .sport-search-filter input,
+    .sport-search-filter select,
+    .sport-performance-filters select,
+    .sport-task-filters select,
+    .sport-task-filters input {
+        width: 100%;
+    }
+
+    .calendar-days {
+        grid-template-columns: 1fr;
+    }
+
+    .calendar-day-header:nth-child(n+2) {
+        display: none;
+    }
+
+    .calendar-day:nth-child(n+2) {
+        display: none;
+    }
+
+    .overview-chart-item {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+
+    .modal-content {
+        width: 95%;
+        padding: 15px;
+    }
+
+    .checkbox-group {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .form-actions,
+    .modal-footer,
+    .performance-actions {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .form-actions button,
+    .modal-footer button,
+    .performance-actions button {
+        width: 100%;
+    }
+}
+
+/* Dashboard Styles */
+.sport-dashboard-overview {
+    padding: 20px;
+    font-family: 'Nunito', sans-serif;
+}
+
+.sport-dashboard-overview h2 {
+    margin-bottom: 20px;
+    color: #333;
+    font-size: 24px;
+}
+
+/* Stats Cards */
+.sport-stats-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.sport-stat-card {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    transition: transform 0.3s ease;
+}
+
+.sport-stat-card:hover {
+    transform: translateY(-5px);
+}
+
+.sport-stat-icon {
+    font-size: 28px;
+    margin-right: 15px;
+    background: #f0f7ff;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.sport-stat-info h3 {
+    font-size: 24px;
+    margin: 0;
+    color: #333;
+}
+
+.sport-stat-info p {
+    margin: 5px 0 0;
+    color: #666;
+    font-size: 14px;
+}
+
+/* Dashboard Row and Cards */
+.dashboard-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.dashboard-card {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.dashboard-card h3 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    color: #333;
+    font-size: 18px;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 10px;
+}
+
+/* Performance Metrics */
+.performance-metrics {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.performance-metric-item {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.student-info {
+    display: flex;
+    align-items: center;
+}
+
+.student-avatar {
+    width: 30px;
+    height: 30px;
+    background: #4CAF50;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 10px;
+    font-weight: bold;
+}
+
+.metric-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.metric-change.positive {
+    color: #4CAF50;
+}
+
+.metric-change.negative {
+    color: #F44336;
+}
+
+.progress-container {
+    width: 100%;
+    height: 8px;
+    background: #f0f0f0;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.progress-bar {
+    height: 100%;
+    border-radius: 4px;
+}
+
+/* Session List */
+.session-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.session-item {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    border-radius: 8px;
+    background: #f9f9f9;
+}
+
+.session-time {
+    font-weight: bold;
+    min-width: 80px;
+}
+
+.session-details {
+    flex: 1;
+}
+
+.session-details h4 {
+    margin: 0;
+    font-size: 16px;
+}
+
+.session-details p {
+    margin: 5px 0 0;
+    color: #666;
+    font-size: 14px;
+}
+
+.view-session-button {
+    background: #2196F3;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 5px 10px;
+    cursor: pointer;
+}
+
+/* Tasks Overview */
+.tasks-summary {
+    display: flex;
+    justify-content: space-around;
+    margin-bottom: 20px;
+}
+
+.task-stat {
+    text-align: center;
+}
+
+.task-stat-number {
+    font-size: 24px;
+    font-weight: bold;
+    color: #333;
+}
+
+.task-stat-label {
+    color: #666;
+    font-size: 14px;
+}
+
+.recent-tasks {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.recent-tasks h4 {
+    margin: 0 0 10px;
+    font-size: 16px;
+}
+
+.task-item {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    background: #f9f9f9;
+    border-radius: 8px;
+}
+
+.task-priority {
+    width: 4px;
+    height: 40px;
+    border-radius: 2px;
+    margin-right: 10px;
+}
+
+.task-priority.high {
+    background: #F44336;
+}
+
+.task-priority.medium {
+    background: #FF9800;
+}
+
+.task-priority.low {
+    background: #4CAF50;
+}
+
+.task-content {
+    flex: 1;
+}
+
+.task-content h5 {
+    margin: 0;
+    font-size: 14px;
+}
+
+.task-content p {
+    margin: 5px 0 0;
+    color: #666;
+    font-size: 12px;
+}
+
+.task-status {
+    font-size: 12px;
+    padding: 3px 8px;
+    border-radius: 12px;
+}
+
+.task-status.pending {
+    background: #FFF3E0;
+    color: #FF9800;
+}
+
+.task-status.in-progress {
+    background: #E3F2FD;
+    color: #2196F3;
+}
+
+.task-status.completed {
+    background: #E8F5E9;
+    color: #4CAF50;
+}
+
+/* Student Overview */
+.sport-distribution,
+.attendance-summary {
+    margin-bottom: 20px;
+}
+
+.sport-distribution h4,
+.attendance-summary h4 {
+    margin: 0 0 10px;
+    font-size: 16px;
+}
+
+.sport-chart {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.sport-bar {
+    height: 25px;
+    background: #f0f0f0;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.sport-bar-fill {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    padding: 0 10px;
+    color: white;
+    font-size: 12px;
+}
+
+.attendance-chart {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    height: 120px;
+}
+
+.attendance-day {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 40px;
+}
+
+.attendance-bar-container {
+    width: 20px;
+    height: 100px;
+    background: #f0f0f0;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 5px;
+}
+
+.attendance-bar {
+    width: 100%;
+
+    border-radius: 4px 4px 0 0;
+    position: absolute;
+    bottom: 0;
+}
+
+/* Quick Actions */
+.quick-actions {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.quick-actions h3 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    color: #333;
+    font-size: 18px;
+}
+
+.action-buttons {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+}
+
+.action-buttons button {
+    background: #f9f9f9;
+    border: 1px solid #eee;
+    border-radius: 8px;
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.action-buttons button:hover {
+    background: #f0f7ff;
+    transform: translateY(-3px);
+}
+
+.action-buttons button span {
+    font-size: 24px;
+}
+
+/* View All Button */
+.view-all-button {
+    background: none;
+    border: none;
+    color: #2196F3;
+    padding: 8px;
+    margin-top: 10px;
+    cursor: pointer;
+    font-weight: bold;
+    align-self: center;
+}
+
+.view-all-button:hover {
+    text-decoration: underline;
+}
+
+/* Performance Table Styles */
+.performance-table-container {
+    margin-bottom: 20px;
+    overflow-x: auto;
+    display: block;
+}
+
+.performance-table {
+    width: 100%;
+    border-collapse: collapse;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    background-color: white;
+}
+
+.performance-table thead {
+    background-color: #f5f7fa;
+}
+
+.performance-table th {
+    padding: 12px 15px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 14px;
+    color: #4a5568;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.performance-table td {
+    padding: 12px 15px;
+    border-bottom: 1px solid #e2e8f0;
+    font-size: 14px;
+}
+
+.performance-table-row:hover {
+    background-color: #f9fafb;
+}
+
+.performance-table .student-name {
+    font-weight: 600;
+    color: #2d3748;
+}
+
+.performance-table .metric-name {
+    color: #4a5568;
+}
+
+.performance-table .current-value,
+.performance-table .previous-value {
+    font-family: 'Courier New', monospace;
+    font-weight: 600;
+}
+
+.performance-table .change-value {
+    font-weight: 600;
+}
+
+.performance-table .change-value.positive {
+    color: #48bb78;
+}
+
+.performance-table .change-value.negative {
+    color: #f56565;
+}
+
+.performance-table .progress-cell {
+    width: 150px;
+}
+
+.performance-table .progress-bar-container {
+    height: 8px;
+    background-color: #edf2f7;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.performance-table .progress-bar {
+    height: 100%;
+    border-radius: 4px;
+}
+
+/* Performance List Styles (Mobile-friendly) */
+.performance-list-container {
+    display: none;
+    /* Hidden by default, shown on mobile */
+}
+
+.performance-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.performance-list-item {
+    background-color: white;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.performance-list-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.student-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background-color: #4299e1;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    margin-right: 12px;
+}
+
+.student-details {
+    flex: 1;
+}
+
+.performance-list .student-name {
+    font-weight: 600;
+    font-size: 16px;
+    color: #2d3748;
+    margin-bottom: 2px;
+}
+
+.performance-list .metric-name {
+    font-size: 14px;
+    color: #4a5568;
+}
+
+.change-badge {
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.change-badge.positive {
+    background-color: #c6f6d5;
+    color: #2f855a;
+}
+
+.change-badge.negative {
+    background-color: #fed7d7;
+    color: #c53030;
+}
+
+.performance-list-body {
+    padding-left: 48px;
+    /* Align with content after avatar */
+}
+
+.value-comparison {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
+
+.value-item {
+    display: flex;
+    flex-direction: column;
+}
+
+.value-label {
+    font-size: 12px;
+    color: #718096;
+    margin-bottom: 2px;
+}
+
+.value-number {
+    font-weight: 600;
+    font-size: 14px;
+    color: #2d3748;
+}
+
+.performance-list .progress-bar-container {
+    height: 8px;
+    background-color: #edf2f7;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-top: 8px;
+}
+
+.performance-list .progress-bar {
+    height: 100%;
+    border-radius: 4px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .performance-table-container {
+        display: none;
+    }
+
+    .performance-list-container {
+        display: block;
+    }
+}
+
+/* View All Button */
+.view-all-button {
+    display: block;
+    margin: 15px auto 0;
+    padding: 8px 16px;
+    background-color: #4299e1;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.view-all-button:hover {
+    background-color: #3182ce;
+}
+
+/* Performance Table Styles - Updated with Actions column */
+.performance-table th:last-child,
+.performance-table td:last-child {
+    text-align: center;
+}
+
+.actions-cell {
+    width: 100px;
+}
+
+.update-performance-btn {
+    background-color: #4299e1;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 6px 12px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.update-performance-btn:hover {
+    background-color: #3182ce;
+}
+
+.update-performance-btn.mobile {
+    margin-top: 12px;
+    width: 100%;
+    padding: 8px;
+    font-size: 14px;
+}
+
+/* Modal Styles */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.update-performance-modal {
+    background-color: white;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 600px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    animation: modalFadeIn 0.3s ease;
+}
+
+@keyframes modalFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 20px;
+    border-bottom: 1px solid #e2e8f0;
+    background-color: #f8fafc;
+    border-radius: 12px 12px 0 0;
+}
+
+.modal-header h3 {
+    margin: 0;
+    color: #2d3748;
+    font-size: 18px;
+}
+
+.close-modal-btn {
+    background: none;
+    border: none;
+    font-size: 24px;
+    color: #718096;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.close-modal-btn:hover {
+    color: #4a5568;
+}
+
+.modal-body {
+    padding: 20px;
+}
+
+.performance-info {
+    background-color: #f8fafc;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 20px;
+}
+
+.info-row {
+    display: flex;
+    margin-bottom: 8px;
+}
+
+.info-row:last-child {
+    margin-bottom: 0;
+}
+
+.info-label {
+    font-weight: 600;
+    color: #4a5568;
+    width: 120px;
+    flex-shrink: 0;
+}
+
+.info-value {
+    color: #2d3748;
+}
+
+.update-form .form-group {
+    margin-bottom: 16px;
+}
+
+.update-form label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 500;
+    color: #4a5568;
+    font-size: 14px;
+}
+
+.performance-input,
+.date-input,
+.comments-input {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    font-size: 14px;
+    transition: border-color 0.2s;
+}
+
+.performance-input:focus,
+.date-input:focus,
+.comments-input:focus {
+    border-color: #4299e1;
+    outline: none;
+}
+
+.comments-input {
+    resize: vertical;
+    min-height: 80px;
+}
+
+/* File Upload Styling */
+.file-upload-container {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.file-input {
+    width: 0.1px;
+    height: 0.1px;
+    opacity: 0;
+    overflow: hidden;
+    position: absolute;
+    z-index: -1;
+}
+
+.file-upload-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background-color: #edf2f7;
+    color: #4a5568;
+    padding: 10px 15px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    font-size: 14px;
+    width: fit-content;
+}
+
+.file-upload-label:hover {
+    background-color: #e2e8f0;
+}
+
+.upload-icon {
+    font-size: 18px;
+}
+
+.file-info {
+    font-size: 12px;
+    color: #718096;
+}
+
+.uploaded-files-preview {
+    margin-top: 16px;
+    min-height: 60px;
+    border: 1px dashed #e2e8f0;
+    border-radius: 6px;
+    padding: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.no-files {
+    color: #a0aec0;
+    font-size: 14px;
+}
+
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    padding: 16px 20px;
+    border-top: 1px solid #e2e8f0;
+    background-color: #f8fafc;
+    border-radius: 0 0 12px 12px;
+}
+
+.cancel-btn {
+    background-color: #e2e8f0;
+    color: #4a5568;
+    border: none;
+    border-radius: 6px;
+    padding: 10px 16px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.cancel-btn:hover {
+    background-color: #cbd5e0;
+}
+
+.save-btn {
+    background-color: #4299e1;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 10px 16px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.save-btn:hover {
+    background-color: #3182ce;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .update-performance-modal {
+        width: 95%;
+        max-height: 95vh;
+    }
+
+    .info-row {
+        flex-direction: column;
+    }
+
+    .info-label {
+        width: 100%;
+        margin-bottom: 4px;
+    }
+
+    .modal-footer {
+        flex-direction: column;
+    }
+
+    .cancel-btn,
+    .save-btn {
+        width: 100%;
+    }
+}
+
+/* Add these styles to your SportCoachDashboard.css file */
+
+/* Enhanced Filter Styles */
+.sport-filter-container {
+    background-color: white;
+    border-radius: 10px;
+    padding: 15px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.sport-filter-row {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 15px;
+}
+
+.sport-filter-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+}
+
+.sport-filter-group label {
+    font-weight: 500;
+    color: #333;
+    white-space: nowrap;
+    min-width: 80px;
+}
+
+.sport-filter-group input,
+.sport-filter-group select {
+    flex: 1;
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 0.9rem;
+}
+
+.sport-filter-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.sport-filter-button {
+    padding: 8px 15px;
+    background-color: #3f51b5;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: background-color 0.2s ease;
+    margin-right: 10px;
+}
+
+.sport-filter-button:hover {
+    background-color: #303f9f;
+}
+
+.sport-filter-button.clear {
+    background-color: #f5f5f5;
+    color: #333;
+    border: 1px solid #ddd;
+}
+
+.sport-filter-button.clear:hover {
+    background-color: #e0e0e0;
+}
+
+.sport-view-options {
+    display: flex;
+    gap: 5px;
+}
+
+.sport-view-button {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #f5f5f5;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.sport-view-button.active {
+    background-color: #e3f2fd;
+    border-color: #2196f3;
+    color: #2196f3;
+}
+
+.sport-view-button:hover:not(.active) {
+    background-color: #e0e0e0;
+}
+
+/* Pagination Styles */
+.sport-pagination {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 20px;
+    padding: 10px 0;
+}
+
+.sport-pagination span {
+    color: #666;
+    font-size: 0.9rem;
+}
+
+.sport-pagination-controls {
+    display: flex;
+    gap: 5px;
+}
+
+.sport-pagination-controls button {
+    min-width: 36px;
+    height: 36px;
+    padding: 0 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #f5f5f5;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.sport-pagination-controls button.active {
+    background-color: #3f51b5;
+    border-color: #3f51b5;
+    color: white;
+}
+
+.sport-pagination-controls button:hover:not(.active):not(:disabled) {
+    background-color: #e0e0e0;
+}
+
+.sport-pagination-controls button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Responsive adjustments for filters */
+@media (max-width: 992px) {
+    .sport-filter-row {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .sport-filter-group {
+        width: 100%;
+    }
+}
+
+/* General Styling */
+.music-students-section {
+    background: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+    margin-top: 20px;
+}
+
+/* Section Header */
+.music-section-header h2 {
+    margin-bottom: 15px;
+    font-size: 24px;
+    font-weight: bold;
+    color: #333;
+}
+
+/* Filter Container */
+.music-filter-container {
+    background: #f9f9f9;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+.music-filter-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.music-filter-group {
+    flex: 1;
+    min-width: 220px;
+}
+
+.music-filter-group label {
+    display: block;
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.music-filter-group input,
+.music-filter-group select {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+/* Filter Actions */
+.music-filter-actions {
+    display: flex;
+    justify-content: flex-start;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.music-filter-button {
+    padding: 8px 12px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.music-filter-button:hover {
+    opacity: 0.8;
+}
+
+.music-filter-button.clear {
+    background: #ccc;
+    color: #fff;
+}
+
+.music-filter-button:not(.clear) {
+    background: #007bff;
+    color: #fff;
+}
+
+/* Table Styling */
+.music-data-table {
+    overflow-x: auto;
+}
+
+.music-data-table table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+
+.music-data-table th,
+.music-data-table td {
+    border: 1px solid #ddd;
+    padding: 10px;
+    text-align: left;
+}
+
+.music-data-table th {
+    background: #007bff;
+    color: white;
+}
+
+.music-data-table tr:nth-child(even) {
+    background: #f2f2f2;
+}
+
+/* Priority Styling */
+.priority-tag {
+    padding: 5px 10px;
+    border-radius: 5px;
+    font-weight: bold;
+    display: inline-block;
+}
+
+.priority-tag.high {
+    background: #dc3545;
+    color: white;
+}
+
+.priority-tag.medium {
+    background: #ffc107;
+    color: black;
+}
+
+.priority-tag.low {
+    background: #28a745;
+    color: white;
+}
+
+/* Media Link */
+.music-data-table a {
+    color: #007bff;
+    text-decoration: none;
+}
+
+.music-data-table a:hover {
+    text-decoration: underline;
+}
+
+/* Action Buttons */
+.update-performance-btn {
+    background: #28a745;
+    color: white;
+    padding: 8px 10px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.update-performance-btn:hover {
+    background: #218838;
+}
+
+/* Pagination */
+.music-pagination {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 20px;
+}
+
+.music-pagination-controls button {
+    padding: 8px 12px;
+    border: 1px solid #007bff;
+    background: white;
+    cursor: pointer;
+    border-radius: 5px;
+    font-weight: bold;
+}
+
+.music-pagination-controls button.active {
+    background: #007bff;
+    color: white;
+}
+
+.music-pagination-controls button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Music Sessions Section */
+.music-sessions-list {
+    background: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+    margin-top: 20px;
+}
+
+/* Table Styling */
+.music-data-table {
+    overflow-x: auto;
+}
+
+.music-data-table table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+
+.music-data-table th,
+.music-data-table td {
+    border: 1px solid #ddd;
+    padding: 10px;
+    text-align: left;
+}
+
+.music-data-table th {
+    background: #007bff;
+    color: white;
+}
+
+.music-data-table tr:nth-child(even) {
+    background: #f2f2f2;
+}
+
+/* Repertoire Styling */
+pre {
+    white-space: pre-wrap;
+    font-family: 'Courier New', monospace;
+    font-size: 14px;
+    color: #333;
+}
+
+/* Action Buttons */
+.music-icon-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 18px;
+    margin-right: 5px;
+}
+
+.music-icon-button:hover {
+    opacity: 0.7;
+}

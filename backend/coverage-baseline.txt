@@ -1,0 +1,2384 @@
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+(node:347890) [MONGOOSE] Warning: Duplicate schema index on {"orderNumber":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:347910) [MONGOOSE] Warning: Duplicate schema index on {"orderNumber":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(Use `node --trace-warnings ...` to show where the warning was created)
+FAIL tests/controllers/adminProductController_story1_2.test.js (9.935 s)
+  Admin Product Controller - Story 1.2
+    createProduct
+      ✕ should create product with valid constraints (658 ms)
+      ✓ should fail if maxPrice is missing (98 ms)
+      ✓ should fail if approvedVendors is missing (72 ms)
+      ✓ should fail if vendor ID is invalid (74 ms)
+      ✓ should fail if duplicate vendor IDs are provided (34 ms)
+    createPendingProduct
+      ✕ should allow admin to create pending product (73 ms)
+      ✓ should deny non-admin (25 ms)
+    updateProduct
+      ✕ should validate maxPrice during update (32 ms)
+      ✕ should validate approvedVendors during update (26 ms)
+      ✕ should validate vendor IDs during update (25 ms)
+
+  ● Admin Product Controller - Story 1.2 › createProduct › should create product with valid constraints
+
+    expect(jest.fn()).toHaveBeenCalledWith(...expected)
+
+    Expected: 201
+    Received: 400
+
+    Number of calls: 1
+
+      32 |       await adminProductController.createProduct(req, res);
+      33 |
+    > 34 |       expect(res.status).toHaveBeenCalledWith(201);
+         |                          ^
+      35 |       expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ success: true }));
+      36 |     });
+      37 |
+
+      at Object.toHaveBeenCalledWith (tests/controllers/adminProductController_story1_2.test.js:34:26)
+
+  ● Admin Product Controller - Story 1.2 › createPendingProduct › should allow admin to create pending product
+
+    expect(jest.fn()).toHaveBeenCalledWith(...expected)
+
+    Expected: 201
+    Received: 400
+
+    Number of calls: 1
+
+      145 |       await adminProductController.createPendingProduct(req, res);
+      146 |
+    > 147 |       expect(res.status).toHaveBeenCalledWith(201);
+          |                          ^
+      148 |     });
+      149 |
+      150 |     it('should deny non-admin', async () => {
+
+      at Object.toHaveBeenCalledWith (tests/controllers/adminProductController_story1_2.test.js:147:26)
+
+  ● Admin Product Controller - Story 1.2 › updateProduct › should validate maxPrice during update
+
+    ValidationError: ShopItem validation failed: category: stationery is not a valid category
+
+      at model.Document.invalidate (node_modules/mongoose/lib/document.js:3362:32)
+      at node_modules/mongoose/lib/document.js:3123:17
+      at node_modules/mongoose/lib/schemaType.js:1420:9
+
+  ● Admin Product Controller - Story 1.2 › updateProduct › should validate approvedVendors during update
+
+    ValidationError: ShopItem validation failed: category: stationery is not a valid category
+
+      at model.Document.invalidate (node_modules/mongoose/lib/document.js:3362:32)
+      at node_modules/mongoose/lib/document.js:3123:17
+      at node_modules/mongoose/lib/schemaType.js:1420:9
+
+  ● Admin Product Controller - Story 1.2 › updateProduct › should validate vendor IDs during update
+
+    ValidationError: ShopItem validation failed: category: stationery is not a valid category
+
+      at model.Document.invalidate (node_modules/mongoose/lib/document.js:3362:32)
+      at node_modules/mongoose/lib/document.js:3123:17
+      at node_modules/mongoose/lib/schemaType.js:1420:9
+
+FAIL tests/routes/stockReconciliationRoutes.test.js (11.905 s)
+  Stock Reconciliation (Story 4.1)
+    PATCH /api/v2/shop/admin/inventory/:productId/adjust
+      ✕ allows Purchase Manager to adjust stock and creates InventoryTransaction (delta mode) (639 ms)
+      ✕ allows Purchase Manager to set new physical count (newStock mode) (180 ms)
+      ✕ rejects adjustments that would result in negative stock (73 ms)
+      ✕ requires a reason code (102 ms)
+      ✕ denies unauthorized roles (126 ms)
+
+  ● Stock Reconciliation (Story 4.1) › PATCH /api/v2/shop/admin/inventory/:productId/adjust › allows Purchase Manager to adjust stock and creates InventoryTransaction (delta mode)
+
+    ValidationError: ShopItem validation failed: category: stationery is not a valid category
+
+      at model.Document.invalidate (node_modules/mongoose/lib/document.js:3362:32)
+      at node_modules/mongoose/lib/document.js:3123:17
+      at node_modules/mongoose/lib/schemaType.js:1420:9
+
+  ● Stock Reconciliation (Story 4.1) › PATCH /api/v2/shop/admin/inventory/:productId/adjust › allows Purchase Manager to set new physical count (newStock mode)
+
+    ValidationError: ShopItem validation failed: category: sports is not a valid category
+
+      at model.Document.invalidate (node_modules/mongoose/lib/document.js:3362:32)
+      at node_modules/mongoose/lib/document.js:3123:17
+      at node_modules/mongoose/lib/schemaType.js:1420:9
+
+  ● Stock Reconciliation (Story 4.1) › PATCH /api/v2/shop/admin/inventory/:productId/adjust › rejects adjustments that would result in negative stock
+
+    ValidationError: ShopItem validation failed: category: other is not a valid category
+
+      at model.Document.invalidate (node_modules/mongoose/lib/document.js:3362:32)
+      at node_modules/mongoose/lib/document.js:3123:17
+      at node_modules/mongoose/lib/schemaType.js:1420:9
+
+  ● Stock Reconciliation (Story 4.1) › PATCH /api/v2/shop/admin/inventory/:productId/adjust › requires a reason code
+
+    ValidationError: ShopItem validation failed: category: books is not a valid category
+
+      at model.Document.invalidate (node_modules/mongoose/lib/document.js:3362:32)
+      at node_modules/mongoose/lib/document.js:3123:17
+      at node_modules/mongoose/lib/schemaType.js:1420:9
+
+  ● Stock Reconciliation (Story 4.1) › PATCH /api/v2/shop/admin/inventory/:productId/adjust › denies unauthorized roles
+
+    ValidationError: ShopItem validation failed: category: stationery is not a valid category
+
+      at model.Document.invalidate (node_modules/mongoose/lib/document.js:3362:32)
+      at node_modules/mongoose/lib/document.js:3123:17
+      at node_modules/mongoose/lib/schemaType.js:1420:9
+
+FAIL tests/epic3/pm-dashboard.test.js (12.505 s)
+  Epic 3: PM Dashboard Extensions (Stories 3.6, 3.7)
+    Story 3.7: Short Request IDs
+      ✓ should generate a 5-digit short ID on creation (PR-0000X) (800 ms)
+    Story 3.6: Additional Status Tabs (Analytics)
+      ✕ getStockLevels should categorize stock correctly (219 ms)
+      ✕ getVendorsWithProductCount should count products per vendor (95 ms)
+      ✕ getMostConsumed should aggregate quantities correctly (117 ms)
+
+  ● Epic 3: PM Dashboard Extensions (Stories 3.6, 3.7) › Story 3.6: Additional Status Tabs (Analytics) › getStockLevels should categorize stock correctly
+
+    ValidationError: ShopItem validation failed: category: other is not a valid category
+
+      at model.Document.invalidate (node_modules/mongoose/lib/document.js:3362:32)
+      at node_modules/mongoose/lib/document.js:3123:17
+      at node_modules/mongoose/lib/schemaType.js:1420:9
+
+  ● Epic 3: PM Dashboard Extensions (Stories 3.6, 3.7) › Story 3.6: Additional Status Tabs (Analytics) › getVendorsWithProductCount should count products per vendor
+
+    ValidationError: ShopItem validation failed: category: other is not a valid category
+
+      at model.Document.invalidate (node_modules/mongoose/lib/document.js:3362:32)
+      at node_modules/mongoose/lib/document.js:3123:17
+      at node_modules/mongoose/lib/schemaType.js:1420:9
+
+  ● Epic 3: PM Dashboard Extensions (Stories 3.6, 3.7) › Story 3.6: Additional Status Tabs (Analytics) › getMostConsumed should aggregate quantities correctly
+
+    ValidationError: ShopItem validation failed: category: other is not a valid category
+
+      at model.Document.invalidate (node_modules/mongoose/lib/document.js:3362:32)
+      at node_modules/mongoose/lib/document.js:3123:17
+      at node_modules/mongoose/lib/schemaType.js:1420:9
+
+FAIL tests/routes/inventoryMasterReportRoutes.test.js (12.679 s)
+  Inventory Master Report Routes Integration - Story 3.3
+    GET /api/v2/shop/admin/inventory/master-report
+      ✕ returns deployed aggregation per product for admin (694 ms)
+      ✓ denies non-admin (224 ms)
+
+  ● Inventory Master Report Routes Integration - Story 3.3 › GET /api/v2/shop/admin/inventory/master-report › returns deployed aggregation per product for admin
+
+    ValidationError: ShopItem validation failed: category: stationery is not a valid category
+
+      at model.Document.invalidate (node_modules/mongoose/lib/document.js:3362:32)
+      at node_modules/mongoose/lib/document.js:3123:17
+      at node_modules/mongoose/lib/schemaType.js:1420:9
+
+FAIL tests/shopProduct_story2_5.test.js (13.394 s)
+  Story 2.5: Purchase Category Filtering
+    ✕ should filter products by purchaseCategory - Medicines (247 ms)
+    ✕ should filter products by purchaseCategory - Repairs (95 ms)
+    ✕ should filter products by purchaseCategory - Infra (62 ms)
+    ✕ should return ISF Shop products for ISF Shop category (92 ms)
+    ✕ should return all products when no purchaseCategory filter provided (96 ms)
+    ✕ should return empty array for invalid purchaseCategory (74 ms)
+    ✕ should support Consumables purchase category (49 ms)
+    ✕ should support Others purchase category (25 ms)
+
+  ● Story 2.5: Purchase Category Filtering › should filter products by purchaseCategory - Medicines
+
+    ValidationError: ShopItem validation failed: category: other is not a valid category
+
+      at model.Document.invalidate (node_modules/mongoose/lib/document.js:3362:32)
+      at node_modules/mongoose/lib/document.js:3123:17
+      at node_modules/mongoose/lib/schemaType.js:1420:9
+
+  ● Story 2.5: Purchase Category Filtering › should filter products by purchaseCategory - Repairs
+
+    ValidationError: ShopItem validation failed: category: other is not a valid category
+
+      at model.Document.invalidate (node_modules/mongoose/lib/document.js:3362:32)
+      at node_modules/mongoose/lib/document.js:3123:17
+      at node_modules/mongoose/lib/schemaType.js:1420:9
+
+  ● Story 2.5: Purchase Category Filtering › should filter products by purchaseCategory - Infra
+
+    ValidationError: ShopItem validation failed: category: other is not a valid category
+
+      at model.Document.invalidate (node_modules/mongoose/lib/document.js:3362:32)
+      at node_modules/mongoose/lib/document.js:3123:17
+      at node_modules/mongoose/lib/schemaType.js:1420:9
+
+  ● Story 2.5: Purchase Category Filtering › should return ISF Shop products for ISF Shop category
+
+    ValidationError: ShopItem validation failed: category: other is not a valid category
+
+      at model.Document.invalidate (node_modules/mongoose/lib/document.js:3362:32)
+      at node_modules/mongoose/lib/document.js:3123:17
+      at node_modules/mongoose/lib/schemaType.js:1420:9
+
+  ● Story 2.5: Purchase Category Filtering › should return all products when no purchaseCategory filter provided
+
+    ValidationError: ShopItem validation failed: category: other is not a valid category
+
+      at model.Document.invalidate (node_modules/mongoose/lib/document.js:3362:32)
+      at node_modules/mongoose/lib/document.js:3123:17
+      at node_modules/mongoose/lib/schemaType.js:1420:9
+
+  ● Story 2.5: Purchase Category Filtering › should return empty array for invalid purchaseCategory
+
+    ValidationError: ShopItem validation failed: category: other is not a valid category
+
+      at model.Document.invalidate (node_modules/mongoose/lib/document.js:3362:32)
+      at node_modules/mongoose/lib/document.js:3123:17
+      at node_modules/mongoose/lib/schemaType.js:1420:9
+
+  ● Story 2.5: Purchase Category Filtering › should support Consumables purchase category
+
+    ValidationError: ShopItem validation failed: category: other is not a valid category
+
+      at model.Document.invalidate (node_modules/mongoose/lib/document.js:3362:32)
+      at node_modules/mongoose/lib/document.js:3123:17
+      at node_modules/mongoose/lib/schemaType.js:1420:9
+
+  ● Story 2.5: Purchase Category Filtering › should support Others purchase category
+
+    ValidationError: ShopItem validation failed: category: other is not a valid category
+
+      at model.Document.invalidate (node_modules/mongoose/lib/document.js:3362:32)
+      at node_modules/mongoose/lib/document.js:3123:17
+      at node_modules/mongoose/lib/schemaType.js:1420:9
+
+FAIL tests/purchaseRequest_story2_1.test.js (13.494 s)
+  Story 2.1: Purchase Request State Machine
+    Model Schema
+      ✕ should support new status enum and history (199 ms)
+    Controller: updateStatus
+      ✕ should allow PM to move pending -> ordered (37 ms)
+      ✕ should DENY Coach from moving pending -> ordered (129 ms)
+      ✕ should DENY Admin from moving pending -> ordered (PM only) (182 ms)
+      ✕ should allow PM to move ordered -> delivered_store (113 ms)
+      ✕ should allow Coach (Requester) to move delivered_store -> delivered_balagruha (147 ms)
+      ✕ should DENY non-requester from moving delivered_store -> delivered_balagruha (73 ms)
+      ✕ should allow Admin to move delivered_store -> delivered_balagruha (75 ms)
+      ✕ should return 400 for invalid status value (60 ms)
+      ✕ should DENY PM from updating status when request is in an unassigned balagruha (51 ms)
+      ✕ should ALLOW PM to update status when request is in an assigned balagruha (47 ms)
+    Controller: getPurchaseRequestById (access control)
+      ✕ should DENY non-admin non-PM from viewing someone else's request (42 ms)
+      ✕ should ALLOW Purchase Manager to view STOCK requests (61 ms)
+      ✕ should DENY Purchase Manager from viewing requests outside assigned balagruhas (26 ms)
+    Controller: assignFromStock (Shortcut)
+      ✕ should allow PM to shortcut to delivered_store and decrement stock (48 ms)
+      ✕ should fail if insufficient stock (37 ms)
+    Story 2.5: Category filter validation (list endpoints)
+      ✕ should return 400 for invalid category filter in getAllPurchaseRequests (39 ms)
+      ✕ should return 400 for invalid category filter in getMyPurchaseRequests (35 ms)
+
+  ● Story 2.1: Purchase Request State Machine › Model Schema › should support new status enum and history
+
+    ValidationError: ShopItem validation failed: category: stationery is not a valid category
+
+      at model.Document.invalidate (node_modules/mongoose/lib/document.js:3362:32)
+      at node_modules/mongoose/lib/document.js:3123:17
+      at node_modules/mongoose/lib/schemaType.js:1420:9
+
+  ● Story 2.1: Purchase Request State Machine › Controller: updateStatus › should allow PM to move pending -> ordered
+
+    ValidationError: ShopItem validation failed: category: stationery is not a valid category
+
+      at model.Document.invalidate (node_modules/mongoose/lib/document.js:3362:32)
+      at node_modules/mongoose/lib/document.js:3123:17
+      at node_modules/mongoose/lib/schemaType.js:1420:9
+
+  ● Story 2.1: Purchase Request State Machine › Controller: updateStatus › should DENY Coach from moving pending -> ordered
+
+    ValidationError: ShopItem validation failed: category: stationery is not a valid category
+
+      at model.Document.invalidate (node_modules/mongoose/lib/document.js:3362:32)
+      at node_modules/mongoose/lib/document.js:3123:17
+      at node_modules/mongoose/lib/schemaType.js:1420:9
+
+  ● Story 2.1: Purchase Request State Machine › Controller: updateStatus › should DENY Admin from moving pending -> ordered (PM only)
+
+    ValidationError: ShopItem validation failed: category: stationery is not a valid category
+
+      at model.Document.invalidate (node_modules/mongoose/lib/document.js:3362:32)
+      at node_modules/mongoose/lib/document.js:3123:17
+      at node_modules/mongoose/lib/schemaType.js:1420:9
+
+  ● Story 2.1: Purchase Request State Machine › Controller: updateStatus › should allow PM to move ordered -> delivered_store
+
+    ValidationError: ShopItem validation failed: category: stationery is not a valid category
+
+      at model.Document.invalidate (node_modules/mongoose/lib/document.js:3362:32)
+      at node_modules/mongoose/lib/document.js:3123:17
+      at node_modules/mongoose/lib/schemaType.js:1420:9
+
+  ● Story 2.1: Purchase Request State Machine › Controller: updateStatus › should allow Coach (Requester) to move delivered_store -> delivered_balagruha
+
+    ValidationError: ShopItem validation failed: category: stationery is not a valid category
+
+      at model.Document.invalidate (node_modules/mongoose/lib/document.js:3362:32)
+      at node_modules/mongoose/lib/document.js:3123:17
+      at node_modules/mongoose/lib/schemaType.js:1420:9
+
+  ● Story 2.1: Purchase Request State Machine › Controller: updateStatus › should DENY non-requester from moving delivered_store -> delivered_balagruha
+
+    ValidationError: ShopItem validation failed: category: stationery is not a valid category
+
+      at model.Document.invalidate (node_modules/mongoose/lib/document.js:3362:32)
+      at node_modules/mongoose/lib/document.js:3123:17
+      at node_modules/mongoose/lib/schemaType.js:1420:9
+
+  ● Story 2.1: Purchase Request State Machine › Controller: updateStatus › should allow Admin to move delivered_store -> delivered_balagruha
+
+    ValidationError: ShopItem validation failed: category: stationery is not a valid category
+
+      at model.Document.invalidate (node_modules/mongoose/lib/document.js:3362:32)
+      at node_modules/mongoose/lib/document.js:3123:17
+      at node_modules/mongoose/lib/schemaType.js:1420:9
+
+  ● Story 2.1: Purchase Request State Machine › Controller: updateStatus › should return 400 for invalid status value
+
+    ValidationError: ShopItem validation failed: category: stationery is not a valid category
+
+      at model.Document.invalidate (node_modules/mongoose/lib/document.js:3362:32)
+      at node_modules/mongoose/lib/document.js:3123:17
+      at node_modules/mongoose/lib/schemaType.js:1420:9
+
+  ● Story 2.1: Purchase Request State Machine › Controller: updateStatus › should DENY PM from updating status when request is in an unassigned balagruha
+
+    ValidationError: ShopItem validation failed: category: stationery is not a valid category
+
+      at model.Document.invalidate (node_modules/mongoose/lib/document.js:3362:32)
+      at node_modules/mongoose/lib/document.js:3123:17
+      at node_modules/mongoose/lib/schemaType.js:1420:9
+
+  ● Story 2.1: Purchase Request State Machine › Controller: updateStatus › should ALLOW PM to update status when request is in an assigned balagruha
+
+    ValidationError: ShopItem validation failed: category: stationery is not a valid category
+
+      at model.Document.invalidate (node_modules/mongoose/lib/document.js:3362:32)
+      at node_modules/mongoose/lib/document.js:3123:17
+      at node_modules/mongoose/lib/schemaType.js:1420:9
+
+  ● Story 2.1: Purchase Request State Machine › Controller: getPurchaseRequestById (access control) › should DENY non-admin non-PM from viewing someone else's request
+
+    ValidationError: ShopItem validation failed: category: stationery is not a valid category
+
+      at model.Document.invalidate (node_modules/mongoose/lib/document.js:3362:32)
+      at node_modules/mongoose/lib/document.js:3123:17
+      at node_modules/mongoose/lib/schemaType.js:1420:9
+
+  ● Story 2.1: Purchase Request State Machine › Controller: getPurchaseRequestById (access control) › should ALLOW Purchase Manager to view STOCK requests
+
+    ValidationError: ShopItem validation failed: category: stationery is not a valid category
+
+      at model.Document.invalidate (node_modules/mongoose/lib/document.js:3362:32)
+      at node_modules/mongoose/lib/document.js:3123:17
+      at node_modules/mongoose/lib/schemaType.js:1420:9
+
+  ● Story 2.1: Purchase Request State Machine › Controller: getPurchaseRequestById (access control) › should DENY Purchase Manager from viewing requests outside assigned balagruhas
+
+    ValidationError: ShopItem validation failed: category: stationery is not a valid category
+
+      at model.Document.invalidate (node_modules/mongoose/lib/document.js:3362:32)
+      at node_modules/mongoose/lib/document.js:3123:17
+      at node_modules/mongoose/lib/schemaType.js:1420:9
+
+  ● Story 2.1: Purchase Request State Machine › Controller: assignFromStock (Shortcut) › should allow PM to shortcut to delivered_store and decrement stock
+
+    ValidationError: ShopItem validation failed: category: stationery is not a valid category
+
+      at model.Document.invalidate (node_modules/mongoose/lib/document.js:3362:32)
+      at node_modules/mongoose/lib/document.js:3123:17
+      at node_modules/mongoose/lib/schemaType.js:1420:9
+
+  ● Story 2.1: Purchase Request State Machine › Controller: assignFromStock (Shortcut) › should fail if insufficient stock
+
+    ValidationError: ShopItem validation failed: category: stationery is not a valid category
+
+      at model.Document.invalidate (node_modules/mongoose/lib/document.js:3362:32)
+      at node_modules/mongoose/lib/document.js:3123:17
+      at node_modules/mongoose/lib/schemaType.js:1420:9
+
+  ● Story 2.1: Purchase Request State Machine › Story 2.5: Category filter validation (list endpoints) › should return 400 for invalid category filter in getAllPurchaseRequests
+
+    ValidationError: ShopItem validation failed: category: stationery is not a valid category
+
+      at model.Document.invalidate (node_modules/mongoose/lib/document.js:3362:32)
+      at node_modules/mongoose/lib/document.js:3123:17
+      at node_modules/mongoose/lib/schemaType.js:1420:9
+
+  ● Story 2.1: Purchase Request State Machine › Story 2.5: Category filter validation (list endpoints) › should return 400 for invalid category filter in getMyPurchaseRequests
+
+    ValidationError: ShopItem validation failed: category: stationery is not a valid category
+
+      at model.Document.invalidate (node_modules/mongoose/lib/document.js:3362:32)
+      at node_modules/mongoose/lib/document.js:3123:17
+      at node_modules/mongoose/lib/schemaType.js:1420:9
+
+FAIL tests/security-rbac.test.js
+  RBAC Security Tests
+    Development Bypass - MUST BE REMOVED
+      ✕ should NOT bypass permission checks in development mode (58 ms)
+      ✕ should NOT bypass permission checks in local mode (23 ms)
+    Balagruh-Level Data Isolation
+      ✓ Coach A cannot access Balagruh B data (18 ms)
+      ✓ Coach with no assigned Balagruh gets null filter (12 ms)
+      ✓ Multi-Balagruh coach can access all assigned Balagruhs (13 ms)
+    Permission Escalation Prevention
+      ✓ Student cannot escalate to Admin scope (13 ms)
+      ✕ Invalid scope defaults to most restrictive (own) (23 ms)
+    Field Naming Consistency
+      ✓ should use balagruhaIds (with a) not balagruhIds (without a) (9 ms)
+    Admin Global Access
+      ✓ Admin should get empty filter (no restrictions) (8 ms)
+    Student Own-Data Access
+      ✕ Student should only access own data (12 ms)
+      ✕ Student cannot access another student data (7 ms)
+  Security Audit Checklist
+    ✕ Middleware code should not contain bypasses (6 ms)
+    ✕ Auth middleware should not contain development shortcuts (7 ms)
+
+  ● RBAC Security Tests › Development Bypass - MUST BE REMOVED › should NOT bypass permission checks in development mode
+
+    ENOENT: no such file or directory, open 'backend/middleware/auth.js'
+
+      15 |       // Read auth.js middleware
+      16 |       const fs = require('fs');
+    > 17 |       const authMiddleware = fs.readFileSync('backend/middleware/auth.js', 'utf8');
+         |                                 ^
+      18 |
+      19 |       // Check that development bypass is REMOVED
+      20 |       expect(authMiddleware).not.toMatch(/NODE_ENV.*development.*next\(\)/);
+
+      at Object.readFileSync (tests/security-rbac.test.js:17:33)
+
+  ● RBAC Security Tests › Development Bypass - MUST BE REMOVED › should NOT bypass permission checks in local mode
+
+    ENOENT: no such file or directory, open 'backend/middleware/auth.js'
+
+      25 |     test('should NOT bypass permission checks in local mode', () => {
+      26 |       const fs = require('fs');
+    > 27 |       const authMiddleware = fs.readFileSync('backend/middleware/auth.js', 'utf8');
+         |                                 ^
+      28 |
+      29 |       expect(authMiddleware).not.toMatch(/process\.env\.NODE_ENV.*===.*"local"/);
+      30 |     });
+
+      at Object.readFileSync (tests/security-rbac.test.js:27:33)
+
+  ● RBAC Security Tests › Permission Escalation Prevention › Invalid scope defaults to most restrictive (own)
+
+    expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 1
+    + Received  + 1
+
+      Object {
+    -   "userId": "507f1f77bcf86cd799439099",
+    +   "_id": "507f1f77bcf86cd799439099",
+      }
+
+      114 |
+      115 |       // Should default to 'own' (most restrictive)
+    > 116 |       expect(filter).toEqual({ userId: user._id });
+          |                      ^
+      117 |     });
+      118 |   });
+      119 |
+
+      at Object.toEqual (tests/security-rbac.test.js:116:22)
+
+  ● RBAC Security Tests › Student Own-Data Access › Student should only access own data
+
+    expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 1
+    + Received  + 1
+
+      Object {
+    -   "userId": "507f1f77bcf86cd799439099",
+    +   "_id": "507f1f77bcf86cd799439099",
+      }
+
+      157 |       const filter = getScopeFilter(student, 'own');
+      158 |
+    > 159 |       expect(filter).toEqual({ userId: student._id });
+          |                      ^
+      160 |       expect(filter.userId.toString()).toBe(student._id.toString());
+      161 |     });
+      162 |
+
+      at Object.toEqual (tests/security-rbac.test.js:159:22)
+
+  ● RBAC Security Tests › Student Own-Data Access › Student cannot access another student data
+
+    TypeError: Cannot read properties of undefined (reading 'toString')
+
+      175 |       const filter2 = getScopeFilter(student2, 'own');
+      176 |
+    > 177 |       expect(filter1.userId.toString()).not.toBe(filter2.userId.toString());
+          |                             ^
+      178 |     });
+      179 |   });
+      180 | });
+
+      at Object.toString (tests/security-rbac.test.js:177:29)
+
+  ● Security Audit Checklist › Middleware code should not contain bypasses
+
+    ENOENT: no such file or directory, open 'backend/middleware/checkPermission.js'
+
+      183 |   test('Middleware code should not contain bypasses', () => {
+      184 |     const fs = require('fs');
+    > 185 |     const checkPermissionCode = fs.readFileSync(
+          |                                    ^
+      186 |       'backend/middleware/checkPermission.js',
+      187 |       'utf8'
+      188 |     );
+
+      at Object.readFileSync (tests/security-rbac.test.js:185:36)
+
+  ● Security Audit Checklist › Auth middleware should not contain development shortcuts
+
+    ENOENT: no such file or directory, open 'backend/middleware/auth.js'
+
+      196 |   test('Auth middleware should not contain development shortcuts', () => {
+      197 |     const fs = require('fs');
+    > 198 |     const authCode = fs.readFileSync('backend/middleware/auth.js', 'utf8');
+          |                         ^
+      199 |
+      200 |     // Should not skip authentication
+      201 |     expect(authCode.toLowerCase()).not.toMatch(/skip.*auth/);
+
+      at Object.readFileSync (tests/security-rbac.test.js:198:25)
+
+PASS tests/routes/userBalagruhasRoutes.test.js (15.56 s)
+  User Balagruhas Routes Integration - Story 2.1/3.2 Support
+    GET /api/users/me/balagruhas
+      ✓ returns STOCK + all balagruhas for admin (865 ms)
+      ✓ returns STOCK only for non-admin users with no assignments (98 ms)
+
+FAIL tests/shopItem.test.js
+  ShopItem Model - Story-01
+    Validation
+      ✕ should create a valid shop item (48 ms)
+      ✕ should fail without required fields (15 ms)
+      ✓ should fail with invalid category (54 ms)
+      ✓ should fail with negative price (12 ms)
+      ✕ should fail if discount price >= regular price (28 ms)
+    Virtuals
+      ✓ should calculate inStock correctly (50 ms)
+      ✓ should calculate lowStock correctly (17 ms)
+      ✓ should return currentPrice (discount if available) (48 ms)
+    Instance Methods
+      ✓ should check if product is available for user role (26 ms)
+
+  ● ShopItem Model - Story-01 › Validation › should create a valid shop item
+
+    ValidationError: ShopItem validation failed: category: books is not a valid category
+
+      at model.Document.invalidate (node_modules/mongoose/lib/document.js:3362:32)
+      at node_modules/mongoose/lib/document.js:3123:17
+      at node_modules/mongoose/lib/schemaType.js:1420:9
+
+  ● ShopItem Model - Story-01 › Validation › should fail without required fields
+
+    expect(received).toBeDefined()
+
+    Received: undefined
+
+      42 |
+      43 |       expect(error).toBeDefined();
+    > 44 |       expect(error.errors.sku).toBeDefined();
+         |                                ^
+      45 |       expect(error.errors.name).toBeDefined();
+      46 |       expect(error.errors.description).toBeDefined();
+      47 |       expect(error.errors.category).toBeDefined();
+
+      at Object.toBeDefined (tests/shopItem.test.js:44:32)
+
+  ● ShopItem Model - Story-01 › Validation › should fail if discount price >= regular price
+
+    expect(received).toContain(expected) // indexOf
+
+    Expected substring: "Discount price must be less than regular price"
+    Received string:    "ShopItem validation failed: category: books is not a valid category"
+
+      106 |
+      107 |       expect(error).toBeDefined();
+    > 108 |       expect(error.message).toContain('Discount price must be less than regular price');
+          |                             ^
+      109 |     });
+      110 |   });
+      111 |
+
+      at Object.toContain (tests/shopItem.test.js:108:29)
+
+PASS tests/routes/vendorRoutes.test.js
+  Vendor Routes Integration - Story 1.1
+    POST /api/v2/vendors
+      ✓ should allow admin to create vendor (488 ms)
+      ✓ should deny non-admin (65 ms)
+    GET /api/v2/vendors
+      ✓ should allow admin to list vendors (102 ms)
+      ✓ should deny non-admin (62 ms)
+    PUT /api/v2/vendors/:id
+      ✓ should allow admin to update vendor (111 ms)
+      ✓ should deny non-admin update (63 ms)
+
+FAIL tests/performance-rbac.test.js
+  RBAC Performance Tests
+    Scope Filter Generation Performance
+      ✓ should generate scope filter in < 1ms (73 ms)
+      ✓ should handle multi-Balagruh users efficiently (24 ms)
+    Memory Usage
+      ✓ should not create memory leaks (181 ms)
+    Caching Recommendations
+      ✓ should note that permission caching can improve performance (25 ms)
+  Database Query Performance (Integration)
+    ○ skipped should add query benchmarks for Mongoose queries with scope filter
+  Performance Optimization Checklist
+    ✕ User model should have index on balagruhaIds (10 ms)
+    ✕ Permission checks should use find() not findOne() + loop (10 ms)
+
+  ● Performance Optimization Checklist › User model should have index on balagruhaIds
+
+    ENOENT: no such file or directory, open 'backend/models/user.js'
+
+      107 |   test('User model should have index on balagruhaIds', () => {
+      108 |     const fs = require('fs');
+    > 109 |     const userModel = fs.readFileSync('backend/models/user.js', 'utf8');
+          |                          ^
+      110 |
+      111 |     // Check for index definition
+      112 |     expect(userModel).toMatch(/balagruhaIds.*1.*\}/); // Index definition
+
+      at Object.readFileSync (tests/performance-rbac.test.js:109:26)
+
+  ● Performance Optimization Checklist › Permission checks should use find() not findOne() + loop
+
+    ENOENT: no such file or directory, open 'backend/middleware/checkPermission.js'
+
+      115 |   test('Permission checks should use find() not findOne() + loop', () => {
+      116 |     const fs = require('fs');
+    > 117 |     const checkPermission = fs.readFileSync(
+          |                                ^
+      118 |       'backend/middleware/checkPermission.js',
+      119 |       'utf8'
+      120 |     );
+
+      at Object.readFileSync (tests/performance-rbac.test.js:117:32)
+
+FAIL tests/shopItem_story1_2.test.js
+  ShopItem Model - Story 1.2
+    ✕ should accept approvedVendors, maxPrice, and sellingPrice (136 ms)
+    ✕ should allow saving without new fields (backward compatibility) (148 ms)
+
+  ● ShopItem Model - Story 1.2 › should accept approvedVendors, maxPrice, and sellingPrice
+
+    ValidationError: ShopItem validation failed: category: stationery is not a valid category
+
+      at model.Document.invalidate (node_modules/mongoose/lib/document.js:3362:32)
+      at node_modules/mongoose/lib/document.js:3123:17
+      at node_modules/mongoose/lib/schemaType.js:1420:9
+
+  ● ShopItem Model - Story 1.2 › should allow saving without new fields (backward compatibility)
+
+    ValidationError: ShopItem validation failed: category: stationery is not a valid category
+
+      at model.Document.invalidate (node_modules/mongoose/lib/document.js:3362:32)
+      at node_modules/mongoose/lib/document.js:3123:17
+      at node_modules/mongoose/lib/schemaType.js:1420:9
+
+FAIL tests/migration-scope.test.js
+  Migration: Add Scope to Permissions
+    ✕ should add scope field to new permissions (2 ms)
+    ✕ should allow setting scope to "all" for admin
+    ✕ should allow setting scope to "balagruh" for coach (1 ms)
+    ✕ should allow setting scope to "own" for student
+    ✕ should reject invalid scope values
+    ✕ should allow multiple permissions with different scopes (4 ms)
+  Migration Script Logic Verification
+    ✓ should map role names to correct default scopes (7 ms)
+
+  ● Migration: Add Scope to Permissions › should add scope field to new permissions
+
+    MongooseError: Can't call `openUri()` on an active connection with different connection strings. Make sure you aren't calling `mongoose.connect()` multiple times. See: https://mongoosejs.com/docs/connections.html#multiple_connections
+
+      16 |     // Use in-memory MongoDB for testing
+      17 |     const mongoUri = process.env.MONGO_URI_TEST || 'mongodb://localhost:27017/isf-test';
+    > 18 |     connection = await mongoose.connect(mongoUri, {
+         |                                 ^
+      19 |       useNewUrlParser: true,
+      20 |       useUnifiedTopology: true,
+      21 |     });
+
+      at NativeConnection.createClient (node_modules/mongoose/lib/drivers/node-mongodb-native/connection.js:251:13)
+      at NativeConnection.openUri (node_modules/mongoose/lib/connection.js:1075:34)
+      at Mongoose.connect (node_modules/mongoose/lib/mongoose.js:450:15)
+      at Object.connect (tests/migration-scope.test.js:18:33)
+
+  ● Migration: Add Scope to Permissions › should allow setting scope to "all" for admin
+
+    MongooseError: Can't call `openUri()` on an active connection with different connection strings. Make sure you aren't calling `mongoose.connect()` multiple times. See: https://mongoosejs.com/docs/connections.html#multiple_connections
+
+      16 |     // Use in-memory MongoDB for testing
+      17 |     const mongoUri = process.env.MONGO_URI_TEST || 'mongodb://localhost:27017/isf-test';
+    > 18 |     connection = await mongoose.connect(mongoUri, {
+         |                                 ^
+      19 |       useNewUrlParser: true,
+      20 |       useUnifiedTopology: true,
+      21 |     });
+
+      at NativeConnection.createClient (node_modules/mongoose/lib/drivers/node-mongodb-native/connection.js:251:13)
+      at NativeConnection.openUri (node_modules/mongoose/lib/connection.js:1075:34)
+      at Mongoose.connect (node_modules/mongoose/lib/mongoose.js:450:15)
+      at Object.connect (tests/migration-scope.test.js:18:33)
+
+  ● Migration: Add Scope to Permissions › should allow setting scope to "balagruh" for coach
+
+    MongooseError: Can't call `openUri()` on an active connection with different connection strings. Make sure you aren't calling `mongoose.connect()` multiple times. See: https://mongoosejs.com/docs/connections.html#multiple_connections
+
+      16 |     // Use in-memory MongoDB for testing
+      17 |     const mongoUri = process.env.MONGO_URI_TEST || 'mongodb://localhost:27017/isf-test';
+    > 18 |     connection = await mongoose.connect(mongoUri, {
+         |                                 ^
+      19 |       useNewUrlParser: true,
+      20 |       useUnifiedTopology: true,
+      21 |     });
+
+      at NativeConnection.createClient (node_modules/mongoose/lib/drivers/node-mongodb-native/connection.js:251:13)
+      at NativeConnection.openUri (node_modules/mongoose/lib/connection.js:1075:34)
+      at Mongoose.connect (node_modules/mongoose/lib/mongoose.js:450:15)
+      at Object.connect (tests/migration-scope.test.js:18:33)
+
+  ● Migration: Add Scope to Permissions › should allow setting scope to "own" for student
+
+    MongooseError: Can't call `openUri()` on an active connection with different connection strings. Make sure you aren't calling `mongoose.connect()` multiple times. See: https://mongoosejs.com/docs/connections.html#multiple_connections
+
+      16 |     // Use in-memory MongoDB for testing
+      17 |     const mongoUri = process.env.MONGO_URI_TEST || 'mongodb://localhost:27017/isf-test';
+    > 18 |     connection = await mongoose.connect(mongoUri, {
+         |                                 ^
+      19 |       useNewUrlParser: true,
+      20 |       useUnifiedTopology: true,
+      21 |     });
+
+      at NativeConnection.createClient (node_modules/mongoose/lib/drivers/node-mongodb-native/connection.js:251:13)
+      at NativeConnection.openUri (node_modules/mongoose/lib/connection.js:1075:34)
+      at Mongoose.connect (node_modules/mongoose/lib/mongoose.js:450:15)
+      at Object.connect (tests/migration-scope.test.js:18:33)
+
+  ● Migration: Add Scope to Permissions › should reject invalid scope values
+
+    MongooseError: Can't call `openUri()` on an active connection with different connection strings. Make sure you aren't calling `mongoose.connect()` multiple times. See: https://mongoosejs.com/docs/connections.html#multiple_connections
+
+      16 |     // Use in-memory MongoDB for testing
+      17 |     const mongoUri = process.env.MONGO_URI_TEST || 'mongodb://localhost:27017/isf-test';
+    > 18 |     connection = await mongoose.connect(mongoUri, {
+         |                                 ^
+      19 |       useNewUrlParser: true,
+      20 |       useUnifiedTopology: true,
+      21 |     });
+
+      at NativeConnection.createClient (node_modules/mongoose/lib/drivers/node-mongodb-native/connection.js:251:13)
+      at NativeConnection.openUri (node_modules/mongoose/lib/connection.js:1075:34)
+      at Mongoose.connect (node_modules/mongoose/lib/mongoose.js:450:15)
+      at Object.connect (tests/migration-scope.test.js:18:33)
+
+  ● Migration: Add Scope to Permissions › should allow multiple permissions with different scopes
+
+    MongooseError: Can't call `openUri()` on an active connection with different connection strings. Make sure you aren't calling `mongoose.connect()` multiple times. See: https://mongoosejs.com/docs/connections.html#multiple_connections
+
+      16 |     // Use in-memory MongoDB for testing
+      17 |     const mongoUri = process.env.MONGO_URI_TEST || 'mongodb://localhost:27017/isf-test';
+    > 18 |     connection = await mongoose.connect(mongoUri, {
+         |                                 ^
+      19 |       useNewUrlParser: true,
+      20 |       useUnifiedTopology: true,
+      21 |     });
+
+      at NativeConnection.createClient (node_modules/mongoose/lib/drivers/node-mongodb-native/connection.js:251:13)
+      at NativeConnection.openUri (node_modules/mongoose/lib/connection.js:1075:34)
+      at Mongoose.connect (node_modules/mongoose/lib/mongoose.js:450:15)
+      at Object.connect (tests/migration-scope.test.js:18:33)
+
+FAIL tests/checkPermission.test.js
+  getScopeFilter - Scope-Based Query Filtering
+    Scope: "all" (Admin/Global Access)
+      ✓ should return empty filter for scope="all" (48 ms)
+      ✓ should allow admin to see all data (no restrictions) (26 ms)
+    Scope: "balagruh" (Balagruh-Level Access)
+      ✓ should filter by balagruhaIds array for multi-Balagruh users (26 ms)
+      ✓ should filter by single balagruhaId for users with balagruhaId field (13 ms)
+      ✓ should return null filter if user has no assigned Balagruh (25 ms)
+    Scope: "own" (User-Level Access)
+      ✕ should filter by userId for scope="own" (28 ms)
+      ✕ should restrict student to own data only (10 ms)
+    Edge Cases and Error Handling
+      ✕ should default to "own" if scope is undefined (8 ms)
+      ✕ should default to "own" if scope is null (16 ms)
+      ✕ should default to "own" for invalid scope value (16 ms)
+      ✕ should handle user with no _id field gracefully (24 ms)
+    Real-World Scenarios
+      ✓ Admin can query all students (no filter) (13 ms)
+      ✓ Coach can query only assigned Balagruh students (16 ms)
+      ✕ Student can query only own data (14 ms)
+  Integration Test: Scope Filter with MongoDB Queries
+    ✓ should construct valid MongoDB query with scope filter (18 ms)
+    ✕ should allow combining scope filter with other query parameters (31 ms)
+
+  ● getScopeFilter - Scope-Based Query Filtering › Scope: "own" (User-Level Access) › should filter by userId for scope="own"
+
+    expect(received).toHaveProperty(path)
+
+    Expected path: "userId"
+    Received path: []
+
+    Received value: {"_id": "507f1f77bcf86cd799439099"}
+
+      84 |       const filter = getScopeFilter(mockStudentUser, 'own');
+      85 |
+    > 86 |       expect(filter).toHaveProperty('userId');
+         |                      ^
+      87 |       expect(filter.userId).toEqual(mockStudentUser._id);
+      88 |     });
+      89 |
+
+      at Object.toHaveProperty (tests/checkPermission.test.js:86:22)
+
+  ● getScopeFilter - Scope-Based Query Filtering › Scope: "own" (User-Level Access) › should restrict student to own data only
+
+    expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 1
+    + Received  + 1
+
+      Array [
+    -   "userId",
+    +   "_id",
+      ]
+
+      91 |       const filter = getScopeFilter(mockStudentUser, 'own');
+      92 |
+    > 93 |       expect(Object.keys(filter)).toEqual(['userId']);
+         |                                   ^
+      94 |       expect(filter.userId).toBe(mockStudentUser._id);
+      95 |     });
+      96 |   });
+
+      at Object.toEqual (tests/checkPermission.test.js:93:35)
+
+  ● getScopeFilter - Scope-Based Query Filtering › Edge Cases and Error Handling › should default to "own" if scope is undefined
+
+    expect(received).toHaveProperty(path)
+
+    Expected path: "userId"
+    Received path: []
+
+    Received value: {"_id": "507f1f77bcf86cd799439099"}
+
+      100 |       const filter = getScopeFilter(mockStudentUser, undefined);
+      101 |
+    > 102 |       expect(filter).toHaveProperty('userId');
+          |                      ^
+      103 |       expect(filter.userId).toEqual(mockStudentUser._id);
+      104 |     });
+      105 |
+
+      at Object.toHaveProperty (tests/checkPermission.test.js:102:22)
+
+  ● getScopeFilter - Scope-Based Query Filtering › Edge Cases and Error Handling › should default to "own" if scope is null
+
+    expect(received).toHaveProperty(path)
+
+    Expected path: "userId"
+    Received path: []
+
+    Received value: {"_id": "507f1f77bcf86cd799439099"}
+
+      107 |       const filter = getScopeFilter(mockStudentUser, null);
+      108 |
+    > 109 |       expect(filter).toHaveProperty('userId');
+          |                      ^
+      110 |       expect(filter.userId).toEqual(mockStudentUser._id);
+      111 |     });
+      112 |
+
+      at Object.toHaveProperty (tests/checkPermission.test.js:109:22)
+
+  ● getScopeFilter - Scope-Based Query Filtering › Edge Cases and Error Handling › should default to "own" for invalid scope value
+
+    expect(received).toHaveProperty(path)
+
+    Expected path: "userId"
+    Received path: []
+
+    Received value: {"_id": "507f1f77bcf86cd799439099"}
+
+      114 |       const filter = getScopeFilter(mockStudentUser, 'invalid-scope');
+      115 |
+    > 116 |       expect(filter).toHaveProperty('userId');
+          |                      ^
+      117 |       expect(filter.userId).toEqual(mockStudentUser._id);
+      118 |     });
+      119 |
+
+      at Object.toHaveProperty (tests/checkPermission.test.js:116:22)
+
+  ● getScopeFilter - Scope-Based Query Filtering › Edge Cases and Error Handling › should handle user with no _id field gracefully
+
+    expect(received).toHaveProperty(path)
+
+    Expected path: "userId"
+    Received path: []
+
+    Received value: {"_id": undefined}
+
+      122 |       const filter = getScopeFilter(userWithoutId, 'own');
+      123 |
+    > 124 |       expect(filter).toHaveProperty('userId');
+          |                      ^
+      125 |       expect(filter.userId).toBeUndefined();
+      126 |     });
+      127 |   });
+
+      at Object.toHaveProperty (tests/checkPermission.test.js:124:22)
+
+  ● getScopeFilter - Scope-Based Query Filtering › Real-World Scenarios › Student can query only own data
+
+    expect(received).toEqual(expected) // deep equality
+
+    Expected: "507f1f77bcf86cd799439099"
+    Received: undefined
+
+      143 |       const filter = getScopeFilter(mockStudentUser, 'own');
+      144 |       // Query: Course.find(filter) -> returns only student's own courses
+    > 145 |       expect(filter.userId).toEqual(mockStudentUser._id);
+          |                             ^
+      146 |     });
+      147 |   });
+      148 | });
+
+      at Object.toEqual (tests/checkPermission.test.js:145:29)
+
+  ● Integration Test: Scope Filter with MongoDB Queries › should allow combining scope filter with other query parameters
+
+    expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 1
+    + Received  + 1
+
+      Object {
+    +   "_id": "507f1f77bcf86cd799439099",
+        "completed": true,
+        "courseId": "123",
+    -   "userId": "507f1f77bcf86cd799439099",
+      }
+
+      180 |     };
+      181 |
+    > 182 |     expect(query).toEqual({
+          |                   ^
+      183 |       userId: mockStudent._id,
+      184 |       courseId: '123',
+      185 |       completed: true,
+
+      at Object.toEqual (tests/checkPermission.test.js:182:19)
+
+PASS tests/wtf/unit/models.test.js (7.613 s)
+  WtfPin Model Tests
+    Schema Validation
+      ✓ should create a valid pin (362 ms)
+      ✓ should require title (51 ms)
+      ✓ should require content (49 ms)
+      ✓ should validate pin type (40 ms)
+      ✓ should validate status (39 ms)
+      ✓ should validate language (72 ms)
+    Virtual Fields
+      ✓ should calculate daysUntilExpiration correctly (56 ms)
+      ✓ should calculate isExpired correctly (84 ms)
+    Instance Methods
+      ✓ should update engagement metrics (52 ms)
+      ✓ should check if pin is active (75 ms)
+    Static Methods
+      ✓ should find active pins (302 ms)
+      ✓ should find expired pins (78 ms)
+  WtfStudentInteraction Model Tests
+    Schema Validation
+      ✓ should create a valid interaction (93 ms)
+      ✓ should require studentId (45 ms)
+      ✓ should require pinId (72 ms)
+      ✓ should validate interaction type (69 ms)
+      ✓ should validate like type (26 ms)
+    Static Methods
+      ✓ should find interactions by student (91 ms)
+      ✓ should find interactions by pin (91 ms)
+      ✓ should get interaction counts (103 ms)
+  WtfSubmission Model Tests
+    Schema Validation
+      ✓ should create a valid submission (53 ms)
+      ✓ should require studentId (49 ms)
+      ✓ should require title (42 ms)
+      ✓ should validate submission type (33 ms)
+      ✓ should validate status (113 ms)
+    Instance Methods
+      ✓ should approve submission (68 ms)
+      ✓ should reject submission (44 ms)
+      ✓ should check if submission is pending (55 ms)
+    Static Methods
+      ✓ should find pending submissions (90 ms)
+      ✓ should find submissions by student (47 ms)
+  Coach Suggestion Model Tests
+    Submission Model for Coach Suggestions
+      ✓ should create a valid coach suggestion submission (33 ms)
+      ✓ should validate coach suggestion with required fields (57 ms)
+      ✓ should validate coach suggestion type (26 ms)
+      ✓ should validate coach suggestion status (24 ms)
+      ✓ should allow coach suggestion metadata (30 ms)
+      ✓ should create coach suggestion with default status (30 ms)
+      ✓ should query coach suggestions by metadata (70 ms)
+
+(node:347890) [MONGOOSE] Warning: Duplicate schema index on {"orderNumber":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+PASS tests/wtf/unit/dataAccess.test.js (9.12 s)
+  WTF Pin Data Access Tests
+    CRUD Operations
+      ✓ should create a new pin (248 ms)
+      ✓ should get active pins with pagination (311 ms)
+      ✓ should get pin by ID (59 ms)
+      ✓ should update pin (67 ms)
+      ✓ should delete pin (50 ms)
+    Lifecycle Management
+      ✓ should update pin status (52 ms)
+      ✓ should get expired pins (49 ms)
+      ✓ should get pins for FIFO management (387 ms)
+    Analytics
+      ✓ should update engagement metrics (68 ms)
+      ✓ should get pin analytics (57 ms)
+  WTF Student Interaction Data Access Tests
+    Interaction Management
+      ✓ should create interaction (30 ms)
+      ✓ should check if student has interacted (47 ms)
+      ✓ should get interaction counts (77 ms)
+      ✓ should get student interaction history (80 ms)
+    Analytics
+      ✓ should get interaction analytics (74 ms)
+      ✓ should get top performing pins (105 ms)
+  WTF Submission Data Access Tests
+    Submission Management
+      ✓ should create submission (145 ms)
+      ✓ should get pending submissions (68 ms)
+      ✓ should approve submission (59 ms)
+      ✓ should reject submission (60 ms)
+    Analytics
+      ✓ should get submission stats (104 ms)
+      ✓ should get submission analytics (172 ms)
+
+PASS tests/wtf/unit/integration.test.js (8.852 s)
+  WTF Dashboard Metrics Integration Tests
+    ✓ should get dashboard metrics successfully (190 ms)
+    ✓ should get active pins count successfully (19 ms)
+    ✓ should get total engagement successfully (19 ms)
+    ✓ should get coach suggestions count successfully (23 ms)
+    ✓ should get coach suggestions successfully (36 ms)
+    ✓ should get coach suggestions with pagination (16 ms)
+    ✓ should handle coach suggestions service errors (15 ms)
+    ✓ should handle coach suggestions service failures (17 ms)
+    ✓ should handle service errors gracefully (16 ms)
+    ✓ should handle service failures (18 ms)
+  POST /api/v1/wtf/coach-suggestions
+    ✓ should create coach suggestion successfully (53 ms)
+    ✓ should return 400 for missing required fields (27 ms)
+    ✓ should return 400 for invalid suggestion type (13 ms)
+    ✓ should handle service errors (11 ms)
+    ✓ should create suggestion with default values (32 ms)
+    POST /api/v1/wtf/pins/:pinId/award-coins
+      ✓ should award coins successfully (11 ms)
+      ✓ should handle pin not found (11 ms)
+      ✓ should handle service errors (11 ms)
+    POST /api/v1/wtf/pins/:pinId/milestone-coins
+      ✓ should award milestone coins successfully (13 ms)
+      ✓ should handle no milestones reached (13 ms)
+    POST /api/v1/wtf/admin/expire-pins
+      ✓ should expire old pins successfully (15 ms)
+      ✓ should handle no pins to expire (10 ms)
+
+{"level":30,"time":"2026-03-15T20:49:48.060Z","pid":347904,"hostname":"dev-ThinkPad-T14-Gen-1","env":"test","clientIP":"127.0.0.1","method":"POST","api":"/api/v1/wtf/pins","data":{"title":"Test Pin","content":"Test content","type":"text","author":"69b71b6ca2f5deee5ec5f3a6","language":"english","tags":["test"]},"file":null,"userId":"69b71b6ca2f5deee5ec5f3a8","msg":"Request received for WTF pin creation"}
+{"level":30,"time":"2026-03-15T20:49:48.077Z","pid":347904,"hostname":"dev-ThinkPad-T14-Gen-1","env":"test","clientIP":"127.0.0.1","method":"POST","api":"/api/v1/wtf/pins","pinId":"69b71b6ca2f5deee5ec5f3a7","userId":"69b71b6ca2f5deee5ec5f3a8","msg":"WTF pin created successfully"}
+{"level":30,"time":"2026-03-15T20:49:48.130Z","pid":347904,"hostname":"dev-ThinkPad-T14-Gen-1","env":"test","clientIP":"127.0.0.1","method":"POST","api":"/api/v1/wtf/pins","data":{},"file":null,"userId":"69b71b6ca2f5deee5ec5f3aa","msg":"Request received for WTF pin creation"}
+{"level":50,"time":"2026-03-15T20:49:48.131Z","pid":347904,"hostname":"dev-ThinkPad-T14-Gen-1","clientIP":"127.0.0.1","method":"POST","api":"/api/v1/wtf/pins","error":"Title and content are required","userId":"69b71b6ca2f5deee5ec5f3aa","msg":"Failed to create WTF pin"}
+{"level":30,"time":"2026-03-15T20:49:48.152Z","pid":347904,"hostname":"dev-ThinkPad-T14-Gen-1","env":"test","clientIP":"127.0.0.1","method":"GET","api":"/api/v1/wtf/pins","query":{"page":"1","limit":"20"},"userId":"69b71b6ca2f5deee5ec5f3b0","msg":"Request received to fetch active WTF pins"}
+{"level":30,"time":"2026-03-15T20:49:48.153Z","pid":347904,"hostname":"dev-ThinkPad-T14-Gen-1","env":"test","clientIP":"127.0.0.1","method":"GET","api":"/api/v1/wtf/pins","pinsCount":2,"userId":"69b71b6ca2f5deee5ec5f3b0","msg":"Successfully fetched active WTF pins"}
+{"level":30,"time":"2026-03-15T20:49:48.164Z","pid":347904,"hostname":"dev-ThinkPad-T14-Gen-1","env":"test","clientIP":"127.0.0.1","method":"GET","api":"/api/v1/wtf/pins/69b71b6ca2f5deee5ec5f3b2","pinId":"69b71b6ca2f5deee5ec5f3b2","userId":"69b71b6ca2f5deee5ec5f3b4","msg":"Request received to fetch WTF pin by ID"}
+{"level":30,"time":"2026-03-15T20:49:48.175Z","pid":347904,"hostname":"dev-ThinkPad-T14-Gen-1","env":"test","clientIP":"127.0.0.1","method":"GET","api":"/api/v1/wtf/pins/69b71b6ca2f5deee5ec5f3b2","pinId":"69b71b6ca2f5deee5ec5f3b2","userId":"69b71b6ca2f5deee5ec5f3b4","msg":"Successfully fetched WTF pin"}
+{"level":30,"time":"2026-03-15T20:49:48.221Z","pid":347904,"hostname":"dev-ThinkPad-T14-Gen-1","env":"test","clientIP":"127.0.0.1","method":"GET","api":"/api/v1/wtf/pins/69b71b6ca2f5deee5ec5f3b6","pinId":"69b71b6ca2f5deee5ec5f3b6","userId":"69b71b6ca2f5deee5ec5f3b7","msg":"Request received to fetch WTF pin by ID"}
+{"level":50,"time":"2026-03-15T20:49:48.222Z","pid":347904,"hostname":"dev-ThinkPad-T14-Gen-1","clientIP":"127.0.0.1","method":"GET","api":"/api/v1/wtf/pins/69b71b6ca2f5deee5ec5f3b6","pinId":"69b71b6ca2f5deee5ec5f3b6","error":"Pin not found","userId":"69b71b6ca2f5deee5ec5f3b7","msg":"Failed to fetch WTF pin"}
+{"level":30,"time":"2026-03-15T20:49:48.237Z","pid":347904,"hostname":"dev-ThinkPad-T14-Gen-1","env":"test","clientIP":"127.0.0.1","method":"POST","api":"/api/v1/wtf/pins/69b71b6ca2f5deee5ec5f3ba/like","pinId":"69b71b6ca2f5deee5ec5f3ba","studentId":"69b71b6ca2f5deee5ec5f3b9","likeType":"thumbs_up","msg":"Request received to like/unlike WTF pin"}
+{"level":30,"time":"2026-03-15T20:49:48.238Z","pid":347904,"hostname":"dev-ThinkPad-T14-Gen-1","env":"test","clientIP":"127.0.0.1","method":"POST","api":"/api/v1/wtf/pins/69b71b6ca2f5deee5ec5f3ba/like","pinId":"69b71b6ca2f5deee5ec5f3ba","studentId":"69b71b6ca2f5deee5ec5f3b9","action":"liked","msg":"Successfully processed pin like interaction"}
+{"level":30,"time":"2026-03-15T20:49:48.280Z","pid":347904,"hostname":"dev-ThinkPad-T14-Gen-1","env":"test","clientIP":"127.0.0.1","method":"POST","api":"/api/v1/wtf/pins/69b71b6ca2f5deee5ec5f3bd/seen","pinId":"69b71b6ca2f5deee5ec5f3bd","studentId":"69b71b6ca2f5deee5ec5f3bc","viewDuration":30,"msg":"Request received to mark WTF pin as seen"}
+{"level":30,"time":"2026-03-15T20:49:48.280Z","pid":347904,"hostname":"dev-ThinkPad-T14-Gen-1","env":"test","clientIP":"127.0.0.1","method":"POST","api":"/api/v1/wtf/pins/69b71b6ca2f5deee5ec5f3bd/seen","pinId":"69b71b6ca2f5deee5ec5f3bd","studentId":"69b71b6ca2f5deee5ec5f3bc","action":"seen","msg":"Successfully marked pin as seen"}
+{"level":30,"time":"2026-03-15T20:49:48.314Z","pid":347904,"hostname":"dev-ThinkPad-T14-Gen-1","env":"test","clientIP":"127.0.0.1","method":"GET","api":"/api/v1/wtf/pins/69b71b6ca2f5deee5ec5f3bf/interactions","pinId":"69b71b6ca2f5deee5ec5f3bf","userId":"69b71b6ca2f5deee5ec5f3c4","msg":"Request received to fetch WTF pin interactions"}
+{"level":30,"time":"2026-03-15T20:49:48.319Z","pid":347904,"hostname":"dev-ThinkPad-T14-Gen-1","env":"test","clientIP":"127.0.0.1","method":"GET","api":"/api/v1/wtf/pins/69b71b6ca2f5deee5ec5f3bf/interactions","pinId":"69b71b6ca2f5deee5ec5f3bf","userId":"69b71b6ca2f5deee5ec5f3c4","msg":"Successfully fetched WTF pin interactions"}
+{"level":30,"time":"2026-03-15T20:49:48.344Z","pid":347904,"hostname":"dev-ThinkPad-T14-Gen-1","env":"test","clientIP":"127.0.0.1","method":"POST","api":"/api/v1/wtf/submissions/voice","studentId":"69b71b6ca2f5deee5ec5f3c6","title":"Voice Note","msg":"Request received to submit voice note"}
+{"level":30,"time":"2026-03-15T20:49:48.344Z","pid":347904,"hostname":"dev-ThinkPad-T14-Gen-1","env":"test","clientIP":"127.0.0.1","method":"POST","api":"/api/v1/wtf/submissions/voice","studentId":"69b71b6ca2f5deee5ec5f3c6","submissionId":"69b71b6ca2f5deee5ec5f3c7","msg":"Successfully submitted voice note"}
+PASS tests/controllers/purchaseRequestController.test.js (9.655 s)
+  PurchaseRequest Controller
+    createPurchaseRequest
+      ✓ should create a purchase request with valid data (1128 ms)
+      ✓ should reject missing category (59 ms)
+      ✓ should reject invalid category (117 ms)
+      ✓ should reject missing balagruhaId (43 ms)
+      ✓ should reject missing items (34 ms)
+      ✓ should reject empty items array (31 ms)
+      ✓ should reject non-existent product in items (86 ms)
+      ✓ should reject invalid quantity (0) (92 ms)
+      ✓ should auto-route small purchases to pending (skip approval) (111 ms)
+      ✓ should route large purchases to pending_approval (165 ms)
+      ✓ should normalize priority to lowercase (123 ms)
+      ✓ should default invalid priority to medium (87 ms)
+    approvePurchaseRequest
+      ✓ should approve a pending_approval request (91 ms)
+      ✓ should reject approving non-pending_approval request (48 ms)
+      ✓ should prevent self-approval (83 ms)
+      ✓ should return 404 for non-existent request (20 ms)
+    rejectPurchaseRequest
+      ✓ should reject a pending_approval request with reason (84 ms)
+      ✓ should require rejection reason (43 ms)
+      ✓ should reject empty rejection reason (44 ms)
+      ✓ should not reject already-ordered request (47 ms)
+    cancelPurchaseRequest
+      ✓ should cancel own pending_approval request (55 ms)
+      ✓ should not allow cancelling another users request (46 ms)
+      ✓ should not cancel non-pending_approval request (42 ms)
+    updateStatus — state machine transitions
+      ✓ should transition pending → ordered (purchase-manager) (75 ms)
+      ✓ should transition ordered → delivered_store (purchase-manager) (80 ms)
+      ✓ should transition delivered_store → delivered_balagruha (requester/coach) (103 ms)
+      ✓ should transition delivered_store → delivered_balagruha (admin) (120 ms)
+      ✓ should BLOCK skip transition pending → delivered_store (52 ms)
+      ✓ should BLOCK skip transition pending → delivered_balagruha (111 ms)
+      ✓ should BLOCK ordered → delivered_balagruha (must go through store first) (80 ms)
+      ✓ should BLOCK non-PM from pending → ordered (218 ms)
+      ✓ should allow pending → on_hold (purchase-manager) (103 ms)
+      ✓ should reject missing status field (95 ms)
+      ✓ should reject invalid status value (80 ms)
+      ✓ should return 404 for non-existent request (36 ms)
+      ✓ should require repairTechnicianName for Repairs at delivered_store (72 ms)
+      ✓ should accept repairTechnicianName for Repairs at delivered_store (117 ms)
+      ✓ should enforce RBAC for purchase-manager balagruha access (65 ms)
+    getPurchaseRequestById
+      ✓ should return a purchase request for admin (103 ms)
+      ✓ should return 404 for non-existent request (20 ms)
+      ✓ should block non-admin non-owner from viewing (59 ms)
+    getAllPurchaseRequests
+      ✓ should return all purchase requests for admin (245 ms)
+    getMyPurchaseRequests
+      ✓ should return only own requests (349 ms)
+    completePurchaseRequest
+      ✓ should return 404 for non-existent request (135 ms)
+      ✓ should reject completing a non-approved request (56 ms)
+    getPurchaseRequestStats
+      ✓ should return statistics (92 ms)
+
+{"level":30,"time":"2026-03-15T20:49:48.370Z","pid":347904,"hostname":"dev-ThinkPad-T14-Gen-1","env":"test","clientIP":"127.0.0.1","method":"POST","api":"/api/v1/wtf/submissions/article","studentId":"69b71b6ca2f5deee5ec5f3c9","title":"Test Article","msg":"Request received to submit article"}
+{"level":30,"time":"2026-03-15T20:49:48.371Z","pid":347904,"hostname":"dev-ThinkPad-T14-Gen-1","env":"test","clientIP":"127.0.0.1","method":"POST","api":"/api/v1/wtf/submissions/article","studentId":"69b71b6ca2f5deee5ec5f3c9","submissionId":"69b71b6ca2f5deee5ec5f3ca","msg":"Successfully submitted article"}
+{"level":30,"time":"2026-03-15T20:49:48.394Z","pid":347904,"hostname":"dev-ThinkPad-T14-Gen-1","env":"test","clientIP":"127.0.0.1","method":"GET","api":"/api/v1/wtf/submissions/review","query":{"page":"1","limit":"20"},"userId":"69b71b6ca2f5deee5ec5f3ce","msg":"Request received to fetch submissions for review"}
+{"level":30,"time":"2026-03-15T20:49:48.395Z","pid":347904,"hostname":"dev-ThinkPad-T14-Gen-1","env":"test","clientIP":"127.0.0.1","method":"GET","api":"/api/v1/wtf/submissions/review","submissionsCount":1,"userId":"69b71b6ca2f5deee5ec5f3ce","msg":"Successfully fetched submissions for review"}
+{"level":30,"time":"2026-03-15T20:49:48.426Z","pid":347904,"hostname":"dev-ThinkPad-T14-Gen-1","env":"test","clientIP":"127.0.0.1","method":"PUT","api":"/api/v1/wtf/submissions/69b71b6ca2f5deee5ec5f3d0/review","submissionId":"69b71b6ca2f5deee5ec5f3d0","action":"approve","reviewerId":"69b71b6ca2f5deee5ec5f3d1","msg":"Request received to review submission"}
+{"level":30,"time":"2026-03-15T20:49:48.426Z","pid":347904,"hostname":"dev-ThinkPad-T14-Gen-1","env":"test","clientIP":"127.0.0.1","method":"PUT","api":"/api/v1/wtf/submissions/69b71b6ca2f5deee5ec5f3d0/review","submissionId":"69b71b6ca2f5deee5ec5f3d0","action":"approve","reviewerId":"69b71b6ca2f5deee5ec5f3d1","msg":"Successfully reviewed submission"}
+{"level":30,"time":"2026-03-15T20:49:48.475Z","pid":347904,"hostname":"dev-ThinkPad-T14-Gen-1","env":"test","clientIP":"127.0.0.1","method":"GET","api":"/api/v1/wtf/analytics","userId":"69b71b6ca2f5deee5ec5f3d4","msg":"Request received to fetch WTF analytics"}
+{"level":30,"time":"2026-03-15T20:49:48.476Z","pid":347904,"hostname":"dev-ThinkPad-T14-Gen-1","env":"test","clientIP":"127.0.0.1","method":"GET","api":"/api/v1/wtf/analytics","userId":"69b71b6ca2f5deee5ec5f3d4","msg":"Successfully fetched WTF analytics"}
+{"level":30,"time":"2026-03-15T20:49:48.496Z","pid":347904,"hostname":"dev-ThinkPad-T14-Gen-1","env":"test","clientIP":"127.0.0.1","method":"GET","api":"/api/v1/wtf/analytics/interactions","query":{"days":"7"},"userId":"69b71b6ca2f5deee5ec5f3d6","msg":"Request received to fetch interaction analytics"}
+{"level":30,"time":"2026-03-15T20:49:48.502Z","pid":347904,"hostname":"dev-ThinkPad-T14-Gen-1","env":"test","clientIP":"127.0.0.1","method":"GET","api":"/api/v1/wtf/analytics/interactions","userId":"69b71b6ca2f5deee5ec5f3d6","msg":"Successfully fetched interaction analytics"}
+{"level":30,"time":"2026-03-15T20:49:48.524Z","pid":347904,"hostname":"dev-ThinkPad-T14-Gen-1","env":"test","clientIP":"127.0.0.1","method":"GET","api":"/api/v1/wtf/analytics/submissions","query":{"days":"30"},"userId":"69b71b6ca2f5deee5ec5f3d8","msg":"Request received to fetch submission analytics"}
+{"level":30,"time":"2026-03-15T20:49:48.525Z","pid":347904,"hostname":"dev-ThinkPad-T14-Gen-1","env":"test","clientIP":"127.0.0.1","method":"GET","api":"/api/v1/wtf/analytics/submissions","userId":"69b71b6ca2f5deee5ec5f3d8","msg":"Successfully fetched submission analytics"}
+{"level":30,"time":"2026-03-15T20:49:48.552Z","pid":347904,"hostname":"dev-ThinkPad-T14-Gen-1","env":"test","clientIP":"127.0.0.1","method":"GET","api":"/api/v1/wtf/dashboard/metrics","userId":"69b71b6ca2f5deee5ec5f3da","msg":"Request received to fetch WTF dashboard metrics"}
+{"level":30,"time":"2026-03-15T20:49:48.553Z","pid":347904,"hostname":"dev-ThinkPad-T14-Gen-1","env":"test","clientIP":"127.0.0.1","method":"GET","api":"/api/v1/wtf/dashboard/metrics","userId":"69b71b6ca2f5deee5ec5f3da","msg":"Successfully fetched WTF dashboard metrics"}
+{"level":30,"time":"2026-03-15T20:49:48.572Z","pid":347904,"hostname":"dev-ThinkPad-T14-Gen-1","env":"test","clientIP":"127.0.0.1","method":"GET","api":"/api/v1/wtf/pins/active/count","userId":"69b71b6ca2f5deee5ec5f3dc","msg":"Request received to fetch active pins count"}
+{"level":30,"time":"2026-03-15T20:49:48.572Z","pid":347904,"hostname":"dev-ThinkPad-T14-Gen-1","env":"test","clientIP":"127.0.0.1","method":"GET","api":"/api/v1/wtf/pins/active/count","userId":"69b71b6ca2f5deee5ec5f3dc","msg":"Successfully fetched active pins count"}
+{"level":30,"time":"2026-03-15T20:49:48.583Z","pid":347897,"hostname":"dev-ThinkPad-T14-Gen-1","env":"test","pinType":"text","mediaUrl":"Test content","hasThumbnailUrl":false,"hasCaption":false,"msg":"Pin data created with thumbnail information"}
+{"level":30,"time":"2026-03-15T20:49:48.586Z","pid":347897,"hostname":"dev-ThinkPad-T14-Gen-1","env":"test","pinDataKeys":["title","content","type","author","language","tags","status","isOfficial","expiresAt"],"pinDataHasCaption":false,"msg":"Final pin data before database save"}
+{"level":30,"time":"2026-03-15T20:49:48.601Z","pid":347904,"hostname":"dev-ThinkPad-T14-Gen-1","env":"test","clientIP":"127.0.0.1","method":"GET","api":"/api/v1/wtf/analytics/engagement","userId":"69b71b6ca2f5deee5ec5f3de","msg":"Request received to fetch total engagement"}
+{"level":30,"time":"2026-03-15T20:49:48.602Z","pid":347904,"hostname":"dev-ThinkPad-T14-Gen-1","env":"test","clientIP":"127.0.0.1","method":"GET","api":"/api/v1/wtf/analytics/engagement","userId":"69b71b6ca2f5deee5ec5f3de","msg":"Successfully fetched total engagement"}
+{"level":30,"time":"2026-03-15T20:49:48.634Z","pid":347904,"hostname":"dev-ThinkPad-T14-Gen-1","env":"test","clientIP":"127.0.0.1","method":"GET","api":"/api/v1/wtf/coach-suggestions","userId":"69b71b6ca2f5deee5ec5f3e0","msg":"Request received to fetch coach suggestions count"}
+{"level":30,"time":"2026-03-15T20:49:48.636Z","pid":347897,"hostname":"dev-ThinkPad-T14-Gen-1","env":"test","pinType":"text","mediaUrl":"Test content","hasThumbnailUrl":false,"hasCaption":false,"msg":"Pin data created with thumbnail information"}
+{"level":30,"time":"2026-03-15T20:49:48.639Z","pid":347904,"hostname":"dev-ThinkPad-T14-Gen-1","env":"test","clientIP":"127.0.0.1","method":"GET","api":"/api/v1/wtf/coach-suggestions","userId":"69b71b6ca2f5deee5ec5f3e0","msg":"Successfully fetched coach suggestions count"}
+{"level":30,"time":"2026-03-15T20:49:48.641Z","pid":347897,"hostname":"dev-ThinkPad-T14-Gen-1","env":"test","pinDataKeys":["title","content","type","author","status","isOfficial","language","expiresAt"],"pinDataHasCaption":false,"msg":"Final pin data before database save"}
+{"level":30,"time":"2026-03-15T20:49:48.651Z","pid":347904,"hostname":"dev-ThinkPad-T14-Gen-1","env":"test","clientIP":"127.0.0.1","method":"GET","api":"/api/v1/wtf/dashboard/metrics","userId":"69b71b6ca2f5deee5ec5f3e2","msg":"Request received to fetch WTF dashboard metrics"}
+{"level":50,"time":"2026-03-15T20:49:48.651Z","pid":347904,"hostname":"dev-ThinkPad-T14-Gen-1","clientIP":"127.0.0.1","method":"GET","api":"/api/v1/wtf/dashboard/metrics","error":"Service error","userId":"69b71b6ca2f5deee5ec5f3e2","msg":"Error occurred while fetching WTF dashboard metrics"}
+{"level":30,"time":"2026-03-15T20:49:48.659Z","pid":347904,"hostname":"dev-ThinkPad-T14-Gen-1","env":"test","clientIP":"127.0.0.1","method":"GET","api":"/api/v1/wtf/dashboard/metrics","userId":"69b71b6ca2f5deee5ec5f3e4","msg":"Request received to fetch WTF dashboard metrics"}
+{"level":50,"time":"2026-03-15T20:49:48.660Z","pid":347904,"hostname":"dev-ThinkPad-T14-Gen-1","clientIP":"127.0.0.1","method":"GET","api":"/api/v1/wtf/dashboard/metrics","error":"Failed to fetch metrics","userId":"69b71b6ca2f5deee5ec5f3e4","msg":"Failed to fetch WTF dashboard metrics"}
+{"level":30,"time":"2026-03-15T20:49:48.670Z","pid":347904,"hostname":"dev-ThinkPad-T14-Gen-1","env":"test","clientIP":"127.0.0.1","method":"GET","api":"/api/v1/wtf/coach-suggestions","userId":"69b71b6ca2f5deee5ec5f3e7","query":{"page":"1","limit":"20"},"msg":"Request received to fetch coach suggestions"}
+{"level":30,"time":"2026-03-15T20:49:48.671Z","pid":347904,"hostname":"dev-ThinkPad-T14-Gen-1","env":"test","clientIP":"127.0.0.1","method":"GET","api":"/api/v1/wtf/coach-suggestions","userId":"69b71b6ca2f5deee5ec5f3e7","suggestionsCount":1,"msg":"Successfully fetched coach suggestions"}
+{"level":30,"time":"2026-03-15T20:49:48.677Z","pid":347904,"hostname":"dev-ThinkPad-T14-Gen-1","env":"test","clientIP":"127.0.0.1","method":"GET","api":"/api/v1/wtf/coach-suggestions","userId":"69b71b6ca2f5deee5ec5f3e9","query":{"page":"1","limit":"20"},"msg":"Request received to fetch coach suggestions"}
+{"level":50,"time":"2026-03-15T20:49:48.678Z","pid":347904,"hostname":"dev-ThinkPad-T14-Gen-1","clientIP":"127.0.0.1","method":"GET","api":"/api/v1/wtf/coach-suggestions","error":"Service error","userId":"69b71b6ca2f5deee5ec5f3e9","msg":"Error occurred while fetching coach suggestions"}
+{"level":30,"time":"2026-03-15T20:49:48.684Z","pid":347904,"hostname":"dev-ThinkPad-T14-Gen-1","env":"test","clientIP":"127.0.0.1","method":"GET","api":"/api/v1/wtf/coach-suggestions","userId":"69b71b6ca2f5deee5ec5f3eb","query":{"page":"1","limit":"20"},"msg":"Request received to fetch coach suggestions"}
+{"level":50,"time":"2026-03-15T20:49:48.685Z","pid":347904,"hostname":"dev-ThinkPad-T14-Gen-1","clientIP":"127.0.0.1","method":"GET","api":"/api/v1/wtf/coach-suggestions","error":"Failed to fetch coach suggestions","userId":"69b71b6ca2f5deee5ec5f3eb","msg":"Failed to fetch coach suggestions"}
+{"level":30,"time":"2026-03-15T20:49:48.681Z","pid":347897,"hostname":"dev-ThinkPad-T14-Gen-1","env":"test","pinType":"image","mediaUrl":"Test content","thumbnailUrl":"Test content","hasThumbnailUrl":true,"hasCaption":false,"msg":"Pin data created with thumbnail information"}
+{"level":30,"time":"2026-03-15T20:49:48.685Z","pid":347897,"hostname":"dev-ThinkPad-T14-Gen-1","env":"test","pinDataKeys":["title","content","author","language","tags","type","status","isOfficial","expiresAt","mediaUrl","thumbnailUrl"],"pinDataHasCaption":false,"msg":"Final pin data before database save"}
+{"level":30,"time":"2026-03-15T20:49:48.694Z","pid":347904,"hostname":"dev-ThinkPad-T14-Gen-1","env":"test","clientIP":"127.0.0.1","method":"POST","api":"/api/v1/wtf/pins","data":{"title":"Test Pin","content":"Test content","type":"text","author":"69b71b6ca2f5deee5ec5f3ed"},"file":null,"userId":"69b71b6ca2f5deee5ec5f3ee","msg":"Request received for WTF pin creation"}
+{"level":50,"time":"2026-03-15T20:49:48.698Z","pid":347904,"hostname":"dev-ThinkPad-T14-Gen-1","clientIP":"127.0.0.1","method":"POST","api":"/api/v1/wtf/pins","error":"Database connection failed","userId":"69b71b6ca2f5deee5ec5f3ee","msg":"Error occurred while creating WTF pin"}
+{"level":30,"time":"2026-03-15T20:49:48.708Z","pid":347904,"hostname":"dev-ThinkPad-T14-Gen-1","env":"test","clientIP":"127.0.0.1","method":"POST","api":"/api/v1/wtf/pins","data":{"title":"Test Pin","content":"Test content","type":"text"},"file":null,"msg":"Request received for WTF pin creation"}
+{"level":50,"time":"2026-03-15T20:49:48.708Z","pid":347904,"hostname":"dev-ThinkPad-T14-Gen-1","clientIP":"127.0.0.1","method":"POST","api":"/api/v1/wtf/pins","error":"Missing required fields: title, content, type, author","msg":"Failed to create WTF pin"}
+{"level":30,"time":"2026-03-15T20:49:48.710Z","pid":347897,"hostname":"dev-ThinkPad-T14-Gen-1","env":"test","pinType":"text","mediaUrl":"Test content","hasThumbnailUrl":false,"hasCaption":false,"msg":"Pin data created with thumbnail information"}
+{"level":30,"time":"2026-03-15T20:49:48.710Z","pid":347897,"hostname":"dev-ThinkPad-T14-Gen-1","env":"test","pinDataKeys":["title","content","type","language","tags","author","status","isOfficial","expiresAt"],"pinDataHasCaption":false,"msg":"Final pin data before database save"}
+{"level":30,"time":"2026-03-15T20:49:48.718Z","pid":347897,"hostname":"dev-ThinkPad-T14-Gen-1","env":"test","pinType":"video","mediaUrl":"Test content","thumbnailUrl":null,"hasThumbnailUrl":false,"hasCaption":false,"msg":"Pin data created with thumbnail information"}
+{"level":30,"time":"2026-03-15T20:49:48.721Z","pid":347897,"hostname":"dev-ThinkPad-T14-Gen-1","env":"test","pinDataKeys":["title","content","language","tags","type","author","status","isOfficial","expiresAt","mediaUrl","thumbnailUrl"],"pinDataHasCaption":false,"msg":"Final pin data before database save"}
+{"level":30,"time":"2026-03-15T20:49:48.744Z","pid":347897,"hostname":"dev-ThinkPad-T14-Gen-1","env":"test","pinType":"text","mediaUrl":"Test content","hasThumbnailUrl":false,"hasCaption":false,"msg":"Pin data created with thumbnail information"}
+{"level":30,"time":"2026-03-15T20:49:48.747Z","pid":347897,"hostname":"dev-ThinkPad-T14-Gen-1","env":"test","pinDataKeys":["title","content","type","language","tags","author","status","isOfficial","expiresAt"],"pinDataHasCaption":false,"msg":"Final pin data before database save"}
+{"level":30,"time":"2026-03-15T20:49:48.751Z","pid":347904,"hostname":"dev-ThinkPad-T14-Gen-1","env":"test","clientIP":"127.0.0.1","method":"POST","api":"/api/v1/wtf/coach-suggestions","data":{"title":"Amazing Student Art","content":"Student created beautiful artwork","type":"image","studentName":"John Doe","balagruha":"Red House","reason":"Outstanding creativity"},"userId":"69b71b6ca2f5deee5ec5f3f3","coachId":"69b71b6ca2f5deee5ec5f3f3","msg":"Request received for coach suggestion creation"}
+{"level":30,"time":"2026-03-15T20:49:48.752Z","pid":347904,"hostname":"dev-ThinkPad-T14-Gen-1","env":"test","clientIP":"127.0.0.1","method":"POST","api":"/api/v1/wtf/coach-suggestions","suggestionId":"69b71b6ca2f5deee5ec5f3f4","userId":"69b71b6ca2f5deee5ec5f3f3","studentName":"John Doe","msg":"Coach suggestion created successfully"}
+{"level":30,"time":"2026-03-15T20:49:48.772Z","pid":347904,"hostname":"dev-ThinkPad-T14-Gen-1","env":"test","clientIP":"127.0.0.1","method":"POST","api":"/api/v1/wtf/coach-suggestions","data":{"title":"Amazing Student Art","content":"Student created beautiful artwork","type":"image","studentName":"John Doe","balagruha":"Red House","reason":"Outstanding creativity"},"userId":"69b71b6ca2f5deee5ec5f3f6","coachId":"69b71b6ca2f5deee5ec5f3f6","msg":"Request received for coach suggestion creation"}
+{"level":50,"time":"2026-03-15T20:49:48.776Z","pid":347904,"hostname":"dev-ThinkPad-T14-Gen-1","clientIP":"127.0.0.1","method":"POST","api":"/api/v1/wtf/coach-suggestions","error":"Missing required fields","userId":"69b71b6ca2f5deee5ec5f3f6","msg":"Failed to create coach suggestion"}
+{"level":30,"time":"2026-03-15T20:49:48.785Z","pid":347904,"hostname":"dev-ThinkPad-T14-Gen-1","env":"test","clientIP":"127.0.0.1","method":"POST","api":"/api/v1/wtf/coach-suggestions","data":{"title":"Amazing Student Art","content":"Student created beautiful artwork","type":"image","studentName":"John Doe","balagruha":"Red House","reason":"Outstanding creativity"},"userId":"69b71b6ca2f5deee5ec5f3f8","coachId":"69b71b6ca2f5deee5ec5f3f8","msg":"Request received for coach suggestion creation"}
+{"level":50,"time":"2026-03-15T20:49:48.785Z","pid":347904,"hostname":"dev-ThinkPad-T14-Gen-1","clientIP":"127.0.0.1","method":"POST","api":"/api/v1/wtf/coach-suggestions","error":"Database error","userId":"69b71b6ca2f5deee5ec5f3f8","msg":"Error occurred while creating coach suggestion"}
+{"level":30,"time":"2026-03-15T20:49:48.798Z","pid":347904,"hostname":"dev-ThinkPad-T14-Gen-1","env":"test","clientIP":"127.0.0.1","method":"POST","api":"/api/v1/wtf/coach-suggestions","data":{"title":"Amazing Student Art","content":"Student created beautiful artwork","type":"image","studentName":"John Doe","balagruha":"Red House","reason":"Outstanding creativity"},"userId":"69b71b6ca2f5deee5ec5f3fa","coachId":"69b71b6ca2f5deee5ec5f3fa","msg":"Request received for coach suggestion creation"}
+{"level":30,"time":"2026-03-15T20:49:48.798Z","pid":347904,"hostname":"dev-ThinkPad-T14-Gen-1","env":"test","clientIP":"127.0.0.1","method":"POST","api":"/api/v1/wtf/coach-suggestions","suggestionId":"69b71b6ca2f5deee5ec5f3fb","userId":"69b71b6ca2f5deee5ec5f3fa","studentName":"John Doe","msg":"Coach suggestion created successfully"}
+{"level":30,"time":"2026-03-15T20:49:48.811Z","pid":347904,"hostname":"dev-ThinkPad-T14-Gen-1","env":"test","clientIP":"127.0.0.1","method":"POST","api":"/api/v1/wtf/coach-suggestions","data":{"title":"Amazing Student Art","content":"Student created beautiful artwork","type":"image","studentName":"John Doe","balagruha":"Red House","reason":"Outstanding creativity"},"userId":"69b71b6ca2f5deee5ec5f3fd","coachId":"69b71b6ca2f5deee5ec5f3fd","msg":"Request received for coach suggestion creation"}
+{"level":30,"time":"2026-03-15T20:49:48.813Z","pid":347904,"hostname":"dev-ThinkPad-T14-Gen-1","env":"test","clientIP":"127.0.0.1","method":"POST","api":"/api/v1/wtf/coach-suggestions","suggestionId":"69b71b6ca2f5deee5ec5f3fe","userId":"69b71b6ca2f5deee5ec5f3fd","studentName":"John Doe","msg":"Coach suggestion created successfully"}
+{"level":30,"time":"2026-03-15T20:49:48.820Z","pid":347897,"hostname":"dev-ThinkPad-T14-Gen-1","env":"test","pinId":"69b71b6cd70dc7b286a4ded4","s3DeletionResults":[],"msg":"Pin and associated files deleted successfully"}
+{"level":30,"time":"2026-03-15T20:49:48.825Z","pid":347904,"hostname":"dev-ThinkPad-T14-Gen-1","env":"test","clientIP":"127.0.0.1","method":"POST","api":"/api/v1/wtf/coach-suggestions","data":{"title":"Amazing Student Art","content":"Student created beautiful artwork","type":"image","studentName":"John Doe","balagruha":"Red House","reason":"Outstanding creativity"},"msg":"Request received for coach suggestion creation"}
+{"level":30,"time":"2026-03-15T20:49:48.825Z","pid":347904,"hostname":"dev-ThinkPad-T14-Gen-1","env":"test","clientIP":"127.0.0.1","method":"POST","api":"/api/v1/wtf/coach-suggestions","suggestionId":"69b71b6ca2f5deee5ec5f401","studentName":"John Doe","msg":"Coach suggestion created successfully"}
+{"level":50,"time":"2026-03-15T20:49:48.839Z","pid":347897,"hostname":"dev-ThinkPad-T14-Gen-1","pinId":"69b71b6cd70dc7b286a4ded7","studentId":"69b71b6cd70dc7b286a4ded6","error":"pinData is not defined","msg":"Error triggering WebSocket pin liked event"}
+{"level":50,"time":"2026-03-15T20:49:49.049Z","pid":347897,"hostname":"dev-ThinkPad-T14-Gen-1","error":"Database error","msg":"Error in getWtfDashboardCounts service"}
+{"level":50,"time":"2026-03-15T20:49:49.346Z","pid":347897,"hostname":"dev-ThinkPad-T14-Gen-1","error":"Database error","msg":"Error in getCoachSuggestions service"}
+{"level":30,"time":"2026-03-15T20:49:49.422Z","pid":347897,"hostname":"dev-ThinkPad-T14-Gen-1","env":"test","pinType":"text","mediaUrl":"Test content","hasThumbnailUrl":false,"hasCaption":false,"msg":"Pin data created with thumbnail information"}
+{"level":30,"time":"2026-03-15T20:49:49.423Z","pid":347897,"hostname":"dev-ThinkPad-T14-Gen-1","env":"test","pinDataKeys":["title","content","type","author","status","isOfficial","language","expiresAt"],"pinDataHasCaption":false,"msg":"Final pin data before database save"}
+{"level":50,"time":"2026-03-15T20:49:49.425Z","pid":347897,"hostname":"dev-ThinkPad-T14-Gen-1","error":"Database connection failed","msg":"Error in createPin service"}
+{"level":30,"time":"2026-03-15T20:49:49.440Z","pid":347897,"hostname":"dev-ThinkPad-T14-Gen-1","env":"test","suggestionId":"69b71b6dd70dc7b286a4df0e","coachId":"69b71b6dd70dc7b286a4df0d","studentName":"John Doe","msg":"Coach suggestion created successfully"}
+{"level":30,"time":"2026-03-15T20:49:49.464Z","pid":347897,"hostname":"dev-ThinkPad-T14-Gen-1","env":"test","suggestionId":"69b71b6dd70dc7b286a4df15","coachId":"69b71b6dd70dc7b286a4df14","studentName":"John Doe","msg":"Coach suggestion created successfully"}
+{"level":50,"time":"2026-03-15T20:49:49.475Z","pid":347897,"hostname":"dev-ThinkPad-T14-Gen-1","error":"Database error","payload":{"title":"Test Suggestion","content":"Test content","type":"text","studentName":"John Doe","studentId":"69b71b6dd70dc7b286a4df17","suggestedBy":"Coach Smith","coachId":"69b71b6dd70dc7b286a4df18"},"msg":"Error in createCoachSuggestion service"}
+{"level":30,"time":"2026-03-15T20:49:49.491Z","pid":347897,"hostname":"dev-ThinkPad-T14-Gen-1","env":"test","suggestionId":"69b71b6dd70dc7b286a4df1f","coachId":"69b71b6dd70dc7b286a4df1e","studentName":"John Doe","msg":"Coach suggestion created successfully"}
+PASS tests/wtf/unit/controllers.test.js (11.805 s)
+  WTF Controller Tests
+    Pin Management Controllers
+      ✓ should create pin successfully (77 ms)
+      ✓ should handle pin creation validation error (16 ms)
+      ✓ should get active pins successfully (18 ms)
+      ✓ should get pin by ID successfully (39 ms)
+      ✓ should handle pin not found (19 ms)
+    Interaction Controllers
+      ✓ should like pin successfully (34 ms)
+      ✓ should mark pin as seen successfully (34 ms)
+      ✓ should get pin interactions successfully (23 ms)
+    Submission Controllers
+      ✓ should submit voice note successfully (30 ms)
+      ✓ should submit article successfully (28 ms)
+      ✓ should get submissions for review successfully (26 ms)
+      ✓ should review submission successfully (38 ms)
+    Analytics Controllers
+      ✓ should get WTF analytics successfully (33 ms)
+      ✓ should get interaction analytics successfully (17 ms)
+      ✓ should get submission analytics successfully (27 ms)
+    Dashboard Metrics Controllers
+      ✓ should get WTF dashboard metrics (10 ms)
+      ✓ should get active pins count (30 ms)
+      ✓ should get total engagement (27 ms)
+      ✓ should get coach suggestions count (11 ms)
+      ✓ should handle dashboard metrics service errors (11 ms)
+      ✓ should handle dashboard metrics service failures (9 ms)
+      ✓ should get coach suggestions (8 ms)
+      ✓ should handle coach suggestions service errors (6 ms)
+      ✓ should handle coach suggestions service failures (9 ms)
+    Error Handling
+      ✓ should handle service errors gracefully (13 ms)
+      ✓ should handle missing user authentication (27 ms)
+      ✓ should handle invalid request parameters (7 ms)
+  Coach Suggestion Controllers
+    createCoachSuggestion
+      ✓ should create coach suggestion successfully (30 ms)
+      ✓ should handle service failure (13 ms)
+      ✓ should handle service exceptions (10 ms)
+      ✓ should use email as fallback for suggestedBy (14 ms)
+      ✓ should use default Coach if no name or email (8 ms)
+      ✓ should handle missing user information (7 ms)
+
+PASS tests/wtf/unit/services.test.js (12.307 s)
+  WTF Service Tests
+    Pin Management
+      ✓ should create pin successfully (85 ms)
+      ✓ should handle pin creation failure (38 ms)
+      ✓ should create pin with contentType field mapping (34 ms)
+      ✓ should create pin with pinnedBy field mapping (10 ms)
+      ✓ should create pin with both field mappings (14 ms)
+      ✓ should handle user lookup failure when pinnedBy is invalid (13 ms)
+      ✓ should successfully lookup user when pinnedBy is valid username (16 ms)
+      ✓ should get active pins for students (15 ms)
+      ✓ should get pin by ID (15 ms)
+      ✓ should update pin (19 ms)
+      ✓ should delete pin (15 ms)
+    Interaction Management
+      ✓ should like pin successfully (34 ms)
+      ✓ should mark pin as seen (31 ms)
+      ✓ should get pin interactions (23 ms)
+    Submission Management
+      ✓ should submit voice note (21 ms)
+      ✓ should submit article (14 ms)
+      ✓ should get submissions for review (6 ms)
+      ✓ should review submission - approve (9 ms)
+      ✓ should review submission - reject (7 ms)
+    Analytics
+      ✓ should get WTF analytics (5 ms)
+      ✓ should get interaction analytics (6 ms)
+      ✓ should get submission analytics (6 ms)
+    Dashboard Metrics
+      ✓ should get WTF dashboard metrics (10 ms)
+      ✓ should get active pins count (10 ms)
+      ✓ should get total engagement (8 ms)
+      ✓ should get coach suggestions count (9 ms)
+      ✓ should handle errors in dashboard metrics (286 ms)
+      ✓ should handle missing data in dashboard metrics (6 ms)
+      ✓ should get coach suggestions (9 ms)
+      ✓ should handle coach suggestions service failure (5 ms)
+      ✓ should handle coach suggestions service error (30 ms)
+      ✓ should transform coach suggestions correctly (19 ms)
+    Error Handling
+      ✓ should handle missing required fields (10 ms)
+      ✓ should handle invalid student ID (5 ms)
+      ✓ should handle invalid pin ID (5 ms)
+      ✓ should handle database errors (16 ms)
+  WtfService - Coach Suggestions
+    createCoachSuggestion
+      ✓ should create coach suggestion with valid data (9 ms)
+      ✓ should fail with missing required fields (9 ms)
+      ✓ should fail with invalid suggestion type (5 ms)
+      ✓ should set default values correctly (11 ms)
+      ✓ should handle database errors (7 ms)
+      ✓ should return failed result when submission creation fails (10 ms)
+      ✓ should map audio type to voice submission (35 ms)
+    ISF Coins Auto-Assignment
+      awardCoinsForPinnedContent
+        ✓ should award coins for student IMAGE content (114 ms)
+        ✓ should award different coins based on content type (6 ms)
+        ✓ should not award coins for non-student content (11 ms)
+        ✓ should handle unknown content types (4 ms)
+      calculateCoinReward
+        ✓ should return correct coin amounts for each content type (6 ms)
+    Pin Lifecycle Management
+      expireOldPins
+        ✓ should expire pins older than one week (4 ms)
+        ✓ should handle case when no pins need expiration (18 ms)
+      cleanupExpiredPins
+        ✓ should clean up excess pins when board is full (5 ms)
+        ✓ should not clean up when pin count is under limit (4 ms)
+
+{"level":30,"time":"2026-03-15T20:49:50.525Z","pid":347916,"hostname":"dev-ThinkPad-T14-Gen-1","env":"test","clientIP":"127.0.0.1","method":"POST","api":"/api/v1/wtf/pins/pin_123/award-coins","pinId":"pin_123","adminId":"admin_123","msg":"Request received to award coins for pinned content"}
+{"level":30,"time":"2026-03-15T20:49:50.529Z","pid":347916,"hostname":"dev-ThinkPad-T14-Gen-1","env":"test","clientIP":"127.0.0.1","method":"POST","api":"/api/v1/wtf/pins/pin_123/award-coins","pinId":"pin_123","coinsAwarded":50,"adminId":"admin_123","msg":"Successfully awarded coins for pinned content"}
+{"level":30,"time":"2026-03-15T20:49:50.560Z","pid":347916,"hostname":"dev-ThinkPad-T14-Gen-1","env":"test","clientIP":"127.0.0.1","method":"POST","api":"/api/v1/wtf/pins/pin_123/award-coins","pinId":"pin_123","adminId":"admin_123","msg":"Request received to award coins for pinned content"}
+{"level":30,"time":"2026-03-15T20:49:50.570Z","pid":347916,"hostname":"dev-ThinkPad-T14-Gen-1","env":"test","clientIP":"127.0.0.1","method":"POST","api":"/api/v1/wtf/pins/pin_123/award-coins","pinId":"pin_123","adminId":"admin_123","msg":"Request received to award coins for pinned content"}
+{"level":50,"time":"2026-03-15T20:49:50.572Z","pid":347916,"hostname":"dev-ThinkPad-T14-Gen-1","clientIP":"127.0.0.1","method":"POST","api":"/api/v1/wtf/pins/pin_123/award-coins","error":"Coin service error","pinId":"pin_123","adminId":"admin_123","msg":"Failed to award coins for pinned content"}
+{"level":30,"time":"2026-03-15T20:49:50.582Z","pid":347916,"hostname":"dev-ThinkPad-T14-Gen-1","env":"test","clientIP":"127.0.0.1","method":"POST","api":"/api/v1/wtf/pins/pin_123/award-coins","pinId":"pin_123","adminId":"admin_123","msg":"Request received to award coins for pinned content"}
+{"level":50,"time":"2026-03-15T20:49:50.583Z","pid":347916,"hostname":"dev-ThinkPad-T14-Gen-1","clientIP":"127.0.0.1","method":"POST","api":"/api/v1/wtf/pins/pin_123/award-coins","error":"Service error","pinId":"pin_123","adminId":"admin_123","msg":"Error occurred while awarding coins for pinned content"}
+{"level":30,"time":"2026-03-15T20:49:50.601Z","pid":347916,"hostname":"dev-ThinkPad-T14-Gen-1","env":"test","clientIP":"127.0.0.1","method":"POST","api":"/api/v1/wtf/pins/pin_123/milestone-coins","pinId":"pin_123","likeCount":25,"likeType":"total","userId":"user_123","msg":"Request received to award milestone coins"}
+{"level":30,"time":"2026-03-15T20:49:50.602Z","pid":347916,"hostname":"dev-ThinkPad-T14-Gen-1","env":"test","clientIP":"127.0.0.1","method":"POST","api":"/api/v1/wtf/pins/pin_123/milestone-coins","pinId":"pin_123","coinsAwarded":75,"userId":"user_123","msg":"Successfully processed milestone coins"}
+{"level":30,"time":"2026-03-15T20:49:50.616Z","pid":347916,"hostname":"dev-ThinkPad-T14-Gen-1","env":"test","clientIP":"127.0.0.1","method":"POST","api":"/api/v1/wtf/pins/pin_123/milestone-coins","pinId":"pin_123","likeCount":25,"likeType":"total","userId":"user_123","msg":"Request received to award milestone coins"}
+{"level":50,"time":"2026-03-15T20:49:50.616Z","pid":347916,"hostname":"dev-ThinkPad-T14-Gen-1","clientIP":"127.0.0.1","method":"POST","api":"/api/v1/wtf/pins/pin_123/milestone-coins","error":"No milestones reached","pinId":"pin_123","userId":"user_123","msg":"Failed to award milestone coins"}
+{"level":30,"time":"2026-03-15T20:49:50.626Z","pid":347916,"hostname":"dev-ThinkPad-T14-Gen-1","env":"test","clientIP":"127.0.0.1","method":"POST","api":"/api/v1/wtf/pins/pin_123/milestone-coins","pinId":"pin_123","likeCount":25,"likeType":"total","userId":"user_123","msg":"Request received to award milestone coins"}
+{"level":50,"time":"2026-03-15T20:49:50.626Z","pid":347916,"hostname":"dev-ThinkPad-T14-Gen-1","clientIP":"127.0.0.1","method":"POST","api":"/api/v1/wtf/pins/pin_123/milestone-coins","error":"Service error","pinId":"pin_123","userId":"user_123","msg":"Error occurred while awarding milestone coins"}
+{"level":30,"time":"2026-03-15T20:49:50.637Z","pid":347916,"hostname":"dev-ThinkPad-T14-Gen-1","env":"test","clientIP":"127.0.0.1","method":"POST","api":"/api/v1/wtf/admin/expire-pins","adminId":"admin_123","msg":"Manual pin expiration triggered by admin"}
+{"level":30,"time":"2026-03-15T20:49:50.640Z","pid":347916,"hostname":"dev-ThinkPad-T14-Gen-1","env":"test","clientIP":"127.0.0.1","method":"POST","api":"/api/v1/wtf/admin/expire-pins","expiredCount":5,"adminId":"admin_123","msg":"Successfully expired old pins"}
+{"level":30,"time":"2026-03-15T20:49:50.658Z","pid":347916,"hostname":"dev-ThinkPad-T14-Gen-1","env":"test","clientIP":"127.0.0.1","method":"POST","api":"/api/v1/wtf/admin/expire-pins","adminId":"admin_123","msg":"Manual pin expiration triggered by admin"}
+{"level":50,"time":"2026-03-15T20:49:50.660Z","pid":347916,"hostname":"dev-ThinkPad-T14-Gen-1","clientIP":"127.0.0.1","method":"POST","api":"/api/v1/wtf/admin/expire-pins","error":"Expiration failed","adminId":"admin_123","msg":"Failed to expire old pins"}
+{"level":30,"time":"2026-03-15T20:49:50.682Z","pid":347916,"hostname":"dev-ThinkPad-T14-Gen-1","env":"test","clientIP":"127.0.0.1","method":"POST","api":"/api/v1/wtf/admin/expire-pins","adminId":"admin_123","msg":"Manual pin expiration triggered by admin"}
+{"level":50,"time":"2026-03-15T20:49:50.684Z","pid":347916,"hostname":"dev-ThinkPad-T14-Gen-1","clientIP":"127.0.0.1","method":"POST","api":"/api/v1/wtf/admin/expire-pins","error":"Service error","adminId":"admin_123","msg":"Error occurred while expiring old pins"}
+PASS tests/wtf/unit/coin-controllers.test.js (11.571 s)
+  Coin Reward Controllers
+    awardCoinsForPin
+      ✓ should award coins for pin successfully (38 ms)
+      ✓ should handle pin not found (9 ms)
+      ✓ should handle coin award failure (11 ms)
+      ✓ should handle service exceptions (13 ms)
+    awardMilestoneCoins
+      ✓ should award milestone coins successfully (19 ms)
+      ✓ should handle milestone coins failure (7 ms)
+      ✓ should handle service exceptions (10 ms)
+    expireOldPins
+      ✓ should expire old pins successfully (18 ms)
+      ✓ should handle expiration failure (19 ms)
+      ✓ should handle service exceptions (16 ms)
+
+PASS tests/controllers/inventoryController.test.js (5.347 s)
+  Inventory Controller
+    adjustStock
+      ✓ should increase stock with positive adjustment (973 ms)
+      ✓ should decrease stock with negative adjustment (144 ms)
+      ✓ should set stock directly with newStock parameter (150 ms)
+      ✓ should reject negative resulting stock (113 ms)
+      ✓ should reject negative newStock value (94 ms)
+      ✓ should reject zero adjustment (22 ms)
+      ✓ should reject non-numeric adjustment (25 ms)
+      ✓ should return 404 for non-existent product (35 ms)
+      ✓ should create audit trail transaction (56 ms)
+      ✓ should reject newStock same as current stock (67 ms)
+    bulkUpdateStock
+      ✓ should reject non-array csvData (18 ms)
+      ✓ should reject missing csvData (13 ms)
+    getLowStockProducts
+      ✓ should return products at or below low stock threshold (84 ms)
+      ✓ should not include out-of-stock products (stock=0) (45 ms)
+      ✓ should not include inactive products (50 ms)
+    getOutOfStockProducts
+      ✓ should return products with stock=0 (43 ms)
+    getStockAlerts
+      ✓ should return combined alert counts (120 ms)
+    getQuickStats
+      ✓ should return product and order counts (82 ms)
+    getAuditTrail
+      ✓ should return audit trail for a product (64 ms)
+
+PASS tests/vendor.test.js
+  Vendor Model - Story 1.1
+    Validation
+      ✓ should create a valid vendor (70 ms)
+      ✓ should fail without required fields (21 ms)
+      ✓ should default active to true (20 ms)
+      ✓ should fail with invalid phone number (11 ms)
+
+PASS tests/controllers/userController.test.js
+  User Controller
+    getAllUsers
+      ✓ should return paginated users (325 ms)
+      ✓ should cap limit to 100 (25 ms)
+      ✓ should apply balagruhaId scope filter (221 ms)
+      ✓ should default to page 1 limit 20 (22 ms)
+    getUserById
+      ✓ should return user by id (29 ms)
+      ✓ should return 404 for non-existent user (25 ms)
+    createUser
+      ✓ should create a user (24 ms)
+      ✓ should create user with minimal fields (24 ms)
+    updateUser
+      ✓ should update user fields (31 ms)
+      ✓ should return 404 for non-existent user (46 ms)
+      ✓ should update role (30 ms)
+    deleteUser
+      ✓ should delete an existing user (32 ms)
+      ✓ should return 404 for non-existent user (21 ms)
+    getUserInfo
+      ✓ should return user info when found (21 ms)
+      ✓ should return 404 when user not found (14 ms)
+      ✓ should return 400 for missing userId (14 ms)
+    updateUserPassword
+      ✓ should reject non-admin (16 ms)
+      ✓ should allow admin to update password (14 ms)
+    deleteUserById
+      ✓ should reject non-admin (13 ms)
+      ✓ should allow admin to delete user (14 ms)
+      ✓ should return 400 for missing userId (14 ms)
+    updateUserDetails
+      ✓ should return 400 for missing userId (18 ms)
+      ✓ should call updateUserDetailsById service with valid userId (19 ms)
+    createUserV1
+      ✓ should reject non-admin creating non-student (24 ms)
+    getUsersByRoleAndBalagruhaId
+      ✓ should call service and return results (17 ms)
+
+PASS tests/controllers/vendorController.test.js
+  Vendor Controller - Story 1.1
+    createVendor
+      ✓ should create a new vendor (197 ms)
+      ✓ should fail validation (24 ms)
+    getAllVendors
+      ✓ should get all vendors (59 ms)
+      ✓ should cap limit to 100 (429 ms)
+      ✓ should filter by active status (29 ms)
+      ✓ should filter by search term (29 ms)
+    updateVendor
+      ✓ should update a vendor (30 ms)
+      ✓ should return 404 for non-existent vendor (14 ms)
+    getVendorById
+      ✓ should get vendor by id (18 ms)
+      ✓ should return 404 for non-existent vendor (17 ms)
+
+A worker process has failed to exit gracefully and has been force exited. This is likely caused by tests leaking due to improper teardown. Try running with --detectOpenHandles to find leaks. Active timers can also cause this, ensure that .unref() was called on them.
+--------------------------------|---------|----------|---------|---------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+File                            | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
+--------------------------------|---------|----------|---------|---------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+All files                       |   29.77 |    22.55 |   25.74 |   30.21 |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
+ controllers                    |   39.65 |    33.85 |    41.8 |   40.07 |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
+  adminProductController.js     |   33.77 |    46.26 |   41.17 |   33.57 | 10-113,189,220,241-430,474,483,491,499,510,519,532,567,583-610                                                                                                                                                                                                                                                                                                                                                                                                                                             
+  inventoryController.js        |   40.93 |     30.4 |   41.37 |   41.58 | 53,80,150,163,172,212-227,234,258-267,291-292,319-410,438,457-464,493-494,507-626,639-715,728-746,773-774,800-801,834-835,862-863,877-951,966-1027                                                                                                                                                                                                                                                                                                                                                         
+  purchaseRequestController.js  |   40.24 |     37.4 |   41.17 |   41.09 | 32,59-67,84,122-124,202,213,223-224,254,259,263-269,274-287,301,310-311,342-354,358,363-376,381-387,392-405,440-441,462,493-494,529-535,552,560-561,626-627,657,691-692,736-737,752-785,817-975,1116-1123,1137-1294,1304-1341,1354-1519,1533-1572                                                                                                                                                                                                                                                          
+  shopController.js             |   12.16 |        0 |       0 |   12.67 | 10-62,72-87,97-113,123-136,146-161,171-190,200-218                                                                                                                                                                                                                                                                                                                                                                                                                                                         
+  shopProductImageController.js |    7.27 |        0 |       0 |    7.33 | 12-160,173-237,250-298,311-350                                                                                                                                                                                                                                                                                                                                                                                                                                                                             
+  userController.js             |   40.33 |    39.86 |      50 |   40.16 | 57-66,90-91,106,124,144,156,178-234,240-274,280-325,331-375,381-425,433-492,501-553,559-607,641-661,710-719,732-748,757-776,819-840,846-890,912-913,928-972,978-981,1000,1012-1032,1085-1105,1115-1164,1172-1286                                                                                                                                                                                                                                                                                           
+  vendorController.js           |   71.69 |       70 |   57.14 |    74.5 | 31,75-92,112-113,141,172-178                                                                                                                                                                                                                                                                                                                                                                                                                                                                               
+  wtfController.js              |   46.63 |    30.96 |      55 |   46.71 | 33,153-176,184-249,257-316,374-385,393-456,464-525,533-605,613-634,650,657,691-716,724-794,808,815,853-878,890,922-947,963,999-1022,1030-1071,1084,1120-1143,1191-1214,1228,1235,1251,1291-1317,1325-1380,1388-1449,1484-1507,1546-1569,1608-1631,1641-1706,1714-1778,1788-1856,1864-1912,1978-2027,2060-2083,2116-2139,2172-2195,2280,2546-2596,2604-2648,2656-2724                                                                                                                                       
+ data-access                    |   26.96 |    12.05 |   16.83 |    27.5 |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
+  User.js                       |    12.5 |        0 |       0 |   12.55 | 8-29,35-75,93-237,243-266,271-311,317-355,365-457,463-474,483-534,540-608,614-625,631-641,647-717,723-770,787-974,980-1002,1008-1057,1064-1130,1138-1183,1193-1273,1279-1289,1295-1313,1330-1477,1483-1537,1543-1575,1581-1644                                                                                                                                                                                                                                                                             
+  attendance.js                 |      25 |        0 |       0 |      25 | 5-15,22-37,43-53                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           
+  balagruha.js                  |   17.54 |        0 |       0 |   17.54 | 6-17,24-43,49-59,65-81,87-105,111-127,133-144,150-162                                                                                                                                                                                                                                                                                                                                                                                                                                                      
+  machines.js                   |   14.63 |      100 |       0 |   14.63 | 10-29,35-51,56-72,78-95,101-117                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
+  medicalRecords.js             |   27.27 |      100 |       0 |   27.27 | 5-15,21-35                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 
+  wtfPin.js                     |   37.76 |       25 |      50 |   39.81 | 15-16,40-46,78-79,92-142,151,176-177,190,203-204,214,227-228,242,255-256,276-277,323-324,337-381,404-405,418,439-443,455-456,494-495,513-519,529-559,565-616,622-638,644-656,673-750,756-798                                                                                                                                                                                                                                                                                                               
+  wtfStudentInteraction.js      |   49.19 |    28.26 |    64.7 |   50.83 | 16-24,30-51,57-75,96-100,139-143,183-187,197-221,227-266,272-296,357-361,367-385,466-470                                                                                                                                                                                                                                                                                                                                                                                                                   
+  wtfSubmission.js              |   25.18 |    10.61 |   40.62 |   25.49 | 26-45,62-63,69-131,158-163,185-203,235-239,251-331,337-399,405-465,491,503-521,537-538,548-613,623-688,713,725-743,759-760,766-833,839-906,916-994,1003-1081,1102-1120,1173-1174,1180-1245,1274-1292,1345-1349,1359-1435,1445-1525                                                                                                                                                                                                                                                                         
+ models                         |   55.86 |    42.68 |   43.26 |   56.88 |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
+  attendance.js                 |     100 |      100 |     100 |     100 |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
+  balagruha.js                  |     100 |      100 |     100 |     100 |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
+  coin.js                       |   19.73 |     5.12 |       0 |   19.73 | 114-117,128-151,162-184,189-210,216-228,233,238-239,248-279,284-285,296-302,310-322                                                                                                                                                                                                                                                                                                                                                                                                                        
+  inventoryTransaction.js       |    90.9 |       50 |       0 |    90.9 | 72                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         
+  machine.js                    |     100 |      100 |     100 |     100 |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
+  medical.js                    |     100 |      100 |     100 |     100 |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
+  order.js                      |   25.33 |    14.81 |    7.69 |   26.02 | 165,171-179,184-194,199-206,211-228,241,249-322                                                                                                                                                                                                                                                                                                                                                                                                                                                            
+  purchaseRequest.js            |   79.31 |       75 |   42.85 |   81.48 | 352-354,359,364                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
+  role.js                       |     100 |      100 |     100 |     100 |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
+  shopItem.js                   |   72.22 |       50 |      60 |   74.28 | 209-213,219,231-232,237-241                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
+  user.js                       |   34.09 |     4.16 |       0 |   35.71 | 67-74,118-127,132,136,142-156,161,169-172,177-181,186,190                                                                                                                                                                                                                                                                                                                                                                                                                                                  
+  vendor.js                     |     100 |      100 |     100 |     100 |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
+  wtfPin.js                     |   87.23 |    67.85 |   92.85 |   91.11 | 134-135,156,161                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
+  wtfSettings.js                |   71.42 |      100 |       0 |   71.42 | 16-31                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      
+  wtfStudentInteraction.js      |   63.41 |    45.45 |   58.33 |   63.41 | 83,88,96-97,106,140,154-170,178,191-194                                                                                                                                                                                                                                                                                                                                                                                                                                                                    
+  wtfSubmission.js              |      75 |    60.41 |   72.22 |   76.11 | 136,140,147,153-158,187,201,263-266,275,288-291                                                                                                                                                                                                                                                                                                                                                                                                                                                            
+ services                       |   16.86 |    16.65 |   14.14 |   17.21 |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
+  attendenance.js               |    5.88 |        0 |       0 |    5.88 | 10-203                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     
+  coin.js                       |    2.71 |        0 |       0 |    2.84 | 58-894                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     
+  medicalRecords.js             |      10 |        0 |       0 |      10 | 5-50                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       
+  shop.js                       |     3.3 |        0 |       0 |    3.53 | 13-489                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     
+  student.js                    |    6.08 |        0 |       0 |    6.25 | 31-623,816-914                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             
+  user.js                       |   12.37 |        0 |       0 |    12.5 | 23-54,60-74,80-138,144-147,153-181,187-211,217-251,257-292,298-463,469-503,509-568                                                                                                                                                                                                                                                                                                                                                                                                                         
+  videoThumbnail.js             |       8 |        0 |       0 |    8.79 | 13-257                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     
+  wtf.js                        |   32.34 |    38.09 |   47.05 |   32.55 | 76-87,142-159,185,201-372,383-394,412,423,488,501-549,590,603-676,683,693-725,732,742-743,750,762-765,772,788-816,830-858,886-942,951,968,978,994,1013-1038,1073,1100-1223,1230,1240,1251-1262,1289,1302-1308,1315,1325-1329,1338,1367-1398,1406-1408,1414-1418,1428,1437-1621,1628,1656,1665-1669,1683,1686,1692-1696,1703,1718,1746-1748,1753-1755,1760-1762,1797-1804,1826-1854,1863-1868,1877-1886,1896-2009,2020-2024,2033-2037,2046-2161,2232-2236,2252-2256,2271-2275,2399-2509,2571-2847,2873-2953 
+  wtfSettings.js                |    3.84 |        0 |       0 |    3.84 | 14-336                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     
+  wtfWebSocket.js               |   10.84 |     1.56 |      20 |   10.84 | 15-334,345-456,505-584                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     
+ services/aws                   |    9.95 |        0 |       0 |   10.04 |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
+  s3.js                         |    9.95 |        0 |       0 |   10.04 | 25-89,96-129,139-159,165-168,175-209,219-303,313-338,344-361,371-411,422-433,445-477,487-527,548-596,611-629,646-696,710-750,766-778                                                                                                                                                                                                                                                                                                                                                                       
+--------------------------------|---------|----------|---------|---------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Jest: "global" coverage threshold for statements (70%) not met: 29.77%
+Jest: "global" coverage threshold for branches (70%) not met: 22.55%
+Jest: "global" coverage threshold for lines (70%) not met: 30.21%
+Jest: "global" coverage threshold for functions (70%) not met: 25.74%
+Summary of all failing tests
+FAIL tests/controllers/adminProductController_story1_2.test.js (9.935 s)
+  ● Admin Product Controller - Story 1.2 › createProduct › should create product with valid constraints
+
+    expect(jest.fn()).toHaveBeenCalledWith(...expected)
+
+    Expected: 201
+    Received: 400
+
+    Number of calls: 1
+
+      32 |       await adminProductController.createProduct(req, res);
+      33 |
+    > 34 |       expect(res.status).toHaveBeenCalledWith(201);
+         |                          ^
+      35 |       expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ success: true }));
+      36 |     });
+      37 |
+
+      at Object.toHaveBeenCalledWith (tests/controllers/adminProductController_story1_2.test.js:34:26)
+
+  ● Admin Product Controller - Story 1.2 › createPendingProduct › should allow admin to create pending product
+
+    expect(jest.fn()).toHaveBeenCalledWith(...expected)
+
+    Expected: 201
+    Received: 400
+
+    Number of calls: 1
+
+      145 |       await adminProductController.createPendingProduct(req, res);
+      146 |
+    > 147 |       expect(res.status).toHaveBeenCalledWith(201);
+          |                          ^
+      148 |     });
+      149 |
+      150 |     it('should deny non-admin', async () => {
+
+      at Object.toHaveBeenCalledWith (tests/controllers/adminProductController_story1_2.test.js:147:26)
+
+  ● Admin Product Controller - Story 1.2 › updateProduct › should validate maxPrice during update
+
+    ValidationError: ShopItem validation failed: category: stationery is not a valid category
+
+      at model.Document.invalidate (node_modules/mongoose/lib/document.js:3362:32)
+      at node_modules/mongoose/lib/document.js:3123:17
+      at node_modules/mongoose/lib/schemaType.js:1420:9
+
+  ● Admin Product Controller - Story 1.2 › updateProduct › should validate approvedVendors during update
+
+    ValidationError: ShopItem validation failed: category: stationery is not a valid category
+
+      at model.Document.invalidate (node_modules/mongoose/lib/document.js:3362:32)
+      at node_modules/mongoose/lib/document.js:3123:17
+      at node_modules/mongoose/lib/schemaType.js:1420:9
+
+  ● Admin Product Controller - Story 1.2 › updateProduct › should validate vendor IDs during update
+
+    ValidationError: ShopItem validation failed: category: stationery is not a valid category
+
+      at model.Document.invalidate (node_modules/mongoose/lib/document.js:3362:32)
+      at node_modules/mongoose/lib/document.js:3123:17
+      at node_modules/mongoose/lib/schemaType.js:1420:9
+
+FAIL tests/routes/stockReconciliationRoutes.test.js (11.905 s)
+  ● Stock Reconciliation (Story 4.1) › PATCH /api/v2/shop/admin/inventory/:productId/adjust › allows Purchase Manager to adjust stock and creates InventoryTransaction (delta mode)
+
+    ValidationError: ShopItem validation failed: category: stationery is not a valid category
+
+      at model.Document.invalidate (node_modules/mongoose/lib/document.js:3362:32)
+      at node_modules/mongoose/lib/document.js:3123:17
+      at node_modules/mongoose/lib/schemaType.js:1420:9
+
+  ● Stock Reconciliation (Story 4.1) › PATCH /api/v2/shop/admin/inventory/:productId/adjust › allows Purchase Manager to set new physical count (newStock mode)
+
+    ValidationError: ShopItem validation failed: category: sports is not a valid category
+
+      at model.Document.invalidate (node_modules/mongoose/lib/document.js:3362:32)
+      at node_modules/mongoose/lib/document.js:3123:17
+      at node_modules/mongoose/lib/schemaType.js:1420:9
+
+  ● Stock Reconciliation (Story 4.1) › PATCH /api/v2/shop/admin/inventory/:productId/adjust › rejects adjustments that would result in negative stock
+
+    ValidationError: ShopItem validation failed: category: other is not a valid category
+
+      at model.Document.invalidate (node_modules/mongoose/lib/document.js:3362:32)
+      at node_modules/mongoose/lib/document.js:3123:17
+      at node_modules/mongoose/lib/schemaType.js:1420:9
+
+  ● Stock Reconciliation (Story 4.1) › PATCH /api/v2/shop/admin/inventory/:productId/adjust › requires a reason code
+
+    ValidationError: ShopItem validation failed: category: books is not a valid category
+
+      at model.Document.invalidate (node_modules/mongoose/lib/document.js:3362:32)
+      at node_modules/mongoose/lib/document.js:3123:17
+      at node_modules/mongoose/lib/schemaType.js:1420:9
+
+  ● Stock Reconciliation (Story 4.1) › PATCH /api/v2/shop/admin/inventory/:productId/adjust › denies unauthorized roles
+
+    ValidationError: ShopItem validation failed: category: stationery is not a valid category
+
+      at model.Document.invalidate (node_modules/mongoose/lib/document.js:3362:32)
+      at node_modules/mongoose/lib/document.js:3123:17
+      at node_modules/mongoose/lib/schemaType.js:1420:9
+
+FAIL tests/epic3/pm-dashboard.test.js (12.505 s)
+  ● Epic 3: PM Dashboard Extensions (Stories 3.6, 3.7) › Story 3.6: Additional Status Tabs (Analytics) › getStockLevels should categorize stock correctly
+
+    ValidationError: ShopItem validation failed: category: other is not a valid category
+
+      at model.Document.invalidate (node_modules/mongoose/lib/document.js:3362:32)
+      at node_modules/mongoose/lib/document.js:3123:17
+      at node_modules/mongoose/lib/schemaType.js:1420:9
+
+  ● Epic 3: PM Dashboard Extensions (Stories 3.6, 3.7) › Story 3.6: Additional Status Tabs (Analytics) › getVendorsWithProductCount should count products per vendor
+
+    ValidationError: ShopItem validation failed: category: other is not a valid category
+
+      at model.Document.invalidate (node_modules/mongoose/lib/document.js:3362:32)
+      at node_modules/mongoose/lib/document.js:3123:17
+      at node_modules/mongoose/lib/schemaType.js:1420:9
+
+  ● Epic 3: PM Dashboard Extensions (Stories 3.6, 3.7) › Story 3.6: Additional Status Tabs (Analytics) › getMostConsumed should aggregate quantities correctly
+
+    ValidationError: ShopItem validation failed: category: other is not a valid category
+
+      at model.Document.invalidate (node_modules/mongoose/lib/document.js:3362:32)
+      at node_modules/mongoose/lib/document.js:3123:17
+      at node_modules/mongoose/lib/schemaType.js:1420:9
+
+FAIL tests/routes/inventoryMasterReportRoutes.test.js (12.679 s)
+  ● Inventory Master Report Routes Integration - Story 3.3 › GET /api/v2/shop/admin/inventory/master-report › returns deployed aggregation per product for admin
+
+    ValidationError: ShopItem validation failed: category: stationery is not a valid category
+
+      at model.Document.invalidate (node_modules/mongoose/lib/document.js:3362:32)
+      at node_modules/mongoose/lib/document.js:3123:17
+      at node_modules/mongoose/lib/schemaType.js:1420:9
+
+FAIL tests/shopProduct_story2_5.test.js (13.394 s)
+  ● Story 2.5: Purchase Category Filtering › should filter products by purchaseCategory - Medicines
+
+    ValidationError: ShopItem validation failed: category: other is not a valid category
+
+      at model.Document.invalidate (node_modules/mongoose/lib/document.js:3362:32)
+      at node_modules/mongoose/lib/document.js:3123:17
+      at node_modules/mongoose/lib/schemaType.js:1420:9
+
+  ● Story 2.5: Purchase Category Filtering › should filter products by purchaseCategory - Repairs
+
+    ValidationError: ShopItem validation failed: category: other is not a valid category
+
+      at model.Document.invalidate (node_modules/mongoose/lib/document.js:3362:32)
+      at node_modules/mongoose/lib/document.js:3123:17
+      at node_modules/mongoose/lib/schemaType.js:1420:9
+
+  ● Story 2.5: Purchase Category Filtering › should filter products by purchaseCategory - Infra
+
+    ValidationError: ShopItem validation failed: category: other is not a valid category
+
+      at model.Document.invalidate (node_modules/mongoose/lib/document.js:3362:32)
+      at node_modules/mongoose/lib/document.js:3123:17
+      at node_modules/mongoose/lib/schemaType.js:1420:9
+
+  ● Story 2.5: Purchase Category Filtering › should return ISF Shop products for ISF Shop category
+
+    ValidationError: ShopItem validation failed: category: other is not a valid category
+
+      at model.Document.invalidate (node_modules/mongoose/lib/document.js:3362:32)
+      at node_modules/mongoose/lib/document.js:3123:17
+      at node_modules/mongoose/lib/schemaType.js:1420:9
+
+  ● Story 2.5: Purchase Category Filtering › should return all products when no purchaseCategory filter provided
+
+    ValidationError: ShopItem validation failed: category: other is not a valid category
+
+      at model.Document.invalidate (node_modules/mongoose/lib/document.js:3362:32)
+      at node_modules/mongoose/lib/document.js:3123:17
+      at node_modules/mongoose/lib/schemaType.js:1420:9
+
+  ● Story 2.5: Purchase Category Filtering › should return empty array for invalid purchaseCategory
+
+    ValidationError: ShopItem validation failed: category: other is not a valid category
+
+      at model.Document.invalidate (node_modules/mongoose/lib/document.js:3362:32)
+      at node_modules/mongoose/lib/document.js:3123:17
+      at node_modules/mongoose/lib/schemaType.js:1420:9
+
+  ● Story 2.5: Purchase Category Filtering › should support Consumables purchase category
+
+    ValidationError: ShopItem validation failed: category: other is not a valid category
+
+      at model.Document.invalidate (node_modules/mongoose/lib/document.js:3362:32)
+      at node_modules/mongoose/lib/document.js:3123:17
+      at node_modules/mongoose/lib/schemaType.js:1420:9
+
+  ● Story 2.5: Purchase Category Filtering › should support Others purchase category
+
+    ValidationError: ShopItem validation failed: category: other is not a valid category
+
+      at model.Document.invalidate (node_modules/mongoose/lib/document.js:3362:32)
+      at node_modules/mongoose/lib/document.js:3123:17
+      at node_modules/mongoose/lib/schemaType.js:1420:9
+
+FAIL tests/purchaseRequest_story2_1.test.js (13.494 s)
+  ● Story 2.1: Purchase Request State Machine › Model Schema › should support new status enum and history
+
+    ValidationError: ShopItem validation failed: category: stationery is not a valid category
+
+      at model.Document.invalidate (node_modules/mongoose/lib/document.js:3362:32)
+      at node_modules/mongoose/lib/document.js:3123:17
+      at node_modules/mongoose/lib/schemaType.js:1420:9
+
+  ● Story 2.1: Purchase Request State Machine › Controller: updateStatus › should allow PM to move pending -> ordered
+
+    ValidationError: ShopItem validation failed: category: stationery is not a valid category
+
+      at model.Document.invalidate (node_modules/mongoose/lib/document.js:3362:32)
+      at node_modules/mongoose/lib/document.js:3123:17
+      at node_modules/mongoose/lib/schemaType.js:1420:9
+
+  ● Story 2.1: Purchase Request State Machine › Controller: updateStatus › should DENY Coach from moving pending -> ordered
+
+    ValidationError: ShopItem validation failed: category: stationery is not a valid category
+
+      at model.Document.invalidate (node_modules/mongoose/lib/document.js:3362:32)
+      at node_modules/mongoose/lib/document.js:3123:17
+      at node_modules/mongoose/lib/schemaType.js:1420:9
+
+  ● Story 2.1: Purchase Request State Machine › Controller: updateStatus › should DENY Admin from moving pending -> ordered (PM only)
+
+    ValidationError: ShopItem validation failed: category: stationery is not a valid category
+
+      at model.Document.invalidate (node_modules/mongoose/lib/document.js:3362:32)
+      at node_modules/mongoose/lib/document.js:3123:17
+      at node_modules/mongoose/lib/schemaType.js:1420:9
+
+  ● Story 2.1: Purchase Request State Machine › Controller: updateStatus › should allow PM to move ordered -> delivered_store
+
+    ValidationError: ShopItem validation failed: category: stationery is not a valid category
+
+      at model.Document.invalidate (node_modules/mongoose/lib/document.js:3362:32)
+      at node_modules/mongoose/lib/document.js:3123:17
+      at node_modules/mongoose/lib/schemaType.js:1420:9
+
+  ● Story 2.1: Purchase Request State Machine › Controller: updateStatus › should allow Coach (Requester) to move delivered_store -> delivered_balagruha
+
+    ValidationError: ShopItem validation failed: category: stationery is not a valid category
+
+      at model.Document.invalidate (node_modules/mongoose/lib/document.js:3362:32)
+      at node_modules/mongoose/lib/document.js:3123:17
+      at node_modules/mongoose/lib/schemaType.js:1420:9
+
+  ● Story 2.1: Purchase Request State Machine › Controller: updateStatus › should DENY non-requester from moving delivered_store -> delivered_balagruha
+
+    ValidationError: ShopItem validation failed: category: stationery is not a valid category
+
+      at model.Document.invalidate (node_modules/mongoose/lib/document.js:3362:32)
+      at node_modules/mongoose/lib/document.js:3123:17
+      at node_modules/mongoose/lib/schemaType.js:1420:9
+
+  ● Story 2.1: Purchase Request State Machine › Controller: updateStatus › should allow Admin to move delivered_store -> delivered_balagruha
+
+    ValidationError: ShopItem validation failed: category: stationery is not a valid category
+
+      at model.Document.invalidate (node_modules/mongoose/lib/document.js:3362:32)
+      at node_modules/mongoose/lib/document.js:3123:17
+      at node_modules/mongoose/lib/schemaType.js:1420:9
+
+  ● Story 2.1: Purchase Request State Machine › Controller: updateStatus › should return 400 for invalid status value
+
+    ValidationError: ShopItem validation failed: category: stationery is not a valid category
+
+      at model.Document.invalidate (node_modules/mongoose/lib/document.js:3362:32)
+      at node_modules/mongoose/lib/document.js:3123:17
+      at node_modules/mongoose/lib/schemaType.js:1420:9
+
+  ● Story 2.1: Purchase Request State Machine › Controller: updateStatus › should DENY PM from updating status when request is in an unassigned balagruha
+
+    ValidationError: ShopItem validation failed: category: stationery is not a valid category
+
+      at model.Document.invalidate (node_modules/mongoose/lib/document.js:3362:32)
+      at node_modules/mongoose/lib/document.js:3123:17
+      at node_modules/mongoose/lib/schemaType.js:1420:9
+
+  ● Story 2.1: Purchase Request State Machine › Controller: updateStatus › should ALLOW PM to update status when request is in an assigned balagruha
+
+    ValidationError: ShopItem validation failed: category: stationery is not a valid category
+
+      at model.Document.invalidate (node_modules/mongoose/lib/document.js:3362:32)
+      at node_modules/mongoose/lib/document.js:3123:17
+      at node_modules/mongoose/lib/schemaType.js:1420:9
+
+  ● Story 2.1: Purchase Request State Machine › Controller: getPurchaseRequestById (access control) › should DENY non-admin non-PM from viewing someone else's request
+
+    ValidationError: ShopItem validation failed: category: stationery is not a valid category
+
+      at model.Document.invalidate (node_modules/mongoose/lib/document.js:3362:32)
+      at node_modules/mongoose/lib/document.js:3123:17
+      at node_modules/mongoose/lib/schemaType.js:1420:9
+
+  ● Story 2.1: Purchase Request State Machine › Controller: getPurchaseRequestById (access control) › should ALLOW Purchase Manager to view STOCK requests
+
+    ValidationError: ShopItem validation failed: category: stationery is not a valid category
+
+      at model.Document.invalidate (node_modules/mongoose/lib/document.js:3362:32)
+      at node_modules/mongoose/lib/document.js:3123:17
+      at node_modules/mongoose/lib/schemaType.js:1420:9
+
+  ● Story 2.1: Purchase Request State Machine › Controller: getPurchaseRequestById (access control) › should DENY Purchase Manager from viewing requests outside assigned balagruhas
+
+    ValidationError: ShopItem validation failed: category: stationery is not a valid category
+
+      at model.Document.invalidate (node_modules/mongoose/lib/document.js:3362:32)
+      at node_modules/mongoose/lib/document.js:3123:17
+      at node_modules/mongoose/lib/schemaType.js:1420:9
+
+  ● Story 2.1: Purchase Request State Machine › Controller: assignFromStock (Shortcut) › should allow PM to shortcut to delivered_store and decrement stock
+
+    ValidationError: ShopItem validation failed: category: stationery is not a valid category
+
+      at model.Document.invalidate (node_modules/mongoose/lib/document.js:3362:32)
+      at node_modules/mongoose/lib/document.js:3123:17
+      at node_modules/mongoose/lib/schemaType.js:1420:9
+
+  ● Story 2.1: Purchase Request State Machine › Controller: assignFromStock (Shortcut) › should fail if insufficient stock
+
+    ValidationError: ShopItem validation failed: category: stationery is not a valid category
+
+      at model.Document.invalidate (node_modules/mongoose/lib/document.js:3362:32)
+      at node_modules/mongoose/lib/document.js:3123:17
+      at node_modules/mongoose/lib/schemaType.js:1420:9
+
+  ● Story 2.1: Purchase Request State Machine › Story 2.5: Category filter validation (list endpoints) › should return 400 for invalid category filter in getAllPurchaseRequests
+
+    ValidationError: ShopItem validation failed: category: stationery is not a valid category
+
+      at model.Document.invalidate (node_modules/mongoose/lib/document.js:3362:32)
+      at node_modules/mongoose/lib/document.js:3123:17
+      at node_modules/mongoose/lib/schemaType.js:1420:9
+
+  ● Story 2.1: Purchase Request State Machine › Story 2.5: Category filter validation (list endpoints) › should return 400 for invalid category filter in getMyPurchaseRequests
+
+    ValidationError: ShopItem validation failed: category: stationery is not a valid category
+
+      at model.Document.invalidate (node_modules/mongoose/lib/document.js:3362:32)
+      at node_modules/mongoose/lib/document.js:3123:17
+      at node_modules/mongoose/lib/schemaType.js:1420:9
+
+FAIL tests/security-rbac.test.js
+  ● RBAC Security Tests › Development Bypass - MUST BE REMOVED › should NOT bypass permission checks in development mode
+
+    ENOENT: no such file or directory, open 'backend/middleware/auth.js'
+
+      15 |       // Read auth.js middleware
+      16 |       const fs = require('fs');
+    > 17 |       const authMiddleware = fs.readFileSync('backend/middleware/auth.js', 'utf8');
+         |                                 ^
+      18 |
+      19 |       // Check that development bypass is REMOVED
+      20 |       expect(authMiddleware).not.toMatch(/NODE_ENV.*development.*next\(\)/);
+
+      at Object.readFileSync (tests/security-rbac.test.js:17:33)
+
+  ● RBAC Security Tests › Development Bypass - MUST BE REMOVED › should NOT bypass permission checks in local mode
+
+    ENOENT: no such file or directory, open 'backend/middleware/auth.js'
+
+      25 |     test('should NOT bypass permission checks in local mode', () => {
+      26 |       const fs = require('fs');
+    > 27 |       const authMiddleware = fs.readFileSync('backend/middleware/auth.js', 'utf8');
+         |                                 ^
+      28 |
+      29 |       expect(authMiddleware).not.toMatch(/process\.env\.NODE_ENV.*===.*"local"/);
+      30 |     });
+
+      at Object.readFileSync (tests/security-rbac.test.js:27:33)
+
+  ● RBAC Security Tests › Permission Escalation Prevention › Invalid scope defaults to most restrictive (own)
+
+    expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 1
+    + Received  + 1
+
+      Object {
+    -   "userId": "507f1f77bcf86cd799439099",
+    +   "_id": "507f1f77bcf86cd799439099",
+      }
+
+      114 |
+      115 |       // Should default to 'own' (most restrictive)
+    > 116 |       expect(filter).toEqual({ userId: user._id });
+          |                      ^
+      117 |     });
+      118 |   });
+      119 |
+
+      at Object.toEqual (tests/security-rbac.test.js:116:22)
+
+  ● RBAC Security Tests › Student Own-Data Access › Student should only access own data
+
+    expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 1
+    + Received  + 1
+
+      Object {
+    -   "userId": "507f1f77bcf86cd799439099",
+    +   "_id": "507f1f77bcf86cd799439099",
+      }
+
+      157 |       const filter = getScopeFilter(student, 'own');
+      158 |
+    > 159 |       expect(filter).toEqual({ userId: student._id });
+          |                      ^
+      160 |       expect(filter.userId.toString()).toBe(student._id.toString());
+      161 |     });
+      162 |
+
+      at Object.toEqual (tests/security-rbac.test.js:159:22)
+
+  ● RBAC Security Tests › Student Own-Data Access › Student cannot access another student data
+
+    TypeError: Cannot read properties of undefined (reading 'toString')
+
+      175 |       const filter2 = getScopeFilter(student2, 'own');
+      176 |
+    > 177 |       expect(filter1.userId.toString()).not.toBe(filter2.userId.toString());
+          |                             ^
+      178 |     });
+      179 |   });
+      180 | });
+
+      at Object.toString (tests/security-rbac.test.js:177:29)
+
+  ● Security Audit Checklist › Middleware code should not contain bypasses
+
+    ENOENT: no such file or directory, open 'backend/middleware/checkPermission.js'
+
+      183 |   test('Middleware code should not contain bypasses', () => {
+      184 |     const fs = require('fs');
+    > 185 |     const checkPermissionCode = fs.readFileSync(
+          |                                    ^
+      186 |       'backend/middleware/checkPermission.js',
+      187 |       'utf8'
+      188 |     );
+
+      at Object.readFileSync (tests/security-rbac.test.js:185:36)
+
+  ● Security Audit Checklist › Auth middleware should not contain development shortcuts
+
+    ENOENT: no such file or directory, open 'backend/middleware/auth.js'
+
+      196 |   test('Auth middleware should not contain development shortcuts', () => {
+      197 |     const fs = require('fs');
+    > 198 |     const authCode = fs.readFileSync('backend/middleware/auth.js', 'utf8');
+          |                         ^
+      199 |
+      200 |     // Should not skip authentication
+      201 |     expect(authCode.toLowerCase()).not.toMatch(/skip.*auth/);
+
+      at Object.readFileSync (tests/security-rbac.test.js:198:25)
+
+FAIL tests/shopItem.test.js
+  ● ShopItem Model - Story-01 › Validation › should create a valid shop item
+
+    ValidationError: ShopItem validation failed: category: books is not a valid category
+
+      at model.Document.invalidate (node_modules/mongoose/lib/document.js:3362:32)
+      at node_modules/mongoose/lib/document.js:3123:17
+      at node_modules/mongoose/lib/schemaType.js:1420:9
+
+  ● ShopItem Model - Story-01 › Validation › should fail without required fields
+
+    expect(received).toBeDefined()
+
+    Received: undefined
+
+      42 |
+      43 |       expect(error).toBeDefined();
+    > 44 |       expect(error.errors.sku).toBeDefined();
+         |                                ^
+      45 |       expect(error.errors.name).toBeDefined();
+      46 |       expect(error.errors.description).toBeDefined();
+      47 |       expect(error.errors.category).toBeDefined();
+
+      at Object.toBeDefined (tests/shopItem.test.js:44:32)
+
+  ● ShopItem Model - Story-01 › Validation › should fail if discount price >= regular price
+
+    expect(received).toContain(expected) // indexOf
+
+    Expected substring: "Discount price must be less than regular price"
+    Received string:    "ShopItem validation failed: category: books is not a valid category"
+
+      106 |
+      107 |       expect(error).toBeDefined();
+    > 108 |       expect(error.message).toContain('Discount price must be less than regular price');
+          |                             ^
+      109 |     });
+      110 |   });
+      111 |
+
+      at Object.toContain (tests/shopItem.test.js:108:29)
+
+FAIL tests/performance-rbac.test.js
+  ● Performance Optimization Checklist › User model should have index on balagruhaIds
+
+    ENOENT: no such file or directory, open 'backend/models/user.js'
+
+      107 |   test('User model should have index on balagruhaIds', () => {
+      108 |     const fs = require('fs');
+    > 109 |     const userModel = fs.readFileSync('backend/models/user.js', 'utf8');
+          |                          ^
+      110 |
+      111 |     // Check for index definition
+      112 |     expect(userModel).toMatch(/balagruhaIds.*1.*\}/); // Index definition
+
+      at Object.readFileSync (tests/performance-rbac.test.js:109:26)
+
+  ● Performance Optimization Checklist › Permission checks should use find() not findOne() + loop
+
+    ENOENT: no such file or directory, open 'backend/middleware/checkPermission.js'
+
+      115 |   test('Permission checks should use find() not findOne() + loop', () => {
+      116 |     const fs = require('fs');
+    > 117 |     const checkPermission = fs.readFileSync(
+          |                                ^
+      118 |       'backend/middleware/checkPermission.js',
+      119 |       'utf8'
+      120 |     );
+
+      at Object.readFileSync (tests/performance-rbac.test.js:117:32)
+
+FAIL tests/shopItem_story1_2.test.js
+  ● ShopItem Model - Story 1.2 › should accept approvedVendors, maxPrice, and sellingPrice
+
+    ValidationError: ShopItem validation failed: category: stationery is not a valid category
+
+      at model.Document.invalidate (node_modules/mongoose/lib/document.js:3362:32)
+      at node_modules/mongoose/lib/document.js:3123:17
+      at node_modules/mongoose/lib/schemaType.js:1420:9
+
+  ● ShopItem Model - Story 1.2 › should allow saving without new fields (backward compatibility)
+
+    ValidationError: ShopItem validation failed: category: stationery is not a valid category
+
+      at model.Document.invalidate (node_modules/mongoose/lib/document.js:3362:32)
+      at node_modules/mongoose/lib/document.js:3123:17
+      at node_modules/mongoose/lib/schemaType.js:1420:9
+
+FAIL tests/migration-scope.test.js
+  ● Migration: Add Scope to Permissions › should add scope field to new permissions
+
+    MongooseError: Can't call `openUri()` on an active connection with different connection strings. Make sure you aren't calling `mongoose.connect()` multiple times. See: https://mongoosejs.com/docs/connections.html#multiple_connections
+
+      16 |     // Use in-memory MongoDB for testing
+      17 |     const mongoUri = process.env.MONGO_URI_TEST || 'mongodb://localhost:27017/isf-test';
+    > 18 |     connection = await mongoose.connect(mongoUri, {
+         |                                 ^
+      19 |       useNewUrlParser: true,
+      20 |       useUnifiedTopology: true,
+      21 |     });
+
+      at NativeConnection.createClient (node_modules/mongoose/lib/drivers/node-mongodb-native/connection.js:251:13)
+      at NativeConnection.openUri (node_modules/mongoose/lib/connection.js:1075:34)
+      at Mongoose.connect (node_modules/mongoose/lib/mongoose.js:450:15)
+      at Object.connect (tests/migration-scope.test.js:18:33)
+
+  ● Migration: Add Scope to Permissions › should allow setting scope to "all" for admin
+
+    MongooseError: Can't call `openUri()` on an active connection with different connection strings. Make sure you aren't calling `mongoose.connect()` multiple times. See: https://mongoosejs.com/docs/connections.html#multiple_connections
+
+      16 |     // Use in-memory MongoDB for testing
+      17 |     const mongoUri = process.env.MONGO_URI_TEST || 'mongodb://localhost:27017/isf-test';
+    > 18 |     connection = await mongoose.connect(mongoUri, {
+         |                                 ^
+      19 |       useNewUrlParser: true,
+      20 |       useUnifiedTopology: true,
+      21 |     });
+
+      at NativeConnection.createClient (node_modules/mongoose/lib/drivers/node-mongodb-native/connection.js:251:13)
+      at NativeConnection.openUri (node_modules/mongoose/lib/connection.js:1075:34)
+      at Mongoose.connect (node_modules/mongoose/lib/mongoose.js:450:15)
+      at Object.connect (tests/migration-scope.test.js:18:33)
+
+  ● Migration: Add Scope to Permissions › should allow setting scope to "balagruh" for coach
+
+    MongooseError: Can't call `openUri()` on an active connection with different connection strings. Make sure you aren't calling `mongoose.connect()` multiple times. See: https://mongoosejs.com/docs/connections.html#multiple_connections
+
+      16 |     // Use in-memory MongoDB for testing
+      17 |     const mongoUri = process.env.MONGO_URI_TEST || 'mongodb://localhost:27017/isf-test';
+    > 18 |     connection = await mongoose.connect(mongoUri, {
+         |                                 ^
+      19 |       useNewUrlParser: true,
+      20 |       useUnifiedTopology: true,
+      21 |     });
+
+      at NativeConnection.createClient (node_modules/mongoose/lib/drivers/node-mongodb-native/connection.js:251:13)
+      at NativeConnection.openUri (node_modules/mongoose/lib/connection.js:1075:34)
+      at Mongoose.connect (node_modules/mongoose/lib/mongoose.js:450:15)
+      at Object.connect (tests/migration-scope.test.js:18:33)
+
+  ● Migration: Add Scope to Permissions › should allow setting scope to "own" for student
+
+    MongooseError: Can't call `openUri()` on an active connection with different connection strings. Make sure you aren't calling `mongoose.connect()` multiple times. See: https://mongoosejs.com/docs/connections.html#multiple_connections
+
+      16 |     // Use in-memory MongoDB for testing
+      17 |     const mongoUri = process.env.MONGO_URI_TEST || 'mongodb://localhost:27017/isf-test';
+    > 18 |     connection = await mongoose.connect(mongoUri, {
+         |                                 ^
+      19 |       useNewUrlParser: true,
+      20 |       useUnifiedTopology: true,
+      21 |     });
+
+      at NativeConnection.createClient (node_modules/mongoose/lib/drivers/node-mongodb-native/connection.js:251:13)
+      at NativeConnection.openUri (node_modules/mongoose/lib/connection.js:1075:34)
+      at Mongoose.connect (node_modules/mongoose/lib/mongoose.js:450:15)
+      at Object.connect (tests/migration-scope.test.js:18:33)
+
+  ● Migration: Add Scope to Permissions › should reject invalid scope values
+
+    MongooseError: Can't call `openUri()` on an active connection with different connection strings. Make sure you aren't calling `mongoose.connect()` multiple times. See: https://mongoosejs.com/docs/connections.html#multiple_connections
+
+      16 |     // Use in-memory MongoDB for testing
+      17 |     const mongoUri = process.env.MONGO_URI_TEST || 'mongodb://localhost:27017/isf-test';
+    > 18 |     connection = await mongoose.connect(mongoUri, {
+         |                                 ^
+      19 |       useNewUrlParser: true,
+      20 |       useUnifiedTopology: true,
+      21 |     });
+
+      at NativeConnection.createClient (node_modules/mongoose/lib/drivers/node-mongodb-native/connection.js:251:13)
+      at NativeConnection.openUri (node_modules/mongoose/lib/connection.js:1075:34)
+      at Mongoose.connect (node_modules/mongoose/lib/mongoose.js:450:15)
+      at Object.connect (tests/migration-scope.test.js:18:33)
+
+  ● Migration: Add Scope to Permissions › should allow multiple permissions with different scopes
+
+    MongooseError: Can't call `openUri()` on an active connection with different connection strings. Make sure you aren't calling `mongoose.connect()` multiple times. See: https://mongoosejs.com/docs/connections.html#multiple_connections
+
+      16 |     // Use in-memory MongoDB for testing
+      17 |     const mongoUri = process.env.MONGO_URI_TEST || 'mongodb://localhost:27017/isf-test';
+    > 18 |     connection = await mongoose.connect(mongoUri, {
+         |                                 ^
+      19 |       useNewUrlParser: true,
+      20 |       useUnifiedTopology: true,
+      21 |     });
+
+      at NativeConnection.createClient (node_modules/mongoose/lib/drivers/node-mongodb-native/connection.js:251:13)
+      at NativeConnection.openUri (node_modules/mongoose/lib/connection.js:1075:34)
+      at Mongoose.connect (node_modules/mongoose/lib/mongoose.js:450:15)
+      at Object.connect (tests/migration-scope.test.js:18:33)
+
+FAIL tests/checkPermission.test.js
+  ● getScopeFilter - Scope-Based Query Filtering › Scope: "own" (User-Level Access) › should filter by userId for scope="own"
+
+    expect(received).toHaveProperty(path)
+
+    Expected path: "userId"
+    Received path: []
+
+    Received value: {"_id": "507f1f77bcf86cd799439099"}
+
+      84 |       const filter = getScopeFilter(mockStudentUser, 'own');
+      85 |
+    > 86 |       expect(filter).toHaveProperty('userId');
+         |                      ^
+      87 |       expect(filter.userId).toEqual(mockStudentUser._id);
+      88 |     });
+      89 |
+
+      at Object.toHaveProperty (tests/checkPermission.test.js:86:22)
+
+  ● getScopeFilter - Scope-Based Query Filtering › Scope: "own" (User-Level Access) › should restrict student to own data only
+
+    expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 1
+    + Received  + 1
+
+      Array [
+    -   "userId",
+    +   "_id",
+      ]
+
+      91 |       const filter = getScopeFilter(mockStudentUser, 'own');
+      92 |
+    > 93 |       expect(Object.keys(filter)).toEqual(['userId']);
+         |                                   ^
+      94 |       expect(filter.userId).toBe(mockStudentUser._id);
+      95 |     });
+      96 |   });
+
+      at Object.toEqual (tests/checkPermission.test.js:93:35)
+
+  ● getScopeFilter - Scope-Based Query Filtering › Edge Cases and Error Handling › should default to "own" if scope is undefined
+
+    expect(received).toHaveProperty(path)
+
+    Expected path: "userId"
+    Received path: []
+
+    Received value: {"_id": "507f1f77bcf86cd799439099"}
+
+      100 |       const filter = getScopeFilter(mockStudentUser, undefined);
+      101 |
+    > 102 |       expect(filter).toHaveProperty('userId');
+          |                      ^
+      103 |       expect(filter.userId).toEqual(mockStudentUser._id);
+      104 |     });
+      105 |
+
+      at Object.toHaveProperty (tests/checkPermission.test.js:102:22)
+
+  ● getScopeFilter - Scope-Based Query Filtering › Edge Cases and Error Handling › should default to "own" if scope is null
+
+    expect(received).toHaveProperty(path)
+
+    Expected path: "userId"
+    Received path: []
+
+    Received value: {"_id": "507f1f77bcf86cd799439099"}
+
+      107 |       const filter = getScopeFilter(mockStudentUser, null);
+      108 |
+    > 109 |       expect(filter).toHaveProperty('userId');
+          |                      ^
+      110 |       expect(filter.userId).toEqual(mockStudentUser._id);
+      111 |     });
+      112 |
+
+      at Object.toHaveProperty (tests/checkPermission.test.js:109:22)
+
+  ● getScopeFilter - Scope-Based Query Filtering › Edge Cases and Error Handling › should default to "own" for invalid scope value
+
+    expect(received).toHaveProperty(path)
+
+    Expected path: "userId"
+    Received path: []
+
+    Received value: {"_id": "507f1f77bcf86cd799439099"}
+
+      114 |       const filter = getScopeFilter(mockStudentUser, 'invalid-scope');
+      115 |
+    > 116 |       expect(filter).toHaveProperty('userId');
+          |                      ^
+      117 |       expect(filter.userId).toEqual(mockStudentUser._id);
+      118 |     });
+      119 |
+
+      at Object.toHaveProperty (tests/checkPermission.test.js:116:22)
+
+  ● getScopeFilter - Scope-Based Query Filtering › Edge Cases and Error Handling › should handle user with no _id field gracefully
+
+    expect(received).toHaveProperty(path)
+
+    Expected path: "userId"
+    Received path: []
+
+    Received value: {"_id": undefined}
+
+      122 |       const filter = getScopeFilter(userWithoutId, 'own');
+      123 |
+    > 124 |       expect(filter).toHaveProperty('userId');
+          |                      ^
+      125 |       expect(filter.userId).toBeUndefined();
+      126 |     });
+      127 |   });
+
+      at Object.toHaveProperty (tests/checkPermission.test.js:124:22)
+
+  ● getScopeFilter - Scope-Based Query Filtering › Real-World Scenarios › Student can query only own data
+
+    expect(received).toEqual(expected) // deep equality
+
+    Expected: "507f1f77bcf86cd799439099"
+    Received: undefined
+
+      143 |       const filter = getScopeFilter(mockStudentUser, 'own');
+      144 |       // Query: Course.find(filter) -> returns only student's own courses
+    > 145 |       expect(filter.userId).toEqual(mockStudentUser._id);
+          |                             ^
+      146 |     });
+      147 |   });
+      148 | });
+
+      at Object.toEqual (tests/checkPermission.test.js:145:29)
+
+  ● Integration Test: Scope Filter with MongoDB Queries › should allow combining scope filter with other query parameters
+
+    expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 1
+    + Received  + 1
+
+      Object {
+    +   "_id": "507f1f77bcf86cd799439099",
+        "completed": true,
+        "courseId": "123",
+    -   "userId": "507f1f77bcf86cd799439099",
+      }
+
+      180 |     };
+      181 |
+    > 182 |     expect(query).toEqual({
+          |                   ^
+      183 |       userId: mockStudent._id,
+      184 |       courseId: '123',
+      185 |       completed: true,
+
+      at Object.toEqual (tests/checkPermission.test.js:182:19)
+
+
+Test Suites: 12 failed, 13 passed, 25 total
+Tests:       68 failed, 1 skipped, 320 passed, 389 total
+Snapshots:   0 total
+Time:        32.511 s
+Ran all test suites.
+Force exiting Jest: Have you considered using `--detectOpenHandles` to detect async operations that kept running after all tests finished?

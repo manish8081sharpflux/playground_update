@@ -1,0 +1,29 @@
+/* LoginCard.css */
+.login-container {
+  background-image: url("../../assets/playground.webp");
+  background-position: 50% 100%;
+  background-repeat: no-repeat;
+  background-size: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background-color: #3ed1fc;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+.login-card {
+  background: white;
+  border-radius: 12px;
+  padding: 30px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 400px;
+}
+
+.login-card h3 {
+  text-align: center;
+  margin-bottom: 30px;
+  color: #333;
+}

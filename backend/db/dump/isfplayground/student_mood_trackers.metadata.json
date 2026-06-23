@@ -1,0 +1,1 @@
+{"indexes":[{"v":{"$numberInt":"2"},"key":{"_id":{"$numberInt":"1"}},"name":"_id_"}],"uuid":"00a863ce69e54fe791ebab64a3ceeffc","collectionName":"student_mood_trackers","type":"collection"}

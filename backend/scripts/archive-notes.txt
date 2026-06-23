@@ -1,0 +1,29 @@
+Pending list : 
+1 . add machine allocation history while changing the machine from one balagruha to another - pending
+
+
+API for fetch the user list by role - get coach, student, admin list..etc 
+
+
+--- new tasks --
+1. add condition for machine assignments. pls note only 1 pc can be assigned to 3 students in a balagruha. 
+Means if there are 30 students then 10 machines . Registered for 1 balagruha and 3 students.
+
+
+
+
+--- new tasks ---
+1. machine delete - also remove the assigned machine details from the all entities - done delete 
+7. facial rec implement - consider login in locally
+3. remove the password from response 
+5. locally store the student data
+
+------
+
+block the crud operations from the un allocated balagruha - last 
+add - attendance management rbac  - at last
+balagruha management rbac
+
+
+
+1. group the muliple user created task and its crud and delete 

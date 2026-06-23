@@ -1,0 +1,549 @@
+.from-to-container {
+  display: flex;
+  gap: 5px;
+}
+
+.date-picker {
+  display: flex;
+  gap: 10px;
+}
+
+.date-picker-button {
+  padding: 15px 40px;
+  border-radius: 10px;
+  border: 2px solid #b0c2f2;
+  font-weight: 600;
+  font-size: 16px;
+  font-family: "Patrick Hand", cursive;
+  background-color: #fff;
+  margin-bottom: 20px;
+  transition: transform 0.3s, background-color 0.3s;
+}
+
+/* Hover effect only when not selected */
+.date-picker-button:not(.selected):hover {
+  transform: scale(1.1);
+  background-color: #b0c2f2;
+}
+
+/* When selected */
+.date-picker-button.selected {
+  background-color: #7699f8;
+  transform: scale(1); /* Reset scale */
+  border: none;
+}
+
+.date-container {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  /* justify-content: end; */
+  align-items: end;
+  margin-bottom: 20px;
+}
+
+.date-submit-btn {
+  padding: 10px 30px;
+  margin: 20px 0;
+  background-color: #e6edff;
+  border-radius: 5px;
+  border: 2px solid #4a72e1;
+  font-family: "Patrick Hand", cursive;
+  font-size: 17px;
+  color: rgb(110, 110, 110);
+  font-weight: 600;
+}
+
+.date-submit-btn:hover {
+  scale: 1.1;
+  transition: 0.3s;
+  background-color: #d6e3ff;
+}
+
+.from-to-date-input {
+  padding: 10px 20px;
+}
+
+.from-to-date-input:hover {
+  scale: 1.1;
+  transition: 0.3s;
+}
+
+.custom-date-container {
+  background-color: #fff;
+  padding: 30px;
+  box-shadow: 0px 0px 10px rgb(197, 197, 197);
+  border-radius: 20px;
+}
+
+/* Repair Section Styles */
+.purchase-repairs-section {
+  padding: 20px;
+  background-color: #f8f9fa;
+  min-height: 100vh;
+}
+
+.purchase-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.purchase-section-header h2 {
+  color: #3a86ff;
+}
+
+.purchase-action-button {
+  background-color: #ffbe0b;
+  color: #333;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-family: "Patrick Hand", cursive;
+  font-size: 16px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s;
+}
+
+.purchase-action-button:hover {
+  background-color: #ffa700;
+  transform: translateY(-2px);
+}
+
+/* Table Styles */
+.purchase-data-table {
+  background-color: white;
+  border-radius: 15px;
+  padding: 20px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  overflow-x: auto;
+  border: 2px solid #e0e0e0;
+}
+
+.purchase-data-table table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.purchase-data-table th,
+.purchase-data-table td {
+  padding: 12px 15px;
+  text-align: left;
+  border-bottom: 1px solid #eee;
+}
+
+.purchase-data-table th {
+  background-color: #f5f5f5;
+  color: #3a86ff;
+  font-weight: bold;
+}
+
+.purchase-data-table tr:hover {
+  background-color: #f9f9f9;
+}
+
+.purchase-tag {
+  padding: 5px 10px;
+  border-radius: 20px;
+  font-size: 14px;
+  display: inline-block;
+}
+
+.purchase-high {
+  background-color: #ff595e;
+  color: white;
+}
+
+.purchase-medium {
+  background-color: #ffca3a;
+  color: #333;
+}
+
+.purchase-low {
+  background-color: #8ac926;
+  color: white;
+}
+
+.purchase-status-pending {
+  background-color: #ffca3a;
+  color: #333;
+}
+
+.purchase-status-in-progress {
+  background-color: #3a86ff;
+  color: white;
+}
+
+.purchase-status-completed {
+  background-color: #8ac926;
+  color: white;
+}
+
+.purchase-status-ordered {
+  background-color: #3a86ff;
+  color: white;
+}
+
+/* Action Buttons */
+.action-buttons {
+  display: flex;
+  gap: 5px;
+}
+
+.purchase-icon-button {
+  background: none;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+  padding: 5px;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.purchase-icon-button:hover {
+  background-color: #f0f0f0;
+}
+
+.purchase-icon-button.edit:hover {
+  background-color: #e3f2fd;
+}
+
+.purchase-icon-button.delete:hover {
+  background-color: #ffebee;
+}
+
+/* Filter Styles */
+.filter-select {
+  padding: 8px 12px;
+  border: 2px solid #7ed6df;
+  border-radius: 20px;
+  font-family: "Patrick Hand", cursive;
+  font-size: 14px;
+  background-color: white;
+  color: #333;
+}
+
+.filter-select:focus {
+  outline: none;
+  border-color: #4a90e2;
+}
+
+/* Loading Spinner */
+.loading-spinner {
+  text-align: center;
+  padding: 40px;
+  font-size: 18px;
+  color: #666;
+}
+
+/* Modal Styles */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-container {
+  background-color: white;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 600px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 20px;
+  border-bottom: 1px solid #eee;
+}
+
+.modal-header h3 {
+  margin: 0;
+  color: #333;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #666;
+}
+
+.modal-body {
+  padding: 20px;
+}
+
+.modal-footer {
+  padding: 15px 20px;
+  border-top: 1px solid #eee;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+/* Form Styles */
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: 500;
+  color: #555;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.form-group textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+/* File Upload Styles */
+.file-upload-container {
+  margin-top: 5px;
+  border: 2px dashed #ddd;
+  padding: 20px;
+  text-align: center;
+  border-radius: 8px;
+  margin-top: 15px;
+  transition: border-color 0.3s;
+}
+
+.file-upload-container:hover {
+  border-color: #007bff;
+}
+
+.file-upload-container input[type="file"] {
+  display: none;
+}
+
+.file-upload-label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  color: #007bff;
+  padding: 10px 20px;
+  background-color: #f0f0f0;
+  border: 2px dashed #ccc;
+  border-radius: 8px;
+  text-align: center;
+  transition: all 0.3s;
+}
+
+.file-upload-label:hover {
+  background-color: #e0e0e0;
+  border-color: #999;
+}
+
+.file-upload-label i {
+  font-size: 2em;
+  margin-right: 8px;
+  color: #666;
+}
+
+/* Uploaded Files Styles */
+.uploaded-files {
+  margin-top: 15px;
+  padding: 10px;
+  background-color: #f9f9f9;
+  border-radius: 4px;
+}
+
+.uploaded-files h4 {
+  margin-top: 0;
+  margin-bottom: 10px;
+  font-size: 14px;
+  color: #555;
+}
+
+.uploaded-files ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.uploaded-files li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 5px 0;
+  font-size: 13px;
+}
+
+/* File Preview Styles */
+.file-preview {
+  margin: 10px 0;
+}
+
+.preview-image {
+  max-width: 100px;
+  max-height: 100px;
+  border-radius: 4px;
+  border: 1px solid #ddd;
+}
+
+.preview-document {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px;
+  background-color: #f5f5f5;
+  border-radius: 4px;
+  border: 1px solid #ddd;
+}
+
+.preview-document i {
+  font-size: 20px;
+  color: #e74c3c;
+}
+
+/* Attachments Grid */
+.attachments-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 15px;
+  margin-top: 10px;
+}
+
+.attachment-item {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 10px;
+  text-align: center;
+}
+
+.attachment-actions {
+  margin-top: 10px;
+  display: flex;
+  gap: 5px;
+  justify-content: center;
+}
+
+/* Existing and New Attachments */
+.existing-attachments,
+.new-attachments {
+  margin-top: 20px;
+  padding: 15px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+}
+
+.view-button,
+.remove-file {
+  padding: 5px 10px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  text-decoration: none;
+  display: inline-block;
+}
+
+.view-button {
+  background-color: #4caf50;
+  color: white;
+}
+
+.remove-file {
+  background-color: #f44336;
+  color: white;
+}
+
+/* Button Styles */
+.submit-button,
+.cancel-button,
+.delete-button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: background-color 0.2s;
+}
+
+.submit-button {
+  background-color: #4caf50;
+  color: white;
+}
+
+.submit-button:hover {
+  background-color: #45a049;
+}
+
+.cancel-button {
+  background-color: #9e9e9e;
+  color: white;
+}
+
+.cancel-button:hover {
+  background-color: #757575;
+}
+
+.delete-button {
+  background-color: #f44336;
+  color: white;
+}
+
+.delete-button:hover {
+  background-color: #da190b;
+}
+
+/* Confirmation Modal */
+.confirmation-modal .modal-body {
+  text-align: center;
+}
+
+.confirmation-modal .modal-footer {
+  justify-content: center;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .purchase-section-header {
+    flex-direction: column;
+    gap: 15px;
+    align-items: flex-start;
+  }
+
+  .date-picker {
+    flex-wrap: wrap;
+    gap: 5px;
+  }
+
+  .date-picker-button {
+    padding: 10px 20px;
+    font-size: 14px;
+  }
+
+  .modal-container {
+    width: 95%;
+    margin: 10px;
+  }
+}

@@ -1,0 +1,843 @@
+@import url('https://fonts.googleapis.com/css2?family=Patrick+Hand&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Patrick Hand', cursive;
+    background-color: #f5f5f5;
+    color: #333;
+}
+
+.music-coach-dashboard {
+    display: flex;
+    min-height: 100vh;
+}
+
+/* Sidebar Styles */
+.music-sidebar {
+    background-color: #6a0dad;
+    color: white;
+    transition: width 0.3s ease;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+}
+
+.music-sidebar.open {
+    width: 250px;
+}
+
+.music-sidebar.closed {
+    width: 70px;
+}
+
+.music-sidebar-toggle {
+    position: absolute;
+    top: 20px;
+    right: -15px;
+    width: 30px;
+    height: 30px;
+    background-color: #6a0dad;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 10;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    font-size: 14px;
+}
+
+.music-sidebar-content {
+    padding: 20px 0;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.music-logo {
+    display: flex;
+    align-items: center;
+    padding: 0 20px 20px;
+    margin-bottom: 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.music-logo .music-emoji {
+    font-size: 24px;
+    margin-right: 10px;
+}
+
+.music-logo h2 {
+    font-size: 22px;
+    white-space: nowrap;
+}
+
+.music-sidebar-menu ul {
+    list-style: none;
+}
+
+.music-sidebar-menu li {
+    padding: 15px 20px;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    margin-bottom: 5px;
+}
+
+.music-sidebar-menu li:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.music-sidebar-menu li.active {
+    background-color: rgba(255, 255, 255, 0.2);
+    border-left: 4px solid #ff9a8b;
+}
+
+.music-sidebar-menu .music-emoji {
+    font-size: 20px;
+    margin-right: 15px;
+}
+
+/* Main Content Styles */
+.music-main-content {
+    flex: 1;
+    padding: 20px;
+    overflow-y: auto;
+}
+
+.music-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    padding-bottom: 15px;
+    border-bottom: 2px dashed #6a0dad;
+}
+
+.music-header h1 {
+    font-size: 28px;
+    color: #6a0dad;
+}
+
+.music-user-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.music-user-avatar {
+    font-size: 24px;
+}
+
+.music-user-name {
+    font-size: 18px;
+}
+
+/* Dashboard Overview */
+.music-dashboard-overview h2 {
+    margin-bottom: 20px;
+    color: #6a0dad;
+}
+
+.music-stats-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.music-stat-card {
+    background-color: white;
+    border-radius: 15px;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    border: 2px solid #e0e0e0;
+}
+
+.music-stat-icon {
+    font-size: 30px;
+    margin-right: 15px;
+}
+
+.music-stat-info h3 {
+    font-size: 24px;
+    margin-bottom: 5px;
+    color: #6a0dad;
+}
+
+.music-stat-info p {
+    font-size: 16px;
+    color: #666;
+}
+
+.music-dashboard-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.music-dashboard-card {
+    background-color: white;
+    border-radius: 15px;
+    padding: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    border: 2px solid #e0e0e0;
+}
+
+.music-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.music-card-header h3 {
+    color: #6a0dad;
+}
+
+.music-session-list,
+.music-recording-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.music-session-item {
+    display: flex;
+    align-items: center;
+    padding: 15px;
+    border-radius: 10px;
+    background-color: #f9f9f9;
+    border-left: 4px solid #6a0dad;
+}
+
+.music-session-time {
+    font-size: 18px;
+    font-weight: bold;
+    color: #6a0dad;
+    margin-right: 15px;
+    min-width: 80px;
+}
+
+.music-session-details {
+    flex: 1;
+}
+
+.music-session-details h4 {
+    margin-bottom: 5px;
+}
+
+.music-session-details p {
+    font-size: 14px;
+    color: #666;
+}
+
+.music-session-actions {
+    display: flex;
+    gap: 5px;
+}
+
+.music-view-all {
+    text-align: center;
+    margin-top: 10px;
+}
+
+.music-view-all a {
+    color: #6a0dad;
+    text-decoration: none;
+}
+
+.music-recording-item {
+    display: flex;
+    padding: 15px;
+    border-radius: 10px;
+    background-color: #f9f9f9;
+    align-items: center;
+}
+
+.music-recording-icon {
+    font-size: 24px;
+    margin-right: 15px;
+}
+
+.music-recording-details {
+    flex: 1;
+}
+
+.music-recording-details h4 {
+    margin-bottom: 5px;
+}
+
+.music-recording-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 5px;
+    font-size: 14px;
+    color: #666;
+}
+
+.music-recording-actions {
+    display: flex;
+    gap: 5px;
+}
+
+.music-tasks-overview {
+    margin-bottom: 30px;
+}
+
+.music-tasks-table {
+    overflow-x: auto;
+}
+
+/* Section Styles */
+.music-section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.music-section-header h2 {
+    color: #6a0dad;
+}
+
+.music-search-filter {
+    display: flex;
+    gap: 10px;
+}
+
+.music-search-filter input,
+.music-search-filter select {
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    font-family: 'Patrick Hand', cursive;
+}
+
+.music-action-button {
+    background-color: #ff9a8b;
+    color: #333;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: 'Patrick Hand', cursive;
+    font-size: 16px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s;
+}
+
+.music-action-button:hover {
+    background-color: #ff8177;
+    transform: translateY(-2px);
+}
+
+.music-action-button.small {
+    padding: 6px 10px;
+    font-size: 14px;
+}
+
+.music-action-button.secondary {
+    background-color: #e0e0e0;
+    color: #333;
+}
+
+.music-action-button.secondary:hover {
+    background-color: #d0d0d0;
+}
+
+/* Table Styles */
+.music-data-table {
+    background-color: white;
+    border-radius: 15px;
+    padding: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    overflow-x: auto;
+    border: 2px solid #e0e0e0;
+    margin-bottom: 20px;
+}
+
+.music-data-table table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.music-data-table th,
+.music-data-table td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid #eee;
+}
+
+.music-data-table th {
+    background-color: #f5f5f5;
+    color: #6a0dad;
+    font-weight: bold;
+}
+
+.music-data-table tr:hover {
+    background-color: #f9f9f9;
+}
+
+.music-tag {
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-size: 14px;
+    display: inline-block;
+}
+
+.music-status-active {
+    background-color: #8bd3dd;
+    color: #333;
+}
+
+.music-status-draft {
+    background-color: #ff9a8b;
+    color: #333;
+}
+
+.music-status-completed,
+.music-status-reviewed {
+    background-color: #b5ead7;
+    color: #333;
+}
+
+.music-status-pending-review {
+    background-color: #ffdac1;
+    color: #333;
+}
+
+.music-icon-button {
+    background: none;
+    border: none;
+    font-size: 18px;
+    cursor: pointer;
+    margin-right: 5px;
+}
+
+/* Calendar Styles */
+.music-calendar-view {
+    background-color: white;
+    border-radius: 15px;
+    padding: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    margin-bottom: 30px;
+    border: 2px solid #e0e0e0;
+}
+
+.music-calendar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.music-calendar-nav {
+    background: none;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    color: #6a0dad;
+}
+
+.music-calendar-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 300px;
+    background-color: #f9f9f9;
+    border-radius: 10px;
+    border: 2px dashed #ccc;
+}
+
+.music-calendar-grid {
+    width: 80%;
+    height: 200px;
+    background: linear-gradient(90deg, #f9f9f9 25%, #e9ecef 25%, #e9ecef 50%, #f9f9f9 50%, #f9f9f9 75%, #e9ecef 75%);
+    border-radius: 8px;
+    margin-top: 20px;
+    opacity: 0.5;
+}
+
+/* Student Details and Task Creation Panels */
+.music-student-details-panel,
+.music-task-creation-panel,
+.music-feedback-panel {
+    background-color: white;
+    border-radius: 15px;
+    padding: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    margin-top: 20px;
+    border: 2px solid #e0e0e0;
+}
+
+.music-student-details-panel h3,
+.music-task-creation-panel h3,
+.music-feedback-panel h3 {
+    color: #6a0dad;
+    margin-bottom: 15px;
+}
+
+.music-feedback-form {
+    margin-top: 15px;
+}
+
+.music-feedback-form textarea {
+    width: 100%;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    font-family: 'Patrick Hand', cursive;
+    margin-bottom: 15px;
+    resize: vertical;
+}
+
+.music-form-actions {
+    display: flex;
+    gap: 10px;
+}
+
+/* Recordings Grid */
+.music-recordings-filters {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.music-recordings-filters select {
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    font-family: 'Patrick Hand', cursive;
+}
+
+.music-recordings-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.music-recording-card {
+    background-color: white;
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    border: 2px solid #e0e0e0;
+    display: flex;
+    flex-direction: column;
+}
+
+.music-recording-header {
+    padding: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #f9f9f9;
+    border-bottom: 1px solid #eee;
+}
+
+.music-status-indicator {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    margin-right: 10px;
+}
+
+.music-status-indicator.reviewed {
+    background-color: #b5ead7;
+}
+
+.music-status-indicator.pending-review {
+    background-color: #ffdac1;
+}
+
+.music-recording-date {
+    font-size: 14px;
+    color: #666;
+}
+
+.music-recording-body {
+    padding: 15px;
+    flex: 1;
+}
+
+.music-recording-body h4 {
+    margin-bottom: 5px;
+}
+
+.music-piece-name {
+    color: #666;
+    margin-bottom: 15px;
+    font-style: italic;
+}
+
+.music-recording-player {
+    background-color: #f5f5f5;
+    border-radius: 8px;
+    padding: 10px;
+}
+
+.music-player-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.music-play-button {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+}
+
+.music-progress-bar {
+    flex: 1;
+    height: 6px;
+    background-color: #ddd;
+    border-radius: 3px;
+    position: relative;
+}
+
+.music-progress-indicator {
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    width: 30%;
+    background-color: #6a0dad;
+    border-radius: 3px;
+}
+
+.music-duration {
+    font-size: 14px;
+    color: #666;
+}
+
+.music-recording-footer {
+    padding: 15px;
+    border-top: 1px solid #eee;
+    text-align: center;
+}
+
+/* Performance and Reports Styles */
+.music-task-filters {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.music-task-filters select,
+.music-task-filters input {
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    font-family: 'Patrick Hand', cursive;
+}
+
+.music-report-filters {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    background-color: white;
+    padding: 15px;
+    border-radius: 15px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    border: 2px solid #e0e0e0;
+}
+
+.music-filter-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.music-filter-group label {
+    font-weight: bold;
+    color: #6a0dad;
+}
+
+.music-filter-group select {
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    font-family: 'Patrick Hand', cursive;
+    font-size: 16px;
+}
+
+.music-report-preview {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 20px;
+}
+
+.music-report-chart,
+.music-report-summary {
+    background-color: white;
+    border-radius: 15px;
+    padding: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    border: 2px solid #e0e0e0;
+}
+
+.music-chart-placeholder {
+    width: 100%;
+    height: 300px;
+    background: linear-gradient(90deg, #ff9a8b 25%, #ffd3b6 25%, #ffd3b6 50%, #dcedc2 50%, #dcedc2 75%, #a2d2ff 75%);
+    border-radius: 8px;
+    margin-top: 20px;
+    opacity: 0.2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.music-report-summary h3 {
+    margin-bottom: 15px;
+    color: #6a0dad;
+}
+
+.music-report-summary ul {
+    list-style: none;
+    margin-bottom: 20px;
+}
+
+.music-report-summary li {
+    padding: 8px 0;
+    border-bottom: 1px dashed #eee;
+}
+
+/* Responsive Styles */
+@media (max-width: 1024px) {
+    .music-dashboard-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .music-report-preview {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .music-stats-cards {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .music-sidebar.open {
+        width: 200px;
+    }
+
+    .music-recordings-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 576px) {
+    .music-stats-cards {
+        grid-template-columns: 1fr;
+    }
+
+    .music-section-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+
+    .music-search-filter,
+    .music-recordings-filters,
+    .music-task-filters {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .music-search-filter input,
+    .music-search-filter select,
+    .music-recordings-filters select,
+    .music-task-filters select,
+    .music-task-filters input {
+        width: 100%;
+    }
+
+    .music-sidebar.open {
+        width: 100%;
+        position: fixed;
+        z-index: 100;
+    }
+
+    .music-sidebar.closed {
+        width: 60px;
+    }
+
+    .music-main-content {
+        padding: 15px;
+    }
+}
+
+.student-selection {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 10px;
+    max-height: 200px;
+    overflow-y: auto;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background: #f9f9f9;
+}
+
+.student-checkbox {
+    display: flex;
+    align-items: center;
+    padding: 8px;
+    background: white;
+    border: 1px solid #eee;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.student-checkbox:hover {
+    background: #f0f0f0;
+    border-color: #ddd;
+}
+
+.student-checkbox input[type="checkbox"] {
+    margin-right: 8px;
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+}
+
+/* Scrollbar Styles for Student Selection */
+.student-selection::-webkit-scrollbar {
+    width: 8px;
+}
+
+.student-selection::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+.student-selection::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 4px;
+}
+
+.student-selection::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}

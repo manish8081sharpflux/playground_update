@@ -1,0 +1,2109 @@
+[
+  {
+    "thresholdAnalysis": {
+      "itemThreshold": 1000,
+      "orderThreshold": 25000,
+      "requiresApproval": true
+    },
+    "priority": "medium",
+    "inventoryTransactionIds": [],
+    "_id": "6902f6db9a16e97cf4eb1e17",
+    "balagruhaId": "6809e02280aacbb08e74ce36",
+    "items": [
+      {
+        "productId": "68e6028191774051e98b1a1d",
+        "productName": "Umbrella (Compact)",
+        "productSKU": "OTH-005",
+        "requestedQuantity": 50,
+        "currentStock": 10,
+        "lowStockThreshold": 10,
+        "estimatedUnitCost": 100,
+        "estimatedTotalCost": 5000,
+        "_id": "6902f6db9a16e97cf4eb1e18",
+        "id": "6902f6db9a16e97cf4eb1e18"
+      }
+    ],
+    "attachments": [],
+    "totalEstimatedCost": 5000,
+    "reason": "Restock umbrellas for monsoon season - student safety",
+    "justification": "Test data for Story 18 admin approval workflow",
+    "requestedBy": "681105742a06968adc38be49",
+    "status": "approved",
+    "createdAt": "2025-10-30T05:25:47.692Z",
+    "updatedAt": "2025-11-06T09:21:42.150Z",
+    "requestId": "PR-001",
+    "__v": 0,
+    "reviewNotes": "Approved for monsoon season preparation. Purchase from regular supplier.",
+    "reviewedAt": "2025-10-30T05:47:20.219Z",
+    "reviewedBy": "68ab66ca408f3118a751d285",
+    "category": "Others",
+    "statusHistory": [],
+    "allocatedToBalagruhas": [],
+    "requestAge": 1829,
+    "totalItems": 1,
+    "totalQuantity": 50,
+    "id": "6902f6db9a16e97cf4eb1e17"
+  },
+  {
+    "thresholdAnalysis": {
+      "itemThreshold": 1000,
+      "orderThreshold": 25000,
+      "requiresApproval": true
+    },
+    "priority": "medium",
+    "inventoryTransactionIds": [],
+    "_id": "6902f8d961d6cafaef31a19b",
+    "balagruhaId": "6809e05380aacbb08e74cf8b",
+    "items": [
+      {
+        "productId": "68e6028191774051e98b1a1d",
+        "productName": "Umbrella (Compact)",
+        "productSKU": "OTH-005",
+        "requestedQuantity": 30,
+        "currentStock": 10,
+        "lowStockThreshold": 10,
+        "estimatedUnitCost": 120,
+        "estimatedTotalCost": 3600,
+        "_id": "6902f8d961d6cafaef31a19c",
+        "id": "6902f8d961d6cafaef31a19c"
+      }
+    ],
+    "attachments": [],
+    "totalEstimatedCost": 3600,
+    "reason": "Second test request for admin rejection testing",
+    "justification": "Test request #2 - for rejection workflow AC3",
+    "requestedBy": "681105742a06968adc38be49",
+    "status": "rejected",
+    "createdAt": "2025-10-30T05:34:17.033Z",
+    "updatedAt": "2025-11-06T09:21:42.150Z",
+    "requestId": "PR-002",
+    "__v": 0,
+    "reviewNotes": "Budget constraints for this quarter. Please resubmit next quarter with updated pricing.",
+    "reviewedAt": "2025-10-30T05:47:53.694Z",
+    "reviewedBy": "68ab66ca408f3118a751d285",
+    "category": "Others",
+    "statusHistory": [],
+    "allocatedToBalagruhas": [],
+    "requestAge": 1828,
+    "totalItems": 1,
+    "totalQuantity": 30,
+    "id": "6902f8d961d6cafaef31a19b"
+  },
+  {
+    "thresholdAnalysis": {
+      "itemThreshold": 1000,
+      "orderThreshold": 25000,
+      "requiresApproval": true
+    },
+    "priority": "medium",
+    "_id": "690305239341aa17fb9662a0",
+    "balagruhaId": "6809e02280aacbb08e74ce36",
+    "items": [
+      {
+        "productId": "68e6028191774051e98b1a1d",
+        "productName": "Umbrella (Compact)",
+        "productSKU": "OTH-005",
+        "requestedQuantity": 20,
+        "currentStock": 10,
+        "lowStockThreshold": 10,
+        "estimatedUnitCost": 100,
+        "estimatedTotalCost": 2000,
+        "_id": "690305239341aa17fb9662a1",
+        "actualTotalCost": 2000,
+        "actualUnitCost": 100,
+        "receivedQuantity": 20,
+        "id": "690305239341aa17fb9662a1"
+      }
+    ],
+    "attachments": [],
+    "totalEstimatedCost": 2000,
+    "reason": "Test request for Story 18 approval modal testing",
+    "justification": "Verifying multi-product display in approval modal and testing admin approval workflow",
+    "requestedBy": "681105742a06968adc38be49",
+    "status": "completed",
+    "createdAt": "2025-10-30T06:26:43.210Z",
+    "updatedAt": "2025-11-06T09:21:42.150Z",
+    "requestId": "PR-003",
+    "__v": 1,
+    "reviewNotes": "Approved for QA testing. Request verified and all product details are correct.",
+    "reviewedAt": "2025-10-30T06:27:45.908Z",
+    "reviewedBy": "68ab66ca408f3118a751d285",
+    "actualTotalCost": 2000,
+    "completedAt": "2025-10-30T10:06:37.013Z",
+    "completedBy": "681105742a06968adc38be49",
+    "inventoryTransactionIds": [
+      "690338acbd2d3ac7f4f44b24"
+    ],
+    "invoiceNumber": "INV-2025-001",
+    "purchaseDate": "2025-10-30T00:00:00.000Z",
+    "supplierName": "ABC Suppliers Pvt Ltd",
+    "category": "Others",
+    "statusHistory": [],
+    "allocatedToBalagruhas": [],
+    "requestAge": 1827,
+    "totalItems": 1,
+    "totalQuantity": 20,
+    "id": "690305239341aa17fb9662a0"
+  },
+  {
+    "thresholdAnalysis": {
+      "itemThreshold": 1000,
+      "orderThreshold": 25000,
+      "requiresApproval": true
+    },
+    "priority": "medium",
+    "inventoryTransactionIds": [],
+    "_id": "690305b09341aa17fb9664e0",
+    "balagruhaId": "6809e05380aacbb08e74cf8b",
+    "items": [
+      {
+        "productId": "68e6028191774051e98b1a1d",
+        "productName": "Umbrella (Compact)",
+        "productSKU": "OTH-005",
+        "requestedQuantity": 15,
+        "currentStock": 10,
+        "lowStockThreshold": 10,
+        "estimatedUnitCost": 150,
+        "estimatedTotalCost": 2250,
+        "_id": "690305b09341aa17fb9664e1",
+        "id": "690305b09341aa17fb9664e1"
+      }
+    ],
+    "attachments": [],
+    "totalEstimatedCost": 2250,
+    "reason": "Test request for Story 18 rejection modal testing",
+    "justification": "Verifying rejection workflow and required rejection reason validation",
+    "requestedBy": "681105742a06968adc38be49",
+    "status": "rejected",
+    "createdAt": "2025-10-30T06:29:04.189Z",
+    "updatedAt": "2025-11-06T09:21:42.150Z",
+    "requestId": "PR-004",
+    "__v": 0,
+    "reviewNotes": "Budget constraints - please resubmit with lower cost estimate or revised justification.",
+    "reviewedAt": "2025-10-30T06:30:09.954Z",
+    "reviewedBy": "68ab66ca408f3118a751d285",
+    "category": "Others",
+    "statusHistory": [],
+    "allocatedToBalagruhas": [],
+    "requestAge": 1827,
+    "totalItems": 1,
+    "totalQuantity": 15,
+    "id": "690305b09341aa17fb9664e0"
+  },
+  {
+    "thresholdAnalysis": {
+      "itemThreshold": 1000,
+      "orderThreshold": 25000,
+      "requiresApproval": true
+    },
+    "priority": "medium",
+    "_id": "690373c9933194e01ae018db",
+    "balagruhaId": "6809e02280aacbb08e74ce36",
+    "items": [
+      {
+        "productId": "68e6596b356bf4d366a7d38c",
+        "productName": "brain",
+        "productSKU": "MIN-TEST-001",
+        "requestedQuantity": 1,
+        "currentStock": 11,
+        "lowStockThreshold": 10,
+        "estimatedUnitCost": 0,
+        "estimatedTotalCost": 0,
+        "_id": "690373c9933194e01ae018dc",
+        "id": "690373c9933194e01ae018dc"
+      },
+      {
+        "productId": "68e650c14f07ffc00769b267",
+        "productName": "Test Product",
+        "productSKU": "TEST-001",
+        "requestedQuantity": 1,
+        "currentStock": 48,
+        "lowStockThreshold": 10,
+        "estimatedUnitCost": 0,
+        "estimatedTotalCost": 0,
+        "_id": "690373c9933194e01ae018dd",
+        "id": "690373c9933194e01ae018dd"
+      }
+    ],
+    "attachments": [],
+    "totalEstimatedCost": 0,
+    "reason": "sfdsf",
+    "justification": "",
+    "requestedBy": "681105742a06968adc38be49",
+    "status": "approved",
+    "inventoryTransactionIds": [],
+    "createdAt": "2025-10-30T14:18:49.173Z",
+    "updatedAt": "2025-11-06T09:21:42.150Z",
+    "requestId": "PR-005",
+    "__v": 0,
+    "reviewNotes": "",
+    "reviewedAt": "2025-10-30T14:19:26.117Z",
+    "reviewedBy": "68ab66ca408f3118a751d285",
+    "category": "Others",
+    "statusHistory": [],
+    "allocatedToBalagruhas": [],
+    "requestAge": 1820,
+    "totalItems": 2,
+    "totalQuantity": 2,
+    "id": "690373c9933194e01ae018db"
+  },
+  {
+    "thresholdAnalysis": {
+      "itemThreshold": 1000,
+      "orderThreshold": 25000,
+      "requiresApproval": true
+    },
+    "priority": "medium",
+    "_id": "690376fc933194e01ae01c8d",
+    "balagruhaId": "6809e05380aacbb08e74cf8b",
+    "items": [
+      {
+        "productId": "68e6596b356bf4d366a7d38c",
+        "productName": "brain",
+        "productSKU": "MIN-TEST-001",
+        "requestedQuantity": 3,
+        "currentStock": 11,
+        "lowStockThreshold": 10,
+        "estimatedUnitCost": 50,
+        "estimatedTotalCost": 150,
+        "_id": "690376fc933194e01ae01c8e",
+        "id": "690376fc933194e01ae01c8e"
+      },
+      {
+        "productId": "68e650c14f07ffc00769b267",
+        "productName": "Test Product",
+        "productSKU": "TEST-001",
+        "requestedQuantity": 2,
+        "currentStock": 48,
+        "lowStockThreshold": 10,
+        "estimatedUnitCost": 40,
+        "estimatedTotalCost": 80,
+        "_id": "690376fc933194e01ae01c8f",
+        "id": "690376fc933194e01ae01c8f"
+      },
+      {
+        "productId": "68e6028191774051e98b19ff",
+        "productName": "Glue Stick (40g)",
+        "productSKU": "STAT-009",
+        "requestedQuantity": 4,
+        "currentStock": 56,
+        "lowStockThreshold": 10,
+        "estimatedUnitCost": 24,
+        "estimatedTotalCost": 96,
+        "_id": "690376fc933194e01ae01c90",
+        "id": "690376fc933194e01ae01c90"
+      }
+    ],
+    "attachments": [],
+    "totalEstimatedCost": 326,
+    "reason": "need urgently",
+    "justification": "",
+    "requestedBy": "681105742a06968adc38be49",
+    "status": "approved",
+    "inventoryTransactionIds": [],
+    "createdAt": "2025-10-30T14:32:28.497Z",
+    "updatedAt": "2025-11-06T09:21:42.150Z",
+    "requestId": "PR-006",
+    "__v": 0,
+    "reviewNotes": "",
+    "reviewedAt": "2025-10-30T14:33:26.691Z",
+    "reviewedBy": "68ab66ca408f3118a751d285",
+    "category": "Others",
+    "statusHistory": [],
+    "allocatedToBalagruhas": [],
+    "requestAge": 1819,
+    "totalItems": 3,
+    "totalQuantity": 9,
+    "id": "690376fc933194e01ae01c8d"
+  },
+  {
+    "thresholdAnalysis": {
+      "itemThreshold": 1000,
+      "orderThreshold": 25000,
+      "requiresApproval": true
+    },
+    "priority": "medium",
+    "_id": "69077a5056cf5bf60be63643",
+    "balagruhaId": "6809e05380aacbb08e74cf8b",
+    "items": [
+      {
+        "productId": "68e6596b356bf4d366a7d38c",
+        "productName": "brain",
+        "productSKU": "MIN-TEST-001",
+        "requestedQuantity": 10,
+        "currentStock": 10,
+        "lowStockThreshold": 10,
+        "estimatedUnitCost": 10,
+        "estimatedTotalCost": 100,
+        "_id": "69077a5056cf5bf60be63644",
+        "id": "69077a5056cf5bf60be63644"
+      },
+      {
+        "productId": "68e650c14f07ffc00769b267",
+        "productName": "Test Product",
+        "productSKU": "TEST-001",
+        "requestedQuantity": 12,
+        "currentStock": 48,
+        "lowStockThreshold": 10,
+        "estimatedUnitCost": 120,
+        "estimatedTotalCost": 1440,
+        "_id": "69077a5056cf5bf60be63645",
+        "id": "69077a5056cf5bf60be63645"
+      }
+    ],
+    "attachments": [],
+    "totalEstimatedCost": 1540,
+    "reason": "loss",
+    "justification": "stock khatam hogaya tha",
+    "requestedBy": "681105742a06968adc38be49",
+    "status": "approved",
+    "inventoryTransactionIds": [],
+    "createdAt": "2025-11-02T15:35:44.678Z",
+    "updatedAt": "2025-11-06T09:21:42.150Z",
+    "requestId": "PR-007",
+    "__v": 0,
+    "reviewNotes": "",
+    "reviewedAt": "2025-11-02T15:36:44.555Z",
+    "reviewedBy": "68ab66ca408f3118a751d285",
+    "category": "Others",
+    "statusHistory": [],
+    "allocatedToBalagruhas": [],
+    "requestAge": 1746,
+    "totalItems": 2,
+    "totalQuantity": 22,
+    "id": "69077a5056cf5bf60be63643"
+  },
+  {
+    "thresholdAnalysis": {
+      "itemThreshold": 1000,
+      "orderThreshold": 25000,
+      "requiresApproval": true
+    },
+    "priority": "medium",
+    "_id": "690ca7fd494e942301a37b54",
+    "balagruhaId": "STOCK",
+    "category": "Others",
+    "items": [
+      {
+        "productId": "68e6596b356bf4d366a7d38c",
+        "productName": "brain",
+        "productSKU": "MIN-TEST-001",
+        "requestedQuantity": 1,
+        "currentStock": 10,
+        "lowStockThreshold": 10,
+        "estimatedUnitCost": 0,
+        "estimatedTotalCost": 0,
+        "_id": "690ca7fd494e942301a37b55",
+        "id": "690ca7fd494e942301a37b55"
+      }
+    ],
+    "attachments": [],
+    "totalEstimatedCost": 0,
+    "reason": "testing",
+    "justification": "QA Test: Creating STOCK purchase request for general inventory testing (Story 21)",
+    "requestedBy": "681105742a06968adc38be49",
+    "status": "pending_approval",
+    "inventoryTransactionIds": [],
+    "allocatedToBalagruhas": [],
+    "createdAt": "2025-11-06T13:51:57.980Z",
+    "updatedAt": "2025-11-06T13:51:57.980Z",
+    "requestId": "PR-008",
+    "__v": 0,
+    "statusHistory": [],
+    "requestAge": 1652,
+    "totalItems": 1,
+    "totalQuantity": 1,
+    "id": "690ca7fd494e942301a37b54"
+  },
+  {
+    "thresholdAnalysis": {
+      "itemThreshold": 1000,
+      "orderThreshold": 25000,
+      "requiresApproval": true
+    },
+    "priority": "medium",
+    "_id": "690ca9e4494e942301a37c32",
+    "balagruhaId": "STOCK",
+    "category": "Others",
+    "items": [
+      {
+        "productId": "68e6596b356bf4d366a7d38c",
+        "productName": "brain",
+        "productSKU": "MIN-TEST-001",
+        "requestedQuantity": 1,
+        "currentStock": 10,
+        "lowStockThreshold": 10,
+        "estimatedUnitCost": 250,
+        "estimatedTotalCost": 250,
+        "_id": "690ca9e4494e942301a37c33",
+        "id": "690ca9e4494e942301a37c33"
+      }
+    ],
+    "attachments": [],
+    "totalEstimatedCost": 250,
+    "reason": "test",
+    "justification": "dfs",
+    "requestedBy": "681105742a06968adc38be49",
+    "status": "pending_approval",
+    "inventoryTransactionIds": [],
+    "allocatedToBalagruhas": [],
+    "createdAt": "2025-11-06T14:00:04.670Z",
+    "updatedAt": "2025-11-06T14:00:04.670Z",
+    "requestId": "PR-009",
+    "__v": 0,
+    "statusHistory": [],
+    "requestAge": 1652,
+    "totalItems": 1,
+    "totalQuantity": 1,
+    "id": "690ca9e4494e942301a37c32"
+  },
+  {
+    "thresholdAnalysis": {
+      "maxItemCost": 500,
+      "totalOrderCost": 500,
+      "itemThreshold": 1000,
+      "orderThreshold": 25000,
+      "requiresApproval": false
+    },
+    "priority": "medium",
+    "_id": "690e08b45a9f2e42c2b301a0",
+    "balagruhaId": "STOCK",
+    "category": "Others",
+    "items": [
+      {
+        "productId": "68e6596b356bf4d366a7d38c",
+        "productName": "brain",
+        "productSKU": "MIN-TEST-001",
+        "requestedQuantity": 1,
+        "currentStock": 10,
+        "lowStockThreshold": 10,
+        "estimatedUnitCost": 500,
+        "estimatedTotalCost": 500,
+        "_id": "690e08b45a9f2e42c2b301a1",
+        "id": "690e08b45a9f2e42c2b301a1"
+      }
+    ],
+    "attachments": [],
+    "totalEstimatedCost": 500,
+    "reason": "Small purchase for AC3 threshold testing",
+    "justification": "Small purchase for testing threshold logic - AC3",
+    "requestedBy": "68ab672c4fb9867f6f3318ad",
+    "status": "pending_fulfillment",
+    "inventoryTransactionIds": [],
+    "allocatedToBalagruhas": [],
+    "createdAt": "2025-11-07T14:56:52.283Z",
+    "updatedAt": "2025-11-07T14:56:52.283Z",
+    "requestId": "PR-010",
+    "__v": 0,
+    "statusHistory": [],
+    "requestAge": 1627,
+    "totalItems": 1,
+    "totalQuantity": 1,
+    "id": "690e08b45a9f2e42c2b301a0"
+  },
+  {
+    "thresholdAnalysis": {
+      "maxItemCost": 2000,
+      "totalOrderCost": 2000,
+      "itemThreshold": 1000,
+      "orderThreshold": 25000,
+      "requiresApproval": true
+    },
+    "priority": "medium",
+    "_id": "690e0f3b5a9f2e42c2b30266",
+    "balagruhaId": "STOCK",
+    "category": "Others",
+    "items": [
+      {
+        "productId": "68e6596b356bf4d366a7d38c",
+        "productName": "brain",
+        "productSKU": "MIN-TEST-001",
+        "requestedQuantity": 1,
+        "currentStock": 10,
+        "lowStockThreshold": 10,
+        "estimatedUnitCost": 2000,
+        "estimatedTotalCost": 2000,
+        "_id": "690e0f3b5a9f2e42c2b30267",
+        "id": "690e0f3b5a9f2e42c2b30267"
+      }
+    ],
+    "attachments": [],
+    "totalEstimatedCost": 2000,
+    "reason": "Large purchase for AC5 threshold testing - exceeds unit cost",
+    "justification": "",
+    "requestedBy": "68ab672c4fb9867f6f3318ad",
+    "status": "pending_approval",
+    "inventoryTransactionIds": [],
+    "allocatedToBalagruhas": [],
+    "createdAt": "2025-11-07T15:24:43.650Z",
+    "updatedAt": "2025-11-07T15:24:43.650Z",
+    "requestId": "PR-011",
+    "__v": 0,
+    "statusHistory": [],
+    "requestAge": 1627,
+    "totalItems": 1,
+    "totalQuantity": 1,
+    "id": "690e0f3b5a9f2e42c2b30266"
+  },
+  {
+    "thresholdAnalysis": {
+      "maxItemCost": 50,
+      "totalOrderCost": 500,
+      "itemThreshold": 1000,
+      "orderThreshold": 25000,
+      "requiresApproval": false
+    },
+    "priority": "medium",
+    "_id": "690e2c10e966a9e07cbf1d51",
+    "balagruhaId": "STOCK",
+    "category": "Others",
+    "items": [
+      {
+        "productId": "690e2acee966a9e07cbf1d4b",
+        "productName": "QA Test Notebook - Story 25 FINAL",
+        "productSKU": "NEW-1762536142809",
+        "requestedQuantity": 10,
+        "currentStock": 0,
+        "lowStockThreshold": 0,
+        "estimatedUnitCost": 50,
+        "estimatedTotalCost": 500,
+        "_id": "690e2c10e966a9e07cbf1d52",
+        "id": "690e2c10e966a9e07cbf1d52"
+      }
+    ],
+    "attachments": [],
+    "totalEstimatedCost": 500,
+    "reason": "Testing Story 25 - Inline Product Addition with pending product",
+    "justification": "",
+    "requestedBy": "68ab672c4fb9867f6f3318ad",
+    "status": "pending_fulfillment",
+    "inventoryTransactionIds": [],
+    "allocatedToBalagruhas": [],
+    "createdAt": "2025-11-07T17:27:44.497Z",
+    "updatedAt": "2025-11-07T17:27:44.497Z",
+    "requestId": "PR-012",
+    "__v": 0,
+    "statusHistory": [],
+    "requestAge": 1624,
+    "totalItems": 1,
+    "totalQuantity": 10,
+    "id": "690e2c10e966a9e07cbf1d51"
+  },
+  {
+    "thresholdAnalysis": {
+      "maxItemCost": 12,
+      "totalOrderCost": 300,
+      "itemThreshold": 1000,
+      "orderThreshold": 25000,
+      "requiresApproval": false
+    },
+    "priority": "medium",
+    "_id": "690e52f320cdda95f3dc609a",
+    "balagruhaId": "STOCK",
+    "category": "Others",
+    "items": [
+      {
+        "productId": "690e52c620cdda95f3dc6094",
+        "productName": "TC7 Test Notebook",
+        "productSKU": "NEW-1762546374545",
+        "requestedQuantity": 25,
+        "currentStock": 0,
+        "lowStockThreshold": 0,
+        "estimatedUnitCost": 12,
+        "estimatedTotalCost": 300,
+        "_id": "690e52f320cdda95f3dc609b",
+        "id": "690e52f320cdda95f3dc609b"
+      }
+    ],
+    "attachments": [],
+    "totalEstimatedCost": 300,
+    "reason": "books",
+    "justification": "sfdf",
+    "requestedBy": "68ab672c4fb9867f6f3318ad",
+    "status": "pending_fulfillment",
+    "inventoryTransactionIds": [],
+    "allocatedToBalagruhas": [],
+    "createdAt": "2025-11-07T20:13:39.556Z",
+    "updatedAt": "2025-11-07T20:13:39.556Z",
+    "requestId": "PR-013",
+    "__v": 0,
+    "statusHistory": [],
+    "requestAge": 1622,
+    "totalItems": 1,
+    "totalQuantity": 25,
+    "id": "690e52f320cdda95f3dc609a"
+  },
+  {
+    "thresholdAnalysis": {
+      "maxItemCost": 499.97,
+      "totalOrderCost": 499.97,
+      "itemThreshold": 1000,
+      "orderThreshold": 25000,
+      "requiresApproval": false
+    },
+    "priority": "medium",
+    "_id": "6911baf7de105ee04afc118f",
+    "balagruhaId": "STOCK",
+    "category": "Consumables (Including medicines)",
+    "items": [
+      {
+        "productId": "6911bad2de105ee04afc1189",
+        "productName": "nmkk",
+        "productSKU": "NEW-1762769618475",
+        "requestedQuantity": 1,
+        "currentStock": 0,
+        "lowStockThreshold": 0,
+        "estimatedUnitCost": 499.97,
+        "estimatedTotalCost": 499.97,
+        "_id": "6911baf7de105ee04afc1190",
+        "id": "6911baf7de105ee04afc1190"
+      }
+    ],
+    "attachments": [],
+    "totalEstimatedCost": 499.97,
+    "reason": "ghh",
+    "justification": "",
+    "requestedBy": "69117db7de105ee04afc0587",
+    "status": "pending_fulfillment",
+    "inventoryTransactionIds": [],
+    "allocatedToBalagruhas": [],
+    "createdAt": "2025-11-10T10:14:15.853Z",
+    "updatedAt": "2025-11-10T10:14:15.853Z",
+    "requestId": "PR-014",
+    "__v": 0,
+    "statusHistory": [],
+    "requestAge": 1560,
+    "totalItems": 1,
+    "totalQuantity": 1,
+    "id": "6911baf7de105ee04afc118f"
+  },
+  {
+    "thresholdAnalysis": {
+      "maxItemCost": 0,
+      "totalOrderCost": 0,
+      "itemThreshold": 1000,
+      "orderThreshold": 25000,
+      "requiresApproval": false
+    },
+    "priority": "medium",
+    "_id": "6911c822de105ee04afc14fb",
+    "balagruhaId": "681c7ef5ee945a5d689ff69b",
+    "category": "New Equipment",
+    "items": [
+      {
+        "productId": "68e6028191774051e98b1a08",
+        "productName": "Environmental Science Guide",
+        "productSKU": "BOOK-008",
+        "requestedQuantity": 1,
+        "currentStock": 28,
+        "lowStockThreshold": 10,
+        "estimatedUnitCost": 0,
+        "estimatedTotalCost": 0,
+        "_id": "6911c822de105ee04afc14fc",
+        "id": "6911c822de105ee04afc14fc"
+      },
+      {
+        "productId": "68e6028191774051e98b1a01",
+        "productName": "Mathematics Workbook Grade 5",
+        "productSKU": "BOOK-001",
+        "requestedQuantity": 1,
+        "currentStock": 24,
+        "lowStockThreshold": 10,
+        "estimatedUnitCost": 0,
+        "estimatedTotalCost": 0,
+        "_id": "6911c822de105ee04afc14fd",
+        "id": "6911c822de105ee04afc14fd"
+      }
+    ],
+    "attachments": [],
+    "totalEstimatedCost": 0,
+    "reason": "hhjkj",
+    "justification": "",
+    "requestedBy": "69117db7de105ee04afc0587",
+    "status": "pending_fulfillment",
+    "inventoryTransactionIds": [],
+    "allocatedToBalagruhas": [],
+    "createdAt": "2025-11-10T11:10:26.613Z",
+    "updatedAt": "2025-11-10T11:10:26.613Z",
+    "requestId": "PR-015",
+    "__v": 0,
+    "statusHistory": [],
+    "requestAge": 1559,
+    "totalItems": 2,
+    "totalQuantity": 2,
+    "id": "6911c822de105ee04afc14fb"
+  },
+  {
+    "thresholdAnalysis": {
+      "maxItemCost": 0,
+      "totalOrderCost": 0,
+      "itemThreshold": 1000,
+      "orderThreshold": 25000,
+      "requiresApproval": false
+    },
+    "priority": "medium",
+    "_id": "692011a35f5f72c62c9f03f3",
+    "balagruhaId": "681c7ef5ee945a5d689ff69b",
+    "category": "New Equipment",
+    "items": [
+      {
+        "productId": "690e2acee966a9e07cbf1d4b",
+        "productName": "QA Test Notebook - Story 25 FINAL",
+        "productSKU": "NEW-1762536142809",
+        "requestedQuantity": 1,
+        "currentStock": 0,
+        "lowStockThreshold": 0,
+        "estimatedUnitCost": 0,
+        "estimatedTotalCost": 0,
+        "_id": "692011a35f5f72c62c9f03f4",
+        "id": "692011a35f5f72c62c9f03f4"
+      }
+    ],
+    "attachments": [],
+    "totalEstimatedCost": 0,
+    "reason": "GU",
+    "justification": "",
+    "requestedBy": "69117db7de105ee04afc0587",
+    "status": "pending_fulfillment",
+    "inventoryTransactionIds": [],
+    "allocatedToBalagruhas": [],
+    "createdAt": "2025-11-21T07:15:47.314Z",
+    "updatedAt": "2025-11-21T07:15:47.314Z",
+    "requestId": "PR-016",
+    "__v": 0,
+    "statusHistory": [],
+    "requestAge": 1299,
+    "totalItems": 1,
+    "totalQuantity": 1,
+    "id": "692011a35f5f72c62c9f03f3"
+  },
+  {
+    "thresholdAnalysis": {
+      "maxItemCost": 0,
+      "totalOrderCost": 0,
+      "itemThreshold": 1000,
+      "orderThreshold": 25000,
+      "requiresApproval": false
+    },
+    "priority": "medium",
+    "_id": "6926ce735f5f72c62c9f3221",
+    "balagruhaId": "681c7ef5ee945a5d689ff69b",
+    "category": "Consumables (Including medicines)",
+    "items": [
+      {
+        "productId": "690e2acee966a9e07cbf1d4b",
+        "productName": "QA Test Notebook - Story 25 FINAL",
+        "productSKU": "NEW-1762536142809",
+        "requestedQuantity": 1,
+        "currentStock": 0,
+        "lowStockThreshold": 0,
+        "estimatedUnitCost": 0,
+        "estimatedTotalCost": 0,
+        "_id": "6926ce735f5f72c62c9f3222",
+        "id": "6926ce735f5f72c62c9f3222"
+      }
+    ],
+    "attachments": [],
+    "totalEstimatedCost": 0,
+    "reason": "mohor girls",
+    "justification": "",
+    "requestedBy": "69117db7de105ee04afc0587",
+    "status": "pending_fulfillment",
+    "inventoryTransactionIds": [],
+    "allocatedToBalagruhas": [],
+    "createdAt": "2025-11-26T09:54:59.906Z",
+    "updatedAt": "2025-11-26T09:54:59.906Z",
+    "requestId": "PR-017",
+    "__v": 0,
+    "statusHistory": [],
+    "requestAge": 1176,
+    "totalItems": 1,
+    "totalQuantity": 1,
+    "id": "6926ce735f5f72c62c9f3221"
+  },
+  {
+    "thresholdAnalysis": {
+      "maxItemCost": 0,
+      "totalOrderCost": 0,
+      "itemThreshold": 1000,
+      "orderThreshold": 25000,
+      "requiresApproval": false
+    },
+    "priority": "medium",
+    "_id": "6927eac25f5f72c62c9f403b",
+    "balagruhaId": "681c7ef5ee945a5d689ff69b",
+    "category": "Consumables (Including medicines)",
+    "items": [
+      {
+        "productId": "6927ea9d5f5f72c62c9f4035",
+        "productName": "CMC eye drop",
+        "productSKU": "NEW-1764223645274",
+        "requestedQuantity": 7,
+        "currentStock": 0,
+        "lowStockThreshold": 0,
+        "estimatedUnitCost": 0,
+        "estimatedTotalCost": 0,
+        "_id": "6927eac25f5f72c62c9f403c",
+        "id": "6927eac25f5f72c62c9f403c"
+      }
+    ],
+    "attachments": [],
+    "totalEstimatedCost": 0,
+    "reason": "Eye camp",
+    "justification": "",
+    "requestedBy": "69117db7de105ee04afc0587",
+    "status": "pending_fulfillment",
+    "inventoryTransactionIds": [],
+    "allocatedToBalagruhas": [],
+    "createdAt": "2025-11-27T06:08:02.247Z",
+    "updatedAt": "2025-11-27T06:08:02.247Z",
+    "requestId": "PR-018",
+    "__v": 0,
+    "statusHistory": [],
+    "requestAge": 1156,
+    "totalItems": 1,
+    "totalQuantity": 7,
+    "id": "6927eac25f5f72c62c9f403b"
+  },
+  {
+    "thresholdAnalysis": {
+      "maxItemCost": 0,
+      "totalOrderCost": 0,
+      "itemThreshold": 1000,
+      "orderThreshold": 25000,
+      "requiresApproval": false
+    },
+    "priority": "medium",
+    "_id": "6927fd925f5f72c62c9f44ad",
+    "balagruhaId": "681c7f62ee945a5d689ff988",
+    "category": "New Equipment",
+    "items": [
+      {
+        "productId": "6927fd725f5f72c62c9f44a7",
+        "productName": "Camera pen",
+        "productSKU": "NEW-1764228466384",
+        "requestedQuantity": 1,
+        "currentStock": 0,
+        "lowStockThreshold": 0,
+        "estimatedUnitCost": 0,
+        "estimatedTotalCost": 0,
+        "_id": "6927fd925f5f72c62c9f44ae",
+        "id": "6927fd925f5f72c62c9f44ae"
+      }
+    ],
+    "attachments": [],
+    "totalEstimatedCost": 0,
+    "reason": "in mohor boys",
+    "justification": "",
+    "requestedBy": "6809e08380aacbb08e74d082",
+    "status": "pending_fulfillment",
+    "inventoryTransactionIds": [],
+    "allocatedToBalagruhas": [],
+    "createdAt": "2025-11-27T07:28:18.159Z",
+    "updatedAt": "2025-11-27T07:28:18.159Z",
+    "requestId": "PR-019",
+    "__v": 0,
+    "statusHistory": [],
+    "requestAge": 1154,
+    "totalItems": 1,
+    "totalQuantity": 1,
+    "id": "6927fd925f5f72c62c9f44ad"
+  },
+  {
+    "thresholdAnalysis": {
+      "maxItemCost": 50,
+      "totalOrderCost": 5000,
+      "itemThreshold": 1000,
+      "orderThreshold": 25000,
+      "requiresApproval": false
+    },
+    "priority": "medium",
+    "_id": "692804485f5f72c62c9f4854",
+    "balagruhaId": "STOCK",
+    "category": "Consumables (Including medicines)",
+    "items": [
+      {
+        "productId": "6928034c5f5f72c62c9f484e",
+        "productName": "Spectaculars",
+        "productSKU": "NEW-1764229964332",
+        "requestedQuantity": 100,
+        "currentStock": 0,
+        "lowStockThreshold": 0,
+        "estimatedUnitCost": 50,
+        "estimatedTotalCost": 5000,
+        "_id": "692804485f5f72c62c9f4855",
+        "id": "692804485f5f72c62c9f4855"
+      }
+    ],
+    "attachments": [],
+    "totalEstimatedCost": 5000,
+    "reason": "jkkkkkk",
+    "justification": "",
+    "requestedBy": "6809e08380aacbb08e74d082",
+    "status": "pending_fulfillment",
+    "inventoryTransactionIds": [],
+    "allocatedToBalagruhas": [],
+    "createdAt": "2025-11-27T07:56:56.930Z",
+    "updatedAt": "2025-11-27T07:56:56.930Z",
+    "requestId": "PR-020",
+    "__v": 0,
+    "statusHistory": [],
+    "requestAge": 1154,
+    "totalItems": 1,
+    "totalQuantity": 100,
+    "id": "692804485f5f72c62c9f4854"
+  },
+  {
+    "thresholdAnalysis": {
+      "maxItemCost": 50,
+      "totalOrderCost": 500,
+      "itemThreshold": 1000,
+      "orderThreshold": 25000,
+      "requiresApproval": false
+    },
+    "priority": "medium",
+    "_id": "694e334a048673a4f00ebc3f",
+    "balagruhaId": "STOCK",
+    "category": "New Equipment",
+    "items": [
+      {
+        "productId": "694e2d60048673a4f00eb9c3",
+        "productName": "example",
+        "productSKU": "P1123",
+        "requestedQuantity": 10,
+        "currentStock": 500,
+        "lowStockThreshold": 10,
+        "estimatedUnitCost": 50,
+        "estimatedTotalCost": 500,
+        "_id": "694e334a048673a4f00ebc40",
+        "id": "694e334a048673a4f00ebc40"
+      }
+    ],
+    "attachments": [],
+    "totalEstimatedCost": 500,
+    "reason": "high demand",
+    "justification": "",
+    "requestedBy": "68ab66ca408f3118a751d285",
+    "status": "delivered_store",
+    "inventoryTransactionIds": [],
+    "statusHistory": [
+      {
+        "status": "ordered",
+        "changedBy": "681105742a06968adc38be49",
+        "changedAt": "2025-12-26T13:36:23.660Z",
+        "notes": "Marked Ordered via Purchase Management",
+        "_id": "694e8f57048673a4f00ec4c3",
+        "id": "694e8f57048673a4f00ec4c3"
+      },
+      {
+        "status": "delivered_store",
+        "changedBy": "681105742a06968adc38be49",
+        "changedAt": "2025-12-26T13:36:24.922Z",
+        "notes": "Marked Received at Store via Purchase Management",
+        "_id": "694e8f58048673a4f00ec4ee",
+        "id": "694e8f58048673a4f00ec4ee"
+      }
+    ],
+    "allocatedToBalagruhas": [],
+    "createdAt": "2025-12-26T07:03:38.171Z",
+    "updatedAt": "2025-12-26T13:36:24.923Z",
+    "requestId": "PR-021",
+    "__v": 2,
+    "requestAge": 459,
+    "totalItems": 1,
+    "totalQuantity": 10,
+    "id": "694e334a048673a4f00ebc3f"
+  },
+  {
+    "thresholdAnalysis": {
+      "maxItemCost": 50,
+      "totalOrderCost": 550,
+      "itemThreshold": 1000,
+      "orderThreshold": 25000,
+      "requiresApproval": false
+    },
+    "priority": "medium",
+    "_id": "694e338e048673a4f00ebce4",
+    "balagruhaId": "STOCK",
+    "category": "New Equipment",
+    "items": [
+      {
+        "productId": "694e2d60048673a4f00eb9c3",
+        "productName": "example",
+        "productSKU": "P1123",
+        "requestedQuantity": 11,
+        "currentStock": 500,
+        "lowStockThreshold": 10,
+        "estimatedUnitCost": 50,
+        "estimatedTotalCost": 550,
+        "_id": "694e338e048673a4f00ebce5",
+        "id": "694e338e048673a4f00ebce5"
+      }
+    ],
+    "attachments": [],
+    "totalEstimatedCost": 550,
+    "reason": "high demand",
+    "justification": "",
+    "requestedBy": "68108fa8dc416f2860203177",
+    "status": "delivered_store",
+    "inventoryTransactionIds": [],
+    "statusHistory": [
+      {
+        "status": "ordered",
+        "changedBy": "681105742a06968adc38be49",
+        "changedAt": "2025-12-26T07:07:34.292Z",
+        "notes": "Marked Ordered via Purchase Management",
+        "_id": "694e3436048673a4f00ebf4d",
+        "id": "694e3436048673a4f00ebf4d"
+      },
+      {
+        "status": "delivered_store",
+        "changedBy": "681105742a06968adc38be49",
+        "changedAt": "2025-12-26T07:08:32.984Z",
+        "notes": "Marked Received at Store via Purchase Management",
+        "_id": "694e3470048673a4f00ec060",
+        "id": "694e3470048673a4f00ec060"
+      }
+    ],
+    "allocatedToBalagruhas": [],
+    "createdAt": "2025-12-26T07:04:46.917Z",
+    "updatedAt": "2025-12-26T07:08:32.985Z",
+    "requestId": "PR-022",
+    "__v": 2,
+    "requestAge": 459,
+    "totalItems": 1,
+    "totalQuantity": 11,
+    "id": "694e338e048673a4f00ebce4"
+  },
+  {
+    "thresholdAnalysis": {
+      "maxItemCost": 300,
+      "totalOrderCost": 6000,
+      "itemThreshold": 1000,
+      "orderThreshold": 25000,
+      "requiresApproval": false
+    },
+    "priority": "medium",
+    "_id": "694e8392e09e16c979441e32",
+    "balagruhaId": "STOCK",
+    "category": "New Equipment",
+    "items": [
+      {
+        "productId": "694e830ae09e16c979441dc8",
+        "productName": "Running Shoes",
+        "productSKU": "RN-1234",
+        "requestedQuantity": 20,
+        "currentStock": 100,
+        "lowStockThreshold": 10,
+        "estimatedUnitCost": 300,
+        "estimatedTotalCost": 6000,
+        "_id": "694e8392e09e16c979441e33",
+        "id": "694e8392e09e16c979441e33"
+      }
+    ],
+    "attachments": [],
+    "totalEstimatedCost": 6000,
+    "reason": "Children need running shoes",
+    "justification": "",
+    "requestedBy": "68ab66ca408f3118a751d285",
+    "status": "delivered_store",
+    "inventoryTransactionIds": [],
+    "statusHistory": [
+      {
+        "status": "ordered",
+        "changedBy": "681105742a06968adc38be49",
+        "changedAt": "2025-12-26T12:49:11.611Z",
+        "notes": "Marked Ordered via Purchase Management",
+        "_id": "694e8447e09e16c9794420af",
+        "id": "694e8447e09e16c9794420af"
+      },
+      {
+        "status": "delivered_store",
+        "changedBy": "681105742a06968adc38be49",
+        "changedAt": "2025-12-26T12:51:02.060Z",
+        "notes": "Marked Received at Store via Purchase Management",
+        "_id": "694e84b6e09e16c9794422a7",
+        "id": "694e84b6e09e16c9794422a7"
+      }
+    ],
+    "allocatedToBalagruhas": [],
+    "createdAt": "2025-12-26T12:46:10.203Z",
+    "updatedAt": "2025-12-26T12:51:02.063Z",
+    "requestId": "PR-023",
+    "__v": 2,
+    "requestAge": 453,
+    "totalItems": 1,
+    "totalQuantity": 20,
+    "id": "694e8392e09e16c979441e32"
+  },
+  {
+    "thresholdAnalysis": {
+      "maxItemCost": 300,
+      "totalOrderCost": 3600,
+      "itemThreshold": 1000,
+      "orderThreshold": 25000,
+      "requiresApproval": false
+    },
+    "priority": "medium",
+    "_id": "694e83ebe09e16c979441fab",
+    "balagruhaId": "6809e02280aacbb08e74ce36",
+    "category": "New Equipment",
+    "items": [
+      {
+        "productId": "694e830ae09e16c979441dc8",
+        "productName": "Running Shoes",
+        "productSKU": "RN-1234",
+        "requestedQuantity": 12,
+        "currentStock": 100,
+        "lowStockThreshold": 10,
+        "estimatedUnitCost": 300,
+        "estimatedTotalCost": 3600,
+        "_id": "694e83ebe09e16c979441fac",
+        "id": "694e83ebe09e16c979441fac"
+      }
+    ],
+    "attachments": [],
+    "totalEstimatedCost": 3600,
+    "reason": "kids love running",
+    "justification": "",
+    "requestedBy": "68108fa8dc416f2860203177",
+    "status": "delivered_store",
+    "inventoryTransactionIds": [],
+    "statusHistory": [
+      {
+        "status": "ordered",
+        "changedBy": "681105742a06968adc38be49",
+        "changedAt": "2025-12-26T12:48:35.445Z",
+        "notes": "Marked Ordered via Purchase Management",
+        "_id": "694e8423e09e16c979442031",
+        "id": "694e8423e09e16c979442031"
+      },
+      {
+        "status": "delivered_store",
+        "changedBy": "681105742a06968adc38be49",
+        "changedAt": "2025-12-26T12:50:11.174Z",
+        "notes": "Marked Received at Store via Purchase Management",
+        "_id": "694e8483e09e16c9794421af",
+        "id": "694e8483e09e16c9794421af"
+      }
+    ],
+    "allocatedToBalagruhas": [],
+    "createdAt": "2025-12-26T12:47:39.006Z",
+    "updatedAt": "2025-12-26T12:50:11.176Z",
+    "requestId": "PR-024",
+    "__v": 2,
+    "requestAge": 453,
+    "totalItems": 1,
+    "totalQuantity": 12,
+    "id": "694e83ebe09e16c979441fab"
+  },
+  {
+    "thresholdAnalysis": {
+      "maxItemCost": 300,
+      "totalOrderCost": 9600,
+      "itemThreshold": 1000,
+      "orderThreshold": 25000,
+      "requiresApproval": false
+    },
+    "priority": "medium",
+    "_id": "694e90d1e09e16c97944244b",
+    "balagruhaId": "STOCK",
+    "category": "New Equipment",
+    "items": [
+      {
+        "productId": "694e830ae09e16c979441dc8",
+        "productName": "Running Shoes",
+        "productSKU": "RN-1234",
+        "requestedQuantity": 22,
+        "currentStock": 100,
+        "lowStockThreshold": 10,
+        "estimatedUnitCost": 300,
+        "estimatedTotalCost": 6600,
+        "_id": "694e90d1e09e16c97944244c",
+        "id": "694e90d1e09e16c97944244c"
+      },
+      {
+        "productId": "694e2d60048673a4f00eb9c3",
+        "productName": "example",
+        "productSKU": "P1123",
+        "requestedQuantity": 15,
+        "currentStock": 500,
+        "lowStockThreshold": 10,
+        "estimatedUnitCost": 200,
+        "estimatedTotalCost": 3000,
+        "_id": "694e90d1e09e16c97944244d",
+        "id": "694e90d1e09e16c97944244d"
+      }
+    ],
+    "attachments": [],
+    "totalEstimatedCost": 9600,
+    "reason": "important",
+    "justification": "",
+    "requestedBy": "68108fa8dc416f2860203177",
+    "status": "delivered_balagruha",
+    "inventoryTransactionIds": [],
+    "statusHistory": [
+      {
+        "status": "ordered",
+        "changedBy": "681105742a06968adc38be49",
+        "changedAt": "2025-12-26T13:43:04.941Z",
+        "notes": "Marked Ordered via Purchase Management",
+        "_id": "694e90e8e09e16c97944253a",
+        "id": "694e90e8e09e16c97944253a"
+      },
+      {
+        "status": "delivered_store",
+        "changedBy": "681105742a06968adc38be49",
+        "changedAt": "2025-12-26T13:43:18.151Z",
+        "notes": "Marked Received at Store via Purchase Management",
+        "_id": "694e90f6e09e16c97944256a",
+        "id": "694e90f6e09e16c97944256a"
+      },
+      {
+        "status": "delivered_balagruha",
+        "changedBy": "68108fa8dc416f2860203177",
+        "changedAt": "2025-12-26T14:15:44.305Z",
+        "notes": "Marked Delivered to Balagruha via Purchase Management",
+        "_id": "694e9890048673a4f00eca9a",
+        "id": "694e9890048673a4f00eca9a"
+      }
+    ],
+    "allocatedToBalagruhas": [],
+    "createdAt": "2025-12-26T13:42:41.151Z",
+    "updatedAt": "2025-12-26T14:15:44.309Z",
+    "requestId": "PR-025",
+    "__v": 3,
+    "requestAge": 452,
+    "totalItems": 2,
+    "totalQuantity": 37,
+    "id": "694e90d1e09e16c97944244b"
+  },
+  {
+    "thresholdAnalysis": {
+      "maxItemCost": 500,
+      "totalOrderCost": 7500,
+      "itemThreshold": 1000,
+      "orderThreshold": 25000,
+      "requiresApproval": false
+    },
+    "_id": "69500e984af9c7c5683f147c",
+    "balagruhaId": "STOCK",
+    "category": "ISF Shop",
+    "deadline": "2025-12-29T00:00:00.000Z",
+    "priority": "low",
+    "items": [
+      {
+        "productId": "6928034c5f5f72c62c9f484e",
+        "productName": "Spectaculars",
+        "productSKU": "NEW-1764229964332",
+        "requestedQuantity": 15,
+        "currentStock": 0,
+        "lowStockThreshold": 0,
+        "estimatedUnitCost": 500,
+        "estimatedTotalCost": 7500,
+        "_id": "69500e984af9c7c5683f147d",
+        "id": "69500e984af9c7c5683f147d"
+      }
+    ],
+    "attachments": [],
+    "totalEstimatedCost": 7500,
+    "reason": "simply",
+    "justification": "",
+    "requestedBy": "68ab66ca408f3118a751d285",
+    "status": "ordered",
+    "inventoryTransactionIds": [],
+    "statusHistory": [
+      {
+        "status": "ordered",
+        "changedBy": "681105742a06968adc38be49",
+        "changedAt": "2026-01-07T06:59:52.225Z",
+        "notes": "Marked Ordered via Purchase Management",
+        "_id": "695e04685d73c3d5b5231619",
+        "id": "695e04685d73c3d5b5231619"
+      }
+    ],
+    "allocatedToBalagruhas": [],
+    "createdAt": "2025-12-27T16:51:36.663Z",
+    "updatedAt": "2026-01-07T06:59:52.229Z",
+    "requestId": "PR-026",
+    "__v": 1,
+    "requestAge": 425,
+    "totalItems": 1,
+    "totalQuantity": 15,
+    "id": "69500e984af9c7c5683f147c"
+  },
+  {
+    "thresholdAnalysis": {
+      "maxItemCost": 199.97,
+      "totalOrderCost": 199.97,
+      "itemThreshold": 1000,
+      "orderThreshold": 25000,
+      "requiresApproval": false
+    },
+    "_id": "6950133c4af9c7c5683f15d4",
+    "balagruhaId": "6809e02280aacbb08e74ce36",
+    "category": "ISF Shop",
+    "deadline": "2025-12-28T00:00:00.000Z",
+    "priority": "high",
+    "items": [
+      {
+        "productId": "694e830ae09e16c979441dc8",
+        "productName": "Running Shoes",
+        "productSKU": "RN-1234",
+        "requestedQuantity": 1,
+        "currentStock": 100,
+        "lowStockThreshold": 10,
+        "estimatedUnitCost": 199.97,
+        "estimatedTotalCost": 199.97,
+        "_id": "6950133c4af9c7c5683f15d5",
+        "id": "6950133c4af9c7c5683f15d5"
+      }
+    ],
+    "attachments": [],
+    "totalEstimatedCost": 199.97,
+    "reason": "chumma",
+    "justification": "",
+    "requestedBy": "68108fa8dc416f2860203177",
+    "status": "ordered",
+    "inventoryTransactionIds": [],
+    "statusHistory": [
+      {
+        "status": "ordered",
+        "changedBy": "681105742a06968adc38be49",
+        "changedAt": "2025-12-29T05:56:44.645Z",
+        "notes": "Marked Ordered via Purchase Management",
+        "_id": "6952181c4af9c7c5683f1ab8",
+        "id": "6952181c4af9c7c5683f1ab8"
+      }
+    ],
+    "allocatedToBalagruhas": [],
+    "createdAt": "2025-12-27T17:11:24.409Z",
+    "updatedAt": "2025-12-29T05:56:44.646Z",
+    "requestId": "PR-027",
+    "__v": 1,
+    "requestAge": 425,
+    "totalItems": 1,
+    "totalQuantity": 1,
+    "id": "6950133c4af9c7c5683f15d4"
+  },
+  {
+    "thresholdAnalysis": {
+      "maxItemCost": 0,
+      "totalOrderCost": 0,
+      "itemThreshold": 1000,
+      "orderThreshold": 25000,
+      "requiresApproval": false
+    },
+    "_id": "695217a54af9c7c5683f19cf",
+    "balagruhaId": "681c7ef5ee945a5d689ff69b",
+    "category": "ISF Shop",
+    "deadline": null,
+    "priority": "medium",
+    "items": [
+      {
+        "productId": "694e830ae09e16c979441dc8",
+        "productName": "Running Shoes",
+        "productSKU": "RN-1234",
+        "requestedQuantity": 16,
+        "currentStock": 100,
+        "lowStockThreshold": 10,
+        "estimatedUnitCost": 0,
+        "estimatedTotalCost": 0,
+        "_id": "695217a54af9c7c5683f19d0",
+        "id": "695217a54af9c7c5683f19d0"
+      }
+    ],
+    "attachments": [],
+    "totalEstimatedCost": 0,
+    "reason": "isf shop",
+    "justification": "jjk",
+    "requestedBy": "69117db7de105ee04afc0587",
+    "status": "ordered",
+    "inventoryTransactionIds": [],
+    "statusHistory": [
+      {
+        "status": "ordered",
+        "changedBy": "681105742a06968adc38be49",
+        "changedAt": "2025-12-29T06:20:07.200Z",
+        "notes": "Marked Ordered via Purchase Management",
+        "_id": "69521d974af9c7c5683f2131",
+        "id": "69521d974af9c7c5683f2131"
+      }
+    ],
+    "allocatedToBalagruhas": [],
+    "createdAt": "2025-12-29T05:54:45.430Z",
+    "updatedAt": "2025-12-29T06:20:07.202Z",
+    "requestId": "PR-028",
+    "__v": 1,
+    "requestAge": 388,
+    "totalItems": 1,
+    "totalQuantity": 16,
+    "id": "695217a54af9c7c5683f19cf"
+  },
+  {
+    "thresholdAnalysis": {
+      "maxItemCost": 70,
+      "totalOrderCost": 70,
+      "itemThreshold": 1000,
+      "orderThreshold": 25000,
+      "requiresApproval": false
+    },
+    "_id": "69523a6b4af9c7c5683f21cf",
+    "balagruhaId": "STOCK",
+    "category": "ISF Shop",
+    "deadline": "2025-12-30T00:00:00.000Z",
+    "priority": "medium",
+    "items": [
+      {
+        "productId": "6928034c5f5f72c62c9f484e",
+        "productName": "Spectaculars",
+        "productSKU": "NEW-1764229964332",
+        "requestedQuantity": 1,
+        "currentStock": 0,
+        "lowStockThreshold": 0,
+        "estimatedUnitCost": 70,
+        "estimatedTotalCost": 70,
+        "_id": "69523a6b4af9c7c5683f21d0",
+        "id": "69523a6b4af9c7c5683f21d0"
+      }
+    ],
+    "attachments": [],
+    "totalEstimatedCost": 70,
+    "reason": "chumma",
+    "justification": "",
+    "requestedBy": "68108fa8dc416f2860203177",
+    "status": "ordered",
+    "inventoryTransactionIds": [],
+    "statusHistory": [
+      {
+        "status": "ordered",
+        "changedBy": "681105742a06968adc38be49",
+        "changedAt": "2025-12-29T08:23:33.117Z",
+        "notes": "Marked Ordered via Purchase Management",
+        "_id": "69523a854af9c7c5683f22c4",
+        "id": "69523a854af9c7c5683f22c4"
+      }
+    ],
+    "allocatedToBalagruhas": [],
+    "createdAt": "2025-12-29T08:23:07.944Z",
+    "updatedAt": "2025-12-29T08:23:33.123Z",
+    "requestId": "PR-029",
+    "__v": 1,
+    "requestAge": 386,
+    "totalItems": 1,
+    "totalQuantity": 1,
+    "id": "69523a6b4af9c7c5683f21cf"
+  },
+  {
+    "thresholdAnalysis": {
+      "maxItemCost": 250,
+      "totalOrderCost": 250,
+      "itemThreshold": 1000,
+      "orderThreshold": 25000,
+      "requiresApproval": false
+    },
+    "_id": "695d37e07476748fa45a51d6",
+    "balagruhaId": "STOCK",
+    "category": "Repairs",
+    "deadline": null,
+    "priority": "medium",
+    "items": [
+      {
+        "productId": "695d37593db7dafe130b57f9",
+        "productName": "Broken Chair Repair",
+        "productSKU": "REP-CHAIR-001",
+        "requestedQuantity": 1,
+        "currentStock": 1,
+        "lowStockThreshold": 0,
+        "estimatedUnitCost": 250,
+        "estimatedTotalCost": 250,
+        "_id": "695d37e07476748fa45a51d7",
+        "id": "695d37e07476748fa45a51d7"
+      }
+    ],
+    "attachments": [],
+    "totalEstimatedCost": 250,
+    "reason": "obviously",
+    "justification": "",
+    "requestedBy": "68ab66ca408f3118a751d285",
+    "status": "delivered_store",
+    "inventoryTransactionIds": [],
+    "statusHistory": [
+      {
+        "status": "ordered",
+        "changedBy": "681105742a06968adc38be49",
+        "changedAt": "2026-01-06T18:16:40.886Z",
+        "notes": "Marked Ordered via Purchase Management",
+        "_id": "695d51885d73c3d5b5230225",
+        "id": "695d51885d73c3d5b5230225"
+      },
+      {
+        "status": "delivered_store",
+        "changedBy": "681105742a06968adc38be49",
+        "changedAt": "2026-01-07T05:41:49.466Z",
+        "notes": "Marked Received at Store via Purchase Management",
+        "_id": "695df21d5d73c3d5b5230b18",
+        "id": "695df21d5d73c3d5b5230b18"
+      }
+    ],
+    "allocatedToBalagruhas": [],
+    "createdAt": "2026-01-06T16:27:12.728Z",
+    "updatedAt": "2026-01-07T05:41:49.471Z",
+    "requestId": "PR-030",
+    "__v": 2,
+    "repairTechnicianName": "John Doe Repairman",
+    "requestAge": 185,
+    "totalItems": 1,
+    "totalQuantity": 1,
+    "id": "695d37e07476748fa45a51d6"
+  },
+  {
+    "thresholdAnalysis": {
+      "maxItemCost": 2500,
+      "totalOrderCost": 2500,
+      "itemThreshold": 1000,
+      "orderThreshold": 25000,
+      "requiresApproval": true
+    },
+    "_id": "695d3a315d73c3d5b522fae9",
+    "balagruhaId": "STOCK",
+    "category": "Repairs",
+    "deadline": "2026-01-13T18:30:00.000Z",
+    "priority": "medium",
+    "items": [
+      {
+        "productId": "695d37593db7dafe130b57fb",
+        "productName": "Electrical Repair Service",
+        "productSKU": "REP-ELEC-001",
+        "requestedQuantity": 1,
+        "currentStock": 1,
+        "lowStockThreshold": 0,
+        "estimatedUnitCost": 2500,
+        "estimatedTotalCost": 2500,
+        "_id": "695d3a315d73c3d5b522faea",
+        "id": "695d3a315d73c3d5b522faea"
+      }
+    ],
+    "attachments": [],
+    "totalEstimatedCost": 2500,
+    "reason": "washing machine repar",
+    "justification": "",
+    "requestedBy": "681105742a06968adc38be49",
+    "status": "delivered_store",
+    "inventoryTransactionIds": [],
+    "statusHistory": [
+      {
+        "status": "ordered",
+        "changedBy": "681105742a06968adc38be49",
+        "changedAt": "2026-01-06T18:18:14.214Z",
+        "notes": "Marked Ordered via Purchase Management",
+        "_id": "695d51e65d73c3d5b5230267",
+        "id": "695d51e65d73c3d5b5230267"
+      },
+      {
+        "status": "delivered_store",
+        "changedBy": "681105742a06968adc38be49",
+        "changedAt": "2026-01-07T05:41:26.447Z",
+        "notes": "Marked Received at Store via Purchase Management",
+        "_id": "695df2065d73c3d5b5230ad6",
+        "id": "695df2065d73c3d5b5230ad6"
+      }
+    ],
+    "allocatedToBalagruhas": [],
+    "createdAt": "2026-01-06T16:37:05.736Z",
+    "updatedAt": "2026-01-07T05:41:26.462Z",
+    "requestId": "PR-031",
+    "__v": 2,
+    "repairTechnicianName": "Test Technician",
+    "requestAge": 185,
+    "totalItems": 1,
+    "totalQuantity": 1,
+    "id": "695d3a315d73c3d5b522fae9"
+  },
+  {
+    "thresholdAnalysis": {
+      "maxItemCost": 250,
+      "totalOrderCost": 2750,
+      "itemThreshold": 1000,
+      "orderThreshold": 25000,
+      "requiresApproval": false
+    },
+    "_id": "695ded395d73c3d5b52307c4",
+    "balagruhaId": "STOCK",
+    "category": "Repairs",
+    "deadline": null,
+    "priority": "medium",
+    "items": [
+      {
+        "productId": "695d37593db7dafe130b57fa",
+        "productName": "Plumbing Repair Service",
+        "productSKU": "REP-PLUMB-001",
+        "requestedQuantity": 11,
+        "currentStock": 1,
+        "lowStockThreshold": 0,
+        "estimatedUnitCost": 250,
+        "estimatedTotalCost": 2750,
+        "_id": "695ded395d73c3d5b52307c5",
+        "id": "695ded395d73c3d5b52307c5"
+      }
+    ],
+    "attachments": [],
+    "totalEstimatedCost": 2750,
+    "reason": "Testing repair workflow fixTest repair fix",
+    "justification": "",
+    "requestedBy": "681105742a06968adc38be49",
+    "status": "delivered_store",
+    "inventoryTransactionIds": [],
+    "statusHistory": [
+      {
+        "status": "ordered",
+        "changedBy": "681105742a06968adc38be49",
+        "changedAt": "2026-01-07T05:43:00.926Z",
+        "notes": "Marked Ordered via Purchase Management",
+        "_id": "695df2645d73c3d5b5230b60",
+        "id": "695df2645d73c3d5b5230b60"
+      },
+      {
+        "status": "delivered_store",
+        "changedBy": "681105742a06968adc38be49",
+        "changedAt": "2026-01-07T05:43:28.106Z",
+        "notes": "Marked Received at Store via Purchase Management",
+        "_id": "695df2805d73c3d5b5230ba2",
+        "id": "695df2805d73c3d5b5230ba2"
+      }
+    ],
+    "allocatedToBalagruhas": [],
+    "createdAt": "2026-01-07T05:20:57.047Z",
+    "updatedAt": "2026-01-07T05:43:28.115Z",
+    "requestId": "PR-032",
+    "__v": 2,
+    "repairTechnicianName": "Test Technician",
+    "requestAge": 173,
+    "totalItems": 1,
+    "totalQuantity": 11,
+    "id": "695ded395d73c3d5b52307c4"
+  },
+  {
+    "thresholdAnalysis": {
+      "maxItemCost": 100,
+      "totalOrderCost": 1100,
+      "itemThreshold": 1000,
+      "orderThreshold": 25000,
+      "requiresApproval": false
+    },
+    "_id": "695df46d5d73c3d5b5230c2a",
+    "balagruhaId": "STOCK",
+    "category": "Repairs",
+    "deadline": null,
+    "priority": "medium",
+    "items": [
+      {
+        "productId": "695deeed84f72cf9014abd96",
+        "productName": "Electrical Repair Service",
+        "productSKU": "REP-ELEC-001",
+        "requestedQuantity": 11,
+        "currentStock": 0,
+        "lowStockThreshold": 0,
+        "estimatedUnitCost": 100,
+        "estimatedTotalCost": 1100,
+        "_id": "695df46d5d73c3d5b5230c2b",
+        "id": "695df46d5d73c3d5b5230c2b"
+      }
+    ],
+    "attachments": [],
+    "totalEstimatedCost": 1100,
+    "reason": "John Smith - Plumber Technician Test.",
+    "justification": "",
+    "requestedBy": "681105742a06968adc38be49",
+    "status": "delivered_store",
+    "inventoryTransactionIds": [],
+    "statusHistory": [
+      {
+        "status": "ordered",
+        "changedBy": "681105742a06968adc38be49",
+        "changedAt": "2026-01-07T05:53:33.553Z",
+        "notes": "Marked Ordered via Purchase Management",
+        "_id": "695df4dd5d73c3d5b5230c80",
+        "id": "695df4dd5d73c3d5b5230c80"
+      },
+      {
+        "status": "delivered_store",
+        "changedBy": "681105742a06968adc38be49",
+        "changedAt": "2026-01-07T05:54:16.475Z",
+        "notes": "Marked Received at Store via Purchase Management",
+        "_id": "695df5085d73c3d5b5230cc7",
+        "id": "695df5085d73c3d5b5230cc7"
+      }
+    ],
+    "allocatedToBalagruhas": [],
+    "createdAt": "2026-01-07T05:51:41.130Z",
+    "updatedAt": "2026-01-07T05:54:16.486Z",
+    "requestId": "PR-033",
+    "__v": 2,
+    "repairTechnicianName": "John Smith - Plumber",
+    "requestAge": 172,
+    "totalItems": 1,
+    "totalQuantity": 11,
+    "id": "695df46d5d73c3d5b5230c2a"
+  },
+  {
+    "thresholdAnalysis": {
+      "maxItemCost": 0,
+      "totalOrderCost": 0,
+      "itemThreshold": 1000,
+      "orderThreshold": 25000,
+      "requiresApproval": false
+    },
+    "_id": "695e018f5d73c3d5b523124f",
+    "balagruhaId": "STOCK",
+    "category": "Repairs",
+    "deadline": null,
+    "priority": "medium",
+    "items": [
+      {
+        "productId": "695deeed84f72cf9014abd95",
+        "productName": "Plumbing Repair Service",
+        "productSKU": "REP-PLUMB-001",
+        "requestedQuantity": 1,
+        "currentStock": 0,
+        "lowStockThreshold": 0,
+        "estimatedUnitCost": 0,
+        "estimatedTotalCost": 0,
+        "_id": "695e018f5d73c3d5b5231250",
+        "id": "695e018f5d73c3d5b5231250"
+      }
+    ],
+    "attachments": [],
+    "totalEstimatedCost": 0,
+    "reason": "Test 1Test 1",
+    "justification": "",
+    "requestedBy": "681105742a06968adc38be49",
+    "status": "ordered",
+    "inventoryTransactionIds": [],
+    "statusHistory": [
+      {
+        "status": "ordered",
+        "changedBy": "681105742a06968adc38be49",
+        "changedAt": "2026-01-07T06:53:01.440Z",
+        "notes": "Bulk ordered via \"Order All\" for Plumbing Repair Service",
+        "_id": "695e02cd5d73c3d5b5231302",
+        "id": "695e02cd5d73c3d5b5231302"
+      }
+    ],
+    "allocatedToBalagruhas": [],
+    "createdAt": "2026-01-07T06:47:43.348Z",
+    "updatedAt": "2026-01-07T06:53:01.442Z",
+    "requestId": "PR-034",
+    "__v": 1,
+    "requestAge": 171,
+    "totalItems": 1,
+    "totalQuantity": 1,
+    "id": "695e018f5d73c3d5b523124f"
+  },
+  {
+    "thresholdAnalysis": {
+      "maxItemCost": 0,
+      "totalOrderCost": 0,
+      "itemThreshold": 1000,
+      "orderThreshold": 25000,
+      "requiresApproval": false
+    },
+    "_id": "695e022c5d73c3d5b52312a6",
+    "balagruhaId": "STOCK",
+    "category": "Repairs",
+    "deadline": null,
+    "priority": "medium",
+    "items": [
+      {
+        "productId": "695deeed84f72cf9014abd95",
+        "productName": "Plumbing Repair Service",
+        "productSKU": "REP-PLUMB-001",
+        "requestedQuantity": 1,
+        "currentStock": 0,
+        "lowStockThreshold": 0,
+        "estimatedUnitCost": 0,
+        "estimatedTotalCost": 0,
+        "_id": "695e022c5d73c3d5b52312a7",
+        "id": "695e022c5d73c3d5b52312a7"
+      }
+    ],
+    "attachments": [],
+    "totalEstimatedCost": 0,
+    "reason": "Test 2Test 2",
+    "justification": "",
+    "requestedBy": "681105742a06968adc38be49",
+    "status": "ordered",
+    "inventoryTransactionIds": [],
+    "statusHistory": [
+      {
+        "status": "ordered",
+        "changedBy": "681105742a06968adc38be49",
+        "changedAt": "2026-01-07T06:53:01.228Z",
+        "notes": "Bulk ordered via \"Order All\" for Plumbing Repair Service",
+        "_id": "695e02cd5d73c3d5b52312fc",
+        "id": "695e02cd5d73c3d5b52312fc"
+      }
+    ],
+    "allocatedToBalagruhas": [],
+    "createdAt": "2026-01-07T06:50:20.989Z",
+    "updatedAt": "2026-01-07T06:53:01.232Z",
+    "requestId": "PR-035",
+    "__v": 1,
+    "requestAge": 171,
+    "totalItems": 1,
+    "totalQuantity": 1,
+    "id": "695e022c5d73c3d5b52312a6"
+  },
+  {
+    "thresholdAnalysis": {
+      "maxItemCost": 0,
+      "totalOrderCost": 0,
+      "itemThreshold": 1000,
+      "orderThreshold": 25000,
+      "requiresApproval": false
+    },
+    "_id": "695e06b45d73c3d5b52317f2",
+    "balagruhaId": "681df0ad725f8a204a21d189",
+    "category": "ISF Shop",
+    "deadline": null,
+    "priority": "medium",
+    "items": [
+      {
+        "productId": "695deeed84f72cf9014abd98",
+        "productName": "Door/Window Repair",
+        "productSKU": "REP-CARP-001",
+        "requestedQuantity": 1,
+        "currentStock": 0,
+        "lowStockThreshold": 0,
+        "estimatedUnitCost": 0,
+        "estimatedTotalCost": 0,
+        "_id": "695e06b45d73c3d5b52317f3",
+        "id": "695e06b45d73c3d5b52317f3"
+      }
+    ],
+    "attachments": [],
+    "totalEstimatedCost": 0,
+    "reason": "E2E TestE2E Test",
+    "justification": "",
+    "requestedBy": "681105742a06968adc38be49",
+    "status": "delivered_balagruha",
+    "inventoryTransactionIds": [],
+    "statusHistory": [
+      {
+        "status": "ordered",
+        "changedBy": "681105742a06968adc38be49",
+        "changedAt": "2026-01-07T07:09:54.986Z",
+        "notes": "Marked Ordered via Purchase Management",
+        "_id": "695e06c25d73c3d5b5231842",
+        "id": "695e06c25d73c3d5b5231842"
+      },
+      {
+        "status": "delivered_store",
+        "changedBy": "681105742a06968adc38be49",
+        "changedAt": "2026-01-07T07:10:21.570Z",
+        "notes": "Marked Received at Store via Purchase Management",
+        "_id": "695e06dd5d73c3d5b5231891",
+        "id": "695e06dd5d73c3d5b5231891"
+      },
+      {
+        "status": "delivered_balagruha",
+        "changedBy": "681105742a06968adc38be49",
+        "changedAt": "2026-01-07T07:10:57.149Z",
+        "notes": "Marked Delivered to Balagruha via Purchase Management",
+        "_id": "695e07015d73c3d5b52318e4",
+        "id": "695e07015d73c3d5b52318e4"
+      }
+    ],
+    "allocatedToBalagruhas": [],
+    "createdAt": "2026-01-07T07:09:40.346Z",
+    "updatedAt": "2026-01-07T07:10:57.155Z",
+    "requestId": "PR-036",
+    "__v": 3,
+    "deliveredByCoachId": "681105742a06968adc38be49",
+    "deliveredToBalagruhaAt": "2026-01-07T07:10:57.152Z",
+    "requestAge": 171,
+    "totalItems": 1,
+    "totalQuantity": 1,
+    "id": "695e06b45d73c3d5b52317f2"
+  },
+  {
+    "thresholdAnalysis": {
+      "maxItemCost": 150,
+      "totalOrderCost": 1500,
+      "itemThreshold": 1000,
+      "orderThreshold": 25000,
+      "requiresApproval": false
+    },
+    "_id": "6964fe06444a536bfc8a7d69",
+    "balagruhaId": "6809e03c80aacbb08e74cebe",
+    "category": "ISF Shop",
+    "deadline": "2026-01-19T18:30:00.000Z",
+    "priority": "medium",
+    "items": [
+      {
+        "productId": "68e6596b356bf4d366a7d38c",
+        "productName": "brain",
+        "productSKU": "MIN-TEST-001",
+        "requestedQuantity": 10,
+        "currentStock": 9,
+        "lowStockThreshold": 10,
+        "estimatedUnitCost": 150,
+        "estimatedTotalCost": 1500,
+        "_id": "6964fe06444a536bfc8a7d6a",
+        "id": "6964fe06444a536bfc8a7d6a"
+      }
+    ],
+    "attachments": [],
+    "totalEstimatedCost": 1500,
+    "reason": "",
+    "justification": "",
+    "requestedBy": "68173c989cb9da45d7365d85",
+    "status": "pending",
+    "inventoryTransactionIds": [],
+    "statusHistory": [],
+    "allocatedToBalagruhas": [],
+    "createdAt": "2026-01-12T13:58:30.876Z",
+    "updatedAt": "2026-01-12T13:58:30.876Z",
+    "requestId": "PR-00037",
+    "__v": 0,
+    "requestAge": 44,
+    "totalItems": 1,
+    "totalQuantity": 10,
+    "id": "6964fe06444a536bfc8a7d69"
+  },
+  {
+    "thresholdAnalysis": {
+      "maxItemCost": 15,
+      "totalOrderCost": 225,
+      "itemThreshold": 1000,
+      "orderThreshold": 25000,
+      "requiresApproval": false
+    },
+    "_id": "696506099bdb9d165d36eba7",
+    "balagruhaId": "6809e03c80aacbb08e74cebe",
+    "category": "ISF Shop",
+    "deadline": null,
+    "priority": "medium",
+    "items": [
+      {
+        "productId": "695deeed84f72cf9014abd98",
+        "productName": "Door/Window Repair",
+        "productSKU": "REP-CARP-001",
+        "requestedQuantity": 15,
+        "currentStock": 0,
+        "lowStockThreshold": 0,
+        "estimatedUnitCost": 15,
+        "estimatedTotalCost": 225,
+        "_id": "696506099bdb9d165d36eba8",
+        "id": "696506099bdb9d165d36eba8"
+      }
+    ],
+    "attachments": [],
+    "totalEstimatedCost": 225,
+    "reason": "",
+    "justification": "",
+    "requestedBy": "68173c989cb9da45d7365d85",
+    "status": "pending",
+    "inventoryTransactionIds": [],
+    "statusHistory": [],
+    "allocatedToBalagruhas": [],
+    "createdAt": "2026-01-12T14:32:41.575Z",
+    "updatedAt": "2026-01-12T14:32:41.575Z",
+    "requestId": "PR-00038",
+    "__v": 0,
+    "requestAge": 43,
+    "totalItems": 1,
+    "totalQuantity": 15,
+    "id": "696506099bdb9d165d36eba7"
+  },
+  {
+    "thresholdAnalysis": {
+      "maxItemCost": 0,
+      "totalOrderCost": 0,
+      "itemThreshold": 1000,
+      "orderThreshold": 25000,
+      "requiresApproval": false
+    },
+    "_id": "696749439bdb9d165d36f520",
+    "balagruhaId": "STOCK",
+    "category": "ISF Shop",
+    "deadline": "2026-01-17T00:00:00.000Z",
+    "priority": "medium",
+    "items": [
+      {
+        "productId": "694e830ae09e16c979441dc8",
+        "productName": "Running Shoes",
+        "productSKU": "RN-1234",
+        "requestedQuantity": 1,
+        "currentStock": 100,
+        "lowStockThreshold": 10,
+        "estimatedUnitCost": 0,
+        "estimatedTotalCost": 0,
+        "_id": "696749439bdb9d165d36f521",
+        "id": "696749439bdb9d165d36f521"
+      }
+    ],
+    "attachments": [],
+    "totalEstimatedCost": 0,
+    "reason": "",
+    "justification": "",
+    "requestedBy": "6809e08380aacbb08e74d082",
+    "status": "pending",
+    "inventoryTransactionIds": [],
+    "statusHistory": [],
+    "allocatedToBalagruhas": [],
+    "createdAt": "2026-01-14T07:44:03.050Z",
+    "updatedAt": "2026-01-14T07:44:03.050Z",
+    "requestId": "PR-00039",
+    "__v": 0,
+    "requestAge": 2,
+    "totalItems": 1,
+    "totalQuantity": 1,
+    "id": "696749439bdb9d165d36f520"
+  },
+  {
+    "thresholdAnalysis": {
+      "maxItemCost": 0,
+      "totalOrderCost": 0,
+      "itemThreshold": 1000,
+      "orderThreshold": 25000,
+      "requiresApproval": false
+    },
+    "_id": "696750729bdb9d165d36f5bd",
+    "balagruhaId": "STOCK",
+    "category": "ISF Shop",
+    "deadline": "2026-01-19T00:00:00.000Z",
+    "priority": "medium",
+    "items": [
+      {
+        "productId": "68e6028191774051e98b1a0b",
+        "productName": "Badminton Racket",
+        "productSKU": "SPORT-003",
+        "requestedQuantity": 12,
+        "currentStock": 14,
+        "lowStockThreshold": 10,
+        "estimatedUnitCost": 0,
+        "estimatedTotalCost": 0,
+        "_id": "696750729bdb9d165d36f5be",
+        "id": "696750729bdb9d165d36f5be"
+      }
+    ],
+    "attachments": [],
+    "totalEstimatedCost": 0,
+    "reason": "",
+    "justification": "",
+    "requestedBy": "681105742a06968adc38be49",
+    "status": "pending",
+    "inventoryTransactionIds": [],
+    "statusHistory": [],
+    "allocatedToBalagruhas": [],
+    "createdAt": "2026-01-14T08:14:42.195Z",
+    "updatedAt": "2026-01-14T08:14:42.195Z",
+    "requestId": "PR-00040",
+    "__v": 0,
+    "requestAge": 2,
+    "totalItems": 1,
+    "totalQuantity": 12,
+    "id": "696750729bdb9d165d36f5bd"
+  }
+]

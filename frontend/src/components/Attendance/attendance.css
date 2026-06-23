@@ -1,0 +1,339 @@
+/* Attendance.css */
+
+:root {
+    --primary: #4361ee;
+    --primary-light: #4895ef;
+    --primary-dark: #3f37c9;
+    --secondary: #f72585;
+    --success: #4cc9f0;
+    --warning: #f9c74f;
+    --danger: #f94144;
+    --light: #f8f9fa;
+    --dark: #212529;
+    --gray: #6c757d;
+    --gray-light: #dee2e6;
+    --white: #ffffff;
+    --border-radius: 12px;
+    --box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    --transition: all 0.3s ease;
+    --font-family: 'Nunito', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Main Container */
+.attendance-management {
+    max-width: 100%;
+    width: 100%;
+    margin: 0 auto;
+    padding: 24px;
+    background-color: var(--white);
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.attendance-title {
+    color: var(--primary);
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+/* Date Selector */
+.date-selector {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+    gap: 10px;
+}
+
+.date-selector label {
+    font-weight: 600;
+    color: var(--dark);
+}
+
+.date-selector input {
+    padding: 10px 16px;
+    border-radius: 8px;
+    border: 1px solid var(--gray-light);
+    font-size: 16px;
+    font-family: var(--font-family);
+    cursor: pointer;
+}
+
+.date-selector input:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.2);
+}
+
+/* Balagruha Scroll Container */
+.balagruha-scroll-container {
+    overflow-x: auto;
+    margin-bottom: 24px;
+    padding-bottom: 10px;
+}
+
+.balagruha-list {
+    display: flex;
+    gap: 16px;
+    padding: 4px;
+    min-width: min-content;
+}
+
+.balagruha-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-width: 140px;
+    height: 100px;
+    padding: 16px;
+    background-color: var(--light);
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    transition: var(--transition);
+    border: 2px solid transparent;
+}
+
+.balagruha-card:hover {
+    transform: translateY(-5px);
+    background-color: rgba(67, 97, 238, 0.1);
+}
+
+.balagruha-card.active {
+    background-color: rgba(67, 97, 238, 0.2);
+    border-color: var(--primary);
+    transform: translateY(-5px);
+}
+
+.balagruha-icon {
+    font-size: 28px;
+    margin-bottom: 8px;
+}
+
+.balagruha-name {
+    font-weight: 600;
+    text-align: center;
+    color: var(--dark);
+    font-size: 14px;
+}
+
+/* Metrics Cards */
+.metrics-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin-bottom: 24px;
+}
+
+.metric-card {
+    background-color: var(--white);
+    border-radius: var(--border-radius);
+    padding: 20px;
+    box-shadow: var(--box-shadow);
+    position: relative;
+    overflow: hidden;
+    transition: var(--transition);
+    display: flex;
+    flex-direction: column;
+}
+
+.metric-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+}
+
+.metric-card h3 {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--gray);
+    margin-bottom: 12px;
+}
+
+.metric-value {
+    font-size: 32px;
+    font-weight: 700;
+    margin-bottom: 8px;
+}
+
+.metric-icon {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    font-size: 24px;
+    opacity: 0.7;
+}
+
+.metric-card.present {
+    border-left: 4px solid #4CAF50;
+}
+
+.metric-card.present .metric-value {
+    color: #4CAF50;
+}
+
+.metric-card.absent {
+    border-left: 4px solid #F44336;
+}
+
+.metric-card.absent .metric-value {
+    color: #F44336;
+}
+
+.metric-card.not-marked {
+    border-left: 4px solid #FFC107;
+}
+
+.metric-card.not-marked .metric-value {
+    color: #FFC107;
+}
+
+/* Attendance Table */
+.attendance-table-container {
+    flex: 1;
+    overflow: auto;
+    background-color: var(--white);
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+}
+
+.attendance-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.attendance-table thead {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background-color: var(--light);
+}
+
+.attendance-table th {
+    padding: 16px;
+    text-align: left;
+    color: var(--dark);
+    font-weight: 600;
+    border-bottom: 1px solid var(--gray-light);
+}
+
+.attendance-table td {
+    padding: 16px;
+    border-bottom: 1px solid var(--gray-light);
+}
+
+.attendance-table tr:last-child td {
+    border-bottom: none;
+}
+
+.attendance-table tr:hover {
+    background-color: rgba(67, 97, 238, 0.05);
+}
+
+.absent-row {
+    background-color: rgba(249, 65, 68, 0.05);
+}
+
+/* Attendance Actions */
+.attendance-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.attendance-button {
+    padding: 8px 16px;
+    border-radius: 20px;
+    border: none;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    transition: var(--transition);
+    background-color: var(--light);
+    color: var(--dark);
+}
+
+.attendance-button.present {
+    border: 1px solid #4CAF50;
+}
+
+.attendance-button.present.selected {
+    background-color: #4CAF50;
+    color: white;
+}
+
+.attendance-button.absent {
+    border: 1px solid #F44336;
+}
+
+.attendance-button.absent.selected {
+    background-color: #F44336;
+    color: white;
+}
+
+.attendance-button:hover {
+    transform: translateY(-2px);
+}
+
+/* No Selection Message */
+.no-selection {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: var(--gray);
+    padding: 40px;
+}
+
+.no-data-icon {
+    font-size: 48px;
+    margin-bottom: 16px;
+}
+
+.no-data-message {
+    font-size: 18px;
+    font-weight: 600;
+    text-align: center;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    .metrics-cards {
+        grid-template-columns: 1fr;
+    }
+
+    .attendance-actions {
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .attendance-table th,
+    .attendance-table td {
+        padding: 12px 8px;
+    }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--light);
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--gray-light);
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--gray);
+}

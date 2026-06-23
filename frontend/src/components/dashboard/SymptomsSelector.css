@@ -1,0 +1,43 @@
+.symptoms-selector {
+  margin-bottom: 1rem;
+}
+
+.symptoms-multiselect {
+  width: 100%;
+  min-height: 120px;
+  padding: 0.5rem;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+.symptoms-multiselect option {
+  padding: 0.5rem;
+  cursor: pointer;
+}
+
+.symptoms-multiselect option:hover {
+  background-color: #f0f0f0;
+}
+
+.form-hint {
+  display: block;
+  margin-top: 0.25rem;
+  color: #666;
+  font-size: 12px;
+  font-style: italic;
+}
+
+.custom-symptom-input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+.custom-symptom-input:focus {
+  outline: none;
+  border-color: #8b5cf6;
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+}

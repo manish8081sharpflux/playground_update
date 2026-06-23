@@ -1,0 +1,27 @@
+.course-navbar-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 50px;
+  background: #fff9c4;
+  border-bottom: 3px solid #ffeb3b;
+}
+.course-navbar-menu {
+  display: flex;
+  gap: 30px;
+}
+.course-navbar-p {
+  min-width: 120px;
+  padding: 15px;
+  background: #fff;
+  border-radius: 20px;
+  text-align: center;
+  cursor: pointer;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s;
+  transform: scale(1);
+  font-weight: bold;
+}
+.course-navbar-hat {
+  font-size: 40px;
+}

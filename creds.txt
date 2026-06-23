@@ -1,0 +1,20 @@
+Use the user login page - click user login
+
+Admin
+UN : tony.loui.thomas@gmail.com
+PW : 5322148
+
+medicalincharge
+UN : medin@gmail.com
+PW : password123
+
+Coach
+UN : coach@gmail.com
+PW : password123
+
+purchase manager
+UN : purchase@gmail.com
+PW : password123
+
+Student
+User id : 123

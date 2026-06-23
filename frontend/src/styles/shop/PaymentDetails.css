@@ -1,0 +1,203 @@
+.payment-details {
+  background: #fff;
+  border-radius: 12px;
+  border: 1px solid #e0e0e0;
+  padding: 24px;
+  margin-bottom: 24px;
+}
+
+.payment-details-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin: 0 0 20px 0;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.payment-method {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  background: linear-gradient(135deg, #f0e6ff 0%, #e6d5ff 100%);
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+.payment-method-icon {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+  border-radius: 50%;
+}
+
+.payment-method-info h3 {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin: 0 0 4px 0;
+}
+
+.payment-method-info p {
+  font-size: 14px;
+  color: #666;
+  margin: 0;
+}
+
+.payment-balance-info {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.payment-balance-loading,
+.payment-balance-error {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 20px;
+  color: #666;
+  font-size: 14px;
+}
+
+.payment-balance-error {
+  flex-direction: column;
+}
+
+.retry-button {
+  padding: 8px 16px;
+  background: #9333ea;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.retry-button:hover {
+  background: #7c3aed;
+}
+
+.spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid #e0e0e0;
+  border-top-color: #9333ea;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.payment-balance-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 14px;
+  padding: 8px 0;
+}
+
+.payment-balance-label {
+  color: #666;
+  font-weight: 500;
+}
+
+.payment-balance-value {
+  color: #1a1a1a;
+  font-weight: 600;
+}
+
+.payment-balance-total {
+  color: #9333ea;
+}
+
+.payment-balance-divider {
+  height: 1px;
+  background: #e0e0e0;
+  margin: 8px 0;
+}
+
+.payment-balance-remaining {
+  padding: 12px 0 0 0;
+  font-size: 16px;
+}
+
+.payment-balance-sufficient {
+  color: #059669;
+}
+
+.payment-balance-insufficient {
+  color: #dc2626;
+}
+
+.payment-insufficient-warning {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px;
+  background: #fee;
+  border: 1px solid #fcc;
+  border-radius: 6px;
+  color: #dc2626;
+  font-size: 13px;
+  font-weight: 500;
+  margin-top: 12px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .payment-details {
+    padding: 20px;
+  }
+
+  .payment-details-title {
+    font-size: 18px;
+  }
+
+  .payment-method {
+    gap: 12px;
+    padding: 12px;
+  }
+
+  .payment-method-icon {
+    width: 40px;
+    height: 40px;
+  }
+
+  .payment-method-icon svg {
+    width: 24px;
+    height: 24px;
+  }
+
+  .payment-method-info h3 {
+    font-size: 15px;
+  }
+
+  .payment-method-info p {
+    font-size: 13px;
+  }
+
+  .payment-balance-row {
+    font-size: 13px;
+  }
+
+  .payment-balance-remaining {
+    font-size: 15px;
+  }
+
+  .payment-insufficient-warning {
+    font-size: 12px;
+    padding: 10px;
+  }
+}

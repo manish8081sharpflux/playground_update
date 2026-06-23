@@ -1,0 +1,6 @@
+1. Export mongodb dump file from the atlas URI
+
+mongodump --uri=$MONGO_URI --out=dump
+
+Note: Set MONGO_URI environment variable to your MongoDB Atlas connection string before running.
+

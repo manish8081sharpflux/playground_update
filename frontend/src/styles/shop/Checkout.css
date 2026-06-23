@@ -1,0 +1,268 @@
+.checkout-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 32px 24px;
+}
+
+.checkout-header {
+  margin-bottom: 32px;
+}
+
+.checkout-back-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: none;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #666;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-bottom: 16px;
+}
+
+.checkout-back-button:hover {
+  background: #f5f5f5;
+  border-color: #9333ea;
+  color: #9333ea;
+}
+
+.checkout-title {
+  font-size: 32px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 0;
+}
+
+.checkout-error {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  background: #fee;
+  border: 1px solid #fcc;
+  border-radius: 8px;
+  color: #dc2626;
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: 24px;
+}
+
+.checkout-content {
+  display: grid;
+  grid-template-columns: 1fr 400px;
+  gap: 24px;
+  align-items: start;
+}
+
+.checkout-left {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.checkout-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.checkout-place-order-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 16px 32px;
+  background: #9333ea;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.checkout-place-order-button:hover:not(:disabled) {
+  background: #7c3aed;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(147, 51, 234, 0.3);
+}
+
+.checkout-place-order-button:disabled {
+  background: #d1d5db;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.checkout-earn-coins-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 14px 32px;
+  background: #f97316;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.checkout-earn-coins-button:hover {
+  background: #ea580c;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(249, 115, 22, 0.3);
+}
+
+.checkout-cancel-button {
+  padding: 14px 32px;
+  background: #fff;
+  color: #666;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.checkout-cancel-button:hover {
+  background: #f5f5f5;
+  border-color: #9333ea;
+  color: #9333ea;
+}
+
+.checkout-loading,
+.checkout-processing {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  min-height: 400px;
+  text-align: center;
+}
+
+.checkout-loading p,
+.checkout-processing p {
+  font-size: 16px;
+  color: #666;
+  margin: 0;
+}
+
+.checkout-processing h2 {
+  font-size: 24px;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin: 0;
+}
+
+.spinner-large {
+  width: 50px;
+  height: 50px;
+  border: 4px solid #e0e0e0;
+  border-top-color: #9333ea;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+.spinner-small {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .checkout-content {
+    grid-template-columns: 1fr;
+  }
+
+  .checkout-right {
+    order: -1;
+  }
+}
+
+@media (max-width: 768px) {
+  .checkout-container {
+    padding: 24px 16px;
+  }
+
+  .checkout-title {
+    font-size: 24px;
+  }
+
+  .checkout-back-button {
+    font-size: 13px;
+    padding: 6px 12px;
+  }
+
+  .checkout-place-order-button {
+    padding: 14px 24px;
+    font-size: 15px;
+  }
+
+  .checkout-cancel-button {
+    padding: 12px 24px;
+    font-size: 14px;
+  }
+
+  .checkout-error {
+    font-size: 13px;
+    padding: 12px;
+  }
+
+  .checkout-loading,
+  .checkout-processing {
+    min-height: 300px;
+    gap: 16px;
+  }
+
+  .checkout-processing h2 {
+    font-size: 20px;
+  }
+
+  .checkout-processing p,
+  .checkout-loading p {
+    font-size: 14px;
+  }
+
+  .spinner-large {
+    width: 40px;
+    height: 40px;
+  }
+}
+
+@media (max-width: 480px) {
+  .checkout-container {
+    padding: 20px 12px;
+  }
+
+  .checkout-title {
+    font-size: 20px;
+  }
+
+  .checkout-place-order-button {
+    padding: 12px 20px;
+    font-size: 14px;
+  }
+
+  .checkout-cancel-button {
+    padding: 10px 20px;
+    font-size: 13px;
+  }
+}

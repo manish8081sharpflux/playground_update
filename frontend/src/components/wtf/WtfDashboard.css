@@ -1,0 +1,114 @@
+/* WTF Dashboard Styles */
+.wtf-dashboard {
+  background-color: #f9fafb;
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.wtf-management {
+  background-color: #f9fafb;
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  padding-bottom: 2rem;
+}
+
+.wtf-submit {
+  background-color: #f9fafb;
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+
+/* Ensure the main content area has proper padding reset for full width components */
+.main-content:has(.wtf-management),
+.main-content:has(.wtf-dashboard),
+.main-content:has(.wtf-submit) {
+  padding: 0 !important;
+  width: 100% !important;
+  height: auto !important;
+  min-height: 100vh !important;
+  overflow-y: auto !important;
+}
+
+/* Button wrapping layout styles */
+.category-buttons-container,
+.level-indicators-container {
+  gap: 0.5rem;
+}
+
+/* Ensure proper spacing between wrapped buttons */
+.category-buttons-container button,
+.level-indicators-container button {
+  margin-bottom: 0.5rem;
+}
+
+/* Smooth transitions for collapsible elements */
+.category-buttons-container,
+.level-indicators-container {
+  transition: all 0.3s ease-in-out;
+}
+
+/* Responsive button sizing for better wrapping */
+@media (max-width: 768px) {
+  .category-buttons-container button,
+  .level-indicators-container button {
+    min-width: 120px !important;
+    font-size: 0.875rem !important;
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+  }
+}
+
+/* Category and Level header styling */
+.category-header,
+.level-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+  padding: 0 1rem;
+}
+
+.category-header h3,
+.level-header h3 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0;
+}
+
+/* Toggle button styling for both category and level sections */
+.category-toggle-button,
+.level-toggle-button {
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+  color: #6b7280;
+  transition: all 0.2s ease-in-out;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+.category-toggle-button:hover,
+.level-toggle-button:hover {
+  background-color: #f3f4f6;
+  color: #374151;
+  transform: scale(1.05);
+}
+
+.category-toggle-button:focus,
+.level-toggle-button:focus {
+  outline: none;
+  ring: 2px;
+  ring-color: #3b82f6;
+  ring-offset: 2px;
+}

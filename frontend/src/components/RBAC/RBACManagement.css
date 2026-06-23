@@ -1,0 +1,1365 @@
+/* RBACManagement.css */
+
+/* General Styles */
+.rbac-management {
+  font-family: "Comic Sans MS", "Chalkboard SE", "Marker Felt", sans-serif;
+  max-width: 100%;
+  margin: 0 auto;
+  padding: 20px;
+  background-color: #f0f9ff;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+  position: relative;
+  overflow: hidden;
+  height: 100vh;
+  width: 100%;
+}
+
+.rbac-management::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 10px;
+  background: linear-gradient(
+    90deg,
+    #9b59b6,
+    #8e44ad,
+    #9b59b6,
+    #8e44ad,
+    #9b59b6
+  );
+  z-index: 1;
+}
+
+/* Header Styles */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 0;
+  margin-bottom: 20px;
+  border-bottom: 3px dashed #9b59b6;
+  position: relative;
+}
+
+.header h1 {
+  color: #8e44ad;
+  font-size: 2.5rem;
+  text-shadow: 2px 2px 0 #d7bde2;
+  margin: 0;
+}
+
+.character {
+  position: relative;
+}
+
+.character-img {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  border: 4px solid #9b59b6;
+  background-color: #d7bde2;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  transition: transform 0.3s ease;
+}
+
+.character-img:hover {
+  transform: scale(1.1) rotate(5deg);
+}
+
+/* RBAC Container */
+.rbac-container {
+  display: grid;
+  grid-template-columns: 350px 1fr;
+  gap: 20px;
+  min-height: 600px;
+  max-height: calc(100vh - 200px);
+  overflow: scroll;
+  height: 85vh;
+}
+
+/* Panels */
+.roles-panel,
+.permissions-panel {
+  background-color: white;
+  border-radius: 15px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.panel-header {
+  padding: 20px;
+  border-bottom: 2px dashed #e8daef;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+
+.panel-header h2 {
+  margin: 0;
+  color: #8e44ad;
+  font-size: 1.5rem;
+}
+
+/* Search Box */
+.search-box {
+  position: relative;
+  width: 100%;
+  max-width: 250px;
+}
+
+.search-input {
+  width: 100%;
+  padding: 10px 15px 10px 40px;
+  border-radius: 30px;
+  border: 2px solid #d7bde2;
+  font-size: 1rem;
+  background-color: white;
+  transition: all 0.3s ease;
+  font-family: "Comic Sans MS", "Chalkboard SE", "Marker Felt", sans-serif;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: #9b59b6;
+  box-shadow: 0 0 10px rgba(155, 89, 182, 0.2);
+}
+
+.search-icon {
+  position: absolute;
+  left: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 1.2rem;
+}
+
+/* Roles List */
+.roles-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.role-card {
+  background-color: white;
+  border-radius: 12px;
+  padding: 15px;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  gap: 15px;
+  border-left: 5px solid #9b59b6;
+}
+
+.role-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+}
+
+.role-card.selected {
+  background-color: #f5eef8;
+  box-shadow: 0 0 0 2px #9b59b6, 0 6px 15px rgba(0, 0, 0, 0.15);
+}
+
+.role-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  color: white;
+  flex-shrink: 0;
+}
+
+.role-icon.large {
+  width: 50px;
+  height: 50px;
+  font-size: 1.8rem;
+}
+
+.role-info {
+  flex: 1;
+}
+
+.role-info h3 {
+  margin: 0 0 5px 0;
+  color: #4a235a;
+  font-size: 1.2rem;
+}
+
+.role-info p {
+  margin: 0 0 10px 0;
+  color: #7d3c98;
+  font-size: 0.9rem;
+}
+
+.permission-meter {
+  margin-top: 10px;
+}
+
+.meter-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  color: #7d3c98;
+  margin-bottom: 5px;
+}
+
+.meter-bar {
+  height: 8px;
+  background-color: #f5eef8;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.meter-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.5s ease;
+}
+
+.no-roles {
+  text-align: center;
+  padding: 50px 20px;
+  color: #9b59b6;
+}
+
+.no-data-icon {
+  font-size: 3rem;
+  margin-bottom: 15px;
+}
+
+.no-data-message {
+  font-size: 1.2rem;
+}
+
+/* Role Title */
+.role-title {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.role-title h2 {
+  margin: 0 0 5px 0;
+}
+
+.role-title p {
+  margin: 0;
+  color: #7d3c98;
+  font-size: 0.9rem;
+}
+
+/* Action Buttons */
+.action-buttons {
+  display: flex;
+  gap: 10px;
+}
+
+.edit-button,
+.save-button,
+.cancel-button {
+  padding: 10px 20px;
+  border-radius: 30px;
+  border: none;
+  font-family: "Comic Sans MS", "Chalkboard SE", "Marker Felt", sans-serif;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.edit-button {
+  background-color: #9b59b6 !important;
+  color: white;
+}
+
+.edit-button:hover {
+  background-color: #8e44ad;
+  transform: translateY(-3px);
+  box-shadow: 0 4px 10px rgba(155, 89, 182, 0.4);
+}
+
+.save-button {
+  background-color: #27ae60;
+  color: white;
+}
+
+.save-button:hover {
+  background-color: #219653;
+  transform: translateY(-3px);
+  box-shadow: 0 4px 10px rgba(39, 174, 96, 0.4);
+}
+
+.cancel-button {
+  background-color: #e74c3c;
+  color: white;
+}
+
+.cancel-button:hover {
+  background-color: #c0392b;
+  transform: translateY(-3px);
+  box-shadow: 0 4px 10px rgba(231, 76, 60, 0.4);
+}
+
+/* Save Confirmation */
+.save-confirmation {
+  background-color: #d5f5e3;
+  color: #27ae60;
+  padding: 15px;
+  border-radius: 10px;
+  margin: 0 20px 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  animation: fadeIn 0.5s ease;
+}
+
+.confirmation-icon {
+  font-size: 1.5rem;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Permissions List */
+.permissions-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.module-card {
+  background-color: white;
+  border-radius: 12px;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  border-left: 5px solid #9b59b6;
+  display: flex;
+  align-items: center;
+  margin: 10px;
+  padding: 20px;
+  gap: 10px;
+}
+
+.module-header {
+  padding: 15px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  background-color: #f8f9fa;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.module-header:hover {
+  background-color: #f5eef8;
+}
+
+.module-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  color: white;
+  flex-shrink: 0;
+}
+
+.module-info {
+  flex: 1;
+}
+
+.module-info h3 {
+  margin: 0 0 5px 0;
+  color: #4a235a;
+  font-size: 1.2rem;
+}
+
+.module-info p {
+  margin: 0;
+  color: #7d3c98;
+  font-size: 0.9rem;
+}
+
+.module-toggle {
+  margin-left: auto;
+  font-size: 1.2rem;
+  transition: transform 0.3s ease;
+}
+
+.module-toggle.open {
+  transform: rotate(180deg);
+}
+
+.module-permissions {
+  padding: 0 15px 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    max-height: 0;
+  }
+
+  to {
+    opacity: 1;
+    max-height: 500px;
+  }
+}
+
+.permission-item {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 10px 15px;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  transition: background-color 0.3s ease;
+  cursor: pointer;
+}
+
+.permission-item.editable {
+  cursor: pointer;
+}
+
+.permission-item.enabled {
+  background-color: #f5eef8;
+}
+
+.permission-icon {
+  width: 30px;
+  height: 30px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  background-color: #d7bde2;
+  color: #8e44ad;
+  flex-shrink: 0;
+}
+
+.permission-info {
+  flex: 1;
+}
+
+.permission-name {
+  font-weight: bold;
+  color: #4a235a;
+}
+
+.permission-description {
+  color: #7d3c98;
+  font-size: 0.85rem;
+  margin-top: 2px;
+}
+
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 60px;
+  height: 30px;
+  background-color: #ccc;
+  border-radius: 34px;
+  transition: 0.4s;
+}
+
+.toggle-switch.active {
+  background-color: #9b59b6;
+}
+
+.toggle-switch.all {
+  background-color: #27ae60;
+}
+
+.toggle-slider {
+  position: absolute;
+  height: 22px;
+  width: 22px;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  transition: 0.4s;
+  border-radius: 50%;
+}
+
+.toggle-switch.active .toggle-slider {
+  transform: translateX(30px);
+}
+
+input:focus + .toggle-slider {
+  box-shadow: 0 0 1px #9b59b6;
+}
+
+input:checked + .toggle-slider:before {
+  transform: translateX(30px);
+}
+
+.toggle-slider.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Conflict Warning */
+.conflict-warning {
+  background-color: #fdebd0;
+  color: #e67e22;
+  padding: 10px 15px;
+  border-radius: 8px;
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.9rem;
+  animation: fadeIn 0.5s ease;
+}
+
+.warning-icon {
+  font-size: 1.2rem;
+}
+
+/* Add Role Button */
+.add-role-button {
+  background-color: #9b59b6;
+  color: white;
+  border: none;
+  border-radius: 30px;
+  padding: 10px 20px;
+  font-family: "Comic Sans MS", "Chalkboard SE", "Marker Felt", sans-serif;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.add-role-button:hover {
+  background-color: #8e44ad;
+  transform: translateY(-3px);
+  box-shadow: 0 4px 10px rgba(155, 89, 182, 0.4);
+}
+
+.add-icon {
+  font-size: 1.2rem;
+}
+
+/* Role Colors */
+.role-icon.admin {
+  background-color: #8e44ad;
+}
+
+.role-icon.coach {
+  background-color: #2980b9;
+}
+
+.role-icon.incharge {
+  background-color: #16a085;
+}
+
+.role-icon.student {
+  background-color: #f39c12;
+}
+
+.role-icon.purchase {
+  background-color: #c0392b;
+}
+
+.role-icon.medical {
+  background-color: #27ae60;
+}
+
+/* Module Colors */
+.module-icon.users {
+  background-color: #8e44ad;
+}
+
+.module-icon.tasks {
+  background-color: #2980b9;
+}
+
+.module-icon.machines {
+  background-color: #16a085;
+}
+
+.module-icon.reports {
+  background-color: #f39c12;
+}
+
+.module-icon.purchases {
+  background-color: #c0392b;
+}
+
+.module-icon.medical {
+  background-color: #27ae60;
+}
+
+/* Permission Groups */
+.permission-group {
+  margin-top: 10px;
+  margin-bottom: 5px;
+  padding-left: 15px;
+  font-weight: bold;
+  color: #8e44ad;
+  font-size: 0.9rem;
+  border-left: 3px solid #9b59b6;
+}
+
+/* No Permissions */
+.no-permissions {
+  text-align: center;
+  padding: 50px 20px;
+  color: #9b59b6;
+}
+
+/* Role Form */
+.role-form {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-label {
+  font-weight: bold;
+  color: #4a235a;
+}
+
+.form-input {
+  padding: 12px 15px;
+  border-radius: 8px;
+  border: 2px solid #d7bde2;
+  font-size: 1rem;
+  background-color: white;
+  transition: all 0.3s ease;
+  font-family: "Comic Sans MS", "Chalkboard SE", "Marker Felt", sans-serif;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: #9b59b6;
+  box-shadow: 0 0 10px rgba(155, 89, 182, 0.2);
+}
+
+.form-textarea {
+  padding: 12px 15px;
+  border-radius: 8px;
+  border: 2px solid #d7bde2;
+  font-size: 1rem;
+  background-color: white;
+  transition: all 0.3s ease;
+  font-family: "Comic Sans MS", "Chalkboard SE", "Marker Felt", sans-serif;
+  min-height: 100px;
+  resize: vertical;
+}
+
+.form-textarea:focus {
+  outline: none;
+  border-color: #9b59b6;
+  box-shadow: 0 0 10px rgba(155, 89, 182, 0.2);
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 15px;
+  margin-top: 20px;
+}
+
+/* Color Picker */
+.color-options {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+
+.color-option {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: transform 0.3s ease;
+  border: 2px solid transparent;
+}
+
+.color-option:hover {
+  transform: scale(1.1);
+}
+
+.color-option.selected {
+  border-color: #4a235a;
+  transform: scale(1.1);
+}
+
+/* Icon Picker */
+.icon-options {
+  display: flex;
+  gap: 15px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+
+.icon-option {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  color: white;
+  background-color: #9b59b6;
+  cursor: pointer;
+  transition: transform 0.3s ease;
+  border: 2px solid transparent;
+}
+
+.icon-option:hover {
+  transform: scale(1.1);
+}
+
+.icon-option.selected {
+  border-color: #4a235a;
+  transform: scale(1.1);
+}
+
+/* Delete Role */
+.delete-role {
+  margin-top: 30px;
+  padding-top: 20px;
+  border-top: 2px dashed #e8daef;
+}
+
+.delete-button {
+  background-color: #f8f9fa;
+  color: #e74c3c;
+  border: 2px solid #e74c3c;
+  border-radius: 30px;
+  padding: 10px 20px;
+  font-family: "Comic Sans MS", "Chalkboard SE", "Marker Felt", sans-serif;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.delete-button:hover {
+  background-color: #e74c3c;
+  color: white;
+  transform: translateY(-3px);
+  box-shadow: 0 4px 10px rgba(231, 76, 60, 0.4);
+}
+
+.delete-icon {
+  font-size: 1.2rem;
+}
+
+/* Confirmation Modal */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.3s ease;
+}
+
+.modal-content {
+  background-color: white;
+  border-radius: 15px;
+  padding: 30px;
+  width: 90%;
+  max-width: 500px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  animation: scaleIn 0.3s ease;
+}
+
+@keyframes scaleIn {
+  from {
+    transform: scale(0.9);
+    opacity: 0;
+  }
+
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.modal-icon {
+  font-size: 2rem;
+  color: #e74c3c;
+}
+
+.modal-title {
+  font-size: 1.5rem;
+  color: #4a235a;
+  margin: 0;
+}
+
+.modal-body {
+  margin-bottom: 30px;
+  color: #7d3c98;
+  font-size: 1.1rem;
+  line-height: 1.5;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 15px;
+}
+
+/* Tooltip */
+.tooltip {
+  position: relative;
+  display: inline-block;
+  cursor: help;
+}
+
+.tooltip-text {
+  visibility: hidden;
+  width: 200px;
+  background-color: #4a235a;
+  color: white;
+  text-align: center;
+  border-radius: 8px;
+  padding: 10px;
+  position: absolute;
+  z-index: 1;
+  bottom: 125%;
+  left: 50%;
+  transform: translateX(-50%);
+  opacity: 0;
+  transition: opacity 0.3s;
+  font-size: 0.9rem;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.tooltip-text::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  margin-left: -5px;
+  border-width: 5px;
+  border-style: solid;
+  border-color: #4a235a transparent transparent transparent;
+}
+
+.tooltip:hover .tooltip-text {
+  visibility: visible;
+  opacity: 1;
+}
+
+.info-icon {
+  font-size: 1rem;
+  color: #9b59b6;
+  margin-left: 5px;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 992px) {
+  .rbac-container {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr;
+  }
+
+  .roles-panel {
+    height: 300px;
+  }
+}
+
+@media (max-width: 768px) {
+  .header h1 {
+    font-size: 1.8rem;
+  }
+
+  .character-img {
+    width: 60px;
+    height: 60px;
+  }
+
+  .panel-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .search-box {
+    max-width: none;
+    width: 100%;
+  }
+
+  .action-buttons {
+    margin-top: 10px;
+  }
+
+  .module-header {
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 576px) {
+  .rbac-management {
+    padding: 15px;
+  }
+
+  .role-card,
+  .module-card {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .role-icon,
+  .module-icon {
+    margin-bottom: 10px;
+  }
+
+  .form-actions {
+    flex-direction: column;
+  }
+
+  .form-actions button {
+    width: 100%;
+  }
+}
+
+/* Animation for Role Cards */
+.role-card {
+  animation: slideIn 0.5s ease;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Animation for Module Cards */
+.module-card {
+  animation: fadeInUp 0.5s ease;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Footer */
+.footer {
+  margin-top: 40px;
+  padding-top: 20px;
+  border-top: 3px dashed #9b59b6;
+  position: relative;
+  height: 50px;
+  text-align: center;
+  color: #8e44ad;
+  font-size: 0.9rem;
+}
+
+.footer-decoration {
+  position: relative;
+  height: 100%;
+}
+
+.lock {
+  position: absolute;
+  bottom: 0;
+  font-size: 1.5rem;
+  animation: float 3s infinite alternate;
+}
+
+@keyframes float {
+  0% {
+    transform: translateY(0) rotate(0deg);
+  }
+
+  100% {
+    transform: translateY(-10px) rotate(5deg);
+  }
+}
+
+/* Fix for roles and permissions panels */
+.roles-list,
+.permissions-list {
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #9b59b6 #f5eef8;
+}
+
+.roles-list::-webkit-scrollbar,
+.permissions-list::-webkit-scrollbar {
+  width: 8px;
+}
+
+.roles-list::-webkit-scrollbar-track,
+.permissions-list::-webkit-scrollbar-track {
+  background: #f5eef8;
+  border-radius: 10px;
+}
+
+.roles-list::-webkit-scrollbar-thumb,
+.permissions-list::-webkit-scrollbar-thumb {
+  background-color: #9b59b6;
+  border-radius: 10px;
+}
+
+/* Fix for no role selected view */
+.no-role-selected {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 20px;
+  text-align: center;
+}
+
+/* Fix for toggle switches */
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 60px;
+  height: 30px;
+  background-color: #ccc;
+  border-radius: 34px;
+  transition: 0.4s;
+  cursor: pointer;
+}
+
+.toggle-switch.active {
+  background-color: #9b59b6;
+}
+
+.toggle-switch.all {
+  background-color: #27ae60;
+}
+
+.toggle-slider {
+  position: absolute;
+  height: 22px;
+  width: 22px;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  transition: 0.4s;
+  border-radius: 50%;
+}
+
+.toggle-switch.active .toggle-slider {
+  transform: translateX(30px);
+}
+
+/* Fix for permission items */
+.permission-item {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 10px 15px;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  transition: background-color 0.3s ease;
+}
+
+.permission-item.editable {
+  cursor: pointer;
+}
+
+.permission-item.enabled {
+  background-color: #f5eef8;
+}
+
+.permission-toggle {
+  margin-left: auto;
+}
+
+/* Add these styles to your RBACManagement.css file */
+
+/* Permissions Table Styles */
+.permissions-table-container {
+  margin: 20px;
+  overflow: auto;
+  max-height: calc(100vh - 300px);
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.permissions-table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: white;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.permissions-table th,
+.permissions-table td {
+  padding: 15px;
+  text-align: center;
+  border-bottom: 1px solid #eee;
+}
+
+.permissions-table th {
+  background-color: #f8f9fa;
+  font-weight: 600;
+  color: #333;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.module-column {
+  text-align: left;
+  width: 250px;
+}
+
+.action-column {
+  width: 100px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.action-column:hover {
+  background-color: #f0e6f5;
+}
+
+.all-column {
+  width: 80px;
+  background-color: #f5f5f5;
+}
+
+.module-cell {
+  text-align: left;
+  border-left: 5px solid;
+  padding-left: 15px;
+}
+
+.module-info-compact {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.module-icon-small {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  color: white;
+  font-size: 14px;
+}
+
+.module-name {
+  font-weight: 500;
+}
+
+.action-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+}
+
+.action-icon {
+  font-size: 18px;
+}
+
+.action-name {
+  font-size: 12px;
+}
+
+.permission-cell,
+.all-cell {
+  transition: background-color 0.2s;
+}
+
+.permission-cell.editable:hover,
+.all-cell.editable:hover {
+  background-color: #f0e6f5;
+  cursor: pointer;
+}
+
+/* Checkbox styles */
+.checkbox-container {
+  display: block;
+  position: relative;
+  padding-left: 25px;
+  cursor: pointer;
+  user-select: none;
+  height: 20px;
+  width: 20px;
+  margin: 0 auto;
+}
+
+.checkbox-container input {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+  height: 0;
+  width: 0;
+}
+
+.checkmark {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 20px;
+  width: 20px;
+  background-color: #eee;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.checkbox-container:hover input ~ .checkmark {
+  background-color: #ccc;
+}
+
+.checkbox-container input:checked ~ .checkmark {
+  background-color: #9b59b6;
+}
+
+.checkbox-container input:disabled ~ .checkmark {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.checkmark:after {
+  content: "";
+  position: absolute;
+  display: none;
+}
+
+.checkbox-container input:checked ~ .checkmark:after {
+  display: block;
+}
+
+.checkbox-container .checkmark:after {
+  left: 7px;
+  top: 3px;
+  width: 5px;
+  height: 10px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .permissions-table-container {
+    margin: 10px;
+  }
+
+  .permissions-table th,
+  .permissions-table td {
+    padding: 10px 5px;
+  }
+
+  .module-column {
+    width: 150px;
+  }
+
+  .action-column {
+    width: 60px;
+  }
+
+  .module-name {
+    font-size: 14px;
+  }
+}
+
+/* Add these styles to your RBACManagement.css file */
+
+/* Loading spinner */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 400px;
+  width: 100%;
+}
+
+.loading-spinner {
+  border: 5px solid #f3f3f3;
+  border-top: 5px solid #9b59b6;
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  animation: spin 1s linear infinite;
+  margin-bottom: 20px;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
+}

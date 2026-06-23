@@ -1,0 +1,451 @@
+import React, { useState, useEffect } from 'react';
+import toast from 'react-hot-toast';
+import { api } from '../../api';
+import { X, Users } from 'lucide-react';
+
+/**
+ * AdminCourseAssignmentModal - Admin can assign courses to any Balagruha
+ * Admin has access to ALL Balagruhas and ALL students
+ */
+export default function AdminCourseAssignmentModal({ isOpen, onClose, course, onAssignmentSuccess }) {
+  const [loading, setLoading] = useState(false);
+  const [dataLoading, setDataLoading] = useState(true);
+  const [balagruhas, setBalagruhas] = useState([]);
+  const [students, setStudents] = useState([]);
+  const [selectedBalagruhas, setSelectedBalagruhas] = useState([]);
+  const [selectedStudents, setSelectedStudents] = useState([]);
+  const [assignmentType, setAssignmentType] = useState('balagruha'); // 'balagruha' or 'students'
+  const [dueDate, setDueDate] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [balagruhaFilter, setBalagruhaFilter] = useState('all');
+
+  // Fetch all Balagruhas and students on mount
+  useEffect(() => {
+    if (isOpen) {
+      fetchData();
+    }
+  }, [isOpen]);
+
+  const fetchData = async () => {
+    setDataLoading(true);
+    try {
+      // First fetch all Balagruhas
+      const balagruhasResponse = await api.get(
+        `/api/v1/balagruha`
+      );
+      const allBalagruhas = balagruhasResponse.data.data || [];
+      setBalagruhas(allBalagruhas);
+      // Select all by default
+      setSelectedBalagruhas(allBalagruhas);
+      
+      // Then fetch all students
+      const studentsResponse = await api.get(
+        `/api/users?role=student`
+      );
+      
+      const studentsData = studentsResponse.data.data || [];
+      // Add balagruhaNames to each student for display
+      const studentsWithBalagruhaInfo = studentsData.map(student => ({
+        ...student,
+        balagruhaNames: student.balagruhaIds?.map(bgId => {
+          const bg = allBalagruhas.find(b => (b._id || b.id)?.toString() === bgId?.toString());
+          return bg?.name;
+        }).filter(Boolean) || []
+      }));
+      setStudents(studentsWithBalagruhaInfo);
+    } catch (error) {
+      console.error('Error fetching data:', error);
+      toast.error('Failed to load data');
+    } finally {
+      setDataLoading(false);
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (!course) {
+      toast.error('No course selected');
+      return;
+    }
+
+    if (assignmentType === 'balagruha' && selectedBalagruhas.length === 0) {
+      toast.error('Please select at least one Balagruha');
+      return;
+    }
+
+    if (assignmentType === 'students' && selectedStudents.length === 0) {
+      toast.error('Please select at least one student');
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const payload = {
+        courseId: course._id,
+        assignedTo: {
+          type: assignmentType,
+          ...(assignmentType === 'balagruha'
+            ? { balagruhaIds: selectedBalagruhas.map(bg => bg._id || bg.id) }
+            : { studentIds: selectedStudents.map(s => s._id) }
+          ),
+        },
+        dueDate: dueDate || null,
+      };
+
+      // Use the coach assignment endpoint - it will work for admin too
+      const response = await api.post(
+        `/api/v2/lms/coach/assignments`,
+        payload
+      );
+
+      toast.success(
+        `Course assigned to ${response.data.data.studentsAssigned} student(s)!`
+      );
+
+      if (onAssignmentSuccess) {
+        onAssignmentSuccess(response.data.data);
+      }
+
+      onClose();
+    } catch (error) {
+      console.error('Error creating assignment:', error);
+      toast.error(
+        error.response?.data?.error || 'Failed to assign course'
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Filter students by search and Balagruha filter
+  const filteredStudents = students.filter(student => {
+    // Filter by Balagruha
+    if (balagruhaFilter !== 'all') {
+      const isInSelectedBalagruha = student.balagruhaIds?.some(bgId => 
+        bgId?.toString() === balagruhaFilter
+      );
+      if (!isInSelectedBalagruha) return false;
+    }
+
+    // Filter by search query
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      const matchesName = student.name?.toLowerCase().includes(query);
+      const matchesId = student.userId?.toString().toLowerCase().includes(query);
+      const matchesBalagruha = student.balagruhaNames?.some(name => 
+        name.toLowerCase().includes(query)
+      );
+      if (!matchesName && !matchesId && !matchesBalagruha) return false;
+    }
+
+    return true;
+  });
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+        {/* Header */}
+        <div className="bg-purple-600 text-white px-6 py-4 flex items-center justify-between rounded-t-lg">
+          <div>
+            <h2 className="text-2xl font-bold">Assign Course (Admin)</h2>
+            <p className="text-purple-100 text-sm mt-1">
+              {course?.title}
+            </p>
+          </div>
+          <button
+            onClick={onClose}
+            className="text-white hover:text-gray-200"
+          >
+            <X size={24} />
+          </button>
+        </div>
+
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="p-6 space-y-6">
+          {/* Assignment Type */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Assign To <span className="text-red-500">*</span>
+            </label>
+            
+            {/* Entire Balagruha Option */}
+            <div
+              onClick={() => setAssignmentType('balagruha')}
+              className={`border-2 rounded-lg p-4 cursor-pointer mb-3 transition ${
+                assignmentType === 'balagruha'
+                  ? 'border-purple-500 bg-purple-50'
+                  : 'border-gray-300 hover:border-purple-300'
+              }`}
+            >
+              <div className="flex items-start">
+                <input
+                  type="radio"
+                  checked={assignmentType === 'balagruha'}
+                  onChange={() => setAssignmentType('balagruha')}
+                  className="mr-3 mt-1"
+                />
+                <div className="flex-1">
+                  <div className="font-medium text-gray-900">
+                    Entire Balagruha(s)
+                  </div>
+                  <div className="text-sm text-gray-600">
+                    All students in selected Balagruha(s) will receive this course
+                  </div>
+                  
+                  {/* Balagruha multi-select checkboxes */}
+                  <div className="mt-3 border border-gray-200 rounded-lg p-3 bg-white">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-xs font-medium text-gray-500">
+                        Select Balagruha(s) ({selectedBalagruhas.length} selected):
+                      </span>
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedBalagruhas(balagruhas);
+                          }}
+                          className="text-xs text-purple-600 hover:text-purple-700 hover:underline"
+                        >
+                          Select All
+                        </button>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedBalagruhas([]);
+                          }}
+                          className="text-xs text-purple-600 hover:text-purple-700 hover:underline"
+                        >
+                          Clear
+                        </button>
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-2 max-h-32 overflow-y-auto">
+                      {dataLoading ? (
+                        <div className="text-center text-gray-500 py-4">Loading Balagruhas...</div>
+                      ) : balagruhas.length === 0 ? (
+                        <div className="text-center text-gray-500 py-4">No Balagruhas found</div>
+                      ) : (
+                        balagruhas.map((bg) => (
+                          <label
+                            key={bg._id || bg.id}
+                            className="flex items-center cursor-pointer hover:bg-gray-50 p-1 rounded"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <input
+                              type="checkbox"
+                              checked={selectedBalagruhas.some(selected => 
+                                (selected._id || selected.id)?.toString() === (bg._id || bg.id)?.toString()
+                              )}
+                              onChange={(e) => {
+                                if (e.target.checked) {
+                                  setSelectedBalagruhas([...selectedBalagruhas, bg]);
+                                } else {
+                                  setSelectedBalagruhas(selectedBalagruhas.filter(
+                                    selected => (selected._id || selected.id)?.toString() !== (bg._id || bg.id)?.toString()
+                                  ));
+                                }
+                              }}
+                              className="mr-2 h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded"
+                            />
+                            <span className="text-sm text-gray-700">{bg.name}</span>
+                          </label>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Specific Students Option */}
+            <div
+              onClick={() => setAssignmentType('students')}
+              className={`border-2 rounded-lg p-4 cursor-pointer transition ${
+                assignmentType === 'students'
+                  ? 'border-purple-500 bg-purple-50'
+                  : 'border-gray-300 hover:border-purple-300'
+              }`}
+            >
+              <div className="flex items-start">
+                <input
+                  type="radio"
+                  checked={assignmentType === 'students'}
+                  onChange={() => setAssignmentType('students')}
+                  className="mr-3 mt-1"
+                />
+                <div className="flex-1">
+                  <div className="font-medium text-gray-900">
+                    Specific Students
+                  </div>
+                  <div className="text-sm text-gray-600">
+                    Select individual students from any Balagruha
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Student Selection (only when assignmentType is 'students') */}
+          {assignmentType === 'students' && (
+            <div className="border border-gray-300 rounded-lg p-4">
+              {/* Header */}
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="font-medium text-gray-900">
+                  <Users className="inline mr-2" size={18} />
+                  Select Students ({selectedStudents.length} of {filteredStudents.length} shown)
+                </h3>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setSelectedStudents(filteredStudents)}
+                    className="text-sm text-purple-600 hover:text-purple-700"
+                  >
+                    Select All Shown
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedStudents([])}
+                    className="text-sm text-purple-600 hover:text-purple-700"
+                  >
+                    Clear
+                  </button>
+                </div>
+              </div>
+
+              {/* Filters */}
+              <div className="space-y-2 mb-3">
+                {/* Balagruha Filter */}
+                <select
+                  value={balagruhaFilter}
+                  onChange={(e) => setBalagruhaFilter(e.target.value)}
+                  className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                >
+                  <option value="all">All Balagruhas</option>
+                  {balagruhas.map((bg) => (
+                    <option key={bg._id || bg.id} value={bg._id || bg.id}>
+                      {bg.name}
+                    </option>
+                  ))}
+                </select>
+                
+                {/* Search Filter */}
+                <input
+                  type="text"
+                  placeholder="🔍 Search students by name, ID, or Balagruha..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                />
+              </div>
+
+              {/* Student List */}
+              <div className="max-h-64 overflow-y-auto border border-gray-200 rounded-lg">
+                {dataLoading ? (
+                  <div className="p-4 text-center text-gray-500">Loading students...</div>
+                ) : filteredStudents.length === 0 ? (
+                  <div className="p-4 text-center text-gray-500">
+                    {searchQuery || balagruhaFilter !== 'all' 
+                      ? 'No students match your filters' 
+                      : 'No students available'}
+                  </div>
+                ) : (
+                  <div className="divide-y divide-gray-200">
+                    {filteredStudents.map((student) => (
+                      <label
+                        key={student._id}
+                        className={`flex items-center p-3 cursor-pointer hover:bg-gray-50 transition ${
+                          selectedStudents.some(s => s._id === student._id) ? 'bg-purple-50' : ''
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={selectedStudents.some(s => s._id === student._id)}
+                          onChange={() => {
+                            if (selectedStudents.some(s => s._id === student._id)) {
+                              setSelectedStudents(selectedStudents.filter(s => s._id !== student._id));
+                            } else {
+                              setSelectedStudents([...selectedStudents, student]);
+                            }
+                          }}
+                          className="mr-3 h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded"
+                        />
+                        <div className="flex-1">
+                          <div className="font-medium text-gray-900">
+                            {student.name || 'Unknown Student'}
+                          </div>
+                          <div className="text-sm text-gray-600">
+                            {student.userId && (
+                              <span className="mr-2">ID: {student.userId}</span>
+                            )}
+                            {student.balagruhaNames && student.balagruhaNames.length > 0 && (
+                              <span className="text-xs bg-gray-100 px-2 py-0.5 rounded ml-2">
+                                {student.balagruhaNames.join(', ')}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </label>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Selection Summary */}
+              {selectedStudents.length > 0 && (
+                <div className="mt-3 p-3 bg-purple-50 border border-purple-200 rounded-lg">
+                  <div className="text-sm text-purple-900">
+                    <strong>{selectedStudents.length}</strong> student
+                    {selectedStudents.length !== 1 ? 's' : ''} selected
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Due Date */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Due Date (Optional)
+            </label>
+            <input
+              type="date"
+              value={dueDate}
+              onChange={(e) => setDueDate(e.target.value)}
+              min={new Date().toISOString().split('T')[0]}
+              className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+            />
+            <p className="mt-1 text-sm text-gray-600">
+              Students will see this as the target completion date
+            </p>
+          </div>
+
+          {/* Actions */}
+          <div className="flex justify-end gap-3 pt-4 border-t">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+              disabled={loading}
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={loading}
+              className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
+            >
+              {loading ? 'Assigning...' : 'Assign Course'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}

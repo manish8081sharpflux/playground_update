@@ -1,0 +1,262 @@
+.add-task-button-schedule-btn {
+    background-color: #0984e3;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 10px 15px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    width: 150px;
+    justify-content: center;
+    margin-top: 20px;
+    font-family: 'Patrick Hand', cursive;
+}
+
+.add-task-button-schedule-btn-new {
+    background-color: #14e309;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 10px 15px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    width: 150px;
+    justify-content: center;
+    font-family: 'Patrick Hand', cursive;
+    margin-bottom: 20px;
+}
+
+.end-btn-div {
+    display: flex;
+    width: 100%;
+    justify-content: end;
+}
+
+.close-btn-newdetails {
+    display: flex;
+    width: 100%;
+    justify-content: end;
+}   
+
+.calender-container{
+    display: flex;
+    gap: 20px;
+}
+
+/* Sprint6-Story-1: Ensure calendar uses full width */
+.calendar-container {
+    display: flex;
+    align-items: flex-start;
+    width: 100%;
+}
+
+/* Time Column */
+.time-column {
+    width: 80px;
+    margin-right: 10px;
+}
+.time-slot {
+    height: 160px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    font-size: 14px;
+    padding-top: 50px;
+}
+
+/* Calendar Grid */
+.calendar-grid {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Day headers */
+.calendar-header-row {
+    display: flex;
+}
+.calendar-day-header {
+    flex: 1;
+    text-align: center;
+    font-weight: bold;
+    padding: 10px 0;
+    border-bottom: 1px solid #ccc;
+}
+
+/* Day body cells */
+.calendar-body-row {
+    display: flex;
+}
+.calendar-day-cell {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+.calendar-time-cell {
+    height: 150px;
+    border-bottom: 1px solid #e0e0e0;
+    padding: 5px;
+}
+.no-events {
+    font-size: 12px;
+    color: hsl(0, 0%, 60%);
+}
+.calendar-event {
+    font-size: 12px;
+    color: white;
+    padding: 4px;
+    border-radius: 4px;
+}
+
+.label-assigned:hover {
+    background-color: #f0e6ff;
+}
+
+.event-coach {
+    font-size: 10px;
+    font-weight: 600;
+    color: black;
+}
+
+.view-container {
+    /* display: flex; */
+    margin-top: 20px;
+}
+
+.modal-content-schedule {
+    background-color: #e3eafa;
+    border-radius: 20px;
+    width: 900px;
+    max-width: 90%;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+    animation: modalAppear 0.3s ease-out;
+    border: 8px solid #9370db;
+    overflow: hidden;
+    padding: 70px;
+}
+
+.schedule-label {
+    color: #0984e3;
+}
+
+.schedule-p {
+    /* font-weight: 600; */
+}
+
+.master-div-schedule {
+    display: grid;
+    grid-template-columns: auto auto auto;
+}
+
+.edit-schedule {
+  transition: all 0.3s ease;
+  cursor: pointer;
+  transform: scale(1);
+  opacity: 0.8;
+}
+
+.edit-schedule:hover {
+  transform: scale(1.2);
+  opacity: 1;
+}
+
+.schedule-edit-btn {
+    background-color: none;
+    border: none;
+    font-size: 18px;
+}
+
+.schedule-edit-input {
+    border: none;
+    border-bottom: 2px solid #9370db;
+    font-family: 'Patrick Hand', cursive;
+    font-size: 18px;
+    background-color: #e3eafa;
+}
+
+.delete-btn-schedule {
+    background-color: red;
+    padding: 10px 30px;
+    border-radius: 10px;
+    margin-top: 45px;
+    border: none;
+    color: white;
+    font-family: 'Patrick Hand', cursive;
+    cursor: pointer;
+    transition: all 0.3s ease-out;
+    font-size: 18px
+}
+
+.delete-btn-schedule:hover {
+    scale: 1.2;
+    background-color: rgb(243, 82, 82);
+}
+
+/* Sprint6-Story-1-AC1: Week navigation controls */
+.calendar-week-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 10px 0;
+}
+
+.week-nav-btn {
+    background-color: #0984e3;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 8px 15px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.1s;
+    font-family: 'Patrick Hand', cursive;
+}
+
+.week-nav-btn:hover {
+    background-color: #0770c4;
+    transform: scale(1.05);
+}
+
+.week-nav-btn:active {
+    transform: scale(0.95);
+}
+
+.week-indicator {
+    font-size: 16px;
+    font-weight: 600;
+    color: #333;
+    padding: 0 10px;
+    font-family: 'Patrick Hand', cursive;
+}
+
+.today-btn {
+    background-color: #27ae60;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 8px 15px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.1s;
+    font-family: 'Patrick Hand', cursive;
+    margin-left: 10px;
+}
+
+.today-btn:hover {
+    background-color: #229954;
+    transform: scale(1.05);
+}
+
+.today-btn:active {
+    transform: scale(0.95);
+}

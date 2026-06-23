@@ -1,0 +1,2344 @@
+[
+  {
+    "purchaseCategory": "ISF Shop",
+    "isPendingProduct": false,
+    "createdInRequest": null,
+    "_id": "68e6028191774051e98b19f7",
+    "sku": "STAT-001",
+    "name": "Blue Ballpoint Pen",
+    "description": "Smooth writing blue ink ballpoint pen, perfect for everyday writing tasks",
+    "category": "stationery",
+    "price": 5,
+    "discountPrice": null,
+    "stock": 150,
+    "lowStockThreshold": 10,
+    "imageUrl": "https://via.placeholder.com/300",
+    "images": [
+      {
+        "url": "https://via.placeholder.com/300",
+        "isPrimary": true,
+        "uploadedAt": "2025-10-08T06:19:45.115Z",
+        "_id": "68ef865e1895d32855212416",
+        "id": "68ef865e1895d32855212416"
+      }
+    ],
+    "isActive": true,
+    "availableFor": [
+      "student"
+    ],
+    "tags": [
+      "writing",
+      "essential"
+    ],
+    "metadata": {},
+    "__v": 1,
+    "createdAt": "2025-10-08T06:19:45.115Z",
+    "updatedAt": "2025-10-15T11:32:46.022Z",
+    "approvedVendors": [],
+    "inStock": true,
+    "lowStock": false,
+    "currentPrice": 5,
+    "primaryImageUrl": "https://via.placeholder.com/300",
+    "id": "68e6028191774051e98b19f7"
+  },
+  {
+    "purchaseCategory": "ISF Shop",
+    "isPendingProduct": false,
+    "createdInRequest": null,
+    "_id": "68e6028191774051e98b19fb",
+    "sku": "STAT-005",
+    "name": "Geometry Set",
+    "description": "Complete geometry set with compass, protractor, set squares, and ruler",
+    "category": "stationery",
+    "price": 45,
+    "discountPrice": null,
+    "stock": 35,
+    "lowStockThreshold": 10,
+    "imageUrl": "https://via.placeholder.com/300",
+    "images": [
+      {
+        "url": "https://via.placeholder.com/300",
+        "isPrimary": true,
+        "uploadedAt": "2025-10-08T06:19:45.116Z",
+        "_id": "68ef865e1895d32855212419",
+        "id": "68ef865e1895d32855212419"
+      }
+    ],
+    "isActive": true,
+    "availableFor": [
+      "student"
+    ],
+    "tags": [
+      "mathematics",
+      "geometry"
+    ],
+    "metadata": {},
+    "__v": 1,
+    "createdAt": "2025-10-08T06:19:45.116Z",
+    "updatedAt": "2025-10-15T11:32:46.078Z",
+    "approvedVendors": [],
+    "inStock": true,
+    "lowStock": false,
+    "currentPrice": 45,
+    "primaryImageUrl": "https://via.placeholder.com/300",
+    "id": "68e6028191774051e98b19fb"
+  },
+  {
+    "purchaseCategory": "ISF Shop",
+    "isPendingProduct": false,
+    "createdInRequest": null,
+    "_id": "68e6028191774051e98b19ff",
+    "sku": "STAT-009",
+    "name": "Glue Stick (40g)",
+    "description": "Non-toxic glue stick for paper crafts and school projects",
+    "category": "stationery",
+    "price": 10,
+    "discountPrice": null,
+    "stock": 56,
+    "lowStockThreshold": 10,
+    "imageUrl": "https://via.placeholder.com/300",
+    "images": [
+      {
+        "url": "https://via.placeholder.com/300",
+        "isPrimary": true,
+        "uploadedAt": "2025-10-08T06:19:45.117Z",
+        "_id": "68ef865e1895d3285521241c",
+        "id": "68ef865e1895d3285521241c"
+      }
+    ],
+    "isActive": true,
+    "availableFor": [
+      "student"
+    ],
+    "tags": [
+      "crafts",
+      "essential"
+    ],
+    "metadata": {},
+    "__v": 7,
+    "createdAt": "2025-10-08T06:19:45.117Z",
+    "updatedAt": "2025-10-16T06:43:52.996Z",
+    "approvedVendors": [],
+    "inStock": true,
+    "lowStock": false,
+    "currentPrice": 10,
+    "primaryImageUrl": "https://via.placeholder.com/300",
+    "id": "68e6028191774051e98b19ff"
+  },
+  {
+    "purchaseCategory": "ISF Shop",
+    "isPendingProduct": false,
+    "createdInRequest": null,
+    "_id": "68e6028191774051e98b1a00",
+    "sku": "STAT-010",
+    "name": "Stapler with Staples",
+    "description": "Durable stapler with 1000 staples included",
+    "category": "stationery",
+    "price": 25,
+    "discountPrice": null,
+    "stock": 34,
+    "lowStockThreshold": 10,
+    "imageUrl": "https://via.placeholder.com/300",
+    "images": [
+      {
+        "url": "https://via.placeholder.com/300",
+        "isPrimary": true,
+        "uploadedAt": "2025-10-08T06:19:45.117Z",
+        "_id": "68ef865e1895d3285521241e",
+        "id": "68ef865e1895d3285521241e"
+      }
+    ],
+    "isActive": true,
+    "availableFor": [
+      "student"
+    ],
+    "tags": [
+      "office",
+      "essential"
+    ],
+    "metadata": {},
+    "__v": 2,
+    "createdAt": "2025-10-08T06:19:45.117Z",
+    "updatedAt": "2025-10-15T11:32:46.177Z",
+    "approvedVendors": [],
+    "inStock": true,
+    "lowStock": false,
+    "currentPrice": 25,
+    "primaryImageUrl": "https://via.placeholder.com/300",
+    "id": "68e6028191774051e98b1a00"
+  },
+  {
+    "purchaseCategory": "ISF Shop",
+    "isPendingProduct": false,
+    "createdInRequest": null,
+    "_id": "68e6028191774051e98b1a08",
+    "sku": "BOOK-008",
+    "name": "Environmental Science Guide",
+    "description": "Learn about ecology, conservation, and environmental issues",
+    "category": "books",
+    "price": 75,
+    "discountPrice": null,
+    "stock": 28,
+    "lowStockThreshold": 10,
+    "imageUrl": "https://via.placeholder.com/300",
+    "images": [
+      {
+        "url": "https://via.placeholder.com/300",
+        "isPrimary": true,
+        "uploadedAt": "2025-10-08T06:19:45.117Z",
+        "_id": "68ef865e1895d32855212420",
+        "id": "68ef865e1895d32855212420"
+      }
+    ],
+    "isActive": true,
+    "availableFor": [
+      "student"
+    ],
+    "tags": [
+      "science",
+      "environment",
+      "ecology"
+    ],
+    "metadata": {},
+    "__v": 1,
+    "createdAt": "2025-10-08T06:19:45.117Z",
+    "updatedAt": "2025-10-15T11:32:46.235Z",
+    "approvedVendors": [],
+    "inStock": true,
+    "lowStock": false,
+    "currentPrice": 75,
+    "primaryImageUrl": "https://via.placeholder.com/300",
+    "id": "68e6028191774051e98b1a08"
+  },
+  {
+    "purchaseCategory": "ISF Shop",
+    "isPendingProduct": false,
+    "createdInRequest": null,
+    "_id": "68e6028191774051e98b1a0b",
+    "sku": "SPORT-003",
+    "name": "Badminton Racket",
+    "description": "Lightweight aluminum badminton racket with cover",
+    "category": "sports",
+    "price": 180,
+    "discountPrice": null,
+    "stock": 14,
+    "lowStockThreshold": 10,
+    "imageUrl": "https://via.placeholder.com/300",
+    "images": [
+      {
+        "url": "https://via.placeholder.com/300",
+        "isPrimary": true,
+        "uploadedAt": "2025-10-08T06:19:45.117Z",
+        "_id": "68ef865e1895d32855212422",
+        "id": "68ef865e1895d32855212422"
+      }
+    ],
+    "isActive": true,
+    "availableFor": [
+      "student"
+    ],
+    "tags": [
+      "badminton",
+      "indoor",
+      "racket"
+    ],
+    "metadata": {},
+    "__v": 2,
+    "createdAt": "2025-10-08T06:19:45.117Z",
+    "updatedAt": "2025-10-15T11:32:46.288Z",
+    "approvedVendors": [],
+    "inStock": true,
+    "lowStock": false,
+    "currentPrice": 180,
+    "primaryImageUrl": "https://via.placeholder.com/300",
+    "id": "68e6028191774051e98b1a0b"
+  },
+  {
+    "purchaseCategory": "ISF Shop",
+    "isPendingProduct": false,
+    "createdInRequest": null,
+    "_id": "68e6028191774051e98b1a0d",
+    "sku": "SPORT-005",
+    "name": "Basketball Size 6",
+    "description": "Indoor/outdoor basketball with excellent grip and bounce",
+    "category": "sports",
+    "price": 140,
+    "discountPrice": null,
+    "stock": 11,
+    "lowStockThreshold": 10,
+    "imageUrl": "https://via.placeholder.com/300",
+    "images": [
+      {
+        "url": "https://via.placeholder.com/300",
+        "isPrimary": true,
+        "uploadedAt": "2025-10-08T06:19:45.117Z",
+        "_id": "68ef865e1895d32855212424",
+        "id": "68ef865e1895d32855212424"
+      }
+    ],
+    "isActive": true,
+    "availableFor": [
+      "student"
+    ],
+    "tags": [
+      "basketball",
+      "outdoor",
+      "team-sport"
+    ],
+    "metadata": {},
+    "__v": 2,
+    "createdAt": "2025-10-08T06:19:45.117Z",
+    "updatedAt": "2025-10-15T11:32:46.339Z",
+    "approvedVendors": [],
+    "inStock": true,
+    "lowStock": false,
+    "currentPrice": 140,
+    "primaryImageUrl": "https://via.placeholder.com/300",
+    "id": "68e6028191774051e98b1a0d"
+  },
+  {
+    "purchaseCategory": "ISF Shop",
+    "isPendingProduct": false,
+    "createdInRequest": null,
+    "_id": "68e6028191774051e98b1a0f",
+    "sku": "SPORT-007",
+    "name": "Table Tennis Bat Pair",
+    "description": "Professional table tennis bat pair with 3 balls included",
+    "category": "sports",
+    "price": 100,
+    "discountPrice": null,
+    "stock": 17,
+    "lowStockThreshold": 10,
+    "imageUrl": "https://via.placeholder.com/300",
+    "images": [
+      {
+        "url": "https://via.placeholder.com/300",
+        "isPrimary": true,
+        "uploadedAt": "2025-10-08T06:19:45.117Z",
+        "_id": "68ef865e1895d32855212426",
+        "id": "68ef865e1895d32855212426"
+      }
+    ],
+    "isActive": true,
+    "availableFor": [
+      "student"
+    ],
+    "tags": [
+      "table-tennis",
+      "indoor",
+      "racket"
+    ],
+    "metadata": {},
+    "__v": 1,
+    "createdAt": "2025-10-08T06:19:45.117Z",
+    "updatedAt": "2025-10-20T18:43:00.976Z",
+    "approvedVendors": [],
+    "inStock": true,
+    "lowStock": false,
+    "currentPrice": 100,
+    "primaryImageUrl": "https://via.placeholder.com/300",
+    "id": "68e6028191774051e98b1a0f"
+  },
+  {
+    "purchaseCategory": "ISF Shop",
+    "isPendingProduct": false,
+    "createdInRequest": null,
+    "_id": "68e6028191774051e98b1a13",
+    "sku": "UNI-004",
+    "name": "School Tie (Blue & White)",
+    "description": "Official ISF school tie with blue and white stripes",
+    "category": "uniforms",
+    "price": 80,
+    "discountPrice": null,
+    "stock": 24,
+    "lowStockThreshold": 10,
+    "imageUrl": "https://via.placeholder.com/300",
+    "images": [
+      {
+        "url": "https://via.placeholder.com/300",
+        "isPrimary": true,
+        "uploadedAt": "2025-10-08T06:19:45.117Z",
+        "_id": "68ef865e1895d32855212428",
+        "id": "68ef865e1895d32855212428"
+      }
+    ],
+    "isActive": true,
+    "availableFor": [
+      "student"
+    ],
+    "tags": [
+      "uniform",
+      "tie",
+      "accessories"
+    ],
+    "metadata": {},
+    "__v": 2,
+    "createdAt": "2025-10-08T06:19:45.117Z",
+    "updatedAt": "2025-10-15T11:32:46.450Z",
+    "approvedVendors": [],
+    "inStock": true,
+    "lowStock": false,
+    "currentPrice": 80,
+    "primaryImageUrl": "https://via.placeholder.com/300",
+    "id": "68e6028191774051e98b1a13"
+  },
+  {
+    "purchaseCategory": "ISF Shop",
+    "isPendingProduct": false,
+    "createdInRequest": null,
+    "_id": "68e6028191774051e98b1a17",
+    "sku": "DIG-003",
+    "name": "Online Coding Course Access",
+    "description": "6-month access to beginner-friendly coding course (Python basics)",
+    "category": "digital",
+    "price": 500,
+    "discountPrice": 400,
+    "stock": 50,
+    "lowStockThreshold": 10,
+    "imageUrl": "https://via.placeholder.com/300",
+    "images": [
+      {
+        "url": "https://via.placeholder.com/300",
+        "isPrimary": true,
+        "uploadedAt": "2025-10-08T06:19:45.117Z",
+        "_id": "68ef865e1895d3285521242a",
+        "id": "68ef865e1895d3285521242a"
+      }
+    ],
+    "isActive": true,
+    "availableFor": [
+      "student"
+    ],
+    "tags": [
+      "coding",
+      "programming",
+      "online-course"
+    ],
+    "metadata": {},
+    "__v": 1,
+    "createdAt": "2025-10-08T06:19:45.117Z",
+    "updatedAt": "2025-10-15T11:32:46.505Z",
+    "approvedVendors": [],
+    "inStock": true,
+    "lowStock": false,
+    "currentPrice": 400,
+    "primaryImageUrl": "https://via.placeholder.com/300",
+    "id": "68e6028191774051e98b1a17"
+  },
+  {
+    "purchaseCategory": "ISF Shop",
+    "isPendingProduct": false,
+    "createdInRequest": null,
+    "_id": "68e6028191774051e98b1a19",
+    "sku": "OTH-001",
+    "name": "Water Bottle (1L)",
+    "description": "Stainless steel insulated water bottle, keeps water cold for 24 hours",
+    "category": "other",
+    "price": 120,
+    "discountPrice": null,
+    "stock": 45,
+    "lowStockThreshold": 10,
+    "imageUrl": "https://via.placeholder.com/300",
+    "images": [
+      {
+        "url": "https://via.placeholder.com/300",
+        "isPrimary": true,
+        "uploadedAt": "2025-10-08T06:19:45.117Z",
+        "_id": "68ef865e1895d3285521242c",
+        "id": "68ef865e1895d3285521242c"
+      }
+    ],
+    "isActive": true,
+    "availableFor": [
+      "student"
+    ],
+    "tags": [
+      "water-bottle",
+      "hydration",
+      "accessories"
+    ],
+    "metadata": {},
+    "__v": 1,
+    "createdAt": "2025-10-08T06:19:45.117Z",
+    "updatedAt": "2025-10-15T11:32:46.559Z",
+    "approvedVendors": [],
+    "inStock": true,
+    "lowStock": false,
+    "currentPrice": 120,
+    "primaryImageUrl": "https://via.placeholder.com/300",
+    "id": "68e6028191774051e98b1a19"
+  },
+  {
+    "purchaseCategory": "ISF Shop",
+    "isPendingProduct": false,
+    "createdInRequest": null,
+    "_id": "68e6028191774051e98b19f9",
+    "sku": "STAT-003",
+    "name": "A4 Ruled Notebook (200 pages)",
+    "description": "Durable ruled notebook with 200 pages, perfect for class notes",
+    "category": "stationery",
+    "price": 35,
+    "discountPrice": null,
+    "stock": 80,
+    "lowStockThreshold": 10,
+    "imageUrl": "https://via.placeholder.com/300",
+    "images": [
+      {
+        "url": "https://via.placeholder.com/300",
+        "isPrimary": true,
+        "uploadedAt": "2025-10-08T06:19:45.116Z",
+        "_id": "68ef865e1895d3285521242e",
+        "id": "68ef865e1895d3285521242e"
+      }
+    ],
+    "isActive": true,
+    "availableFor": [
+      "student"
+    ],
+    "tags": [
+      "notebook",
+      "essential"
+    ],
+    "metadata": {},
+    "__v": 1,
+    "createdAt": "2025-10-08T06:19:45.116Z",
+    "updatedAt": "2025-10-15T11:32:46.606Z",
+    "approvedVendors": [],
+    "inStock": true,
+    "lowStock": false,
+    "currentPrice": 35,
+    "primaryImageUrl": "https://via.placeholder.com/300",
+    "id": "68e6028191774051e98b19f9"
+  },
+  {
+    "purchaseCategory": "ISF Shop",
+    "isPendingProduct": false,
+    "createdInRequest": null,
+    "_id": "68e6028191774051e98b19fa",
+    "sku": "STAT-004",
+    "name": "Eraser (Large)",
+    "description": "Large white eraser for clean corrections without smudging",
+    "category": "stationery",
+    "price": 3,
+    "discountPrice": null,
+    "stock": 155,
+    "lowStockThreshold": 10,
+    "imageUrl": "https://via.placeholder.com/300",
+    "images": [
+      {
+        "url": "https://via.placeholder.com/300",
+        "isPrimary": true,
+        "uploadedAt": "2025-10-08T06:19:45.116Z",
+        "_id": "68ef865e1895d32855212430",
+        "id": "68ef865e1895d32855212430"
+      }
+    ],
+    "isActive": true,
+    "availableFor": [
+      "student"
+    ],
+    "tags": [
+      "essential"
+    ],
+    "metadata": {},
+    "__v": 1,
+    "createdAt": "2025-10-08T06:19:45.116Z",
+    "updatedAt": "2025-10-15T11:32:46.658Z",
+    "approvedVendors": [],
+    "inStock": true,
+    "lowStock": false,
+    "currentPrice": 3,
+    "primaryImageUrl": "https://via.placeholder.com/300",
+    "id": "68e6028191774051e98b19fa"
+  },
+  {
+    "purchaseCategory": "ISF Shop",
+    "isPendingProduct": false,
+    "createdInRequest": null,
+    "_id": "68e6028191774051e98b19fc",
+    "sku": "STAT-006",
+    "name": "Colored Markers (Set of 12)",
+    "description": "Vibrant colored markers for art projects and presentations",
+    "category": "stationery",
+    "price": 40,
+    "discountPrice": null,
+    "stock": 22,
+    "lowStockThreshold": 10,
+    "imageUrl": "https://via.placeholder.com/300",
+    "images": [
+      {
+        "url": "https://via.placeholder.com/300",
+        "isPrimary": true,
+        "uploadedAt": "2025-10-08T06:19:45.116Z",
+        "_id": "68ef865e1895d32855212432",
+        "id": "68ef865e1895d32855212432"
+      }
+    ],
+    "isActive": true,
+    "availableFor": [
+      "student"
+    ],
+    "tags": [
+      "art",
+      "colors"
+    ],
+    "metadata": {},
+    "__v": 1,
+    "createdAt": "2025-10-08T06:19:45.116Z",
+    "updatedAt": "2025-10-21T06:41:09.821Z",
+    "approvedVendors": [],
+    "inStock": true,
+    "lowStock": false,
+    "currentPrice": 40,
+    "primaryImageUrl": "https://via.placeholder.com/300",
+    "id": "68e6028191774051e98b19fc"
+  },
+  {
+    "purchaseCategory": "ISF Shop",
+    "isPendingProduct": false,
+    "createdInRequest": null,
+    "_id": "68e6028191774051e98b19fe",
+    "sku": "STAT-008",
+    "name": "Art Sketch Pad (A4)",
+    "description": "Premium quality sketch pad with 50 sheets for drawing and sketching",
+    "category": "stationery",
+    "price": 50,
+    "discountPrice": null,
+    "stock": 40,
+    "lowStockThreshold": 10,
+    "imageUrl": "https://via.placeholder.com/300",
+    "images": [
+      {
+        "url": "https://via.placeholder.com/300",
+        "isPrimary": true,
+        "uploadedAt": "2025-10-08T06:19:45.116Z",
+        "_id": "68ef865e1895d32855212434",
+        "id": "68ef865e1895d32855212434"
+      }
+    ],
+    "isActive": true,
+    "availableFor": [
+      "student"
+    ],
+    "tags": [
+      "art",
+      "drawing"
+    ],
+    "metadata": {},
+    "__v": 1,
+    "createdAt": "2025-10-08T06:19:45.116Z",
+    "updatedAt": "2025-10-15T11:32:46.753Z",
+    "approvedVendors": [],
+    "inStock": true,
+    "lowStock": false,
+    "currentPrice": 50,
+    "primaryImageUrl": "https://via.placeholder.com/300",
+    "id": "68e6028191774051e98b19fe"
+  },
+  {
+    "purchaseCategory": "ISF Shop",
+    "isPendingProduct": false,
+    "createdInRequest": null,
+    "_id": "68e6028191774051e98b1a01",
+    "sku": "BOOK-001",
+    "name": "Mathematics Workbook Grade 5",
+    "description": "Comprehensive mathematics practice workbook for grade 5 students with 200+ exercises",
+    "category": "books",
+    "price": 80,
+    "discountPrice": null,
+    "stock": 24,
+    "lowStockThreshold": 10,
+    "imageUrl": "https://via.placeholder.com/300",
+    "images": [
+      {
+        "url": "https://via.placeholder.com/300",
+        "isPrimary": true,
+        "uploadedAt": "2025-10-08T06:19:45.117Z",
+        "_id": "68ef865e1895d32855212436",
+        "id": "68ef865e1895d32855212436"
+      }
+    ],
+    "isActive": true,
+    "availableFor": [
+      "student"
+    ],
+    "tags": [
+      "mathematics",
+      "workbook",
+      "grade5"
+    ],
+    "metadata": {},
+    "__v": 2,
+    "createdAt": "2025-10-08T06:19:45.117Z",
+    "updatedAt": "2025-10-18T17:34:30.546Z",
+    "approvedVendors": [],
+    "inStock": true,
+    "lowStock": false,
+    "currentPrice": 80,
+    "primaryImageUrl": "https://via.placeholder.com/300",
+    "id": "68e6028191774051e98b1a01"
+  },
+  {
+    "purchaseCategory": "ISF Shop",
+    "isPendingProduct": false,
+    "createdInRequest": null,
+    "_id": "68e6028191774051e98b1a09",
+    "sku": "SPORT-001",
+    "name": "Football Size 5",
+    "description": "Professional size 5 football for outdoor play, durable synthetic leather",
+    "category": "sports",
+    "price": 150,
+    "discountPrice": 120,
+    "stock": 49,
+    "lowStockThreshold": 10,
+    "imageUrl": "https://via.placeholder.com/300",
+    "images": [
+      {
+        "url": "https://via.placeholder.com/300",
+        "isPrimary": true,
+        "uploadedAt": "2025-10-08T06:19:45.117Z",
+        "_id": "68ef865e1895d32855212438",
+        "id": "68ef865e1895d32855212438"
+      }
+    ],
+    "isActive": true,
+    "availableFor": [
+      "student"
+    ],
+    "tags": [
+      "football",
+      "outdoor",
+      "team-sport"
+    ],
+    "metadata": {},
+    "__v": 2,
+    "createdAt": "2025-10-08T06:19:45.117Z",
+    "updatedAt": "2025-10-15T11:32:46.849Z",
+    "approvedVendors": [],
+    "inStock": true,
+    "lowStock": false,
+    "currentPrice": 120,
+    "primaryImageUrl": "https://via.placeholder.com/300",
+    "id": "68e6028191774051e98b1a09"
+  },
+  {
+    "purchaseCategory": "ISF Shop",
+    "isPendingProduct": false,
+    "createdInRequest": null,
+    "_id": "68e6028191774051e98b1a16",
+    "sku": "DIG-002",
+    "name": "E-Book: Complete Science Series",
+    "description": "Digital access to complete science e-book series (Grades 5-8)",
+    "category": "digital",
+    "price": 250,
+    "discountPrice": null,
+    "stock": 100,
+    "lowStockThreshold": 10,
+    "imageUrl": "https://via.placeholder.com/300",
+    "images": [
+      {
+        "url": "https://via.placeholder.com/300",
+        "isPrimary": true,
+        "uploadedAt": "2025-10-08T06:19:45.117Z",
+        "_id": "68ef865e1895d3285521243a",
+        "id": "68ef865e1895d3285521243a"
+      }
+    ],
+    "isActive": true,
+    "availableFor": [
+      "student"
+    ],
+    "tags": [
+      "ebook",
+      "science",
+      "digital"
+    ],
+    "metadata": {},
+    "__v": 1,
+    "createdAt": "2025-10-08T06:19:45.117Z",
+    "updatedAt": "2025-10-15T11:32:46.906Z",
+    "approvedVendors": [],
+    "inStock": true,
+    "lowStock": false,
+    "currentPrice": 250,
+    "primaryImageUrl": "https://via.placeholder.com/300",
+    "id": "68e6028191774051e98b1a16"
+  },
+  {
+    "purchaseCategory": "ISF Shop",
+    "isPendingProduct": false,
+    "createdInRequest": null,
+    "_id": "68e6028191774051e98b1a18",
+    "sku": "DIG-004",
+    "name": "Digital Art Software License",
+    "description": "One-year license for digital art and design software",
+    "category": "digital",
+    "price": 350,
+    "discountPrice": null,
+    "stock": 30,
+    "lowStockThreshold": 10,
+    "imageUrl": "https://via.placeholder.com/300",
+    "images": [
+      {
+        "url": "https://via.placeholder.com/300",
+        "isPrimary": true,
+        "uploadedAt": "2025-10-08T06:19:45.117Z",
+        "_id": "68ef865e1895d3285521243c",
+        "id": "68ef865e1895d3285521243c"
+      }
+    ],
+    "isActive": true,
+    "availableFor": [
+      "student"
+    ],
+    "tags": [
+      "art",
+      "software",
+      "digital"
+    ],
+    "metadata": {},
+    "__v": 1,
+    "createdAt": "2025-10-08T06:19:45.117Z",
+    "updatedAt": "2025-10-15T11:32:46.965Z",
+    "approvedVendors": [],
+    "inStock": true,
+    "lowStock": false,
+    "currentPrice": 350,
+    "primaryImageUrl": "https://via.placeholder.com/300",
+    "id": "68e6028191774051e98b1a18"
+  },
+  {
+    "purchaseCategory": "ISF Shop",
+    "isPendingProduct": false,
+    "createdInRequest": null,
+    "_id": "68e6028191774051e98b19f8",
+    "sku": "STAT-002",
+    "name": "HB Pencils (Pack of 10)",
+    "description": "High-quality HB graphite pencils, ideal for drawing and writing",
+    "category": "stationery",
+    "price": 20,
+    "discountPrice": null,
+    "stock": 200,
+    "lowStockThreshold": 10,
+    "imageUrl": "https://via.placeholder.com/300",
+    "images": [
+      {
+        "url": "https://via.placeholder.com/300",
+        "isPrimary": true,
+        "uploadedAt": "2025-10-08T06:19:45.116Z",
+        "_id": "68ef865f1895d3285521243e",
+        "id": "68ef865f1895d3285521243e"
+      }
+    ],
+    "isActive": true,
+    "availableFor": [
+      "student"
+    ],
+    "tags": [
+      "writing",
+      "drawing"
+    ],
+    "metadata": {},
+    "__v": 1,
+    "createdAt": "2025-10-08T06:19:45.116Z",
+    "updatedAt": "2025-10-15T11:32:47.026Z",
+    "approvedVendors": [],
+    "inStock": true,
+    "lowStock": false,
+    "currentPrice": 20,
+    "primaryImageUrl": "https://via.placeholder.com/300",
+    "id": "68e6028191774051e98b19f8"
+  },
+  {
+    "purchaseCategory": "ISF Shop",
+    "isPendingProduct": false,
+    "createdInRequest": null,
+    "_id": "68e6028191774051e98b19fd",
+    "sku": "STAT-007",
+    "name": "Scientific Calculator",
+    "description": "Advanced scientific calculator with 240+ functions for mathematics and science",
+    "category": "stationery",
+    "price": 150,
+    "discountPrice": 120,
+    "stock": 20,
+    "lowStockThreshold": 10,
+    "imageUrl": "https://via.placeholder.com/300",
+    "images": [
+      {
+        "url": "https://via.placeholder.com/300",
+        "isPrimary": true,
+        "uploadedAt": "2025-10-08T06:19:45.116Z",
+        "_id": "68ef865f1895d32855212440",
+        "id": "68ef865f1895d32855212440"
+      }
+    ],
+    "isActive": true,
+    "availableFor": [
+      "student"
+    ],
+    "tags": [
+      "mathematics",
+      "calculator"
+    ],
+    "metadata": {},
+    "__v": 1,
+    "createdAt": "2025-10-08T06:19:45.116Z",
+    "updatedAt": "2025-10-15T11:32:47.074Z",
+    "approvedVendors": [],
+    "inStock": true,
+    "lowStock": false,
+    "currentPrice": 120,
+    "primaryImageUrl": "https://via.placeholder.com/300",
+    "id": "68e6028191774051e98b19fd"
+  },
+  {
+    "purchaseCategory": "ISF Shop",
+    "isPendingProduct": false,
+    "createdInRequest": null,
+    "_id": "68e6028191774051e98b1a02",
+    "sku": "BOOK-002",
+    "name": "English Grammar Guide",
+    "description": "Complete English grammar guide with examples and practice exercises",
+    "category": "books",
+    "price": 70,
+    "discountPrice": null,
+    "stock": 30,
+    "lowStockThreshold": 10,
+    "imageUrl": "https://via.placeholder.com/300",
+    "images": [
+      {
+        "url": "https://via.placeholder.com/300",
+        "isPrimary": true,
+        "uploadedAt": "2025-10-08T06:19:45.117Z",
+        "_id": "68ef865f1895d32855212442",
+        "id": "68ef865f1895d32855212442"
+      }
+    ],
+    "isActive": true,
+    "availableFor": [
+      "student"
+    ],
+    "tags": [
+      "english",
+      "grammar",
+      "reference"
+    ],
+    "metadata": {},
+    "__v": 1,
+    "createdAt": "2025-10-08T06:19:45.117Z",
+    "updatedAt": "2025-10-15T11:32:47.123Z",
+    "approvedVendors": [],
+    "inStock": true,
+    "lowStock": false,
+    "currentPrice": 70,
+    "primaryImageUrl": "https://via.placeholder.com/300",
+    "id": "68e6028191774051e98b1a02"
+  },
+  {
+    "purchaseCategory": "ISF Shop",
+    "isPendingProduct": false,
+    "createdInRequest": null,
+    "_id": "68e6028191774051e98b1a05",
+    "sku": "BOOK-005",
+    "name": "Hindi Vocabulary Builder",
+    "description": "Build your Hindi vocabulary with 1000+ words and example sentences",
+    "category": "books",
+    "price": 60,
+    "discountPrice": null,
+    "stock": 22,
+    "lowStockThreshold": 10,
+    "imageUrl": "https://via.placeholder.com/300",
+    "images": [
+      {
+        "url": "https://via.placeholder.com/300",
+        "isPrimary": true,
+        "uploadedAt": "2025-10-08T06:19:45.117Z",
+        "_id": "68ef865f1895d32855212444",
+        "id": "68ef865f1895d32855212444"
+      }
+    ],
+    "isActive": true,
+    "availableFor": [
+      "student"
+    ],
+    "tags": [
+      "hindi",
+      "language",
+      "vocabulary"
+    ],
+    "metadata": {},
+    "__v": 1,
+    "createdAt": "2025-10-08T06:19:45.117Z",
+    "updatedAt": "2025-10-15T11:32:47.171Z",
+    "approvedVendors": [],
+    "inStock": true,
+    "lowStock": false,
+    "currentPrice": 60,
+    "primaryImageUrl": "https://via.placeholder.com/300",
+    "id": "68e6028191774051e98b1a05"
+  },
+  {
+    "purchaseCategory": "ISF Shop",
+    "isPendingProduct": false,
+    "createdInRequest": null,
+    "_id": "68e6028191774051e98b1a06",
+    "sku": "BOOK-006",
+    "name": "The Adventures of Tom Sawyer",
+    "description": "Classic adventure novel by Mark Twain, perfect for young readers",
+    "category": "books",
+    "price": 50,
+    "discountPrice": 40,
+    "stock": 12,
+    "lowStockThreshold": 10,
+    "imageUrl": "https://via.placeholder.com/300",
+    "images": [
+      {
+        "url": "https://via.placeholder.com/300",
+        "isPrimary": true,
+        "uploadedAt": "2025-10-08T06:19:45.117Z",
+        "_id": "68ef865f1895d32855212446",
+        "id": "68ef865f1895d32855212446"
+      }
+    ],
+    "isActive": true,
+    "availableFor": [
+      "student"
+    ],
+    "tags": [
+      "fiction",
+      "classic",
+      "adventure"
+    ],
+    "metadata": {},
+    "__v": 1,
+    "createdAt": "2025-10-08T06:19:45.117Z",
+    "updatedAt": "2025-10-15T11:32:47.226Z",
+    "approvedVendors": [],
+    "inStock": true,
+    "lowStock": false,
+    "currentPrice": 40,
+    "primaryImageUrl": "https://via.placeholder.com/300",
+    "id": "68e6028191774051e98b1a06"
+  },
+  {
+    "purchaseCategory": "ISF Shop",
+    "isPendingProduct": false,
+    "createdInRequest": null,
+    "_id": "68e6028191774051e98b1a0a",
+    "sku": "SPORT-002",
+    "name": "Cricket Bat (Size 6)",
+    "description": "Willow cricket bat for junior players, lightweight and balanced",
+    "category": "sports",
+    "price": 200,
+    "discountPrice": null,
+    "stock": 20,
+    "lowStockThreshold": 10,
+    "imageUrl": "https://via.placeholder.com/300",
+    "images": [
+      {
+        "url": "https://via.placeholder.com/300",
+        "isPrimary": true,
+        "uploadedAt": "2025-10-08T06:19:45.117Z",
+        "_id": "68ef865f1895d32855212448",
+        "id": "68ef865f1895d32855212448"
+      }
+    ],
+    "isActive": true,
+    "availableFor": [
+      "student"
+    ],
+    "tags": [
+      "cricket",
+      "outdoor",
+      "bat"
+    ],
+    "metadata": {},
+    "__v": 2,
+    "createdAt": "2025-10-08T06:19:45.117Z",
+    "updatedAt": "2025-10-21T17:58:12.195Z",
+    "approvedVendors": [],
+    "inStock": true,
+    "lowStock": false,
+    "currentPrice": 200,
+    "primaryImageUrl": "https://via.placeholder.com/300",
+    "id": "68e6028191774051e98b1a0a"
+  },
+  {
+    "purchaseCategory": "ISF Shop",
+    "isPendingProduct": false,
+    "createdInRequest": null,
+    "_id": "68e6028191774051e98b1a0e",
+    "sku": "SPORT-006",
+    "name": "Chess Set",
+    "description": "Complete chess set with folding board and wooden pieces",
+    "category": "sports",
+    "price": 90,
+    "discountPrice": null,
+    "stock": 20,
+    "lowStockThreshold": 10,
+    "imageUrl": "https://via.placeholder.com/300",
+    "images": [
+      {
+        "url": "https://via.placeholder.com/300",
+        "isPrimary": true,
+        "uploadedAt": "2025-10-08T06:19:45.117Z",
+        "_id": "68ef865f1895d3285521244a",
+        "id": "68ef865f1895d3285521244a"
+      }
+    ],
+    "isActive": true,
+    "availableFor": [
+      "student"
+    ],
+    "tags": [
+      "chess",
+      "indoor",
+      "strategy"
+    ],
+    "metadata": {},
+    "__v": 1,
+    "createdAt": "2025-10-08T06:19:45.117Z",
+    "updatedAt": "2025-10-15T11:32:47.322Z",
+    "approvedVendors": [],
+    "inStock": true,
+    "lowStock": false,
+    "currentPrice": 90,
+    "primaryImageUrl": "https://via.placeholder.com/300",
+    "id": "68e6028191774051e98b1a0e"
+  },
+  {
+    "purchaseCategory": "ISF Shop",
+    "isPendingProduct": false,
+    "createdInRequest": null,
+    "_id": "68e6028191774051e98b1a11",
+    "sku": "UNI-002",
+    "name": "School Uniform Trousers (Blue)",
+    "description": "Official ISF school uniform blue trousers, comfortable fit",
+    "category": "uniforms",
+    "price": 250,
+    "discountPrice": null,
+    "stock": 35,
+    "lowStockThreshold": 10,
+    "imageUrl": "https://via.placeholder.com/300",
+    "images": [
+      {
+        "url": "https://via.placeholder.com/300",
+        "isPrimary": true,
+        "uploadedAt": "2025-10-08T06:19:45.117Z",
+        "_id": "68ef865f1895d3285521244c",
+        "id": "68ef865f1895d3285521244c"
+      }
+    ],
+    "isActive": true,
+    "availableFor": [
+      "student"
+    ],
+    "tags": [
+      "uniform",
+      "trousers",
+      "blue"
+    ],
+    "metadata": {},
+    "__v": 1,
+    "createdAt": "2025-10-08T06:19:45.117Z",
+    "updatedAt": "2025-10-15T11:32:47.375Z",
+    "approvedVendors": [],
+    "inStock": true,
+    "lowStock": false,
+    "currentPrice": 250,
+    "primaryImageUrl": "https://via.placeholder.com/300",
+    "id": "68e6028191774051e98b1a11"
+  },
+  {
+    "purchaseCategory": "ISF Shop",
+    "isPendingProduct": false,
+    "createdInRequest": null,
+    "_id": "68e6028191774051e98b1a12",
+    "sku": "UNI-003",
+    "name": "Sports Uniform T-Shirt (Red)",
+    "description": "ISF sports uniform t-shirt, moisture-wicking fabric",
+    "category": "uniforms",
+    "price": 150,
+    "discountPrice": null,
+    "stock": 39,
+    "lowStockThreshold": 10,
+    "imageUrl": "https://via.placeholder.com/300",
+    "images": [
+      {
+        "url": "https://via.placeholder.com/300",
+        "isPrimary": true,
+        "uploadedAt": "2025-10-08T06:19:45.117Z",
+        "_id": "68ef865f1895d3285521244e",
+        "id": "68ef865f1895d3285521244e"
+      }
+    ],
+    "isActive": true,
+    "availableFor": [
+      "student"
+    ],
+    "tags": [
+      "uniform",
+      "sports",
+      "tshirt"
+    ],
+    "metadata": {},
+    "__v": 2,
+    "createdAt": "2025-10-08T06:19:45.117Z",
+    "updatedAt": "2025-10-15T11:32:47.483Z",
+    "approvedVendors": [],
+    "inStock": true,
+    "lowStock": false,
+    "currentPrice": 150,
+    "primaryImageUrl": "https://via.placeholder.com/300",
+    "id": "68e6028191774051e98b1a12"
+  },
+  {
+    "purchaseCategory": "ISF Shop",
+    "isPendingProduct": false,
+    "createdInRequest": null,
+    "_id": "68e6028191774051e98b1a14",
+    "sku": "UNI-005",
+    "name": "School Blazer",
+    "description": "Official ISF school blazer with embroidered badge",
+    "category": "uniforms",
+    "price": 450,
+    "discountPrice": 400,
+    "stock": 15,
+    "lowStockThreshold": 10,
+    "imageUrl": "https://via.placeholder.com/300",
+    "images": [
+      {
+        "url": "https://via.placeholder.com/300",
+        "isPrimary": true,
+        "uploadedAt": "2025-10-08T06:19:45.117Z",
+        "_id": "68ef865f1895d32855212450",
+        "id": "68ef865f1895d32855212450"
+      }
+    ],
+    "isActive": true,
+    "availableFor": [
+      "student"
+    ],
+    "tags": [
+      "uniform",
+      "blazer",
+      "formal"
+    ],
+    "metadata": {},
+    "__v": 1,
+    "createdAt": "2025-10-08T06:19:45.117Z",
+    "updatedAt": "2025-10-15T11:32:47.731Z",
+    "approvedVendors": [],
+    "inStock": true,
+    "lowStock": false,
+    "currentPrice": 400,
+    "primaryImageUrl": "https://via.placeholder.com/300",
+    "id": "68e6028191774051e98b1a14"
+  },
+  {
+    "purchaseCategory": "ISF Shop",
+    "isPendingProduct": false,
+    "createdInRequest": null,
+    "_id": "68e6028191774051e98b1a15",
+    "sku": "DIG-001",
+    "name": "Educational Software License (Mathematics)",
+    "description": "One-year license for interactive mathematics learning software",
+    "category": "digital",
+    "price": 300,
+    "discountPrice": null,
+    "stock": 100,
+    "lowStockThreshold": 10,
+    "imageUrl": "https://via.placeholder.com/300",
+    "images": [
+      {
+        "url": "https://via.placeholder.com/300",
+        "isPrimary": true,
+        "uploadedAt": "2025-10-08T06:19:45.117Z",
+        "_id": "68ef865f1895d32855212452",
+        "id": "68ef865f1895d32855212452"
+      }
+    ],
+    "isActive": true,
+    "availableFor": [
+      "student"
+    ],
+    "tags": [
+      "software",
+      "mathematics",
+      "digital"
+    ],
+    "metadata": {},
+    "__v": 1,
+    "createdAt": "2025-10-08T06:19:45.117Z",
+    "updatedAt": "2025-10-15T11:32:47.861Z",
+    "approvedVendors": [],
+    "inStock": true,
+    "lowStock": false,
+    "currentPrice": 300,
+    "primaryImageUrl": "https://via.placeholder.com/300",
+    "id": "68e6028191774051e98b1a15"
+  },
+  {
+    "purchaseCategory": "ISF Shop",
+    "isPendingProduct": false,
+    "createdInRequest": null,
+    "_id": "68e6028191774051e98b1a03",
+    "sku": "BOOK-003",
+    "name": "Science Textbook Grade 6",
+    "description": "Illustrated science textbook covering physics, chemistry, and biology topics",
+    "category": "books",
+    "price": 120,
+    "discountPrice": null,
+    "stock": 17,
+    "lowStockThreshold": 10,
+    "imageUrl": "https://via.placeholder.com/300",
+    "images": [
+      {
+        "url": "https://via.placeholder.com/300",
+        "isPrimary": true,
+        "uploadedAt": "2025-10-08T06:19:45.117Z",
+        "_id": "68ef865f1895d32855212454",
+        "id": "68ef865f1895d32855212454"
+      }
+    ],
+    "isActive": true,
+    "availableFor": [
+      "student"
+    ],
+    "tags": [
+      "science",
+      "textbook",
+      "grade6"
+    ],
+    "metadata": {},
+    "__v": 2,
+    "createdAt": "2025-10-08T06:19:45.117Z",
+    "updatedAt": "2025-10-15T11:32:47.926Z",
+    "approvedVendors": [],
+    "inStock": true,
+    "lowStock": false,
+    "currentPrice": 120,
+    "primaryImageUrl": "https://via.placeholder.com/300",
+    "id": "68e6028191774051e98b1a03"
+  },
+  {
+    "purchaseCategory": "ISF Shop",
+    "isPendingProduct": false,
+    "createdInRequest": null,
+    "_id": "68e6028191774051e98b1a04",
+    "sku": "BOOK-004",
+    "name": "World Atlas",
+    "description": "Colorful world atlas with maps, country facts, and geographical information",
+    "category": "books",
+    "price": 95,
+    "discountPrice": null,
+    "stock": 14,
+    "lowStockThreshold": 10,
+    "imageUrl": "https://via.placeholder.com/300",
+    "images": [
+      {
+        "url": "https://via.placeholder.com/300",
+        "isPrimary": true,
+        "uploadedAt": "2025-10-08T06:19:45.117Z",
+        "_id": "68ef865f1895d32855212456",
+        "id": "68ef865f1895d32855212456"
+      }
+    ],
+    "isActive": true,
+    "availableFor": [
+      "student"
+    ],
+    "tags": [
+      "geography",
+      "atlas",
+      "reference"
+    ],
+    "metadata": {},
+    "__v": 2,
+    "createdAt": "2025-10-08T06:19:45.117Z",
+    "updatedAt": "2025-10-15T11:32:47.995Z",
+    "approvedVendors": [],
+    "inStock": true,
+    "lowStock": false,
+    "currentPrice": 95,
+    "primaryImageUrl": "https://via.placeholder.com/300",
+    "id": "68e6028191774051e98b1a04"
+  },
+  {
+    "purchaseCategory": "ISF Shop",
+    "isPendingProduct": false,
+    "createdInRequest": null,
+    "_id": "68e6028191774051e98b1a07",
+    "sku": "BOOK-007",
+    "name": "History of India",
+    "description": "Comprehensive history of India from ancient times to modern day",
+    "category": "books",
+    "price": 110,
+    "discountPrice": null,
+    "stock": 19,
+    "lowStockThreshold": 10,
+    "imageUrl": "https://via.placeholder.com/300",
+    "images": [
+      {
+        "url": "https://via.placeholder.com/300",
+        "isPrimary": true,
+        "uploadedAt": "2025-10-08T06:19:45.117Z",
+        "_id": "68ef86601895d32855212458",
+        "id": "68ef86601895d32855212458"
+      }
+    ],
+    "isActive": true,
+    "availableFor": [
+      "student"
+    ],
+    "tags": [
+      "history",
+      "india",
+      "reference"
+    ],
+    "metadata": {},
+    "__v": 2,
+    "createdAt": "2025-10-08T06:19:45.117Z",
+    "updatedAt": "2025-10-15T11:32:48.457Z",
+    "approvedVendors": [],
+    "inStock": true,
+    "lowStock": false,
+    "currentPrice": 110,
+    "primaryImageUrl": "https://via.placeholder.com/300",
+    "id": "68e6028191774051e98b1a07"
+  },
+  {
+    "purchaseCategory": "ISF Shop",
+    "isPendingProduct": false,
+    "createdInRequest": null,
+    "_id": "68e6028191774051e98b1a0c",
+    "sku": "SPORT-004",
+    "name": "Skipping Rope",
+    "description": "Adjustable length skipping rope for fitness and exercise",
+    "category": "sports",
+    "price": 30,
+    "discountPrice": null,
+    "stock": 50,
+    "lowStockThreshold": 10,
+    "imageUrl": "https://via.placeholder.com/300",
+    "images": [
+      {
+        "url": "https://via.placeholder.com/300",
+        "isPrimary": true,
+        "uploadedAt": "2025-10-08T06:19:45.117Z",
+        "_id": "68ef86601895d3285521245a",
+        "id": "68ef86601895d3285521245a"
+      }
+    ],
+    "isActive": true,
+    "availableFor": [
+      "student"
+    ],
+    "tags": [
+      "fitness",
+      "exercise",
+      "indoor"
+    ],
+    "metadata": {},
+    "__v": 1,
+    "createdAt": "2025-10-08T06:19:45.117Z",
+    "updatedAt": "2025-10-15T11:32:48.508Z",
+    "approvedVendors": [],
+    "inStock": true,
+    "lowStock": false,
+    "currentPrice": 30,
+    "primaryImageUrl": "https://via.placeholder.com/300",
+    "id": "68e6028191774051e98b1a0c"
+  },
+  {
+    "purchaseCategory": "ISF Shop",
+    "isPendingProduct": false,
+    "createdInRequest": null,
+    "_id": "68e6028191774051e98b1a10",
+    "sku": "UNI-001",
+    "name": "School Uniform Shirt (White)",
+    "description": "Official ISF school uniform white shirt, breathable cotton fabric",
+    "category": "uniforms",
+    "price": 200,
+    "discountPrice": null,
+    "stock": 45,
+    "lowStockThreshold": 10,
+    "imageUrl": "https://via.placeholder.com/300",
+    "images": [
+      {
+        "url": "https://via.placeholder.com/300",
+        "isPrimary": true,
+        "uploadedAt": "2025-10-08T06:19:45.117Z",
+        "_id": "68ef86601895d3285521245c",
+        "id": "68ef86601895d3285521245c"
+      }
+    ],
+    "isActive": true,
+    "availableFor": [
+      "student"
+    ],
+    "tags": [
+      "uniform",
+      "shirt",
+      "white"
+    ],
+    "metadata": {},
+    "__v": 1,
+    "createdAt": "2025-10-08T06:19:45.117Z",
+    "updatedAt": "2025-10-17T10:46:13.823Z",
+    "approvedVendors": [],
+    "inStock": true,
+    "lowStock": false,
+    "currentPrice": 200,
+    "primaryImageUrl": "https://via.placeholder.com/300",
+    "id": "68e6028191774051e98b1a10"
+  },
+  {
+    "purchaseCategory": "ISF Shop",
+    "isPendingProduct": false,
+    "createdInRequest": null,
+    "_id": "68e6028191774051e98b1a1a",
+    "sku": "OTH-002",
+    "name": "School Backpack (Medium)",
+    "description": "Durable school backpack with multiple compartments and padded straps",
+    "category": "other",
+    "price": 350,
+    "discountPrice": null,
+    "stock": 18,
+    "lowStockThreshold": 10,
+    "imageUrl": "https://via.placeholder.com/300",
+    "images": [
+      {
+        "url": "https://via.placeholder.com/300",
+        "isPrimary": true,
+        "uploadedAt": "2025-10-08T06:19:45.117Z",
+        "_id": "68ef86601895d3285521245e",
+        "id": "68ef86601895d3285521245e"
+      }
+    ],
+    "isActive": true,
+    "availableFor": [
+      "student"
+    ],
+    "tags": [
+      "backpack",
+      "bag",
+      "accessories"
+    ],
+    "metadata": {},
+    "__v": 1,
+    "createdAt": "2025-10-08T06:19:45.117Z",
+    "updatedAt": "2025-10-15T11:32:48.605Z",
+    "approvedVendors": [],
+    "inStock": true,
+    "lowStock": false,
+    "currentPrice": 350,
+    "primaryImageUrl": "https://via.placeholder.com/300",
+    "id": "68e6028191774051e98b1a1a"
+  },
+  {
+    "purchaseCategory": "ISF Shop",
+    "isPendingProduct": false,
+    "createdInRequest": null,
+    "_id": "68e6028191774051e98b1a1b",
+    "sku": "OTH-003",
+    "name": "Lunch Box (2-Tier)",
+    "description": "Stainless steel 2-tier lunch box, leak-proof and easy to clean",
+    "category": "other",
+    "price": 80,
+    "discountPrice": null,
+    "stock": 30,
+    "lowStockThreshold": 10,
+    "imageUrl": "https://via.placeholder.com/300",
+    "images": [
+      {
+        "url": "https://via.placeholder.com/300",
+        "isPrimary": true,
+        "uploadedAt": "2025-10-08T06:19:45.117Z",
+        "_id": "68ef86601895d32855212460",
+        "id": "68ef86601895d32855212460"
+      }
+    ],
+    "isActive": true,
+    "availableFor": [
+      "student"
+    ],
+    "tags": [
+      "lunch-box",
+      "food",
+      "accessories"
+    ],
+    "metadata": {},
+    "__v": 1,
+    "createdAt": "2025-10-08T06:19:45.117Z",
+    "updatedAt": "2025-10-15T11:32:48.652Z",
+    "approvedVendors": [],
+    "inStock": true,
+    "lowStock": false,
+    "currentPrice": 80,
+    "primaryImageUrl": "https://via.placeholder.com/300",
+    "id": "68e6028191774051e98b1a1b"
+  },
+  {
+    "purchaseCategory": "ISF Shop",
+    "isPendingProduct": false,
+    "createdInRequest": null,
+    "_id": "68e6028191774051e98b1a1c",
+    "sku": "OTH-004",
+    "name": "Pencil Case (Fabric)",
+    "description": "Spacious fabric pencil case with zipper, multiple compartments",
+    "category": "other",
+    "price": 40,
+    "discountPrice": null,
+    "stock": 55,
+    "lowStockThreshold": 10,
+    "imageUrl": "https://via.placeholder.com/300",
+    "images": [
+      {
+        "url": "https://via.placeholder.com/300",
+        "isPrimary": true,
+        "uploadedAt": "2025-10-08T06:19:45.117Z",
+        "_id": "68ef86601895d32855212462",
+        "id": "68ef86601895d32855212462"
+      }
+    ],
+    "isActive": true,
+    "availableFor": [
+      "student"
+    ],
+    "tags": [
+      "pencil-case",
+      "stationery",
+      "accessories"
+    ],
+    "metadata": {},
+    "__v": 1,
+    "createdAt": "2025-10-08T06:19:45.117Z",
+    "updatedAt": "2025-10-15T11:32:48.705Z",
+    "approvedVendors": [],
+    "inStock": true,
+    "lowStock": false,
+    "currentPrice": 40,
+    "primaryImageUrl": "https://via.placeholder.com/300",
+    "id": "68e6028191774051e98b1a1c"
+  },
+  {
+    "purchaseCategory": "ISF Shop",
+    "isPendingProduct": false,
+    "createdInRequest": null,
+    "_id": "68e6028191774051e98b1a1d",
+    "sku": "OTH-005",
+    "name": "Umbrella (Compact)",
+    "description": "Compact foldable umbrella, windproof and lightweight",
+    "category": "other",
+    "price": 100,
+    "discountPrice": null,
+    "stock": 30,
+    "lowStockThreshold": 10,
+    "imageUrl": "https://via.placeholder.com/300",
+    "images": [
+      {
+        "url": "https://via.placeholder.com/300",
+        "isPrimary": true,
+        "uploadedAt": "2025-10-08T06:19:45.117Z",
+        "_id": "68ef86601895d32855212464",
+        "id": "68ef86601895d32855212464"
+      }
+    ],
+    "isActive": true,
+    "availableFor": [
+      "student"
+    ],
+    "tags": [
+      "umbrella",
+      "weather",
+      "accessories"
+    ],
+    "metadata": {},
+    "__v": 1,
+    "createdAt": "2025-10-08T06:19:45.117Z",
+    "updatedAt": "2025-10-30T10:06:36.869Z",
+    "approvedVendors": [],
+    "inStock": true,
+    "lowStock": false,
+    "currentPrice": 100,
+    "primaryImageUrl": "https://via.placeholder.com/300",
+    "id": "68e6028191774051e98b1a1d"
+  },
+  {
+    "purchaseCategory": "ISF Shop",
+    "isPendingProduct": false,
+    "createdInRequest": null,
+    "_id": "68e6028191774051e98b1a1e",
+    "sku": "OTH-006",
+    "name": "ISF School Badge",
+    "description": "Official ISF school badge with safety pin attachment",
+    "category": "other",
+    "price": 20,
+    "discountPrice": null,
+    "stock": 100,
+    "lowStockThreshold": 10,
+    "imageUrl": "https://via.placeholder.com/300",
+    "images": [
+      {
+        "url": "https://via.placeholder.com/300",
+        "isPrimary": true,
+        "uploadedAt": "2025-10-08T06:19:45.117Z",
+        "_id": "68ef86601895d32855212466",
+        "id": "68ef86601895d32855212466"
+      }
+    ],
+    "isActive": true,
+    "availableFor": [
+      "student"
+    ],
+    "tags": [
+      "badge",
+      "accessories",
+      "uniform"
+    ],
+    "metadata": {},
+    "__v": 1,
+    "createdAt": "2025-10-08T06:19:45.117Z",
+    "updatedAt": "2025-10-15T11:32:48.804Z",
+    "approvedVendors": [],
+    "inStock": true,
+    "lowStock": false,
+    "currentPrice": 20,
+    "primaryImageUrl": "https://via.placeholder.com/300",
+    "id": "68e6028191774051e98b1a1e"
+  },
+  {
+    "purchaseCategory": "ISF Shop",
+    "isPendingProduct": false,
+    "createdInRequest": null,
+    "_id": "68e650c14f07ffc00769b267",
+    "sku": "TEST-001",
+    "name": "Test Product",
+    "description": "This is a test product for admin CRUD",
+    "category": "stationery",
+    "price": 100,
+    "discountPrice": null,
+    "stock": 47,
+    "lowStockThreshold": 10,
+    "imageUrl": null,
+    "images": [],
+    "isActive": true,
+    "availableFor": [
+      "student"
+    ],
+    "tags": [],
+    "metadata": {},
+    "createdAt": "2025-10-08T11:53:37.491Z",
+    "updatedAt": "2025-11-27T08:24:13.140Z",
+    "__v": 2,
+    "approvedVendors": [],
+    "inStock": true,
+    "lowStock": false,
+    "currentPrice": 100,
+    "primaryImageUrl": "",
+    "id": "68e650c14f07ffc00769b267"
+  },
+  {
+    "purchaseCategory": "ISF Shop",
+    "isPendingProduct": false,
+    "createdInRequest": null,
+    "_id": "68e650de4f07ffc00769b26f",
+    "sku": "TEST-ADMIN-001",
+    "name": "Admin Test Product",
+    "description": "This is a test product created via admin API",
+    "category": "stationery",
+    "price": 175,
+    "discountPrice": 120,
+    "stock": 100,
+    "lowStockThreshold": 10,
+    "imageUrl": null,
+    "images": [],
+    "isActive": false,
+    "availableFor": [
+      "student"
+    ],
+    "tags": [],
+    "metadata": {},
+    "createdAt": "2025-10-08T11:54:06.675Z",
+    "updatedAt": "2025-10-08T11:54:56.312Z",
+    "__v": 0,
+    "approvedVendors": [],
+    "inStock": true,
+    "lowStock": false,
+    "currentPrice": 120,
+    "primaryImageUrl": "",
+    "id": "68e650de4f07ffc00769b26f"
+  },
+  {
+    "purchaseCategory": "ISF Shop",
+    "isPendingProduct": false,
+    "createdInRequest": null,
+    "_id": "68e6580f356bf4d366a7d37e",
+    "sku": "TEST-QA-001",
+    "name": "QA Test Product (Updated)",
+    "description": "This is a test product created during QA testing for verification purposes",
+    "category": "stationery",
+    "price": 250,
+    "discountPrice": 150,
+    "stock": 80,
+    "lowStockThreshold": 15,
+    "imageUrl": "https://via.placeholder.com/300x300?text=QA+Updated",
+    "images": [
+      {
+        "url": "https://via.placeholder.com/300x300?text=QA+Updated",
+        "isPrimary": true,
+        "uploadedAt": "2025-10-08T12:24:47.483Z",
+        "_id": "68ef86601895d3285521246a",
+        "id": "68ef86601895d3285521246a"
+      }
+    ],
+    "isActive": false,
+    "availableFor": [
+      "student"
+    ],
+    "tags": [],
+    "metadata": {},
+    "createdAt": "2025-10-08T12:24:47.483Z",
+    "updatedAt": "2025-10-15T11:32:48.868Z",
+    "__v": 1,
+    "approvedVendors": [],
+    "inStock": true,
+    "lowStock": false,
+    "currentPrice": 150,
+    "primaryImageUrl": "https://via.placeholder.com/300x300?text=QA+Updated",
+    "id": "68e6580f356bf4d366a7d37e"
+  },
+  {
+    "purchaseCategory": "ISF Shop",
+    "isPendingProduct": false,
+    "createdInRequest": null,
+    "_id": "68e6596b356bf4d366a7d38c",
+    "sku": "MIN-TEST-001",
+    "name": "brain",
+    "description": "This product has only the minimum required fields for testing",
+    "category": "books",
+    "price": 55,
+    "discountPrice": null,
+    "stock": 9,
+    "lowStockThreshold": 10,
+    "imageUrl": null,
+    "images": [
+      {
+        "url": "https://balagruha-shop-product-images.s3.ap-south-1.amazonaws.com/shop/products/68e6596b356bf4d366a7d38c_1760530385075.png",
+        "isPrimary": true,
+        "uploadedAt": "2025-10-15T12:13:05.468Z",
+        "_id": "68ef8fd134d92293b5969128",
+        "id": "68ef8fd134d92293b5969128"
+      },
+      {
+        "url": "https://balagruha-shop-product-images.s3.ap-south-1.amazonaws.com/shop/products/68e6596b356bf4d366a7d38c_1760530496196.png",
+        "isPrimary": false,
+        "uploadedAt": "2025-10-15T12:14:56.350Z",
+        "_id": "68ef904034d92293b5969134",
+        "id": "68ef904034d92293b5969134"
+      },
+      {
+        "url": "https://balagruha-shop-product-images.s3.ap-south-1.amazonaws.com/shop/products/68e6596b356bf4d366a7d38c_1760530564065.png",
+        "isPrimary": false,
+        "uploadedAt": "2025-10-15T12:16:04.434Z",
+        "_id": "68ef908434d92293b5969141",
+        "id": "68ef908434d92293b5969141"
+      }
+    ],
+    "isActive": true,
+    "availableFor": [
+      "student"
+    ],
+    "tags": [],
+    "metadata": {},
+    "createdAt": "2025-10-08T12:30:35.883Z",
+    "updatedAt": "2025-11-27T08:24:13.129Z",
+    "__v": 15,
+    "approvedVendors": [],
+    "inStock": true,
+    "lowStock": true,
+    "currentPrice": 55,
+    "primaryImageUrl": "https://balagruha-shop-product-images.s3.ap-south-1.amazonaws.com/shop/products/68e6596b356bf4d366a7d38c_1760530385075.png",
+    "id": "68e6596b356bf4d366a7d38c"
+  },
+  {
+    "purchaseCategory": "ISF Shop",
+    "_id": "690e2acee966a9e07cbf1d4b",
+    "sku": "NEW-1762536142809",
+    "name": "QA Test Notebook - Story 25 FINAL",
+    "description": "Pending product - details to be added",
+    "category": "stationery",
+    "price": 0,
+    "discountPrice": null,
+    "stock": 0,
+    "lowStockThreshold": 0,
+    "imageUrl": null,
+    "isActive": false,
+    "availableFor": [
+      "student"
+    ],
+    "tags": [],
+    "balagruhaId": null,
+    "metadata": {},
+    "isPendingProduct": true,
+    "createdBy": "68ab672c4fb9867f6f3318ad",
+    "createdInRequest": "6926ce735f5f72c62c9f3221",
+    "unit": "pieces",
+    "images": [],
+    "createdAt": "2025-11-07T17:22:22.851Z",
+    "updatedAt": "2025-11-26T09:54:59.945Z",
+    "__v": 0,
+    "approvedVendors": [],
+    "inStock": false,
+    "lowStock": false,
+    "currentPrice": 0,
+    "primaryImageUrl": "",
+    "id": "690e2acee966a9e07cbf1d4b"
+  },
+  {
+    "purchaseCategory": "ISF Shop",
+    "_id": "690e52c620cdda95f3dc6094",
+    "sku": "NEW-1762546374545",
+    "name": "TC7 Test Notebook",
+    "description": "Fresh pending product for TC-7 testing",
+    "category": "stationery",
+    "price": 0,
+    "discountPrice": null,
+    "stock": 0,
+    "lowStockThreshold": 0,
+    "imageUrl": null,
+    "isActive": false,
+    "availableFor": [
+      "student"
+    ],
+    "tags": [],
+    "balagruhaId": null,
+    "metadata": {},
+    "isPendingProduct": true,
+    "createdBy": "68ab672c4fb9867f6f3318ad",
+    "createdInRequest": "690e52f320cdda95f3dc609a",
+    "unit": "pieces",
+    "images": [],
+    "createdAt": "2025-11-07T20:12:54.608Z",
+    "updatedAt": "2025-11-07T20:13:39.654Z",
+    "__v": 0,
+    "approvedVendors": [],
+    "inStock": false,
+    "lowStock": false,
+    "currentPrice": 0,
+    "primaryImageUrl": "",
+    "id": "690e52c620cdda95f3dc6094"
+  },
+  {
+    "purchaseCategory": "ISF Shop",
+    "_id": "6911bad2de105ee04afc1189",
+    "sku": "NEW-1762769618475",
+    "name": "nmkk",
+    "description": "Pending product - details to be added",
+    "category": "stationery",
+    "price": 0,
+    "discountPrice": null,
+    "stock": 0,
+    "lowStockThreshold": 0,
+    "imageUrl": null,
+    "isActive": false,
+    "availableFor": [
+      "student"
+    ],
+    "tags": [],
+    "balagruhaId": null,
+    "metadata": {},
+    "isPendingProduct": true,
+    "createdBy": "69117db7de105ee04afc0587",
+    "createdInRequest": "6911baf7de105ee04afc118f",
+    "unit": "pieces",
+    "images": [],
+    "createdAt": "2025-11-10T10:13:38.480Z",
+    "updatedAt": "2025-11-10T10:14:15.866Z",
+    "__v": 0,
+    "approvedVendors": [],
+    "inStock": false,
+    "lowStock": false,
+    "currentPrice": 0,
+    "primaryImageUrl": "",
+    "id": "6911bad2de105ee04afc1189"
+  },
+  {
+    "purchaseCategory": "ISF Shop",
+    "_id": "6927ea9d5f5f72c62c9f4035",
+    "sku": "NEW-1764223645274",
+    "name": "CMC eye drop",
+    "description": "Pending product - details to be added",
+    "category": "other",
+    "price": 0,
+    "discountPrice": null,
+    "stock": 0,
+    "lowStockThreshold": 0,
+    "imageUrl": null,
+    "isActive": false,
+    "availableFor": [
+      "student"
+    ],
+    "tags": [],
+    "balagruhaId": null,
+    "metadata": {},
+    "isPendingProduct": true,
+    "createdBy": "69117db7de105ee04afc0587",
+    "createdInRequest": "6927eac25f5f72c62c9f403b",
+    "unit": "pieces",
+    "images": [],
+    "createdAt": "2025-11-27T06:07:25.282Z",
+    "updatedAt": "2025-11-27T06:08:02.263Z",
+    "__v": 0,
+    "approvedVendors": [],
+    "inStock": false,
+    "lowStock": false,
+    "currentPrice": 0,
+    "primaryImageUrl": "",
+    "id": "6927ea9d5f5f72c62c9f4035"
+  },
+  {
+    "purchaseCategory": "ISF Shop",
+    "_id": "6927fd725f5f72c62c9f44a7",
+    "sku": "NEW-1764228466384",
+    "name": "Camera pen",
+    "description": "Pending product - details to be added",
+    "category": "digital",
+    "price": 0,
+    "discountPrice": null,
+    "stock": 0,
+    "lowStockThreshold": 0,
+    "imageUrl": null,
+    "isActive": false,
+    "availableFor": [
+      "student"
+    ],
+    "tags": [],
+    "balagruhaId": null,
+    "metadata": {},
+    "isPendingProduct": true,
+    "createdBy": "6809e08380aacbb08e74d082",
+    "createdInRequest": "6927fd925f5f72c62c9f44ad",
+    "unit": "pieces",
+    "images": [],
+    "createdAt": "2025-11-27T07:27:46.389Z",
+    "updatedAt": "2025-11-27T07:28:18.175Z",
+    "__v": 0,
+    "approvedVendors": [],
+    "inStock": false,
+    "lowStock": false,
+    "currentPrice": 0,
+    "primaryImageUrl": "",
+    "id": "6927fd725f5f72c62c9f44a7"
+  },
+  {
+    "purchaseCategory": "ISF Shop",
+    "_id": "6927fe615f5f72c62c9f4680",
+    "sku": "NEW-1764228705286",
+    "name": "Boys Watch",
+    "description": "Pending product - details to be added",
+    "category": "stationery",
+    "price": 0,
+    "discountPrice": null,
+    "stock": 0,
+    "lowStockThreshold": 0,
+    "imageUrl": null,
+    "isActive": false,
+    "availableFor": [
+      "student"
+    ],
+    "tags": [],
+    "balagruhaId": null,
+    "metadata": {},
+    "isPendingProduct": true,
+    "createdBy": "681105742a06968adc38be49",
+    "createdInRequest": null,
+    "unit": "pieces",
+    "images": [],
+    "createdAt": "2025-11-27T07:31:45.289Z",
+    "updatedAt": "2025-11-27T07:31:45.289Z",
+    "__v": 0,
+    "approvedVendors": [],
+    "inStock": false,
+    "lowStock": false,
+    "currentPrice": 0,
+    "primaryImageUrl": "",
+    "id": "6927fe615f5f72c62c9f4680"
+  },
+  {
+    "purchaseCategory": "ISF Shop",
+    "_id": "6928034c5f5f72c62c9f484e",
+    "sku": "NEW-1764229964332",
+    "name": "Spectaculars",
+    "description": "Eye camp",
+    "category": "other",
+    "price": 0,
+    "discountPrice": null,
+    "stock": 0,
+    "lowStockThreshold": 0,
+    "imageUrl": null,
+    "isActive": false,
+    "availableFor": [
+      "student"
+    ],
+    "tags": [],
+    "balagruhaId": null,
+    "metadata": {},
+    "isPendingProduct": true,
+    "createdBy": "6809e08380aacbb08e74d082",
+    "createdInRequest": "69523a6b4af9c7c5683f21cf",
+    "unit": "pieces",
+    "images": [],
+    "createdAt": "2025-11-27T07:52:44.336Z",
+    "updatedAt": "2025-12-29T08:23:07.961Z",
+    "__v": 0,
+    "approvedVendors": [],
+    "inStock": false,
+    "lowStock": false,
+    "currentPrice": 0,
+    "primaryImageUrl": "",
+    "id": "6928034c5f5f72c62c9f484e"
+  },
+  {
+    "purchaseCategory": "ISF Shop",
+    "_id": "694e2d60048673a4f00eb9c3",
+    "sku": "P1123",
+    "name": "example",
+    "description": "Fix: Vendor attachment missing on “Create Product” modal",
+    "category": "stationery",
+    "price": 80,
+    "discountPrice": 60,
+    "stock": 500,
+    "lowStockThreshold": 10,
+    "imageUrl": "https://balagruha-shop-product-images.s3.ap-south-1.amazonaws.com/shop/products/temp_1766729964180_1766729964180.png",
+    "images": [],
+    "isActive": true,
+    "availableFor": [
+      "student"
+    ],
+    "tags": [],
+    "metadata": {},
+    "isPendingProduct": false,
+    "createdInRequest": null,
+    "approvedVendors": [
+      {
+        "vendorId": "694e21c2048673a4f00eb844",
+        "rank": 1,
+        "_id": "694e3318048673a4f00ebb88",
+        "id": "694e3318048673a4f00ebb88"
+      }
+    ],
+    "maxPrice": 100,
+    "sellingPrice": 80,
+    "createdAt": "2025-12-26T06:38:24.974Z",
+    "updatedAt": "2025-12-26T07:02:48.560Z",
+    "__v": 0,
+    "inStock": true,
+    "lowStock": false,
+    "currentPrice": 60,
+    "primaryImageUrl": "https://balagruha-shop-product-images.s3.ap-south-1.amazonaws.com/shop/products/temp_1766729964180_1766729964180.png",
+    "id": "694e2d60048673a4f00eb9c3"
+  },
+  {
+    "purchaseCategory": "ISF Shop",
+    "_id": "694e830ae09e16c979441dc8",
+    "sku": "RN-1234",
+    "name": "Running Shoes",
+    "description": "Shoes meant for running exercises",
+    "category": "stationery",
+    "price": 110,
+    "discountPrice": 80,
+    "stock": 100,
+    "lowStockThreshold": 10,
+    "imageUrl": "https://balagruha-shop-product-images.s3.ap-south-1.amazonaws.com/shop/products/temp_1766753026670_1766753026698.png",
+    "images": [],
+    "isActive": true,
+    "availableFor": [
+      "student"
+    ],
+    "tags": [],
+    "metadata": {},
+    "isPendingProduct": false,
+    "createdInRequest": null,
+    "approvedVendors": [
+      {
+        "vendorId": "694e21c2048673a4f00eb844",
+        "rank": 1,
+        "_id": "694e8319e09e16c979441dd7",
+        "id": "694e8319e09e16c979441dd7"
+      },
+      {
+        "vendorId": "694e8298e09e16c979441d5c",
+        "rank": 2,
+        "_id": "694e8319e09e16c979441dd8",
+        "id": "694e8319e09e16c979441dd8"
+      }
+    ],
+    "maxPrice": 300,
+    "sellingPrice": 110,
+    "createdAt": "2025-12-26T12:43:54.788Z",
+    "updatedAt": "2025-12-26T12:44:09.112Z",
+    "__v": 0,
+    "inStock": true,
+    "lowStock": false,
+    "currentPrice": 80,
+    "primaryImageUrl": "https://balagruha-shop-product-images.s3.ap-south-1.amazonaws.com/shop/products/temp_1766753026670_1766753026698.png",
+    "id": "694e830ae09e16c979441dc8"
+  },
+  {
+    "_id": "695deeed84f72cf9014abd97",
+    "sku": "REP-APPL-001",
+    "name": "Appliance Repair",
+    "description": "Repair service for household appliances - fans, mixers, grinders, etc.",
+    "category": "other",
+    "purchaseCategory": "Repairs",
+    "price": 180,
+    "discountPrice": null,
+    "stock": 0,
+    "lowStockThreshold": 0,
+    "imageUrl": "https://images.unsplash.com/photo-1581092918056-0c4c3acd3789?w=400",
+    "isActive": true,
+    "availableFor": [
+      "student"
+    ],
+    "tags": [],
+    "metadata": {},
+    "isPendingProduct": true,
+    "createdInRequest": null,
+    "images": [],
+    "approvedVendors": [],
+    "__v": 0,
+    "createdAt": "2026-01-07T05:28:13.238Z",
+    "updatedAt": "2026-01-07T05:28:13.238Z",
+    "inStock": false,
+    "lowStock": false,
+    "currentPrice": 180,
+    "primaryImageUrl": "https://images.unsplash.com/photo-1581092918056-0c4c3acd3789?w=400",
+    "id": "695deeed84f72cf9014abd97"
+  },
+  {
+    "_id": "695deeed84f72cf9014abd95",
+    "sku": "REP-PLUMB-001",
+    "name": "Plumbing Repair Service",
+    "description": "Plumbing repair including pipe fixing, leak repairs, and drain cleaning",
+    "category": "other",
+    "purchaseCategory": "Repairs",
+    "price": 250,
+    "discountPrice": null,
+    "stock": 0,
+    "lowStockThreshold": 0,
+    "imageUrl": "https://images.unsplash.com/photo-1581244277943-fe4a9c777189?w=400",
+    "isActive": true,
+    "availableFor": [
+      "student"
+    ],
+    "tags": [],
+    "metadata": {},
+    "isPendingProduct": true,
+    "createdInRequest": "695e022c5d73c3d5b52312a6",
+    "images": [],
+    "approvedVendors": [],
+    "__v": 0,
+    "createdAt": "2026-01-07T05:28:13.238Z",
+    "updatedAt": "2026-01-07T06:50:21.089Z",
+    "inStock": false,
+    "lowStock": false,
+    "currentPrice": 250,
+    "primaryImageUrl": "https://images.unsplash.com/photo-1581244277943-fe4a9c777189?w=400",
+    "id": "695deeed84f72cf9014abd95"
+  },
+  {
+    "_id": "695deeed84f72cf9014abd98",
+    "sku": "REP-CARP-001",
+    "name": "Door/Window Repair",
+    "description": "Carpentry repair for doors, windows, cupboards, etc.",
+    "category": "other",
+    "purchaseCategory": "Repairs",
+    "price": 175,
+    "discountPrice": null,
+    "stock": 0,
+    "lowStockThreshold": 0,
+    "imageUrl": "https://images.unsplash.com/photo-1513694203232-719a280e022f?w=400",
+    "isActive": true,
+    "availableFor": [
+      "student"
+    ],
+    "tags": [],
+    "metadata": {},
+    "isPendingProduct": true,
+    "createdInRequest": "696506099bdb9d165d36eba7",
+    "images": [],
+    "approvedVendors": [],
+    "__v": 0,
+    "createdAt": "2026-01-07T05:28:13.239Z",
+    "updatedAt": "2026-01-12T14:32:41.597Z",
+    "inStock": false,
+    "lowStock": false,
+    "currentPrice": 175,
+    "primaryImageUrl": "https://images.unsplash.com/photo-1513694203232-719a280e022f?w=400",
+    "id": "695deeed84f72cf9014abd98"
+  },
+  {
+    "_id": "695deeed84f72cf9014abd94",
+    "sku": "REP-CHAIR-001",
+    "name": "Broken Chair Repair",
+    "description": "Professional repair service for broken chairs including welding and wood work",
+    "category": "other",
+    "purchaseCategory": "Repairs",
+    "price": 150,
+    "discountPrice": null,
+    "stock": 0,
+    "lowStockThreshold": 0,
+    "imageUrl": "https://images.unsplash.com/photo-1503602642458-232111445657?w=400",
+    "isActive": true,
+    "availableFor": [
+      "student"
+    ],
+    "tags": [],
+    "metadata": {},
+    "isPendingProduct": true,
+    "createdInRequest": null,
+    "images": [],
+    "approvedVendors": [],
+    "__v": 0,
+    "createdAt": "2026-01-07T05:28:13.238Z",
+    "updatedAt": "2026-01-07T05:28:13.238Z",
+    "inStock": false,
+    "lowStock": false,
+    "currentPrice": 150,
+    "primaryImageUrl": "https://images.unsplash.com/photo-1503602642458-232111445657?w=400",
+    "id": "695deeed84f72cf9014abd94"
+  },
+  {
+    "_id": "695deeed84f72cf9014abd96",
+    "sku": "REP-ELEC-001",
+    "name": "Electrical Repair Service",
+    "description": "Electrical repairs including wiring, switch replacement, and fixture installation",
+    "category": "other",
+    "purchaseCategory": "Repairs",
+    "price": 200,
+    "discountPrice": null,
+    "stock": 0,
+    "lowStockThreshold": 0,
+    "imageUrl": "https://images.unsplash.com/photo-1621905251189-08b45d6a269e?w=400",
+    "isActive": true,
+    "availableFor": [
+      "student"
+    ],
+    "tags": [],
+    "metadata": {},
+    "isPendingProduct": true,
+    "createdInRequest": "695df46d5d73c3d5b5230c2a",
+    "images": [],
+    "approvedVendors": [],
+    "__v": 0,
+    "createdAt": "2026-01-07T05:28:13.238Z",
+    "updatedAt": "2026-01-07T05:51:41.281Z",
+    "inStock": false,
+    "lowStock": false,
+    "currentPrice": 200,
+    "primaryImageUrl": "https://images.unsplash.com/photo-1621905251189-08b45d6a269e?w=400",
+    "id": "695deeed84f72cf9014abd96"
+  }
+]

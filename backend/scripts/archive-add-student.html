@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>API Request Form</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+      }
+
+      .form-group {
+        margin-bottom: 15px;
+      }
+
+      label {
+        display: block;
+        margin-bottom: 5px;
+      }
+
+      input[type="text"],
+      input[type="email"],
+      input[type="password"],
+      input[type="file"] {
+        width: 100%;
+        padding: 8px;
+        margin-bottom: 10px;
+      }
+
+      button {
+        padding: 10px 20px;
+        background-color: #4caf50;
+        color: white;
+        border: none;
+        cursor: pointer;
+      }
+
+      button:hover {
+        background-color: #45a049;
+      }
+
+      .medical-history-entry {
+        border: 1px solid #ccc;
+        padding: 15px;
+        margin-bottom: 15px;
+        position: relative;
+      }
+
+      .remove-btn {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background-color: #ff4444;
+        color: white;
+        border: none;
+        padding: 5px 10px;
+        cursor: pointer;
+      }
+
+      .remove-btn:hover {
+        background-color: #cc0000;
+      }
+    </style>
+  </head>
+
+  <body>
+    <h2>Submit User Data</h2>
+    <form id="userForm" enctype="multipart/form-data">
+      <!-- Basic User Info -->
+      <div class="form-group">
+        <label for="name">Name:</label>
+        <input type="text" id="name" name="name" value="Anjali" />
+      </div>
+
+      <div class="form-group">
+        <label for="email">Email:</label>
+        <input type="email" id="email" name="email" value="anjali@gmail.com" />
+      </div>
+
+      <div class="form-group">
+        <label for="password">Password:</label>
+        <input
+          type="password"
+          id="password"
+          name="password"
+          value="anjali1234"
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="role">Role:</label>
+        <input type="text" id="role" name="role" value="student" />
+      </div>
+
+      <div class="form-group">
+        <label for="status">Status:</label>
+        <input type="text" id="status" name="status" value="active" />
+      </div>
+
+      <div class="form-group">
+        <label for="age">Age:</label>
+        <input type="text" id="age" name="age" value="10" />
+      </div>
+
+      <div class="form-group">
+        <label for="gender">Gender:</label>
+        <input type="text" id="gender" name="gender" value="male" />
+      </div>
+
+      <div class="form-group">
+        <label for="balagurIds">Balagur IDs:</label>
+        <input
+          type="text"
+          id="balagurIds"
+          name="balagurIds"
+          value="67b632186c324486c7a4346c419"
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="parentalStatus">Parental Status:</label>
+        <input
+          type="text"
+          id="parentalStatus"
+          name="parentalStatus"
+          value="has none"
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="guardianContact">Guardian Contact:</label>
+        <input
+          type="text"
+          id="guardianContact"
+          name="guardianContact"
+          value="9090909090"
+        />
+      </div>
+
+      <!-- File Upload for facialData -->
+      <div class="form-group">
+        <label for="facialData">Facial Data (File):</label>
+        <input type="file" id="facialData" name="facialData" />
+      </div>
+
+      <div class="form-group">
+        <label for="assignedMachines">Assigned Machines:</label>
+        <input
+          type="text"
+          id="assignedMachines"
+          name="assignedMachines"
+          value="67d2d215d84ba46a46d2c0805"
+        />
+      </div>
+
+      <!-- Medical History Section -->
+      <h3>Medical History</h3>
+      <div id="medicalHistoryContainer">
+        <!-- Medical History entries will be added here dynamically -->
+      </div>
+      <button type="button" id="addMedicalHistory">Add Medical History</button>
+
+      <!-- Submit Button -->
+      <div class="form-group">
+        <button type="submit">Submit</button>
+      </div>
+    </form>
+
+    <script>
+      let medicalHistoryCount = 0;
+
+      // Function to add a new medical history entry
+      function addMedicalHistoryEntry(data = {}) {
+        const container = document.getElementById("medicalHistoryContainer");
+        const entryDiv = document.createElement("div");
+        entryDiv.className = "medical-history-entry";
+        entryDiv.setAttribute("data-index", medicalHistoryCount);
+
+        // Default values or empty strings if no data is provided
+        const name = data.name || "";
+        const description = data.description || "";
+        const date = data.date || "";
+        const caseId = data.caseId || "";
+        const doctorsName = data.doctorsName || "";
+        const hospitalName = data.hospitalName || "";
+        const currentStatusStatus = data.currentStatus?.status || "";
+        const currentStatusNotes = data.currentStatus?.notes || "";
+        const currentStatusDate = data.currentStatus?.date || "";
+
+        entryDiv.innerHTML = `
+                <button type="button" class="remove-btn" onclick="removeMedicalHistoryEntry(${medicalHistoryCount})">Remove</button>
+                <h4>Medical History ${medicalHistoryCount + 1}</h4>
+                <div class="form-group">
+                    <label>Name:</label>
+                    <input type="text" name="medicalHistory[${medicalHistoryCount}].name" value="${name}">
+                </div>
+                <div class="form-group">
+                    <label>Description:</label>
+                    <input type="text" name="medicalHistory[${medicalHistoryCount}].description" value="${description}">
+                </div>
+                <div class="form-group">
+                    <label>Date:</label>
+                    <input type="text" name="medicalHistory[${medicalHistoryCount}].date" value="${date}">
+                </div>
+                <div class="form-group">
+                    <label>Case ID:</label>
+                    <input type="text" name="medicalHistory[${medicalHistoryCount}].caseId" value="${caseId}">
+                </div>
+                <div class="form-group">
+                    <label>Doctor's Name:</label>
+                    <input type="text" name="medicalHistory[${medicalHistoryCount}].doctorsName" value="${doctorsName}">
+                </div>
+                <div class="form-group">
+                    <label>Hospital Name:</label>
+                    <input type="text" name="medicalHistory[${medicalHistoryCount}].hospitalName" value="${hospitalName}">
+                </div>
+                <div class="form-group">
+                    <label>Current Status - Status:</label>
+                    <input type="text" name="medicalHistory[${medicalHistoryCount}].currentStatus.status" value="${currentStatusStatus}">
+                </div>
+                <div class="form-group">
+                    <label>Current Status - Notes:</label>
+                    <input type="text" name="medicalHistory[${medicalHistoryCount}].currentStatus.notes" value="${currentStatusNotes}">
+                </div>
+                <div class="form-group">
+                    <label>Current Status - Date:</label>
+                    <input type="text" name="medicalHistory[${medicalHistoryCount}].currentStatus.date" value="${currentStatusDate}">
+                </div>
+                <div class="form-group">
+                    <label>Prescriptions (Files):</label>
+                    <input type="file" name="medicalHistory[${medicalHistoryCount}].prescriptions" multiple>
+                </div>
+                <div class="form-group">
+                    <label>Other Attachments (Files):</label>
+                    <input type="file" name="medicalHistory[${medicalHistoryCount}].otherAttachments" multiple>
+                </div>
+            `;
+
+        container.appendChild(entryDiv);
+        medicalHistoryCount++;
+      }
+
+      // Function to remove a medical history entry
+      function removeMedicalHistoryEntry(index) {
+        const entry = document.querySelector(
+          `.medical-history-entry[data-index="${index}"]`
+        );
+        if (entry) {
+          entry.remove();
+          // Re-index remaining entries to maintain proper array structure
+          reindexMedicalHistoryEntries();
+        }
+      }
+
+      // Function to re-index medical history entries after removal
+      function reindexMedicalHistoryEntries() {
+        const entries = document.querySelectorAll(".medical-history-entry");
+        entries.forEach((entry, newIndex) => {
+          entry.setAttribute("data-index", newIndex);
+          entry.querySelector("h4").textContent = `Medical History ${
+            newIndex + 1
+          }`;
+          entry
+            .querySelector(".remove-btn")
+            .setAttribute("onclick", `removeMedicalHistoryEntry(${newIndex})`);
+          const inputs = entry.querySelectorAll("input");
+          inputs.forEach((input) => {
+            const name = input.name.replace(
+              /medicalHistory\[\d+\]/,
+              `medicalHistory[${newIndex}]`
+            );
+            input.name = name;
+          });
+        });
+        medicalHistoryCount = entries.length;
+      }
+
+      // Add initial medical history entries from the Postman data
+      addMedicalHistoryEntry({
+        name: "Hypertension",
+        description:
+          "Chronic high blood pressure diagnosed after routine checkup.",
+        date: "2024-11-10",
+        caseId: "HTN-2024-001",
+        doctorsName: "Dr. Emily Carter",
+        hospitalName: "Sunrise Medical Center",
+        currentStatus: {
+          status: "Stable",
+          notes: "Blood pressure managed with medication.",
+          date: "2025-03-20",
+        },
+      });
+
+      addMedicalHistoryEntry({
+        name: "Type 2 Diabetes",
+        description:
+          "Elevated blood sugar levels detected during annual physical.",
+        date: "2025-01-05",
+        caseId: "T2D-2025-001",
+        doctorsName: "Dr. Rajesh Patel",
+        hospitalName: "Green Valley Hospital",
+        currentStatus: {
+          status: "Managed",
+          notes: "Controlled with diet and medication.",
+          date: "2025-03-22",
+        },
+      });
+
+      // Add event listener for adding new medical history entries
+      document
+        .getElementById("addMedicalHistory")
+        .addEventListener("click", () => {
+          addMedicalHistoryEntry();
+        });
+
+      // Form submission
+      document
+        .getElementById("userForm")
+        .addEventListener("submit", async (event) => {
+          event.preventDefault();
+
+          const formData = new FormData(event.target);
+          // also add the auth token eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3YmVmMDE2ZDcxOWRlMDQ1ZGI4YjBiMyIsImlhdCI6MTc0Mjg5OTE2OCwiZXhwIjoxNzQyOTg1NTY4fQ.CDLmVHEhnn70Iyw04B9EP_w3n6YWTYZT3LB8TjmtgF8
+          // to the headers of the fetch request
+          const headers = new Headers();
+          headers.append("MAC-Address", "14:1B:44:11:3A:B7");
+          headers.append(
+            "Authorization",
+            "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3YmVmMDE2ZDcxOWRlMDQ1ZGI4YjBiMyIsImlhdCI6MTc0MzE3MDg1OCwiZXhwIjoxNzQzMjU3MjU4fQ.iHj4fcW2nDCDeA4MYqbASVIbwu4ru2A7p8_fhGpgGcA"
+          );
+
+          const response = await fetch("http://localhost:5001/api/v1/users", {
+            method: "POST",
+            body: formData,
+            headers: headers,
+          });
+
+          try {
+            const response = await fetch("http://localhost:5001/api/v1/users", {
+              method: "POST",
+              body: formData,
+            });
+
+            if (response.ok) {
+              const result = await response.json();
+              alert("Data submitted successfully!");
+            } else {
+              console.error("Error:", response.statusText);
+              alert("Failed to submit data.");
+            }
+          } catch (error) {
+            console.error("Error:", error);
+            alert("An error occurred while submitting the data.");
+          }
+        });
+    </script>
+  </body>
+</html>

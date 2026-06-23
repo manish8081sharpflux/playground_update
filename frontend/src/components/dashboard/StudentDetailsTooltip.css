@@ -1,0 +1,166 @@
+.student-details-tooltip {
+  position: fixed;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+  padding: 0;
+  min-width: 350px;
+  max-width: 450px;
+  z-index: 9999;
+  pointer-events: auto;
+  animation: fadeIn 0.2s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.tooltip-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 16px 20px;
+  border-radius: 12px 12px 0 0;
+}
+
+.tooltip-header h4 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.tooltip-content {
+  padding: 20px;
+  max-height: 500px;
+  overflow-y: auto;
+}
+
+.tooltip-detail-row {
+  display: flex;
+  margin-bottom: 12px;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+.tooltip-label {
+  font-weight: 600;
+  color: #4a5568;
+  min-width: 120px;
+  font-size: 14px;
+}
+
+.tooltip-value {
+  color: #2d3748;
+  font-size: 14px;
+  flex: 1;
+  word-wrap: break-word;
+}
+
+.tooltip-value.critical {
+  color: #dc2626;
+  font-weight: 600;
+}
+
+.tooltip-value.important {
+  color: #f97316;
+  font-weight: 600;
+}
+
+.tooltip-value.normal {
+  color: #10b981;
+  font-weight: 600;
+}
+
+.tooltip-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.tooltip-status-normal {
+  background-color: #d1fae5;
+  color: #065f46;
+}
+
+.tooltip-status-important {
+  background-color: #fed7aa;
+  color: #92400e;
+}
+
+.tooltip-status-critical {
+  background-color: #fee2e2;
+  color: #991b1b;
+}
+
+.tooltip-status-active {
+  background-color: #dbeafe;
+  color: #1e40af;
+}
+
+.tooltip-status-inactive {
+  background-color: #f3f4f6;
+  color: #6b7280;
+}
+
+.tooltip-section-divider {
+  height: 1px;
+  background: #e5e7eb;
+  margin: 16px 0;
+}
+
+.tooltip-section-title {
+  font-weight: 700;
+  color: #1f2937;
+  font-size: 14px;
+  margin-bottom: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.tooltip-files {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+
+.tooltip-file-link {
+  color: #6366f1;
+  text-decoration: none;
+  font-size: 13px;
+  display: block;
+  transition: color 0.2s;
+}
+
+.tooltip-file-link:hover {
+  color: #4f46e5;
+  text-decoration: underline;
+}
+
+/* Scrollbar styling */
+.tooltip-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.tooltip-content::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+.tooltip-content::-webkit-scrollbar-thumb {
+  background: #cbd5e0;
+  border-radius: 10px;
+}
+
+.tooltip-content::-webkit-scrollbar-thumb:hover {
+  background: #a0aec0;
+}
