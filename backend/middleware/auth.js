@@ -93,12 +93,21 @@ exports.authenticate = async (req, res, next) => {
 exports.authorize = (module, action) => {
   return async (req, res, next) => {
     try {
-      const userRole = req.user.role;
+      const userRole = (req.user.role || "").trim().toLowerCase();
 
-      // RBAC Refactor: Development bypass REMOVED for production security
-      // All environments now enforce permission checks
+      if (userRole === "admin") {
+        req.scopeFilter = {};
+        req.permissionScope = "all";
+        return next();
+      }
 
-      const role = await Role.findOne({ roleName: userRole });
+      
+
+      const role = await Role.findOne({
+        roleName: { $regex: new RegExp(`^${userRole}$`, "i") },
+      });
+
+      
 
       if (!role) {
         return res.status(403).json({
@@ -107,13 +116,16 @@ exports.authorize = (module, action) => {
         });
       }
 
-      // Find the permission that matches module and action
       const permission = role.permissions.find((permission) => {
         return (
-          permission.module === module && permission.actions.includes(action)
+          permission.module?.trim().toLowerCase() === module.trim().toLowerCase() &&
+          permission.actions?.some(
+            (a) => a.trim().toLowerCase() === action.trim().toLowerCase()
+          )
         );
       });
 
+      
       if (!permission) {
         return res.status(403).json({
           success: false,
@@ -121,12 +133,8 @@ exports.authorize = (module, action) => {
         });
       }
 
-      // RBAC Refactor: Inject scope-based filter for data access control
-      // Controllers will use req.scopeFilter to filter queries by Balagruh/User
       req.scopeFilter = getScopeFilter(req.user, permission.scope);
-
-      // Store the permission scope for debugging/logging
-      req.permissionScope = permission.scope || 'own';
+      req.permissionScope = permission.scope || "own";
 
       next();
     } catch (err) {

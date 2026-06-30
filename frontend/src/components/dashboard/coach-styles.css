@@ -10,11 +10,10 @@ body {
 }
 
 .coach-dashboard {
-    display: flex;
-    flex-direction: column;
-    /* height: 100vh; */
-    background-color: #e6f2ff;
-    overflow: hidden;
+    min-height: 100vh;
+    background: #f7fbff;
+    /* padding: 8px 24px 20px; */
+    overflow-x: hidden;
 }
 
 .header {
@@ -218,7 +217,7 @@ body {
 
 .scroll-container {
     display: flex;
-    gap: 10px;
+    gap: 15px;
     overflow-x: auto;
     padding: 5px 0;
     scrollbar-width: thin;
@@ -250,20 +249,18 @@ body {
     transform: scale(1.05);
 }
 
-/* Balagruha styles */
-.assigned-balagruha {
-    margin-bottom: 15px;
-}
+
 
 .balagruha-item {
-    min-width: 80px;
-    padding: 15px;
-    background-color: #f9cb9c;
-    border-radius: 50px;
+    min-width: 160px;
+    padding: 16px 28px;
+    background: linear-gradient(135deg, #34c759, #2f9e44);
+    color: white;
+    border-radius: 16px;
     text-align: center;
-    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
-    font-weight: bold;
-    font-size: 14px;
+    box-shadow: 0 6px 14px rgba(47, 158, 68, 0.25);
+    font-weight: 700;
+    font-size: 16px;
 }
 
 /* Coach menus styles */
@@ -275,8 +272,11 @@ body {
 .menu-grid {
     display: flex;
     flex-wrap: wrap;
-    gap: 10px;
-    margin-top: 15px;
+    gap: 12px;
+    justify-content: flex-start;
+    margin-top: 16px;
+    margin-bottom: 28px;
+    margin-left: 16px;
 }
 
 .menu-item {
@@ -293,8 +293,9 @@ body {
 }
 
 .menu-item.selected {
-    background-color: #c9daf8;
-    transform: scale(1.05);
+    background: #dceaff;
+    color: #315cff;
+    transform: translateY(-3px);
 }
 
 .menu-grid .menu-bubble {
@@ -318,6 +319,7 @@ body {
 .data-display {
     overflow: auto;
     margin-top: 15px;
+    margin-bottom: 20px;
 }
 
 .data-display h3 {
@@ -377,11 +379,13 @@ body {
 
 /* Full calendar styles */
 .full-calendar {
-    overflow: auto;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    margin-top: 15px;
+    width: 100%;
+    background: white;
+    border-radius: 18px;
+    padding: 18px;
+    margin-top: 0;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+    overflow-x: auto;
 }
 
 .full-calendar h3 {
@@ -459,7 +463,7 @@ body {
     font-style: italic;
 }
 
-.event-item {
+/* .event-item {
     margin: 5px 0;
     padding: 8px;
     border-radius: 8px;
@@ -475,7 +479,7 @@ body {
 
 .event-time {
     font-size: 11px;
-}
+} */
 
 .event-status-indicator {
     position: absolute;
@@ -716,16 +720,20 @@ body {
 
 /* Full width layout styles */
 .main-content.full-width {
+    /* padding-left: 100px; */
+    margin-top: 0;
     display: block;
     width: 100%;
-}
+} 
 
 .full-panel {
     width: 100%;
-    padding: 15px;
+    max-width: 1250px;
+    margin: 0 auto;
+    padding: 0px 16px;
     display: flex;
     flex-direction: column;
-    gap: 15px;
+    gap: 12px;
 }
 
 /* Chat buttons at the top */
@@ -778,24 +786,25 @@ body {
     width: 100%;
 }
 
-.menu-grid {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 15px;
-    justify-content: flex-start;
-}
+
 
 .menu-item {
-    flex: 0 0 auto;
+    min-width: 150px;
+    padding: 14px 22px;
+    background: #ffffff;
+    border-radius: 12px;
+    text-align: center;
+    cursor: pointer;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+    transition: 0.25s ease;
+    font-weight: 700;
+    font-size: 15px;
 }
 
 .data-display {
     width: 100%;
 }
 
-.full-calendar {
-    width: 100%;
-}
 
 /* Sticky Chat Buttons */
 .sticky-chat-buttons {
@@ -856,9 +865,7 @@ body {
     border: 2px solid white;
 }
 
-.main-content.full-width {
-    padding-left: 100px;
-}
+
 
 @media (max-width: 768px) {
     .sticky-chat-buttons {
@@ -872,6 +879,159 @@ body {
     }
 
     .main-content.full-width {
-        padding-left: 70px;
+        padding-left: 100px;
     }
+}
+
+.status-badge {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: capitalize;
+    white-space: nowrap;
+}
+
+.status-success {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.status-warning {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.status-danger {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.status-info {
+    background: #dbeafe;
+    color: #1e40af;
+}
+
+
+.table-controls {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin: 16px 0;
+    flex-wrap: nowrap;
+}
+
+.table-search-input {
+    flex: 1;
+    min-width: 0;
+    height: 42px;
+    padding: 0 16px;
+    border: 1px solid #d1d5db;
+    border-radius: 10px;
+    font-size: 14px;
+}
+
+.table-filter-select {
+    width: 180px;
+    height: 42px;
+    padding: 0 14px;
+    border: 1px solid #d1d5db;
+    border-radius: 10px;
+    font-size: 14px;
+    background: #fff;
+    flex-shrink: 0;
+}
+
+.table-search-input:focus,
+.table-filter-select:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+    outline: none;
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 14px;
+  margin: 24px 0;
+}
+
+.pagination button {
+  min-width: 95px;
+  height: 40px;
+  border: 1px solid #dbeafe;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #2563eb;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.pagination button:hover:not(:disabled) {
+  background: #2563eb;
+  color: #ffffff;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(37, 99, 235, 0.25);
+}
+
+.pagination button:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.pagination button:disabled {
+  background: #f3f4f6;
+  color: #9ca3af;
+  border-color: #e5e7eb;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.pagination span {
+  padding: 8px 16px;
+  border-radius: 10px;
+  background: #eff6ff;
+  color: #1e3a8a;
+  font-weight: 600;
+  border: 1px solid #bfdbfe;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+.main-content {
+  overflow: visible;
+}
+
+.coach-menus {
+  overflow: visible;
+}
+
+.data-display {
+  overflow-x: auto;
+  overflow-y: visible;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+.data-table {
+  min-width: 760px;
+}
+
+.table-controls {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  background: #f7fbff;
+  padding: 10px 0;
+}
+
+.full-panel {
+  padding-bottom: 40px;
 }

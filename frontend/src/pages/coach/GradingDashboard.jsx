@@ -8,6 +8,7 @@ import SubmissionQueue from '../../components/coach/grading/SubmissionQueue';
 import ArtGradingInterface from '../../components/coach/grading/ArtGradingInterface';
 import VideoGradingInterface from '../../components/coach/grading/VideoGradingInterface';
 import AudioGradingInterface from '../../components/coach/grading/AudioGradingInterface';
+import QuizGradingInterface from "../../components/coach/grading/QuizGradingInterface";
 
 export default function GradingDashboard() {
   const { user } = useAuth();
@@ -21,8 +22,8 @@ export default function GradingDashboard() {
   // Filters
   const [filters, setFilters] = useState({
     courseType: 'all',
-    status: 'pending',
-    sortBy: 'oldest_first',
+    status: 'all',
+    sortBy: 'newest_first',
     search: '',
   });
   const [allSubmissions, setAllSubmissions] = useState([]);
@@ -37,21 +38,28 @@ export default function GradingDashboard() {
     try {
       setLoading(true);
       const queryParams = new URLSearchParams({
-        courseType: filters.courseType,
-        status: filters.status,
         sortBy: filters.sortBy,
         limit: 20,
         offset: 0,
       });
 
+      if (filters.courseType !== 'all') {
+        queryParams.append('courseType', filters.courseType);
+      }
+
+      if (filters.status !== 'all') {
+        queryParams.append('status', filters.status);
+      }
+
       const response = await api.get(
         `/api/v2/lms/coach/grading/${user.id}/submissions?${queryParams}`
       );
 
+
+
       setAllSubmissions(response.data.submissions || []);
       setStats(response.data.stats || { pending: 0, graded: 0, flagged: 0, thisWeek: 0 });
     } catch (error) {
-      console.error('Error fetching submissions:', error);
       toast.error('Failed to load submissions');
     } finally {
       setLoading(false);
@@ -69,6 +77,19 @@ export default function GradingDashboard() {
   });
 
   const handleOpenGrading = (submission) => {
+    console.log("Clicked submission:", submission);
+    console.log("Submission Type:", submission?.submissionType);
+
+    if (!submission) {
+      toast.error("Submission not found");
+      return;
+    }
+
+    if (!submission.submissionType) {
+      toast.error("Submission type missing");
+      return;
+    }
+
     setCurrentSubmission(submission);
     setShowGradingInterface(true);
   };
@@ -243,6 +264,21 @@ export default function GradingDashboard() {
               onSkip={handleSkip}
               onFlag={handleFlag}
               currentIndex={filteredSubmissions.findIndex((sub) => sub.id === currentSubmission.id)}
+              totalCount={filteredSubmissions.length}
+            />
+          )}
+
+          {currentSubmission.submissionType === "quiz" && (
+            <QuizGradingInterface
+              submission={currentSubmission}
+              onClose={handleCloseGrading}
+              coachId={user.id}
+              onNavigate={handleNavigate}
+              onSkip={handleSkip}
+              onFlag={handleFlag}
+              currentIndex={filteredSubmissions.findIndex(
+                (sub) => sub.id === currentSubmission.id
+              )}
               totalCount={filteredSubmissions.length}
             />
           )}

@@ -43,6 +43,8 @@ function AdminDashboard() {
   const [students, setStudents] = useState([]);
   const [attendance, setAttendance] = useState([]);
   const [tasks, setTasks] = useState([]);
+  const [coachTasks, setCoachTasks] = useState([]);
+  const [isLoadingCoachData, setIsLoadingCoachData] = useState(false);
   const [machines, setMachines] = useState([]);
   const [schedules, setSchedules] = useState([]);
   // const [schedules, setSchedules] = useState({
@@ -134,40 +136,152 @@ function AdminDashboard() {
     }
   };
 
+  const getCurrentWeekDateRange = () => {
+    const today = new Date();
+    const dayOfWeek = today.getDay();
+    const monday = new Date(today);
+    monday.setDate(today.getDate() - ((dayOfWeek + 6) % 7));
+    monday.setHours(0, 0, 0, 0);
+
+    const sunday = new Date(monday);
+    sunday.setDate(monday.getDate() + 6);
+    sunday.setHours(23, 59, 59, 999);
+
+    return {
+      startDate: monday.toISOString().slice(0, 10),
+      endDate: sunday.toISOString().slice(0, 10),
+    };
+  };
+
+  const getIdValue = (value) => {
+    if (!value) return null;
+    if (typeof value === "string") return value;
+    return value._id || value.id || null;
+  };
+
+  const getCoachBalagruhaIds = (coachId) => {
+    const coach = coaches.find((item) => item._id === coachId);
+    const ids = (coach?.balagruhaIds || [])
+      .map(getIdValue)
+      .filter(Boolean);
+
+    if (ids.length === 0 && selectedBalagruha) {
+      ids.push(selectedBalagruha);
+    }
+
+    return Array.from(new Set(ids));
+  };
+
+  const getBalagruhasFromIds = (ids) => {
+    return ids.map((id) => {
+      const matchedBalagruha = balagruhas.find((bal) => bal._id === id);
+      return matchedBalagruha || { _id: id, name: "Assigned Balagruha" };
+    });
+  };
+
   const fetchBalagruhaByCoach = async (id) => {
+    const fallbackBalagruhas = getBalagruhasFromIds(getCoachBalagruhaIds(id));
+
     try {
       const response = await getBalagruhaListByAssignedID(id);
-      setBalagruhaOfCoach(response?.data?.balagruhas);
+      const assignedBalagruhas = response?.data?.balagruhas || [];
+      const usableBalagruhas =
+        assignedBalagruhas.length > 0 ? assignedBalagruhas : fallbackBalagruhas;
+      setBalagruhaOfCoach(usableBalagruhas);
+      return usableBalagruhas;
     } catch (error) {
       console.error("Error in fetching balagruha based on user", error);
+      setBalagruhaOfCoach(fallbackBalagruhas);
+      return fallbackBalagruhas;
     }
   };
 
-  const fetchSchedules = async (balagruha, startDate, endDate) => {
-    try {
-      let dataToSend;
-      if (balagruha) {
-        dataToSend = {
-          balagruhaIds: [balagruha],
-          assignedTo: selectedCoach,
-          startDate: startDate,
-          endDate: endDate,
-          status: [],
-        };
-      } else {
-        dataToSend = {
-          balagruhaIds: [selectedBalagruhaOfCoach],
-          assignedTo: selectedCoach,
-          startDate: startDate,
-          endDate: endDate,
-          status: [],
-        };
-      }
+  const fetchSchedules = async (
+    balagruha,
+    startDate,
+    endDate,
+    coachId = selectedCoach
+  ) => {
+    const explicitIds = Array.isArray(balagruha)
+      ? balagruha
+      : balagruha
+        ? [balagruha]
+        : selectedBalagruhaOfCoach
+          ? [selectedBalagruhaOfCoach]
+          : [];
+    const fallbackIds = getCoachBalagruhaIds(coachId);
+    const balagruhaIds = explicitIds.length > 0 ? explicitIds : fallbackIds;
 
-      const response = await getSchedules(dataToSend);
-      setSchedules(response?.data?.schedules);
+    if (!coachId || balagruhaIds.length === 0) {
+      setSchedules([]);
+      return;
+    }
+
+    try {
+      const response = await getSchedules({
+        balagruhaIds,
+        assignedTo: coachId,
+        startDate,
+        endDate,
+        status: [],
+      });
+      setSchedules(response?.data?.schedules || []);
     } catch (error) {
       console.error("Error in fetching schedules", error);
+      setSchedules([]);
+    }
+  };
+
+  const fetchCoachTasks = async (coachId, balagruhaId) => {
+    if (!coachId || !balagruhaId) {
+      setCoachTasks([]);
+      return;
+    }
+
+    try {
+      const response = await getTasks({
+        balagruhaId,
+        assignedFor: [coachId],
+        limit: 50,
+      });
+      setCoachTasks(response?.data?.tasks || []);
+    } catch (error) {
+      console.error("Error fetching coach tasks", error);
+      setCoachTasks([]);
+    }
+  };
+
+  const handleCoachSelect = async (coachId) => {
+    setSelectedCoach(coachId);
+    setCoachMenuSelected(1);
+    setCurrentWeekOffset(0);
+    setSelectedBalagruhaOfCoach(undefined);
+    setBalagruhaOfCoach([]);
+    setSchedules([]);
+    setCoachTasks([]);
+    setIsLoadingCoachData(true);
+
+    try {
+      const assignedBalagruhas = await fetchBalagruhaByCoach(coachId);
+      const selectedBalagruhaIds = assignedBalagruhas
+        .map((item) => item?._id)
+        .filter(Boolean);
+      const queryBalagruhaIds =
+        selectedBalagruhaIds.length > 0
+          ? selectedBalagruhaIds
+          : getCoachBalagruhaIds(coachId);
+
+      if (queryBalagruhaIds.length > 0) {
+        const { startDate, endDate } = getCurrentWeekDateRange();
+        const selectedBalagruhaId = queryBalagruhaIds[0];
+        setSelectedBalagruhaOfCoach(selectedBalagruhaId);
+        await fetchSchedules(queryBalagruhaIds, startDate, endDate, coachId);
+        await fetchCoachTasks(coachId, selectedBalagruhaId);
+      } else {
+        setCoachTasks([]);
+      }
+    } finally {
+      setIsLoadingCoachData(false);
     }
   };
 
@@ -277,7 +391,7 @@ function AdminDashboard() {
   const getTaskDetailsByTaskId = async (id) => {
     try {
       const response = await getTaskBytaskId(id);
-      setSelectedTask(response.data?.task);
+      setSelectedTask(response);
     } catch (err) {
       console.error("Error updating task status:", err);
     }
@@ -318,8 +432,8 @@ function AdminDashboard() {
   ];
 
   const coachMenus = [
-    { id: 1, name: "Daily Schedule", count: tasks.length },
-    { id: 2, name: "Task Tracker" },
+    { id: 1, name: "Daily Schedule", count: schedules.length },
+    { id: 2, name: "Task Tracker", count: coachTasks.length },
     { id: 3, name: "Medical" },
     { id: 4, name: "Syllabus Tracker" },
     { id: 5, name: "Slow Learners" },
@@ -328,6 +442,89 @@ function AdminDashboard() {
     { id: 10, name: "Activities" },
     { id: 11, name: "Events" },
   ];
+
+  const getDummyCoachData = (menuName) => {
+    return Array.from({ length: 5 }, (_, index) => ({
+      id: index + 1,
+      title: `${menuName} Item ${index + 1}`,
+      status:
+        index % 3 === 0 ? "New" : index % 3 === 1 ? "In Progress" : "Completed",
+      metric: `${40 + index * 10}%`,
+      date: new Date(Date.now() - index * 86400000).toLocaleDateString("en-GB"),
+    }));
+  };
+
+  const renderCoachMenuContent = () => {
+    const menu = coachMenus.find((m) => m.id === coachMenuSelected);
+    if (!menu) return null;
+
+    if (isLoadingCoachData) {
+      return (
+        <div className="data-display">
+          <h3>{menu.name}</h3>
+          <div style={{ padding: "20px", textAlign: "center" }}>
+            Loading coach data...
+          </div>
+        </div>
+      );
+    }
+
+    if (coachMenuSelected === 1) {
+      return null;
+    }
+
+    if (coachMenuSelected === 2) {
+      return (
+        <div className="data-display">
+          <h3>{menu.name}</h3>
+          <div className="table-container">
+            <table className="data-table coach-table">
+              <thead>
+                <tr>
+                  <th>Task</th>
+                  <th>Status</th>
+                  <th>Priority</th>
+                  <th>Deadline</th>
+                </tr>
+              </thead>
+              <tbody>
+                {coachTasks.length > 0 ? (
+                  coachTasks.map((task, index) => (
+                    <tr
+                      key={task._id || index}
+                      className={index % 2 === 0 ? "even-row" : ""}
+                    >
+                      <td>{task.title || "Untitled task"}</td>
+                      <td>{task.status || "Unknown"}</td>
+                      <td>{task.priority || "-"}</td>
+                      <td>
+                        {task.deadline
+                          ? new Date(task.deadline).toLocaleDateString()
+                          : "-"}
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan="4">No tasks found for this coach.</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div className="data-display">
+        <h3>{menu.name}</h3>
+        <div style={{ padding: "20px" }}>
+          No data is available for this section yet. Please select "Daily Schedule" or "Task Tracker" for current coach data.
+        </div>
+      </div>
+    );
+  };
 
   // Convert tasks to calendar events
   // const getCalendarEvents = () => {
@@ -652,9 +849,9 @@ function AdminDashboard() {
 
       {/* Dashboard Overview */}
       <div className="dashboard-overview">
-        <div className="main-content">
+        <div className="admin-main-content">
           {/* Left Panel */}
-          <div className="left-panel">
+          <div className="admin-left-panel">
             {/* Balagruha Selection */}
             <div className="balagruha-selection">
               <h3>Balagruhas</h3>
@@ -692,9 +889,8 @@ function AdminDashboard() {
                   {balagruhas?.map((bal) => (
                     <div
                       key={bal._id}
-                      className={`balagruha-item ${
-                        selectedBalagruha === bal._id ? "selected" : ""
-                      }`}
+                      className={`balagruha-item ${selectedBalagruha === bal._id ? "selected" : ""
+                        }`}
                       onClick={() => {
                         setSelectedStudents([]);
                         setStudentUserId([]);
@@ -786,9 +982,8 @@ function AdminDashboard() {
                   {adminMenus?.map((menu) => (
                     <div
                       key={menu.id}
-                      className={`menu-item ${
-                        adminMenuSelected === menu.id ? "selected" : ""
-                      }`}
+                      className={`menu-item ${adminMenuSelected === menu.id ? "selected" : ""
+                        }`}
                       onClick={() => setAdminMenuSelected(menu.id)}
                     >
                       {menu.name}
@@ -1040,7 +1235,7 @@ function AdminDashboard() {
           </div>
 
           {/* Right Panel */}
-          <div className="right-panel">
+          <div className="admin-right-panel">
             {/* Coach Selection */}
             {/* <div className="coach-selection">
                             <h3>Coaches</h3>
@@ -1122,14 +1317,9 @@ function AdminDashboard() {
                     coaches.map((coach) => (
                       <div
                         key={coach._id}
-                        className={`coach-item ${
-                          selectedCoach === coach._id ? "selected" : ""
-                        }`}
-                        onClick={() => {
-                          setSelectedCoach(coach._id);
-                          setSelectedBalagruhaOfCoach();
-                          fetchBalagruhaByCoach(coach._id);
-                        }}
+                        className={`coach-item ${selectedCoach === coach._id ? "selected" : ""
+                          }`}
+                        onClick={() => handleCoachSelect(coach._id)}
                       >
                         {coach.name}
                       </div>
@@ -1209,7 +1399,7 @@ function AdminDashboard() {
               </div>
             )} */}
 
-            {balagruhaOfCoach.length > 0 && (
+            {/* {balagruhaOfCoach.length > 0 && (
               <div className="assigned-balagruha">
                 <h3>Assigned Balagruhas</h3>
                 <div
@@ -1240,22 +1430,13 @@ function AdminDashboard() {
                         onClick={() => {
                           setSelectedBalagruhaOfCoach(bal._id);
 
-                          const today = new Date();
-                          const dayOfWeek = today.getDay();
-                          const monday = new Date(today);
-                          monday.setDate(
-                            today.getDate() - ((dayOfWeek + 6) % 7)
+                          const { startDate, endDate } = getCurrentWeekDateRange();
+                          fetchSchedules(
+                            bal._id,
+                            startDate,
+                            endDate,
+                            selectedCoach
                           );
-                          monday.setHours(0, 0, 0, 0);
-
-                          const sunday = new Date(monday);
-                          sunday.setDate(monday.getDate() + 6);
-                          sunday.setHours(23, 59, 59, 999);
-
-                          const startDate = monday.toISOString().slice(0, 10);
-                          const endDate = sunday.toISOString().slice(0, 10);
-
-                          fetchSchedules(bal._id, startDate, endDate);
                         }}
                       >
                         <div>{bal.name}</div>
@@ -1275,7 +1456,7 @@ function AdminDashboard() {
                   </button>
                 </div>
               </div>
-            )}
+            )} */}
 
             {/* Coach Menus */}
             {selectedCoach && (
@@ -1333,9 +1514,8 @@ function AdminDashboard() {
                     {coachMenus?.map((menu) => (
                       <div key={menu.id} style={{ position: "relative" }}>
                         <div
-                          className={`menu-item ${
-                            coachMenuSelected === menu.id ? "selected" : ""
-                          }`}
+                          className={`menu-item ${coachMenuSelected === menu.id ? "selected" : ""
+                            }`}
                           onClick={() => setCoachMenuSelected(menu.id)}
                         >
                           {menu.name}
@@ -1357,76 +1537,22 @@ function AdminDashboard() {
                   </button>
                 </div>
 
-                {/* Display dummy data when coach menu is selected */}
-                {coachMenuSelected && coachMenuSelected !== 1 && (
-                  <div className="data-display">
-                    <h3>
-                      {coachMenus.find((m) => m.id === coachMenuSelected)?.name}
-                    </h3>
-                    <div className="table-container">
-                      <table className="data-table coach-table">
-                        <thead>
-                          <tr>
-                            <th>Name</th>
-                            <th>Status</th>
-                            <th>Date</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {Array(5)
-                            .fill()
-                            .map((_, index) => (
-                              <tr
-                                key={index}
-                                className={index % 2 === 0 ? "even-row" : ""}
-                              >
-                                <td>
-                                  {
-                                    coachMenus.find(
-                                      (m) => m.id === coachMenuSelected
-                                    )?.name
-                                  }{" "}
-                                  Item {index + 1}
-                                </td>
-                                <td>
-                                  <div className="progress-bar-bg">
-                                    <div
-                                      className="progress-bar-fill"
-                                      style={{
-                                        width: `${Math.floor(
-                                          Math.random() * 100
-                                        )}%`,
-                                        backgroundColor:
-                                          index > 3
-                                            ? "#4caf50"
-                                            : index > 1
-                                            ? "#ff9800"
-                                            : "#f44336",
-                                      }}
-                                    ></div>
-                                  </div>
-                                </td>
-                                <td>{new Date().toLocaleDateString()}</td>
-                              </tr>
-                            ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-                )}
+                {renderCoachMenuContent()}
 
                 {/* Weekly Calendar (shown when Daily Schedule is selected) */}
                 {coachMenuSelected === 1 && (
-                  <WeeklyCalendar
-                    currentWeekOffset={currentWeekOffset}
-                    setCurrentWeekOffset={setCurrentWeekOffset}
-                    calendarEvents={schedules}
-                    users={users}
-                    onEventClick={handleEventClick}
-                    fetchSchedules={fetchSchedules}
-                    selectedBalagruhaOfCoach={selectedBalagruhaOfCoach}
-                    // selectedCoach={selectedCoach}
-                  />
+                  <div className="admin-weekly-calendar-wrapper">
+                    <WeeklyCalendar
+                      currentWeekOffset={currentWeekOffset}
+                      setCurrentWeekOffset={setCurrentWeekOffset}
+                      calendarEvents={schedules}
+                      users={users}
+                      onEventClick={handleEventClick}
+                      fetchSchedules={fetchSchedules}
+                      selectedBalagruhaOfCoach={selectedBalagruhaOfCoach}
+                      selectedCoach={selectedCoach}
+                    />
+                  </div>
                 )}
               </div>
             )}

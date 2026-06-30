@@ -3,6 +3,15 @@ const router = express.Router();
 const roleController = require("../controllers/roleController");
 const checkPermission = require("../middleware/checkPermission");
 const { authorize, authenticate } = require("../middleware/auth");
+const {
+  createRole,
+  updateRolePermissions,
+  getAllRoles,
+  getRoleById,
+  deleteRole,
+  getAllRolePermissions,
+  fixAdminUserDeletePermission,
+} = require("../controllers/roleController");
 
 /**
  * @swagger
@@ -266,6 +275,12 @@ router.post(
 );
 
 router.put(
+  "/fix-admin-user-delete",
+  authenticate,
+  fixAdminUserDeletePermission
+);
+
+router.put(
   "/:roleId",
   authenticate,
   authorize("Role Management", "Update"),
@@ -288,4 +303,6 @@ router.delete(
   roleController.deleteRole
 );
 
+
 module.exports = router;
+

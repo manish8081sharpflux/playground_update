@@ -136,7 +136,7 @@
 }
 
 /* Follow-up Card */
-.followup-card {
+.follow-up-card {
   background-color: #f8f9fa;
   border: 1px solid #e0e0e0;
   border-radius: 8px;
@@ -144,16 +144,20 @@
   margin-bottom: 1rem;
 }
 
-.followup-header {
+.follow-up-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 1rem;
 }
 
-.followup-header h5 {
+.follow-up-header h5 {
   margin: 0;
   font-size: 16px;
   font-weight: 600;
   color: #333;
+}
+
+.remove-followup-btn {
+  margin-left: auto;
 }

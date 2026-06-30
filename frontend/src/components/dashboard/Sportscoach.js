@@ -1168,7 +1168,7 @@ const SportCoachDashboard = () => {
     const getTaskDetailsByTaskId = async (id) => {
         try {
             const response = await getTaskBytaskId(id)
-            setSelectedTask(response.data?.task)
+            setSelectedTask(response)
         } catch (err) {
             console.error('Error updating task status:', err);
 

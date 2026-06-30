@@ -117,8 +117,21 @@ const repairRequestController = {
   updateRepairRequest: async (req, res) => {
     try {
       const { id } = req.params;
-      const updateData = req.body;
+      const updateData = { ...req.body };
       let isOfflineReq = isRequestFromLocalhost(req);
+
+      if (updateData.existingAttachments) {
+        try {
+          const parsed = JSON.parse(updateData.existingAttachments);
+          if (Array.isArray(parsed)) {
+            updateData.attachments = parsed;
+          }
+        } catch (parseError) {
+          // ignore invalid JSON and fall back to current attachments
+        }
+        delete updateData.existingAttachments;
+      }
+
       // Handle file attachments if any
       if (req.files && req.files.length > 0) {
         const newAttachments = req.files.map((file) => ({

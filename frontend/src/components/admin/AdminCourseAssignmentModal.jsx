@@ -147,9 +147,9 @@ export default function AdminCourseAssignmentModal({ isOpen, onClose, course, on
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+      <div className="mt-12 bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[85vh] overflow-y-auto">
         {/* Header */}
-        <div className="bg-purple-600 text-white px-6 py-4 flex items-center justify-between rounded-t-lg">
+        <div className="bg-blue-600 text-white px-6 py-4 flex items-center justify-between rounded-t-lg">
           <div>
             <h2 className="text-2xl font-bold">Assign Course (Admin)</h2>
             <p className="text-purple-100 text-sm mt-1">

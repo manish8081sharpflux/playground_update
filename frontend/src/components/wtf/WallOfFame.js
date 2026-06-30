@@ -2629,7 +2629,7 @@ Check console for detailed results.`);
                     <p className="text-gray-600 mb-6">
                       {activeTypeFilters.length
                         ? "Try clearing or changing the filters at the top."
-                        : "The Wall of Fame is waiting for amazing content!"}
+                        : "The Wall of Fame is waiting for amazing content! "}
                       {isAdmin || forceShowAdminControls ? (
                         <span>
                           Create the first pin to get started, or review pending
