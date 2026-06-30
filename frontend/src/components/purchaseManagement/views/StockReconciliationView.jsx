@@ -1,25 +1,31 @@
-import React, { useCallback, useEffect, useState } from 'react';
-import { Search, History, PencilLine, RefreshCw } from 'lucide-react';
-import toast from 'react-hot-toast';
-
-import { api } from '../../../api';
-import StockAdjustmentModal from '../../shop/StockAdjustmentModal';
-import AuditTrailModal from '../../shop/AuditTrailModal';
+import React, { useCallback, useEffect, useState } from "react";
+import { Search, History, PencilLine, RefreshCw } from "lucide-react";
+import toast from "react-hot-toast";
+import { useRBAC } from "../../../contexts/RBACContext";
+import { api } from "../../../api";
+import StockAdjustmentModal from "../../shop/StockAdjustmentModal";
+import AuditTrailModal from "../../shop/AuditTrailModal";
 
 export default function StockReconciliationView() {
+  
+  const { hasPermission } = useRBAC();
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const canCreate = hasPermission("Purchase Management", "Create");
+  const canUpdate = hasPermission("Purchase Management", "Update");
+  const canDelete = hasPermission("Purchase Management", "Delete");
+  const canRead = hasPermission("Purchase Management", "Read");
 
   const [pagination, setPagination] = useState({
     page: 1,
     limit: 50,
     total: 0,
-    pages: 0
+    pages: 0,
   });
 
-  const [searchTerm, setSearchTerm] = useState('');
-  const [categoryFilter, setCategoryFilter] = useState('all');
+  const [searchTerm, setSearchTerm] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState("all");
 
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [auditProduct, setAuditProduct] = useState(null);
@@ -31,25 +37,25 @@ export default function StockReconciliationView() {
 
       const term = searchTerm.trim();
 
-      const response = await api.get('/api/v2/shop/admin/inventory', {
+      const response = await api.get("/api/v2/shop/admin/inventory", {
         params: {
           page: pagination.page,
           limit: pagination.limit,
-          sortBy: 'sku',
-          sortOrder: 'asc',
+          sortBy: "sku",
+          sortOrder: "asc",
           search: term || undefined,
-          category: categoryFilter !== 'all' ? categoryFilter : undefined
-        }
+          category: categoryFilter !== "all" ? categoryFilter : undefined,
+        },
       });
 
       setProducts(response.data.products || []);
-      setPagination(prev => ({
+      setPagination((prev) => ({
         ...prev,
-        ...(response.data.pagination || {})
+        ...(response.data.pagination || {}),
       }));
     } catch (err) {
-      console.error('Error fetching inventory:', err);
-      const message = err.response?.data?.message || 'Failed to load inventory';
+      console.error("Error fetching inventory:", err);
+      const message = err.response?.data?.message || "Failed to load inventory";
       setError(message);
       toast.error(message);
     } finally {
@@ -58,17 +64,20 @@ export default function StockReconciliationView() {
   }, [categoryFilter, pagination.limit, pagination.page, searchTerm]);
 
   useEffect(() => {
-    const debounceTimer = setTimeout(() => {
-      fetchInventory();
-    }, searchTerm ? 300 : 0);
+    const debounceTimer = setTimeout(
+      () => {
+        fetchInventory();
+      },
+      searchTerm ? 300 : 0,
+    );
 
     return () => clearTimeout(debounceTimer);
   }, [fetchInventory, searchTerm]);
 
   const setPage = (newPage) => {
-    setPagination(prev => ({
+    setPagination((prev) => ({
       ...prev,
-      page: newPage
+      page: newPage,
     }));
   };
 
@@ -84,12 +93,16 @@ export default function StockReconciliationView() {
   const closeAudit = () => setAuditProduct(null);
 
   return (
-    <div className="w-full">
+    <div className="w-full" style={{ boxSizing: "border-box" }}>
       <div className="bg-white rounded-lg border border-slate-200 p-4 mb-4">
         <div className="flex items-center justify-between gap-4 flex-wrap">
           <div>
-            <h2 className="text-xl font-bold text-slate-900">Stock Reconciliation</h2>
-            <p className="text-sm text-slate-600 mt-1">Adjust system stock to match physical counts (audit logged)</p>
+            <h2 className="text-xl font-bold text-slate-900">
+              Stock Reconciliation
+            </h2>
+            <p className="text-sm text-slate-600 mt-1">
+              Adjust system stock to match physical counts (audit logged)
+            </p>
           </div>
 
           <button
@@ -97,14 +110,16 @@ export default function StockReconciliationView() {
             disabled={loading}
             className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50"
           >
-            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+            <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
             Refresh
           </button>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Search</label>
+            <label className="block text-sm font-medium text-slate-700 mb-1">
+              Search
+            </label>
             <div className="relative">
               <Search className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
               <input
@@ -120,13 +135,15 @@ export default function StockReconciliationView() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Category</label>
+            <label className="block text-sm font-medium text-slate-700 mb-1">
+              Category
+            </label>
             <select
               value={categoryFilter}
-                onChange={(e) => {
-                  setCategoryFilter(e.target.value);
-                  setPage(1);
-                }}
+              onChange={(e) => {
+                setCategoryFilter(e.target.value);
+                setPage(1);
+              }}
               className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
             >
               <option value="all">All Categories</option>
@@ -158,21 +175,40 @@ export default function StockReconciliationView() {
             <table className="w-full">
               <thead className="bg-slate-50 border-b border-slate-200">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">SKU</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Name</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Category</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">Current Stock</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">Actions</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                    SKU
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                    Name
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                    Category
+                  </th>
+                  <th className="px-6 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">
+                    Current Stock
+                  </th>
+                  {(canUpdate || canRead) && (
+                    <th className="px-6 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">
+                      Actions
+                    </th>
+                  )}
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200">
                 {products.map((product) => (
-                  <tr key={product._id} className="hover:bg-slate-50 transition-colors">
+                  <tr
+                    key={product._id}
+                    className="hover:bg-slate-50 transition-colors"
+                  >
                     <td className="px-6 py-4">
-                      <span className="font-mono text-sm text-slate-700">{product.sku}</span>
+                      <span className="font-mono text-sm text-slate-700">
+                        {product.sku}
+                      </span>
                     </td>
                     <td className="px-6 py-4">
-                      <span className="font-medium text-slate-900">{product.name}</span>
+                      <span className="font-medium text-slate-900">
+                        {product.name}
+                      </span>
                     </td>
                     <td className="px-6 py-4">
                       <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-800 capitalize">
@@ -180,24 +216,30 @@ export default function StockReconciliationView() {
                       </span>
                     </td>
                     <td className="px-6 py-4 text-right">
-                      <span className="font-semibold text-slate-900">{product.stock ?? 0}</span>
+                      <span className="font-semibold text-slate-900">
+                        {product.stock ?? 0}
+                      </span>
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center justify-end gap-2">
-                        <button
-                          onClick={() => openAudit(product)}
-                          className="inline-flex items-center gap-2 px-3 py-2 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors"
-                        >
-                          <History className="w-4 h-4" />
-                          History
-                        </button>
-                        <button
-                          onClick={() => openAdjust(product)}
-                          className="inline-flex items-center gap-2 px-3 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
-                        >
-                          <PencilLine className="w-4 h-4" />
-                          Adjust
-                        </button>
+                        {canRead && (
+                          <button
+                            onClick={() => openAudit(product)}
+                            className="inline-flex items-center gap-2 px-3 py-2 border border-slate-300 ..."
+                          >
+                            <History className="w-4 h-4" />
+                            History
+                          </button>
+                        )}
+                        {canUpdate && (
+                          <button
+                            onClick={() => openAdjust(product)}
+                            className="inline-flex items-center gap-2 px-3 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                          >
+                            <PencilLine className="w-4 h-4" />
+                            Adjust
+                          </button>
+                        )}
                       </div>
                     </td>
                   </tr>
@@ -206,7 +248,9 @@ export default function StockReconciliationView() {
             </table>
 
             {products.length === 0 && (
-              <div className="p-10 text-center text-slate-600">No products found.</div>
+              <div className="p-10 text-center text-slate-600">
+                No products found.
+              </div>
             )}
 
             {pagination.pages > 1 && (
@@ -215,7 +259,9 @@ export default function StockReconciliationView() {
                   {pagination.total > 0 ? (
                     <span>
                       Showing {(pagination.page - 1) * pagination.limit + 1}-
-                      {(pagination.page - 1) * pagination.limit + products.length} of {pagination.total}
+                      {(pagination.page - 1) * pagination.limit +
+                        products.length}{" "}
+                      of {pagination.total}
                     </span>
                   ) : (
                     <span>Showing 0 of 0</span>

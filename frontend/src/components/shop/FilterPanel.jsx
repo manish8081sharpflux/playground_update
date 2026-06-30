@@ -12,7 +12,7 @@ const FilterPanel = ({ filters, onFilterChange, onClearFilters, hideCategoryFilt
     { value: 'Medicines', label: 'Medicines' },
     { value: 'Consumables', label: 'Consumables' },
     { value: 'Repairs', label: 'Repairs' },
-    { value: 'Infra', label: 'Infra' },
+    { value: 'Infra',  label: 'Infra' },
     { value: 'Others', label: 'Others' }
   ];
 
@@ -42,7 +42,7 @@ const FilterPanel = ({ filters, onFilterChange, onClearFilters, hideCategoryFilt
   };
 
   return (
-    <aside className="w-64 bg-white rounded-lg border border-slate-200 p-4 sticky top-20 h-fit">
+    <aside className="w-64 bg-white rounded-lg border border-slate-200 p-4 sticky top-20 h-fit ">
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-lg font-semibold text-slate-900">Filters</h3>
@@ -97,7 +97,7 @@ const FilterPanel = ({ filters, onFilterChange, onClearFilters, hideCategoryFilt
           })}
         </div>
 
-        {/* FIX-043: Selected category pills */}
+        {/* FIX-043: Selected category pills
         {(() => {
           const selected = filters.category
             ? (Array.isArray(filters.category) ? filters.category : [filters.category])
@@ -122,7 +122,7 @@ const FilterPanel = ({ filters, onFilterChange, onClearFilters, hideCategoryFilt
               ))}
             </div>
           ) : null;
-        })()}
+        })()} */}
       </div>
       )}
 

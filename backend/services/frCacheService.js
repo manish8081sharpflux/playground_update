@@ -19,7 +19,14 @@ let cacheEnabled = false;
  */
 function initializeCache() {
   try {
-    const redisUrl = process.env.REDIS_URL || 'redis://localhost:6379';
+    const cacheFlag = String(process.env.FR_CACHE_ENABLED || '').toLowerCase();
+    const redisUrl = process.env.REDIS_URL;
+
+    if (cacheFlag === 'false' || (!redisUrl && cacheFlag !== 'true')) {
+      console.log('FR Cache: Redis disabled. Running without cache.');
+      cacheEnabled = false;
+      return null;
+    }
 
     redisClient = new Redis(redisUrl, {
       retryStrategy: (times) => {

@@ -101,7 +101,6 @@ const VoiceSuggestionModal = ({ open, onClose }) => {
           const newTime = t + 1;
           // Force stop at exactly 60 seconds (1 minute)
           if (newTime >= 60) {
-
             clearInterval(id);
             mr.stop();
             s.getTracks().forEach((track) => track.stop());
@@ -116,7 +115,6 @@ const VoiceSuggestionModal = ({ open, onClose }) => {
       // Backup safety timeout in case the interval fails
       setTimeout(() => {
         if (recording) {
-
           stopRecording();
         }
       }, 60500); // Slightly longer than 60s as a backup
@@ -145,7 +143,6 @@ const VoiceSuggestionModal = ({ open, onClose }) => {
   // Safety effect: force stop if recording exceeds 60 seconds
   React.useEffect(() => {
     if (recording && timer >= 60) {
-
       stopRecording();
     }
   }, [recording, timer]);
@@ -213,7 +210,7 @@ const VoiceSuggestionModal = ({ open, onClose }) => {
             <div className="text-sm text-gray-600 mt-1">
               {`${String(Math.floor((60 - timer) / 60)).padStart(
                 2,
-                "0"
+                "0",
               )}:${String((60 - timer) % 60).padStart(2, "0")}`}
             </div>
             <div className="mt-3">
@@ -433,8 +430,6 @@ const WallOfFameContent = ({ onToggleView }) => {
   useEffect(() => {
     const fetchPins = async () => {
       try {
-
-
         // Build query parameters based on selected category
         const queryParams = {};
         if (selectedCategory.isOfficial && selectedCategory.category) {
@@ -446,14 +441,11 @@ const WallOfFameContent = ({ onToggleView }) => {
 
         const response = await getActiveWtfPins(queryParams);
 
-
         if (response.success && response.data && response.data.pins) {
           const pins = response.data.pins;
 
-
           setContent(pins);
         } else {
-
           setContent([]);
         }
       } catch (error) {
@@ -531,7 +523,9 @@ const WallOfFameContent = ({ onToggleView }) => {
           const viewedPinIds = new Set(
             response.data.interactions
               .filter((interaction) => interaction.type === "seen")
-              .map((interaction) => interaction.pinId?._id || interaction.pinId)
+              .map(
+                (interaction) => interaction.pinId?._id || interaction.pinId,
+              ),
           );
           setViewedPinsFromBackend(viewedPinIds);
         }
@@ -551,7 +545,7 @@ const WallOfFameContent = ({ onToggleView }) => {
         viewedPinsRef.current.has(pinId) || viewedPinsFromBackend.has(pinId)
       );
     },
-    [viewedPinsFromBackend]
+    [viewedPinsFromBackend],
   );
 
   // Function to refresh viewed pins from backend
@@ -567,7 +561,7 @@ const WallOfFameContent = ({ onToggleView }) => {
         const viewedPinIds = new Set(
           response.data.interactions
             .filter((interaction) => interaction.type === "seen")
-            .map((interaction) => interaction.pinId?._id || interaction.pinId)
+            .map((interaction) => interaction.pinId?._id || interaction.pinId),
         );
         setViewedPinsFromBackend(viewedPinIds);
       }
@@ -614,7 +608,7 @@ const WallOfFameContent = ({ onToggleView }) => {
   const handlePinClick = async (item) => {
     // Find the most up-to-date version of this pin from the current content state
     const currentPin = content.find(
-      (pin) => (pin._id || pin.id) === (item._id || item.id)
+      (pin) => (pin._id || pin.id) === (item._id || item.id),
     );
 
     if (currentPin) {
@@ -651,8 +645,8 @@ const WallOfFameContent = ({ onToggleView }) => {
                       seen: (p.engagementMetrics?.seen || 0) + 1,
                     },
                   }
-                : p
-            )
+                : p,
+            ),
           );
           setSelectedContent((prev) => {
             if (!prev) return prev;
@@ -676,7 +670,7 @@ const WallOfFameContent = ({ onToggleView }) => {
           const key = `wtf_viewed_${user?.id || "guest"}`;
           sessionStorage.setItem(
             key,
-            JSON.stringify(Array.from(viewedPinsRef.current))
+            JSON.stringify(Array.from(viewedPinsRef.current)),
           );
         } catch (_) {}
       }
@@ -1137,8 +1131,6 @@ const WallOfFameContent = ({ onToggleView }) => {
   const handleFontSelection = (fontName) => {
     if (!fontName) return;
 
-
-
     // Update preview settings
     const settings = {
       ...previewBgSettings,
@@ -1155,9 +1147,7 @@ const WallOfFameContent = ({ onToggleView }) => {
     setTimeout(() => {
       const isAvailable = checkFontAvailability(fontName);
 
-
       if (!isAvailable) {
-
         forceRefreshFont(fontName);
       }
     }, 500);
@@ -1170,8 +1160,6 @@ const WallOfFameContent = ({ onToggleView }) => {
       alert("No font selected");
       return;
     }
-
-
 
     // Force apply the font
     applyFontGlobally(currentFont);
@@ -1192,25 +1180,19 @@ const WallOfFameContent = ({ onToggleView }) => {
       return;
     }
 
-
-
     // Check if font is available
     const isAvailable = checkFontAvailability(currentFont);
 
-
     // Check current CSS custom property
     const cssVar = getComputedStyle(document.documentElement).getPropertyValue(
-      "--wtf-font-family"
+      "--wtf-font-family",
     );
-
 
     // Check body font
     const bodyFont = getComputedStyle(document.body).fontFamily;
 
-
     // Check html font
     const htmlFont = getComputedStyle(document.documentElement).fontFamily;
-
 
     // Show results
     alert(`Font Test Results:
@@ -1224,8 +1206,6 @@ HTML Font: ${htmlFont}`);
   // Load selected font on component mount and when font changes
   useEffect(() => {
     if (previewBgSettings.fontFamily) {
-
-
       // Apply font immediately
       applyFontGlobally(previewBgSettings.fontFamily);
 
@@ -1233,7 +1213,6 @@ HTML Font: ${htmlFont}`);
       setTimeout(() => {
         const isAvailable = checkFontAvailability(previewBgSettings.fontFamily);
         if (!isAvailable) {
-
           forceRefreshFont(previewBgSettings.fontFamily);
         }
       }, 1000);
@@ -1268,9 +1247,7 @@ HTML Font: ${htmlFont}`);
       setIsSaving(true);
       setBgError("");
 
-
       const response = await updateWtfSettings(previewBgSettings);
-
 
       // Update the context with saved settings
       updateBackgroundSettings(previewBgSettings);
@@ -1283,7 +1260,7 @@ HTML Font: ${htmlFont}`);
       setBgError(
         `Failed to save background: ${
           error.response?.data?.message || error.message
-        }`
+        }`,
       );
       setTimeout(() => setBgError(""), 5000);
     } finally {
@@ -1315,7 +1292,7 @@ HTML Font: ${htmlFont}`);
         });
       }
     },
-    [isDragging, initialPosition.x, initialPosition.y]
+    [isDragging, initialPosition.x, initialPosition.y],
   );
 
   const handleMouseUp = useCallback(() => {
@@ -1347,7 +1324,7 @@ HTML Font: ${htmlFont}`);
         });
       }
     },
-    [isAdminDragging, adminInitialPosition.x, adminInitialPosition.y]
+    [isAdminDragging, adminInitialPosition.x, adminInitialPosition.y],
   );
 
   const handleAdminMouseUp = useCallback(() => {
@@ -1393,7 +1370,7 @@ HTML Font: ${htmlFont}`);
         color: previewBgSettings.fontColor || undefined,
         fontFamily: previewBgSettings.fontFamily
           ? `"${previewBgSettings.fontFamily}", ${getFontCategory(
-              previewBgSettings.fontFamily
+              previewBgSettings.fontFamily,
             )}`
           : undefined,
       };
@@ -1403,7 +1380,7 @@ HTML Font: ${htmlFont}`);
         color: previewBgSettings.fontColor || undefined,
         fontFamily: previewBgSettings.fontFamily
           ? `"${previewBgSettings.fontFamily}", ${getFontCategory(
-              previewBgSettings.fontFamily
+              previewBgSettings.fontFamily,
             )}`
           : undefined,
       };
@@ -1414,13 +1391,11 @@ HTML Font: ${htmlFont}`);
     const file = event.target.files[0];
     if (!file) return;
 
-
-
     // Validate file
     const allowedTypes = ["image/jpeg", "image/png", "image/jpg", "image/webp"];
     if (!allowedTypes.includes(file.type)) {
       setBgError(
-        "Invalid file type. Only JPEG, PNG, and WebP images are allowed"
+        "Invalid file type. Only JPEG, PNG, and WebP images are allowed",
       );
       setTimeout(() => setBgError(""), 3000);
       return;
@@ -1437,12 +1412,9 @@ HTML Font: ${htmlFont}`);
       setIsUploadingBg(true);
       setBgError("");
 
-
       const uploadResponse = await uploadWtfBackgroundImage(file);
 
-
       const imageUrl = uploadResponse.data?.imageUrl || uploadResponse.imageUrl;
-
 
       if (!imageUrl) {
         throw new Error("No image URL returned from upload");
@@ -1465,7 +1437,7 @@ HTML Font: ${htmlFont}`);
       setBgError(
         `Failed to upload image: ${
           error.response?.data?.message || error.message
-        }`
+        }`,
       );
       setTimeout(() => setBgError(""), 5000);
     } finally {
@@ -1474,8 +1446,6 @@ HTML Font: ${htmlFont}`);
   };
 
   const handleCreatePin = async (newPin) => {
-
-
     if (isCoach && newPin.studentId) {
       // This is a coach suggestion
       const suggestionData = {
@@ -1492,7 +1462,7 @@ HTML Font: ${htmlFont}`);
       if (!response.success) {
         throw new Error(response.message || "Failed to submit suggestion");
       }
-      alert("Suggestion submitted successfully! Admin will review it soon.");
+      showToast("Suggestion submitted successfully! Admin will review it soon.", "success");
       setShowCreateModal(false);
     } else if (isStudent) {
       // This is a student submission
@@ -1516,7 +1486,7 @@ HTML Font: ${htmlFont}`);
         // Use multipart/form-data for media
         if (!(newPin.file instanceof File)) {
           throw new Error(
-            "Please upload a valid file for image/video content."
+            "Please upload a valid file for image/video content.",
           );
         }
         const fd = new FormData();
@@ -1536,7 +1506,7 @@ HTML Font: ${htmlFont}`);
       }
 
       alert(
-        "Submission created successfully! It will be reviewed for the Wall of Fame."
+        "Submission created successfully! It will be reviewed for the Wall of Fame.",
       );
       setShowCreateModal(false);
     } else {
@@ -1552,12 +1522,9 @@ HTML Font: ${htmlFont}`);
 
   const handleLikePin = async (pinId) => {
     try {
-
       const resp = await likeWtfPin(pinId, "thumbs_up");
 
-
       setContent((prev) => {
-
         return prev.map((pin) => {
           const currentId = pin.id || pin._id;
           if (currentId !== pinId) return pin;
@@ -1598,12 +1565,9 @@ HTML Font: ${htmlFont}`);
 
   const handleHeartPin = async (pinId) => {
     try {
-
       const resp = await loveWtfPin(pinId);
 
-
       setContent((prev) => {
-
         return prev.map((pin) => {
           const currentId = pin.id || pin._id;
           if (currentId !== pinId) return pin;
@@ -1660,7 +1624,7 @@ HTML Font: ${htmlFont}`);
             };
           }
           return { ...pin, isSeen: true };
-        })
+        }),
       );
     } catch (error) {
       console.error("Error marking pin as seen:", error);
@@ -1772,19 +1736,19 @@ HTML Font: ${htmlFont}`);
                   item.officialCategory === "mann-ki-baat"
                     ? "bg-purple-700"
                     : item.officialCategory === "op-ed"
-                    ? "bg-indigo-600"
-                    : item.officialCategory === "isf-updates"
-                    ? "bg-teal-600"
-                    : "bg-gray-600"
+                      ? "bg-indigo-600"
+                      : item.officialCategory === "isf-updates"
+                        ? "bg-teal-600"
+                        : "bg-gray-600"
                 }`}
               >
                 {item.officialCategory === "mann-ki-baat"
                   ? "🎙️ Mann Ki Baat"
                   : item.officialCategory === "op-ed"
-                  ? "📝 Op Ed"
-                  : item.officialCategory === "isf-updates"
-                  ? "📢 ISF Updates"
-                  : "Official"}
+                    ? "📝 Op Ed"
+                    : item.officialCategory === "isf-updates"
+                      ? "📢 ISF Updates"
+                      : "Official"}
               </Badge>
             )}
           </div>
@@ -1896,8 +1860,6 @@ HTML Font: ${htmlFont}`);
       return;
     }
 
-
-
     // Check various elements
     const elements = [
       { name: "HTML", element: document.documentElement },
@@ -1916,12 +1878,9 @@ HTML Font: ${htmlFont}`);
         const computedStyle = getComputedStyle(element);
         const fontFamily = computedStyle.fontFamily;
 
-
         // Check if our font is in the computed style
         if (fontFamily.includes(currentFont)) {
-
         } else {
-
         }
       }
     });
@@ -1980,9 +1939,10 @@ Check console for detailed results.`);
               className="text-lg font-semibold text-purple-800 mb-3 flex items-center gap-2 cursor-grab active:cursor-grabbing"
               onMouseDown={handleAdminMouseDown}
             >
+              <span className="text-xs text-gray-400 select-none">⠿</span>
               <Settings className="w-5 h-5" />
               Admin Controls
-              <div className="ml-auto flex items-center gap-2">
+              <div className="ml-auto flex items-center gap-1">
                 <button
                   type="button"
                   onMouseDown={(e) => e.stopPropagation()}
@@ -1996,7 +1956,6 @@ Check console for detailed results.`);
                     <ChevronUp className="w-4 h-4" />
                   )}
                 </button>
-                <div className="text-xs text-gray-500">Drag me!</div>
               </div>
             </div>
 
@@ -2078,9 +2037,10 @@ Check console for detailed results.`);
               className="text-md font-semibold text-blue-800 mb-3 flex items-center gap-2 cursor-grab active:cursor-grabbing"
               onMouseDown={handleMouseDown}
             >
+              <span className="text-xs text-gray-400 select-none">⠿</span>
               <Palette className="w-4 h-4" />
               Quick Background Settings
-              <div className="ml-auto flex items-center gap-2">
+              <div className="ml-auto flex items-center gap-1">
                 <button
                   type="button"
                   onMouseDown={(e) => e.stopPropagation()}
@@ -2094,7 +2054,6 @@ Check console for detailed results.`);
                     <ChevronUp className="w-4 h-4" />
                   )}
                 </button>
-                <div className="text-xs text-gray-500">Drag me!</div>
               </div>
             </div>
 
@@ -2160,7 +2119,11 @@ Check console for detailed results.`);
                         className="flex-1 text-xs px-2 py-1 border rounded"
                       >
                         <option value="">Select a font</option>
-                        {[...new Map(googleFonts.map(f => [f.name, f])).values()].map((font) => (
+                        {[
+                          ...new Map(
+                            googleFonts.map((f) => [f.name, f]),
+                          ).values(),
+                        ].map((font) => (
                           <option key={font.name} value={font.name}>
                             {font.name}
                           </option>
@@ -2182,7 +2145,7 @@ Check console for detailed results.`);
                           CSS Variable:{" "}
                           {typeof window !== "undefined"
                             ? getComputedStyle(
-                                document.documentElement
+                                document.documentElement,
                               ).getPropertyValue("--wtf-font-family")
                             : "N/A"}
                         </div>
@@ -2219,7 +2182,7 @@ Check console for detailed results.`);
                             fontFamily: `"${
                               previewBgSettings.fontFamily
                             }", ${getFontCategory(
-                              previewBgSettings.fontFamily
+                              previewBgSettings.fontFamily,
                             )}`,
                           }}
                         >
@@ -2241,13 +2204,13 @@ Check console for detailed results.`);
                           <button
                             onClick={() => {
                               const isAvailable = checkFontAvailability(
-                                previewBgSettings.fontFamily
+                                previewBgSettings.fontFamily,
                               );
 
                               alert(
                                 `Font ${previewBgSettings.fontFamily} is ${
                                   isAvailable ? "available" : "not available"
-                                }`
+                                }`,
                               );
                             }}
                             className="text-xs px-2 py-1 bg-green-100 text-green-700 rounded hover:bg-green-200"
@@ -2331,7 +2294,7 @@ Check console for detailed results.`);
                           setPreviewBgSettings(settings);
                           setHasUnsavedChanges(true);
                           setBgSuccess(
-                            "Test image applied! Click Save to apply."
+                            "Test image applied! Click Save to apply.",
                           );
                           setTimeout(() => setBgSuccess(""), 3000);
                         }}
@@ -2537,28 +2500,28 @@ Check console for detailed results.`);
                       selectedCategory.category === "mann-ki-baat"
                         ? "bg-purple-700"
                         : selectedCategory.category === "op-ed"
-                        ? "bg-indigo-600"
-                        : selectedCategory.category === "isf-updates"
-                        ? "bg-teal-600"
-                        : "bg-purple-600"
+                          ? "bg-indigo-600"
+                          : selectedCategory.category === "isf-updates"
+                            ? "bg-teal-600"
+                            : "bg-purple-600"
                     }`}
                   >
                     {selectedCategory.category === "mann-ki-baat"
                       ? "🎙️ Mann Ki Baat"
                       : selectedCategory.category === "op-ed"
-                      ? "📝 Op Ed"
-                      : selectedCategory.category === "isf-updates"
-                      ? "📢 ISF Updates"
-                      : "📢 Official Content"}
+                        ? "📝 Op Ed"
+                        : selectedCategory.category === "isf-updates"
+                          ? "📢 ISF Updates"
+                          : "📢 Official Content"}
                   </Badge>
                   <p className="text-sm text-gray-600 mt-2">
                     {selectedCategory.category === "mann-ki-baat"
                       ? "Official podcasts and audio content from ISF"
                       : selectedCategory.category === "op-ed"
-                      ? "Opinion editorial content and articles"
-                      : selectedCategory.category === "isf-updates"
-                      ? "Official ISF announcements and updates"
-                      : "Official ISF content curated for the community"}
+                        ? "Opinion editorial content and articles"
+                        : selectedCategory.category === "isf-updates"
+                          ? "Official ISF announcements and updates"
+                          : "Official ISF content curated for the community"}
                   </p>
                 </div>
               )}
@@ -2593,7 +2556,7 @@ Check console for detailed results.`);
                         <div key={opt.key}>
                           <div className="flex items-center gap-2 mb-3">
                             {renderTypeIcon(
-                              opt.key === "image" ? "photo" : opt.key
+                              opt.key === "image" ? "photo" : opt.key,
                             )}
                             <h3 className="text-xl font-semibold">
                               {opt.label} ({items.length})
@@ -2740,30 +2703,30 @@ Check console for detailed results.`);
         <>
           {/* Debug info */}
 
-                  <ImageViewer
-          isOpen={true}
-          onClose={closeModal}
-          imageSrc={selectedContent.mediaUrl || selectedContent.content}
-          title={selectedContent.title}
-          author={selectedContent.author}
-          caption={selectedContent.caption}
-          likes={selectedContent.engagementMetrics?.likes || 0}
-          hearts={selectedContent.engagementMetrics?.loves || 0}
-          views={selectedContent.engagementMetrics?.seen || 0}
-          isOfficial={selectedContent.isOfficial}
-          officialCategory={selectedContent.officialCategory}
-          onLike={() =>
-            handleLikePin(selectedContent.id || selectedContent._id)
-          }
-          onHeart={() =>
-            handleHeartPin(selectedContent.id || selectedContent._id)
-          }
-          isStudent={isStudent}
-          studentName={selectedContent.studentName}
-          balagruha={selectedContent.balagruha}
-          metadata={selectedContent.metadata}
-          createdAt={selectedContent.createdAt}
-        />
+          <ImageViewer
+            isOpen={true}
+            onClose={closeModal}
+            imageSrc={selectedContent.mediaUrl || selectedContent.content}
+            title={selectedContent.title}
+            author={selectedContent.author}
+            caption={selectedContent.caption}
+            likes={selectedContent.engagementMetrics?.likes || 0}
+            hearts={selectedContent.engagementMetrics?.loves || 0}
+            views={selectedContent.engagementMetrics?.seen || 0}
+            isOfficial={selectedContent.isOfficial}
+            officialCategory={selectedContent.officialCategory}
+            onLike={() =>
+              handleLikePin(selectedContent.id || selectedContent._id)
+            }
+            onHeart={() =>
+              handleHeartPin(selectedContent.id || selectedContent._id)
+            }
+            isStudent={isStudent}
+            studentName={selectedContent.studentName}
+            balagruha={selectedContent.balagruha}
+            metadata={selectedContent.metadata}
+            createdAt={selectedContent.createdAt}
+          />
         </>
       )}
 

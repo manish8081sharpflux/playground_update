@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useRBAC } from "../../contexts/RBACContext";
 import "./machineManagement.css";
 import {
   BarChart,
@@ -25,6 +26,7 @@ import {
 } from "../../api";
 
 const MachineManagement = () => {
+  const { hasPermission } = useRBAC();
   const [view, setView] = useState("report"); // 'dashboard', 'detail', 'report'
   const [machines, setMachines] = useState([]);
   const [selectedMachine, setSelectedMachine] = useState(null);
@@ -65,13 +67,12 @@ const MachineManagement = () => {
   const handleAssignBalagruha = async (e) => {
     e.preventDefault();
 
-
     let data = {
       newBalagruha: selectedBalagruha,
     };
     const response = await assignMachineToAnotherBalagruha(
       selectedMachine?._id,
-      data
+      data,
     );
     getMachinesData();
     setShowAssignModal(false);
@@ -183,15 +184,15 @@ const MachineManagement = () => {
     const totalMachines = machines.length;
     const activeMachines = machines.filter((m) => m.status === "active").length;
     const inactiveMachines = machines.filter(
-      (m) => m.status === "inactive"
+      (m) => m.status === "inactive",
     ).length;
     const maintenanceMachines = machines.filter(
-      (m) => m.status === "maintenance"
+      (m) => m.status === "maintenance",
     ).length;
 
     // Sort by usage hours to find highest and lowest
     const sortedByUsage = [...machines].sort(
-      (a, b) => b.usageHours - a.usageHours
+      (a, b) => b.usageHours - a.usageHours,
     );
     const highestUsage = sortedByUsage.length > 0 ? sortedByUsage[0] : null;
     const lowestUsage =
@@ -200,7 +201,7 @@ const MachineManagement = () => {
     // Calculate average usage
     const totalUsageHours = machines.reduce(
       (sum, machine) => sum + machine.usageHours,
-      0
+      0,
     );
     const averageUsage =
       totalMachines > 0 ? (totalUsageHours / totalMachines).toFixed(1) : 0;
@@ -355,7 +356,7 @@ const MachineManagement = () => {
   const indexOfFirstMachine = indexOfLastMachine - machinesPerPage;
   const currentMachines = filteredMachines.slice(
     indexOfFirstMachine,
-    indexOfLastMachine
+    indexOfLastMachine,
   );
   const totalPages = Math.ceil(filteredMachines.length / machinesPerPage);
   const pageStart = filteredMachines.length === 0 ? 0 : indexOfFirstMachine + 1;
@@ -403,7 +404,7 @@ const MachineManagement = () => {
           📝 Machine Reports
         </button>
 
-        {localStorage.getItem("role") !== "purchase-manager" && (
+        {hasPermission('Machine Management', 'Create') && (
           <button
             className="add-machine-button"
             onClick={() => setShowAddForm(!showAddForm)}
@@ -505,7 +506,9 @@ const MachineManagement = () => {
           <div className="recent-activity">
             <h3>Recent Machine Activity</h3>
             <div className="activity-list">
-              {(calculateMetrics().recentEvents || []).slice(0, 5).map((event, index) => (
+              {(calculateMetrics().recentEvents || [])
+                .slice(0, 5)
+                .map((event, index) => (
                   <div key={index} className="activity-item">
                     <div className="activity-icon">🔄</div>
                     <div className="activity-details">
@@ -851,30 +854,36 @@ const MachineManagement = () => {
                                             </div>
                                         </div> */}
 
-                    <button
-                      className="view-details-button"
-                      onClick={() => toggleStatus(machine?._id)}
-                    >
-                      Toggle Status
-                    </button>
-                    <button
-                      className="view-details-button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setSelectedMachine(machine);
-                        setShowAssignModal(true);
-                      }}
-                    >
-                      Assign to Balagruha
-                    </button>
-                    <button
-                      className="view-details-button"
-                      onClick={() => {
-                        deleteMachines(machine?._id);
-                      }}
-                    >
-                      Delete Machine
-                    </button>
+                    {hasPermission("Machine Management", "Update") && (
+                      <button
+                        className="view-details-button"
+                        onClick={() => toggleStatus(machine?._id)}
+                      >
+                        Toggle Status
+                      </button>
+                    )}
+
+                    {hasPermission("Machine Management", "Update") && (
+                      <button
+                        className="view-details-button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedMachine(machine);
+                          setShowAssignModal(true);
+                        }}
+                      >
+                        Assign to Balagruha
+                      </button>
+                    )}
+
+                    {hasPermission("Machine Management", "Delete") && (
+                      <button
+                        className="view-details-button"
+                        onClick={() => deleteMachines(machine?._id)}
+                      >
+                        Delete Machine
+                      </button>
+                    )}
                   </div>
                 ))}
 
@@ -1022,7 +1031,7 @@ const MachineManagement = () => {
           )}
         </>
       )}
-      
+
       {/* 
             {view === 'detail' && selectedMachine && (
                 <div className="machine-detail">
