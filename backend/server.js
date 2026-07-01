@@ -1,6 +1,8 @@
 const express = require("express");
 const mongoose = require("mongoose");
+const path = require("path");
 const dotenv = require("dotenv");
+dotenv.config({ path: path.resolve(__dirname, ".env") });
 dotenv.config();
 const cors = require("cors");
 const userRoutes = require("./routes/userRoutes");
@@ -61,7 +63,6 @@ const lmsCoachGeneralRoutes = require("./routes/v2/lms/coach"); // Sprint 2 Epic
 
 const { exec } = require("child_process"); // For executing shell commands
 const fs = require("fs"); // For file system operations
-const path = require("path");
 // const faceapi = require("face-api.js"); // REMOVED - Task 1: FR Rebuild
 
 // ADDED - Task 2: FR Rebuild with @vladmandic/human
@@ -191,10 +192,16 @@ app.use("/api/v2/lms/coach", lmsCoachAssignmentsRoutes); // Sprint 2 Epic 03: Co
 app.use("/api/v2/lms/coach/grading", lmsCoachGradingRoutes); // Sprint 2 Epic 03: Coach Grading Interface (requires coach auth)
 app.use("/api/v2/lms/coach", lmsCoachGeneralRoutes); // Sprint 2 Epic 03: Manual Awards & Reports
 
-const dbConnection =
-  process.env.NODE_ENV === "local"
-    ? process.env.MONGO_URI_LOCAL
-    : process.env.MONGO_URI;
+const getMongoConnectionString = () => {
+  const remoteUri = process.env.MONGO_URI || process.env.MONGODB_URI;
+  const localUri = process.env.MONGO_URI_LOCAL || remoteUri;
+
+  return process.env.NODE_ENV === "local"
+    ? localUri || "mongodb://localhost:27017/isfplayground"
+    : remoteUri || localUri || "mongodb://localhost:27017/isfplayground";
+};
+
+const dbConnection = getMongoConnectionString();
 
 mongoose
   .connect(dbConnection, { useNewUrlParser: true, useUnifiedTopology: true })

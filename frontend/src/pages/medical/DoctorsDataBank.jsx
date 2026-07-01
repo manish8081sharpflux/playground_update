@@ -188,8 +188,8 @@ export default function DoctorsDataBank() {
   };
 
   return (
-    <div className="min-h-screen w-full bg-slate-50">
-      <div className="w-full max-w-none px-6 py-6">
+    <div className="min-h-screen bg-slate-50 w-full">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {/* Header */}
         <div className="flex items-start justify-between mb-6">
           <div>

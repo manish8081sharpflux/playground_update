@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useRBAC } from "../../../contexts/RBACContext";
 import {
   createPurchase,
   deletePurchase,
@@ -19,6 +20,11 @@ dayjs.extend(isSameOrAfter);
 dayjs.extend(isSameOrBefore);
 
 export default function MachineRepairsView() {
+  const { hasPermission } = useRBAC();
+  const canCreate = hasPermission("Purchase Management", "Create");
+  const canUpdate = hasPermission("Purchase Management", "Update");
+  const canDelete = hasPermission("Purchase Management", "Delete");
+  const canRead = hasPermission("Purchase Management", "Read");
   const [purchaseForm, setPurchaseForm] = useState({
     balagruhaId: "",
     status: "",
@@ -174,7 +180,7 @@ export default function MachineRepairsView() {
         showToast(
           "Error deleting purchase order: " +
             (response.message || "Unknown error"),
-          "error"
+          "error",
         );
       }
       setShowDeletePurchaseConfirmation(false);
@@ -183,7 +189,7 @@ export default function MachineRepairsView() {
       console.error("Error deleting purchase order:", error);
       showToast(
         "Error deleting purchase order: " + (error.message || "Unknown error"),
-        "error"
+        "error",
       );
     } finally {
       setLoading(false);
@@ -200,14 +206,14 @@ export default function MachineRepairsView() {
         showToast(
           "Error fetching purchase orders: " +
             (response.message || "Unknown error"),
-          "error"
+          "error",
         );
       }
     } catch (error) {
       console.error("Error fetching purchase orders:", error);
       showToast(
         "Error fetching purchase orders: " + (error.message || "Unknown error"),
-        "error"
+        "error",
       );
     } finally {
       setLoading(false);
@@ -278,7 +284,7 @@ export default function MachineRepairsView() {
           editingItem
             ? "Purchase order updated successfully"
             : "Purchase order created successfully",
-          "success"
+          "success",
         );
         setShowPurchaseModal(false);
         fetchPurchaseOrders();
@@ -308,21 +314,21 @@ export default function MachineRepairsView() {
       } else {
         showToast(
           "Error fetching balagruha: " + (response.message || "Unknown error"),
-          "error"
+          "error",
         );
       }
     } catch (error) {
       console.error("Error fetching balagruha:", error);
       showToast(
         "Error fetching balagruha: " + (error.message || "Unknown error"),
-        "error"
+        "error",
       );
     }
   };
 
   // const filteredBalagruhas = purchaseOrders.filter((bal) => {
-  //   
-  //   
+  //
+  //
   //   if(filterBalagruha !== "all") {
   //       return bal.balagruhaId === filterBalagruha
   //   }
@@ -399,7 +405,7 @@ export default function MachineRepairsView() {
 
     if (selectDate === "custom" && fromDate && toDate) {
       filterInfo = `Date Range: ${dayjs(fromDate).format(
-        "DD-MM-YYYY"
+        "DD-MM-YYYY",
       )} to ${dayjs(toDate).format("DD-MM-YYYY")}`;
     } else if (selectDate === "today") {
       filterInfo = `Date: ${today.format("DD-MM-YYYY")}`;
@@ -410,19 +416,19 @@ export default function MachineRepairsView() {
         ? today
         : today.endOf("week");
       filterInfo = `Date Range: ${startOfWeek.format(
-        "DD-MM-YYYY"
+        "DD-MM-YYYY",
       )} to ${endOfWeek.format("DD-MM-YYYY")}`;
     } else if (selectDate === "thisMonth") {
       const startOfMonth = today.startOf("month");
       const endOfMonth = today.endOf("month");
       filterInfo = `Date Range: ${startOfMonth.format(
-        "DD-MM-YYYY"
+        "DD-MM-YYYY",
       )} to ${endOfMonth.format("DD-MM-YYYY")}`;
     } else if (selectDate === "lastMonth") {
       const startOfLastMonth = today.subtract(1, "month").startOf("month");
       const endOfLastMonth = today.subtract(1, "month").endOf("month");
       filterInfo = `Date Range: ${startOfLastMonth.format(
-        "DD-MM-YYYY"
+        "DD-MM-YYYY",
       )} to ${endOfLastMonth.format("DD-MM-YYYY")}`;
     } else {
       filterInfo = "Date Filter: All";
@@ -447,7 +453,7 @@ export default function MachineRepairsView() {
       req.vendorDetails || "",
       req.requiredParts || "",
       req.balagruhaId?.name || req.balagruhaName || "",
-      `₹${req.costEstimate || 0}`,
+      `Rs. ${req.costEstimate || 0}`,
       dayjs(req.createdAt).format("DD-MM-YYYY"),
       req.status || "",
     ]);
@@ -464,12 +470,12 @@ export default function MachineRepairsView() {
     // --- 3. Total Cost Summary ---
     const totalCost = filteredPurchaseOrders.reduce(
       (acc, curr) => acc + (curr.costEstimate || 0),
-      0
+      0,
     );
     const finalY = doc.lastAutoTable.finalY || 30;
 
     doc.setFontSize(11);
-    doc.text(`Total Estimated Cost: ₹${totalCost}`, 14, finalY + 10);
+    doc.text(`Total Estimated Cost: Rs. ${totalCost}`, 14, finalY + 10);
 
     // --- 4. Save ---
     doc.save("PurchaseOrders.pdf");
@@ -567,22 +573,26 @@ export default function MachineRepairsView() {
           )}
         </div>
         <div className="purchase-section-header">
-      <h2>Purchase Orders</h2>
+          <h2>Purchase Orders</h2>
           <div>
-            <button
-              className="purchase-action-button"
-              onClick={() => openPurchaseModal()}
-              disabled={loading}
-            >
-              + New Purchase Request
-            </button>
-            <button
-              className="purchase-action-button"
-              style={{ marginLeft: "20px" }}
-              onClick={exportPurchaseOrdersToPDF}
-            >
-              Export Data
-            </button>
+            {canCreate && (
+              <button
+                className="purchase-action-button"
+                onClick={() => openPurchaseModal()}
+                disabled={loading}
+              >
+                + New Purchase Request
+              </button>
+            )}
+            {canRead && (
+              <button
+                className="purchase-action-button"
+                style={{ marginLeft: "20px" }}
+                onClick={exportPurchaseOrdersToPDF}
+              >
+                Export Data
+              </button>
+            )}
           </div>
         </div>
         <div
@@ -630,51 +640,80 @@ export default function MachineRepairsView() {
 
         <div className="purchase-data-table">
           {loading ? (
-            <div className="loading-spinner">Loading...</div>
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                padding: "60px 20px",
+              }}
+            >
+              <div className="loading-spinner"></div>
+              <p
+                style={{
+                  marginTop: "16px",
+                  color: "#6b7280",
+                  fontSize: "14px",
+                }}
+              >
+                Loading...
+              </p>
+            </div>
           ) : (
             <table>
               <thead>
                 <tr>
-                  <th>Order ID</th>
                   <th>Machine Details</th>
                   <th>Vendor Details</th>
                   <th>Required Materials</th>
                   <th>Balagruha</th>
+                  <th>Created Date</th>
                   <th>Status</th>
                   <th>Cost Estimate</th>
-                  <th>Actions</th>
+                  {(canUpdate || canDelete) && <th>Actions</th>}
                 </tr>
               </thead>
               <tbody>
                 {filteredPurchaseOrders.map((order) => (
                   <tr key={order._id}>
-                    <td>{order._id}</td>
                     <td>{order.machineDetails}</td>
                     <td>{order.vendorDetails}</td>
                     <td>{order.requiredParts}</td>
                     <td>
                       {order.balagruhaId?.name || order.balagruhaName || "N/A"}
                     </td>
+                    <td>
+                      {order.createdAt
+                        ? dayjs(order.createdAt).format("DD MMM YYYY")
+                        : "N/A"}
+                    </td>
                     <td>{order?.status}</td>
                     <td>₹{order.costEstimate}</td>
-                    <td className="action-buttons">
-                      <button
-                        className="purchase-icon-button edit"
-                        onClick={() => openPurchaseModal(order)}
-                        disabled={loading}
-                        title="Edit"
-                      >
-                        ✏️
-                      </button>
-                      <button
-                        className="purchase-icon-button delete"
-                        onClick={() => handleDeletePurchase(order._id)}
-                        disabled={loading}
-                        title="Delete"
-                      >
-                        🗑️
-                      </button>
-                    </td>
+                    {(canUpdate || canDelete) && (
+                      <td className="action-buttons">
+                        {canUpdate && (
+                          <button
+                            className="purchase-icon-button edit"
+                            onClick={() => openPurchaseModal(order)}
+                            disabled={loading}
+                            title="Edit"
+                          >
+                            ✏️
+                          </button>
+                        )}
+                        {canDelete && (
+                          <button
+                            className="purchase-icon-button delete"
+                            onClick={() => handleDeletePurchase(order._id)}
+                            disabled={loading}
+                            title="Delete"
+                          >
+                            🗑️
+                          </button>
+                        )}
+                      </td>
+                    )}
                   </tr>
                 ))}
               </tbody>
@@ -880,7 +919,7 @@ export default function MachineRepairsView() {
                                         ...prev,
                                         existingAttachments:
                                           prev.existingAttachments.filter(
-                                            (_, i) => i !== index
+                                            (_, i) => i !== index,
                                           ),
                                       }));
                                     }}
@@ -889,7 +928,7 @@ export default function MachineRepairsView() {
                                   </button>
                                 </div>
                               </div>
-                            )
+                            ),
                           )}
                         </div>
                       </div>
@@ -936,8 +975,8 @@ export default function MachineRepairsView() {
                   {loading
                     ? "Processing..."
                     : editingItem
-                    ? "Update Order"
-                    : "Create Order"}
+                      ? "Update Order"
+                      : "Create Order"}
                 </button>
               </div>
             </form>

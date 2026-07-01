@@ -39,7 +39,8 @@ const validateProductCreate = [
     .withMessage('Invalid purchaseCategory. Must be one of: ISF Shop, Medicines, Repairs, Consumables, Infra, Others'),
 
   body('price')
-    .notEmpty().withMessage('Price is required')
+    .trim()
+    .notEmpty().withMessage('Price is required').bail()
     .isInt({ min: 1 }).withMessage('Price must be a positive integer (coins)'),
 
   body('discountPrice')

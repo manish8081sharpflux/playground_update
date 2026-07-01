@@ -41,7 +41,7 @@ export default function PurchaseManagement() {
       </div>
 
       {/* Content View based on selected purchase type */}
-      <div className="purchase-content">
+      <div className="purchase-content" style={{ minHeight: '80vh' }}>
         {purchaseType === 'machine-repairs' && (
           <MachineRepairsView />
         )}

@@ -270,7 +270,7 @@ const TransactionReports = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center main-content main-content-full-page">
         <div className="text-center">
           <Loader className="w-12 h-12 text-purple-600 animate-spin mx-auto mb-4" />
           <p className="text-lg font-medium text-gray-900">Loading transaction reports...</p>

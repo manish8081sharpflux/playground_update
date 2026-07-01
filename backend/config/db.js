@@ -1,14 +1,18 @@
 const mongoose = require("mongoose");
 
+const path = require("path");
 const dotenv = require("dotenv");
+dotenv.config({ path: path.resolve(__dirname, "..", ".env") });
 dotenv.config();
 
 const connectDB = async () => {
   try {
+    const remoteUri = process.env.MONGO_URI || process.env.MONGODB_URI;
+    const localUri = process.env.MONGO_URI_LOCAL || remoteUri;
     const mongoURI =
       process.env.NODE_ENV === "local"
-        ? process.env.MONGO_URI_LOCAL
-        : process.env.MONGO_URI;
+        ? localUri || "mongodb://localhost:27017/isfplayground"
+        : remoteUri || localUri || "mongodb://localhost:27017/isfplayground";
 
     const conn = await mongoose.connect(mongoURI, {
       useNewUrlParser: true,
