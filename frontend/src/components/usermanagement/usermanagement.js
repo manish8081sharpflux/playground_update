@@ -62,7 +62,10 @@ const UserManagement = () => {
   const canCreateUser = canCreate("User Management");
   const canReadUser = canRead("User Management");
   const canUpdateUser = canUpdate("User Management");
-  const canDeleteUser = canDelete("User Management");
+  const isAdmin = localStorage.getItem("role") === "admin";
+
+  const canDeleteUser =
+    isAdmin || canDelete("User Management");
 
   const storedRoleRaw = localStorage.getItem("role") || "";
   const storedRole = storedRoleRaw.toLowerCase();
@@ -623,16 +626,15 @@ const UserManagement = () => {
 
             <button
               type="button"
-              className={`advanced-search-button ${
-                hasActiveAdvancedFilters ? "active" : ""
-              }`}
+              className={`advanced-search-button ${hasActiveAdvancedFilters ? "active" : ""
+                }`}
               onClick={() => setShowAdvancedSearch(true)}
             >
               Advanced Search
               {hasActiveAdvancedFilters && <span className="filter-dot"></span>}
             </button>
-            
-              {canCreateUser && (
+
+            {canCreateUser && (
               <button
                 className={`tab add-user-tab ${view === "add" ? "active" : ""}`}
                 onClick={() => {
@@ -719,8 +721,8 @@ const UserManagement = () => {
                       </label>
                     </>
                   ) : ["coach", "medical-incharge", "sports-coach", "music-coach"].includes(
-                      localStorage.getItem("role")
-                    ) ? (
+                    localStorage.getItem("role")
+                  ) ? (
                     <label className="advanced-filter-field">
                       <span>Balagruha</span>
                       <select
@@ -832,10 +834,10 @@ const UserManagement = () => {
                       <td>
                         <div className="user-name-cell">
                           <div
-                           
+
                             style={{ backgroundColor: getRoleColor(user.role) }}
                           >
-                          
+
                           </div>
                           <span>{user.name}</span>
                         </div>
@@ -1063,10 +1065,10 @@ const UserManagement = () => {
                       {event.action === "Login"
                         ? "🔑"
                         : event.action === "Logout"
-                        ? "👋"
-                        : event.action === "Password Change"
-                        ? "🔒"
-                        : "✏️"}
+                          ? "👋"
+                          : event.action === "Password Change"
+                            ? "🔒"
+                            : "✏️"}
                     </div>
                     <div className="timeline-content">
                       <div className="timeline-time">{formatDate(event.timestamp)}</div>

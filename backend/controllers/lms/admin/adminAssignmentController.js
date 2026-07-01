@@ -198,3 +198,155 @@ exports.getAllAssignments = async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 };
+
+/**
+ * PUT /api/v2/lms/admin/courses/assignments/:assignmentId
+ * Admin updates an assignment (due date, status)
+ */
+exports.updateAssignment = async (req, res) => {
+  try {
+    const { assignmentId } = req.params;
+    const { courseId, assignedTo, dueDate, status, notifications } = req.body;
+
+    if (!mongoose.Types.ObjectId.isValid(assignmentId)) {
+      return res.status(400).json({ error: "Invalid assignment ID" });
+    }
+
+    const assignment = await CourseAssignment.findById(assignmentId);
+
+    if (!assignment) {
+      return res.status(404).json({ error: "Assignment not found" });
+    }
+
+    if (courseId) {
+      if (!mongoose.Types.ObjectId.isValid(courseId)) {
+        return res.status(400).json({ error: "Invalid course ID" });
+      }
+      const course = await Course.findById(courseId);
+      if (!course) {
+        return res.status(404).json({ error: "Course not found" });
+      }
+      if (course.status !== "published") {
+        return res.status(400).json({ error: "Can only assign published courses" });
+      }
+      assignment.courseId = courseId;
+    }
+
+    if (assignedTo) {
+      if (!assignedTo.type || !["balagruha", "students"].includes(assignedTo.type)) {
+        return res.status(400).json({ error: "Invalid assignedTo.type" });
+      }
+
+      let studentIds = [];
+      let balagruhaIds = [];
+
+      if (assignedTo.type === "balagruha") {
+        balagruhaIds = assignedTo.balagruhaIds || [];
+        if (!Array.isArray(balagruhaIds) || balagruhaIds.length === 0) {
+          return res.status(400).json({ error: "No Balagruhas selected" });
+        }
+
+        const studentsInBalagruhas = await User.find({
+          balagruhaIds: { $in: balagruhaIds },
+          role: "student",
+        });
+        studentIds = studentsInBalagruhas.map((s) => s._id.toString());
+
+        assignment.assignedTo = {
+          type: "balagruha",
+          balagruhaIds: balagruhaIds.map((id) => new mongoose.Types.ObjectId(id)),
+          balagruhaId: balagruhaIds[0] ? new mongoose.Types.ObjectId(balagruhaIds[0]) : null,
+          studentIds: studentIds.map((id) => new mongoose.Types.ObjectId(id)),
+        };
+      } else {
+        studentIds = assignedTo.studentIds || [];
+        if (!Array.isArray(studentIds) || studentIds.length === 0) {
+          return res.status(400).json({ error: "No students selected" });
+        }
+
+        assignment.assignedTo = {
+          type: "students",
+          balagruhaIds: [],
+          balagruhaId: null,
+          studentIds: studentIds.map((id) => new mongoose.Types.ObjectId(id)),
+        };
+      }
+
+      assignment.progress.totalStudents = studentIds.length;
+      assignment.progress.studentsStarted = 0;
+      assignment.progress.studentsCompleted = 0;
+      assignment.progress.averageCompletionPercentage = 0;
+    }
+
+    if (dueDate !== undefined) {
+      if (dueDate === null) {
+        assignment.dueDate = null;
+      } else {
+        const dueDateObj = new Date(dueDate);
+        const todayStart = new Date();
+        todayStart.setHours(0, 0, 0, 0);
+        if (dueDateObj < todayStart) {
+          return res.status(400).json({ error: "Due date must be today or in the future" });
+        }
+        assignment.dueDate = dueDateObj;
+      }
+    }
+
+    if (status) {
+      if (!["active", "completed", "expired", "cancelled"].includes(status)) {
+        return res.status(400).json({ error: "Invalid status" });
+      }
+      assignment.status = status;
+    }
+
+    if (notifications) {
+      if (typeof notifications.inApp !== 'undefined') {
+        assignment.notifications.inApp = !!notifications.inApp;
+      }
+      if (typeof notifications.email !== 'undefined') {
+        assignment.notifications.email = !!notifications.email;
+      }
+    }
+
+    await assignment.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Assignment updated successfully",
+      data: assignment,
+    });
+  } catch (error) {
+    errorLogger.error({ err: error }, "Error updating admin assignment:");
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+/**
+ * DELETE /api/v2/lms/admin/courses/assignments/:assignmentId
+ * Admin permanently deletes an assignment
+ */
+exports.deleteAssignment = async (req, res) => {
+  try {
+    const { assignmentId } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(assignmentId)) {
+      return res.status(400).json({ error: "Invalid assignment ID" });
+    }
+
+    const assignment = await CourseAssignment.findById(assignmentId);
+
+    if (!assignment) {
+      return res.status(404).json({ error: "Assignment not found" });
+    }
+
+    await CourseAssignment.findByIdAndDelete(assignmentId);
+
+    res.status(200).json({
+      success: true,
+      message: "Assignment deleted successfully",
+    });
+  } catch (error) {
+    errorLogger.error({ err: error }, "Error deleting admin assignment:");
+    res.status(500).json({ error: "Internal server error" });
+  }
+};

@@ -53,7 +53,7 @@ export default function ArtGradingInterface({ submission, onClose, coachId, onNa
   };
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="mt-12 min-h-screen bg-white">
       {/* Header */}
       <div className="bg-blue-600 text-white px-6 py-4 flex items-center justify-between border-b border-blue-700">
         <h2 className="text-xl font-bold">
@@ -114,7 +114,7 @@ export default function ArtGradingInterface({ submission, onClose, coachId, onNa
 
           {/* Image Container */}
           <div className="border border-gray-300 rounded-lg p-4 bg-gray-50 flex items-center justify-center overflow-auto"
-            style={{ maxHeight: '600px' }}>
+            style={{ height: '350px' }}>
             <img
               src={submission.fileUrl}
               alt={submission.taskTitle}

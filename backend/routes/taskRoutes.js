@@ -17,12 +17,11 @@ router.post(
   taskController.createTaskV1
 );
 
-// Update an existing task (with file upload)
+// Update an existing task
 router.put(
   "/:id",
   authenticate, // Ensure the user is authenticated
   authorize("Task Management", "Update"), // Ensure the user has permission to update tasks
-  upload.array("attachments", 5), // Allow up to 5 file uploads
   updateTask
 );
 

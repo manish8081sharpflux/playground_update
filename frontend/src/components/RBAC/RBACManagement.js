@@ -74,37 +74,47 @@ const RBACManagement = () => {
         });
 
         // Transform API roles to our format
-        const transformedRoles = apiResponse.roles.map((role, index) => {
-          // Convert API permissions to our internal format
-          const permissionsObj = {};
+        const transformedRoles = apiResponse.roles
+          .filter((role) => role.roleName.toLowerCase() !== "admin")
+          .map((role, index) => {
+            const permissionsObj = {};
 
-          // Initialize all modules with all actions set to false
-          modulesList.forEach((module) => {
-            permissionsObj[module.id] = {
-              create: false,
-              read: false,
-              update: false,
-              delete: false,
-            };
-          });
-
-          // Set the enabled permissions based on API data
-          role.permissions.forEach((permission) => {
-            const moduleId = permission.module.replace(/\s+/g, "");
-
-            if (!permissionsObj[moduleId]) {
-              permissionsObj[moduleId] = {
+            modulesList.forEach((module) => {
+              permissionsObj[module.id] = {
                 create: false,
                 read: false,
                 update: false,
                 delete: false,
               };
-            }
-
-            permission.actions.forEach((action) => {
-              const actionId = action.toLowerCase();
-              permissionsObj[moduleId][actionId] = true;
             });
+
+            role.permissions.forEach((permission) => {
+              const moduleId = permission.module.replace(/\s+/g, "");
+
+              if (!permissionsObj[moduleId]) {
+                permissionsObj[moduleId] = {
+                  create: false,
+                  read: false,
+                  update: false,
+                  delete: false,
+                };
+              }
+
+              permission.actions.forEach((action) => {
+                permissionsObj[moduleId][action.toLowerCase()] = true;
+              });
+            });
+
+            return {
+              id: role._id,
+              name: capitalizeFirstLetter(role.roleName),
+              description: `${capitalizeFirstLetter(role.roleName)} role with specific permissions`,
+              color: getRoleColor(index),
+              icon: getRoleIcon(role.roleName),
+              permissions: permissionsObj,
+              createdAt: role.createdAt,
+              updatedAt: role.updatedAt,
+            };
           });
 
           return {
@@ -486,9 +496,8 @@ const RBACManagement = () => {
                 return (
                   <div
                     key={role.id}
-                    className={`role-card ${
-                      selectedRole?.id === role.id ? "selected" : ""
-                    }`}
+                    className={`role-card ${selectedRole?.id === role.id ? "selected" : ""
+                      }`}
                     onClick={() => handleRoleSelect(role)}
                     style={{ borderLeftColor: role.color }}
                   >
@@ -556,7 +565,7 @@ const RBACManagement = () => {
                       <h2>{selectedRole.name} Permissions</h2>
                       <p>{selectedRole.description}</p>
                       <div className="role-meta">
-                        <span>ID: {selectedRole.id}</span>
+                        {/* <span>ID: {selectedRole.id}</span> */}
                         {/* <span>Created: {formatDate(selectedRole.createdAt)}</span>
                                                 <span>Last Updated: {formatDate(selectedRole.updatedAt)}</span> */}
                       </div>
@@ -682,9 +691,8 @@ const RBACManagement = () => {
                               return (
                                 <td
                                   key={`${module.id}-${action.id}`}
-                                  className={`permission-cell ${
-                                    isEditing ? "editable" : ""
-                                  }`}
+                                  className={`permission-cell ${isEditing ? "editable" : ""
+                                    }`}
                                   onClick={() =>
                                     isEditing &&
                                     handlePermissionToggle(module.id, action.id)
@@ -710,9 +718,8 @@ const RBACManagement = () => {
                             })}
 
                             <td
-                              className={`all-cell ${
-                                isEditing ? "editable" : ""
-                              }`}
+                              className={`all-cell ${isEditing ? "editable" : ""
+                                }`}
                               onClick={() =>
                                 isEditing && handleModuleToggle(module.id)
                               }

@@ -626,7 +626,9 @@ exports.addCommentToTask = async (req, res) => {
   try {
     const { taskId } = req.params;
     const { comments } = req.body;
-    const attachments = req.files["attachments"];
+    const attachments = req.files && req.files.attachments
+      ? req.files.attachments
+      : [];
     logger.info(
       {
         clientIP: req.socket.remoteAddress,
@@ -684,7 +686,7 @@ exports.addCommentToTask = async (req, res) => {
 exports.addOrUpdateTaskAttachment = async (req, res) => {
   try {
     const { taskId } = req.params;
-    let attachments = req.files["attachments"];
+    let attachments = req.files?.attachments || [];
     logger.info(
       {
         clientIP: req.socket.remoteAddress,

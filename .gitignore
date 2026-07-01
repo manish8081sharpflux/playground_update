@@ -1,0 +1,5 @@
+echo node_modules/ >> .gitignore
+echo .cache/ >> .gitignore
+echo dist/ >> .gitignore
+echo build/ >> .gitignore
+echo .env >> .gitignore

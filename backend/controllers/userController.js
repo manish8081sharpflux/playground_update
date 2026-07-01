@@ -772,6 +772,10 @@ const extractMedicalHistory = (req) => {
         };
       }
 
+      if (!field) {
+        return;
+      }
+
       if (field.startsWith("currentStatus.")) {
         medicalHistory[index].currentStatus[
           field.replace("currentStatus.", "")

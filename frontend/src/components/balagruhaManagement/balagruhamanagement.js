@@ -131,8 +131,8 @@ const BalagruhaManagement = () => {
 
       const updatedMachines = isAlreadySelected
         ? prevState.assignedMachines.filter(
-            (m) => m._id !== selectedMachine._id
-          )
+          (m) => m._id !== selectedMachine._id
+        )
         : [...prevState.assignedMachines, selectedMachine._id];
 
       return {
@@ -276,18 +276,20 @@ const BalagruhaManagement = () => {
       <div className="balagruha-header">
         <h2>Balagruha Management</h2>
         <div className="header-actions">
-          <div className="search-box">
-            <label htmlFor="balagruha-search" className="sr-only">Search balagruhas</label>
+          <div className="search-box relative">
+            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-lg pointer-events-none">
+              🔍
+            </span>
+
             <input
               type="text"
               id="balagruha-search"
               placeholder="Search balagruhas..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="search-input"
+              className="search-input pl-12"
               aria-label="Search balagruhas"
             />
-            <span className="search-icon">🔍</span>
           </div>
 
           {/* {canCreateBalagruha && ( */}
@@ -366,7 +368,7 @@ const BalagruhaManagement = () => {
                 <td>
                   <div className="machine-tags">
                     {balagruha.assignedMachines &&
-                    balagruha.assignedMachines.length > 0 ? (
+                      balagruha.assignedMachines.length > 0 ? (
                       balagruha.assignedMachines.map((machineId, idx) => (
                         <span key={idx} className="machine-tag">
                           {getMachineName(machineId)}

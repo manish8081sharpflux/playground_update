@@ -13,6 +13,7 @@
     width: 150px;
     justify-content: center;
     margin-top: 20px;
+    margin-bottom: 20px;
     font-family: 'Patrick Hand', cursive;
 }
 
@@ -49,13 +50,19 @@
 .calender-container{
     display: flex;
     gap: 20px;
+    overflow: visible;
 }
 
 /* Sprint6-Story-1: Ensure calendar uses full width */
 .calendar-container {
     display: flex;
-    align-items: flex-start;
+    align-items: stretch;
     width: 100%;
+    flex: 1;
+    min-height: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
 }
 
 /* Time Column */
@@ -72,35 +79,89 @@
     padding-top: 50px;
 }
 
+.full-calendar {
+    width: 100%;
+    min-height: 0;
+    height: auto ;
+    max-height: none ;
+    overflow: visible ;
+    display: flex;
+    flex-direction: column;
+}
+
 /* Calendar Grid */
-.calendar-grid {
+.full-calendar .calendar-grid {
     flex: 1;
     display: flex;
     flex-direction: column;
+    min-height: 0;
+    width: 100%;
+    height: auto ;
+    max-height: none ;
+    overflow: visible ;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(0, 0, 0, 0.4) transparent;
+}
+
+.full-calendar .calendar-grid::-webkit-scrollbar {
+    width: 10px;
+}
+
+.full-calendar .calendar-grid::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.full-calendar .calendar-grid::-webkit-scrollbar-thumb {
+    background-color: rgba(0, 0, 0, 0.3);
+    border-radius: 5px;
 }
 
 /* Day headers */
 .calendar-header-row {
     display: flex;
+    gap: 10px;
 }
 .calendar-day-header {
+    height: 67px;
     flex: 1;
     text-align: center;
     font-weight: bold;
     padding: 10px 0;
     border-bottom: 1px solid #ccc;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.calendar-day-cell {
+    flex: 1;
+}
+
+.calendar-nav-selectors {
+    display: flex;
+    align-items: center;
+    gap: 5px;
 }
 
 /* Day body cells */
 .calendar-body-row {
     display: flex;
+    gap: 10px;
+    padding: 5px;
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
 }
 .calendar-day-cell {
     flex: 1;
     display: flex;
     flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
 }
 .calendar-time-cell {
+    min-height: 150px;
     height: 150px;
     border-bottom: 1px solid #e0e0e0;
     padding: 5px;
@@ -111,6 +172,7 @@
 }
 .calendar-event {
     font-size: 12px;
+    height: 140px;
     color: white;
     padding: 4px;
     border-radius: 4px;
@@ -259,4 +321,48 @@
 
 .today-btn:active {
     transform: scale(0.95);
+}
+
+.balagruha-option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 14px;
+  cursor: pointer;
+  font-size: 16px;
+  color: #5b35d5;
+}
+
+.balagruha-option input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  margin-right: 10px;
+  flex-shrink: 0;
+}
+
+.delete-detail-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: none;
+    background-color: #ef4444;
+    color: white;
+    font-size: 20px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.delete-detail-btn:hover {
+    background-color: #dc2626;
+    transform: scale(1.1);
+}
+
+.close-btn-newdetails {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 10px;
 }

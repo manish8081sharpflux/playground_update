@@ -10,8 +10,9 @@
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
   position: relative;
   overflow: hidden;
-  height: 100vh;
+  height: calc(100vh - 70px);
   width: 100%;
+  box-sizing: border-box;
 }
 
 .rbac-management::before {
@@ -73,15 +74,15 @@
   display: grid;
   grid-template-columns: 350px 1fr;
   gap: 20px;
-  min-height: 600px;
-  max-height: calc(100vh - 200px);
-  overflow: scroll;
-  height: 85vh;
+
+  height: calc(100vh - 40px); /* adjust if you have navbar */
+  overflow: hidden;
 }
 
 /* Panels */
 .roles-panel,
 .permissions-panel {
+  height: 90%;
   background-color: white;
   border-radius: 15px;
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
@@ -279,6 +280,8 @@
   transition: all 0.3s ease;
 }
 
+
+
 .edit-button {
   background-color: #9b59b6 !important;
   color: white;
@@ -291,7 +294,7 @@
 }
 
 .save-button {
-  background-color: #27ae60;
+  background-color: #27ae60 !important;
   color: white;
 }
 
@@ -302,7 +305,7 @@
 }
 
 .cancel-button {
-  background-color: #e74c3c;
+  background-color: #e74c3c !important;
   color: white;
 }
 
@@ -1140,6 +1143,7 @@ input:checked + .toggle-slider:before {
 
 /* Permissions Table Styles */
 .permissions-table-container {
+  flex: 1;
   margin: 20px;
   overflow: auto;
   max-height: calc(100vh - 300px);

@@ -26,8 +26,15 @@ export default function VideoGradingInterface({ submission, onClose, coachId, on
         onClose();
       }
     } catch (error) {
-      console.error('Error submitting grade:', error);
-      toast.error(error.response?.data?.error || 'Failed to submit grade');
+      const errorMessage =
+        error.response?.data?.message ||
+        error.response?.data?.error ||
+        error.response?.data?.errors?.[0]?.message ||
+        error.message ||
+        "Failed to submit grade";
+
+      toast.error(errorMessage);
+
       throw error;
     }
   };
@@ -55,9 +62,9 @@ export default function VideoGradingInterface({ submission, onClose, coachId, on
   };
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className=" min-h-screen bg-white">
       {/* Header */}
-      <div className="bg-blue-600 text-white px-6 py-4 flex items-center justify-between border-b border-blue-700">
+      <div className="mt-12 bg-blue-600 text-white px-6 py-4 flex items-center justify-between border-b border-blue-700">
         <h2 className="text-xl font-bold">
           Grading: {submission.taskTitle} - {submission.studentName}
         </h2>
@@ -81,7 +88,7 @@ export default function VideoGradingInterface({ submission, onClose, coachId, on
             src={submission.fileUrl}
             controls
             className="w-full rounded-lg border border-gray-300"
-            style={{ maxHeight: '600px' }}
+            style={{ height: '350px' }}
           >
             Your browser does not support the video tag.
           </video>

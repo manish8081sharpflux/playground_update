@@ -40,7 +40,7 @@ class Task {
     this.labels = obj.labels || [];
     this.type = obj.type || "";
     this.comments = obj.comments || "";
-    this.attachments = obj.attachments || null;
+    this.attachments = obj.attachments || [];
     this.performanceMetrics = obj.performanceMetrics || {
       time: "",
       score: "",
@@ -739,12 +739,19 @@ class Task {
       let task = await findTaskById({ taskId });
       if (task.success && task.data) {
         // upload the attachments
+        errorLogger.error({ msg: 'addOrUpdateTaskAttachment - incoming attachments', attachmentsReceived: attachments.length });
+
+        const useLocalFallback =
+          !process.env.AWS_S3_ACCESS_KEY_ID ||
+          !process.env.AWS_S3_SECRET_KEY ||
+          process.env.AWS_S3_ACCESS_KEY_ID.includes("YOUR_") ||
+          process.env.AWS_S3_SECRET_KEY.includes("YOUR_");
 
         for (let i = 0; i < attachments.length; i++) {
           let file = attachments[i];
           let fileName = file.filename;
           let fileFullPath = getUploadedFilesFullPath(fileName);
-          if (!isOfflineReq) {
+          if (!isOfflineReq && !useLocalFallback) {
             let result = await uploadFileToS3(
               file.path,
               process.env.AWS_S3_BUCKET_NAME_TASK_ATTACHMENTS,
@@ -760,25 +767,36 @@ class Task {
               };
               attachments[i] = attachmentObj;
             } else {
-              return {
-                success: false,
-                data: {},
-                message: "Failed to upload attachments.",
+              errorLogger.error(
+                {
+                  msg: 'addOrUpdateTaskAttachment - upload failed',
+                  filePath: file.path,
+                  error: result.error || result.message,
+                },
+                'S3 upload failed; falling back to local upload path'
+              );
+              let attachmentObj = {
+                fileName: fileName,
+                fileUrl: `/uploads/${fileName}`,
+                fileType: file.mimetype || getFileContentType(fileName),
+                uploadedBy: createdById,
               };
+              attachments[i] = attachmentObj;
             }
           } else {
-            // if the request is offline, then set the file name to the attachments
+            // if the request is offline or S3 is not configured, then set the file name to the attachments
             let attachmentObj = {
               fileName: fileName,
-              fileUrl: fileFullPath,
-              fileType: getFileContentType(fileName),
+              fileUrl: `/uploads/${fileName}`,
+              fileType: file.mimetype || getFileContentType(fileName),
               uploadedBy: createdById,
             };
             attachments[i] = attachmentObj;
           }
         }
-
         let existingAttachments = task.data.attachments || [];
+        errorLogger.error({ msg: 'addOrUpdateTaskAttachment - existingAttachments length', existingLength: existingAttachments.length });
+        errorLogger.error({ msg: 'addOrUpdateTaskAttachment - final attachments array', attachments });
         if (existingAttachments.length > 0) {
           attachments = [...existingAttachments, ...attachments];
         } else {
@@ -789,6 +807,7 @@ class Task {
           taskId,
           payload: { attachments: attachments },
         });
+        errorLogger.error({ msg: 'addOrUpdateTaskAttachment - updateResult.success', success: updateResult.success });
         if (updateResult.success) {
           return {
             success: true,

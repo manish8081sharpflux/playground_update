@@ -30,7 +30,7 @@ import {
   updateTaskAttachments,
   getAnyUserBasedonRoleandBalagruha,
 } from "../../api";
-import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
+// import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 
 const capitalize = (str) =>
   str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
@@ -52,10 +52,10 @@ const Toast = ({ message, type, onClose }) => {
           {type === "success"
             ? "✅"
             : type === "error"
-            ? "❌"
-            : type === "info"
-            ? "ℹ️"
-            : "🔔"}
+              ? "❌"
+              : type === "info"
+                ? "ℹ️"
+                : "🔔"}
         </span>
         <span className="toast-message">{message}</span>
       </div>
@@ -449,9 +449,8 @@ const TaskFilter = ({ onFilterChange, filters, balagruhas, users }) => {
       <div className="filter-buttons">
         <div style={{ position: "relative" }}>
           <button
-            className={`filter-button ${
-              activeFilter === "balagruha" ? "active" : ""
-            }`}
+            className={`filter-button ${activeFilter === "balagruha" ? "active" : ""
+              }`}
             onClick={() => toggleFilter("balagruha")}
           >
             Balagruha{" "}
@@ -491,23 +490,14 @@ const TaskFilter = ({ onFilterChange, filters, balagruhas, users }) => {
 
         <div style={{ position: "relative" }}>
           <button
-            className={`filter-button ${
-              activeFilter === "status" ? "active" : ""
-            }`}
+            className={`filter-button ${activeFilter === "status" ? "active" : ""
+              }`}
             onClick={() => toggleFilter("status")}
           >
             Status {filters.status?.length > 0 && `(${filters.status.length})`}
           </button>
           {isOpen && activeFilter === "status" && (
             <div className="filter-dropdown">
-              <div className="filter-search">
-                <input
-                  type="text"
-                  placeholder="Search status..."
-                  value={searchTerms.status}
-                  onChange={(e) => handleSearchChange("status", e.target.value)}
-                />
-              </div>
               {statusOptions.length > 0 ? (
                 statusOptions.map((option) => (
                   <div key={option.id} className="filter-option">
@@ -531,9 +521,8 @@ const TaskFilter = ({ onFilterChange, filters, balagruhas, users }) => {
         </div>
         <div style={{ position: "relative" }}>
           <button
-            className={`filter-button ${
-              activeFilter === "priority" ? "active" : ""
-            }`}
+            className={`filter-button ${activeFilter === "priority" ? "active" : ""
+              }`}
             onClick={() => toggleFilter("priority")}
           >
             Priority{" "}
@@ -541,16 +530,7 @@ const TaskFilter = ({ onFilterChange, filters, balagruhas, users }) => {
           </button>
           {isOpen && activeFilter === "priority" && (
             <div className="filter-dropdown">
-              <div className="filter-search">
-                <input
-                  type="text"
-                  placeholder="Search priority..."
-                  value={searchTerms.priority}
-                  onChange={(e) =>
-                    handleSearchChange("priority", e.target.value)
-                  }
-                />
-              </div>
+
               {priorityOptions.length > 0 ? (
                 priorityOptions.map((option) => (
                   <div key={option.id} className="filter-option">
@@ -578,9 +558,8 @@ const TaskFilter = ({ onFilterChange, filters, balagruhas, users }) => {
 
         <div style={{ position: "relative" }}>
           <button
-            className={`filter-button ${
-              activeFilter === "createdBy" ? "active" : ""
-            }`}
+            className={`filter-button ${activeFilter === "createdBy" ? "active" : ""
+              }`}
             onClick={() => toggleFilter("createdBy")}
           >
             Created By{" "}
@@ -625,9 +604,8 @@ const TaskFilter = ({ onFilterChange, filters, balagruhas, users }) => {
 
         <div style={{ position: "relative" }}>
           <button
-            className={`filter-button ${
-              activeFilter === "assignedFor" ? "active" : ""
-            }`}
+            className={`filter-button ${activeFilter === "assignedFor" ? "active" : ""
+              }`}
             onClick={() => toggleFilter("assignedFor")}
           >
             Assigned to{" "}
@@ -675,9 +653,8 @@ const TaskFilter = ({ onFilterChange, filters, balagruhas, users }) => {
 
         <div style={{ position: "relative" }}>
           <button
-            className={`filter-button ${
-              activeFilter === "type" ? "active" : ""
-            }`}
+            className={`filter-button ${activeFilter === "type" ? "active" : ""
+              }`}
             onClick={() => toggleFilter("type")}
           >
             Task Type {filters.type?.length > 0 && `(${filters.type.length})`}
@@ -897,10 +874,10 @@ const CreateTaskForm = ({
     role === "sports-coach"
       ? "sports"
       : role === "music-coach"
-      ? "music"
-      : role === "medical-manager" || role === "medical-incharge"
-      ? "medical"
-      : "general";
+        ? "music"
+        : role === "medical-manager" || role === "medical-incharge"
+          ? "medical"
+          : "general";
 
   const [type, setType] = useState(initialType);
   const [isTypeDropdownOpen, setIsTypeDropdownOpen] = useState(false);
@@ -1122,10 +1099,18 @@ const CreateTaskForm = ({
 
     if (!formData.title.trim()) {
       errors.title = "Title is required";
+    } else if (formData.title.trim().length < 3) {
+      errors.title = "Title must be at least 3 characters";
+    } else if (formData.title.trim().length > 100) {
+      errors.title = "Title cannot exceed 100 characters";
     }
 
     if (!formData.description.trim()) {
       errors.description = "Description is required";
+    } else if (formData.description.trim().length < 10) {
+      errors.description = "Description must be at least 10 characters";
+    } else if (formData.description.trim().length > 1000) {
+      errors.description = "Description cannot exceed 1000 characters";
     }
 
     if (!formData.deadline) {
@@ -1136,6 +1121,22 @@ const CreateTaskForm = ({
 
     if (!formData.assignedUser || formData.assignedUser.length === 0) {
       errors.assignedUser = "At least one user must be assigned";
+    }
+
+    if (type === "medical") {
+      if (!formData.medicalBalagruhaId) {
+        errors.medicalBalagruhaId = "Please select a balagruha";
+      }
+    }
+
+    if (
+      (type === "purchase" || type === "order") &&
+      formData.costEstimate
+    ) {
+      if (Number(formData.costEstimate) <= 0) {
+        errors.costEstimate =
+          "Cost estimate must be greater than 0";
+      }
     }
 
     setFormErrors(errors);
@@ -1215,9 +1216,8 @@ const CreateTaskForm = ({
                 {taskTypes.map((taskType) => (
                   <div
                     key={taskType.id}
-                    className={`dropdown-item ${
-                      type === taskType.id ? "selected" : ""
-                    }`}
+                    className={`dropdown-item ${type === taskType.id ? "selected" : ""
+                      }`}
                     onClick={() => handleTypeSelect(taskType.id)}
                   >
                     {taskType.label}
@@ -1336,7 +1336,9 @@ const CreateTaskForm = ({
                             checked={formData.assignedUser.includes(user._id)}
                             onChange={handleCheckboxChange}
                           />
-                          {user.name} ({user.role})
+                          <span>
+                            {user.name} ({user.role})
+                          </span>
                         </label>
                       ))
                     ) : (
@@ -1381,103 +1383,103 @@ const CreateTaskForm = ({
           type == "sports" ||
           localStorage.getItem("role") === "music-coach" ||
           type == "music") && (
-          <div className="form-group">
-            <label htmlFor="drillOrExerciseType">Drill or Exercise Type</label>
-            <input
-              type="text"
-              id="drillOrExerciseType"
-              name="drillOrExerciseType" // Changed from 'title' to 'drillOrExerciseType'
-              value={formData.drillOrExerciseType}
-              onChange={handleInputChange}
-              className={formErrors.drillOrExerciseType ? "error" : ""}
-              placeholder="Enter drill or exercise type"
-            />
-            {/* {formErrors.drillOrExerciseType &&
+            <div className="form-group">
+              <label htmlFor="drillOrExerciseType">Drill or Exercise Type</label>
+              <input
+                type="text"
+                id="drillOrExerciseType"
+                name="drillOrExerciseType" // Changed from 'title' to 'drillOrExerciseType'
+                value={formData.drillOrExerciseType}
+                onChange={handleInputChange}
+                className={formErrors.drillOrExerciseType ? "error" : ""}
+                placeholder="Enter drill or exercise type"
+              />
+              {/* {formErrors.drillOrExerciseType &&
                                 <div className="error-message">{formErrors.drillOrExerciseType}</div>
                             } */}
-          </div>
-        )}
+            </div>
+          )}
 
         {(type == "order" ||
           localStorage.getItem("role") === "purchase-manager" ||
           type == "purchase") && (
-          <>
-            <div className="form-group">
-              <label htmlFor="drillOrExerciseType">Machine Details</label>
-              <input
-                type="text"
-                id="machineDetails"
-                name="machineDetails"
-                value={formData.machineDetails}
-                onChange={handleInputChange}
-                className={formErrors.machineDetails ? "error" : ""}
-                placeholder="Enter Machine Details"
-              />
-              {/* {formErrors.drillOrExerciseType &&
+            <>
+              <div className="form-group">
+                <label htmlFor="drillOrExerciseType">Machine Details</label>
+                <input
+                  type="text"
+                  id="machineDetails"
+                  name="machineDetails"
+                  value={formData.machineDetails}
+                  onChange={handleInputChange}
+                  className={formErrors.machineDetails ? "error" : ""}
+                  placeholder="Enter Machine Details"
+                />
+                {/* {formErrors.drillOrExerciseType &&
                                 <div className="error-message">{formErrors.drillOrExerciseType}</div>
                             } */}
-            </div>
-            <div className="form-group">
-              <label htmlFor="drillOrExerciseType">Vendor Details</label>
-              <input
-                type="text"
-                id="vendorDetails"
-                name="vendorDetails"
-                value={formData.vendorDetails}
-                onChange={handleInputChange}
-                className={formErrors.vendorDetails ? "error" : ""}
-                placeholder="Enter Vendor Details"
-              />
-              {/* {formErrors.drillOrExerciseType &&
+              </div>
+              <div className="form-group">
+                <label htmlFor="drillOrExerciseType">Vendor Details</label>
+                <input
+                  type="text"
+                  id="vendorDetails"
+                  name="vendorDetails"
+                  value={formData.vendorDetails}
+                  onChange={handleInputChange}
+                  className={formErrors.vendorDetails ? "error" : ""}
+                  placeholder="Enter Vendor Details"
+                />
+                {/* {formErrors.drillOrExerciseType &&
                                 <div className="error-message">{formErrors.drillOrExerciseType}</div>
                             } */}
-            </div>
+              </div>
 
-            <div className="form-group">
-              <label htmlFor="costEstimate">Cost Estimate</label>
-              <input
-                type="text"
-                id="costEstimate"
-                name="costEstimate"
-                value={formData.costEstimate}
-                onChange={handleInputChange}
-                className={formErrors.costEstimate ? "error" : ""}
-                placeholder="Enter Cost Estimate"
-              />
-            </div>
-          </>
-        )}
+              <div className="form-group">
+                <label htmlFor="costEstimate">Cost Estimate</label>
+                <input
+                  type="text"
+                  id="costEstimate"
+                  name="costEstimate"
+                  value={formData.costEstimate}
+                  onChange={handleInputChange}
+                  className={formErrors.costEstimate ? "error" : ""}
+                  placeholder="Enter Cost Estimate"
+                />
+              </div>
+            </>
+          )}
 
         {(localStorage.getItem("role") === "purchase-manager" ||
           type == "purchase") && (
-          <div className="form-group">
-            <label htmlFor="requiredParts">Required Parts</label>
-            <input
-              type="text"
-              id="requiredParts"
-              name="requiredParts"
-              value={formData.requiredParts}
-              onChange={handleInputChange}
-              className={formErrors.requiredParts ? "error" : ""}
-              placeholder="Required Parts"
-            />
-          </div>
-        )}
+            <div className="form-group">
+              <label htmlFor="requiredParts">Required Parts</label>
+              <input
+                type="text"
+                id="requiredParts"
+                name="requiredParts"
+                value={formData.requiredParts}
+                onChange={handleInputChange}
+                className={formErrors.requiredParts ? "error" : ""}
+                placeholder="Required Parts"
+              />
+            </div>
+          )}
         {(localStorage.getItem("role") === "repair-manager" ||
           type == "order") && (
-          <div className="form-group">
-            <label htmlFor="repairDetails">Required Parts</label>
-            <input
-              type="text"
-              id="repairDetails"
-              name="repairDetails" // Changed from 'title' to 'drillOrExerciseType'
-              value={formData.repairDetails}
-              onChange={handleInputChange}
-              className={formErrors.repairDetails ? "error" : ""}
-              placeholder="Required Details"
-            />
-          </div>
-        )}
+            <div className="form-group">
+              <label htmlFor="repairDetails">Required Parts</label>
+              <input
+                type="text"
+                id="repairDetails"
+                name="repairDetails" // Changed from 'title' to 'drillOrExerciseType'
+                value={formData.repairDetails}
+                onChange={handleInputChange}
+                className={formErrors.repairDetails ? "error" : ""}
+                placeholder="Required Details"
+              />
+            </div>
+          )}
 
         {/* Medical Task Specific Fields */}
         {(localStorage.getItem("role") === "medical-manager" || localStorage.getItem("role") === "medical-incharge" || type === "medical") && (
@@ -1504,9 +1506,8 @@ const CreateTaskForm = ({
                     {availableBalagruhas.map((balagruha) => (
                       <div
                         key={balagruha._id}
-                        className={`dropdown-item ${
-                          formData.medicalBalagruhaId === balagruha._id ? "selected" : ""
-                        }`}
+                        className={`dropdown-item ${formData.medicalBalagruhaId === balagruha._id ? "selected" : ""
+                          }`}
                         onClick={() => handleBalagruhaSelect(balagruha._id)}
                       >
                         {balagruha.name}
@@ -1564,9 +1565,8 @@ const CreateTaskForm = ({
                           filteredUsers.map((user) => (
                             <div
                               key={user._id}
-                              className={`dropdown-item ${
-                                primaryAssigneeId === user._id ? "selected" : ""
-                              }`}
+                              className={`dropdown-item ${primaryAssigneeId === user._id ? "selected" : ""
+                                }`}
                               onClick={() => handleAssignToSelect(user._id)}
                             >
                               {user.name} ({user.role})
@@ -1634,7 +1634,7 @@ const CreateTaskForm = ({
               multiple
               onChange={handleFileChange}
               ref={fileInputRef}
-              // style={{ display: 'none' }}
+            // style={{ display: 'none' }}
             />
             <button
               type="button"
@@ -2173,6 +2173,26 @@ export const TaskDetailsModal = ({
   const userRole = (localStorage.getItem("role") || "").toLowerCase();
   const canManageTask = userRole !== "student";
 
+  useEffect(() => {
+    if (!task) return;
+    setSelectedTask(task);
+    setComments(task?.comments || []);
+    setEditMode({});
+    setEditedValues({});
+
+    const fetchFullTask = async () => {
+      if (task._id) {
+        const refreshed = await getTaskDetailsByTaskId(task._id);
+        if (refreshed) {
+          setSelectedTask(refreshed);
+          setComments(refreshed.comments || []);
+        }
+      }
+    };
+
+    fetchFullTask();
+  }, [task]);
+
   if (!task) return null;
 
   const assignedUser = users?.find(
@@ -2218,20 +2238,20 @@ export const TaskDetailsModal = ({
 
     setIsUpdating(true);
     try {
-      const data = { status: newStatus };
-      const response = await updateTask(selectedTask._id, JSON.stringify(data));
-
-      if (response && response.success) {
-        if (onStatusChange) {
-          await onStatusChange(selectedTask._id, newStatus);
-        }
-        getTaskDetailsByTaskId(selectedTask._id);
+      if (onStatusChange) {
+        await onStatusChange(selectedTask._id, newStatus);
       } else {
-        console.error(
-          "Error updating task status:",
-          response?.message || "Unknown error"
-        );
+        const data = { status: newStatus };
+        const response = await updateTask(selectedTask._id, JSON.stringify(data));
+        if (!(response && response.success)) {
+          console.error(
+            "Error updating task status:",
+            response?.message || "Unknown error"
+          );
+        }
       }
+
+      await getTaskDetailsByTaskId(selectedTask._id);
     } catch (error) {
       console.error("Error updating task status:", error);
     } finally {
@@ -2254,12 +2274,14 @@ export const TaskDetailsModal = ({
     setIsUpdating(true);
     try {
       const formData = new FormData();
-      formData.append("comments", commentText);
+      formData.append("comment", commentText);
       if (files.length > 0) {
         files.forEach((file) => {
           formData.append("attachments", file);
         });
       }
+
+
 
       setIsUpdating(true);
       let response;
@@ -2277,36 +2299,50 @@ export const TaskDetailsModal = ({
         response = await addComment(selectedTask._id, formData);
       }
 
-      getTaskDetailsByTaskId(selectedTask?._id);
-
-
+      // Refresh task from server and update local state
       if (response && response.success) {
-        const updatedTask = response.data.task;
-        setComments(updatedTask.comments || []);
+        const refreshed = await getTaskDetailsByTaskId(selectedTask?._id);
+        const updatedComments = refreshed?.comments || [];
+        setComments(updatedComments);
         if (onUpdateTask) {
-          await onUpdateTask(selectedTask._id, {
-            comments: updatedTask.comments,
-          });
+          await onUpdateTask(selectedTask._id, { comments: updatedComments });
         }
         setCommentText("");
         setFiles([]);
-        setIsUpdating(false);
       }
     } catch (error) {
       console.error("Error adding comment:", error);
-      alert("Failed to add comment");
+      alert(error?.response?.data?.message || "Failed to add comment");
       setIsUpdating(false);
     } finally {
       setIsUpdating(false);
     }
   };
 
+  const resolveTaskResponse = (response) => {
+    if (!response) return null;
+    if (response.task) return response.task;
+    if (response.data) {
+      if (response.data.task) return response.data.task;
+      if (response.data.data) {
+        if (response.data.data.task) return response.data.data.task;
+        return response.data.data;
+      }
+      return response.data;
+    }
+    return response;
+  };
+
   const getTaskDetailsByTaskId = async (id) => {
     try {
       const response = await getTaskBytaskId(id);
-      setSelectedTask(response.data?.task);
+      const task = resolveTaskResponse(response);
+      if (task) {
+        setSelectedTask(task);
+      }
+      return task;
     } catch (err) {
-      console.error("Error updating task status:", err);
+      console.error("Error fetching task details:", err);
     }
   };
 
@@ -2321,14 +2357,23 @@ export const TaskDetailsModal = ({
           formData.append("attachments", file);
         });
       }
+      let uploadResponse = null;
       if (localStorage.getItem("role") === "sports-coach") {
-        await addOrUpdateSportsTaskAttachments(selectedTask._id, formData);
+        uploadResponse = await addOrUpdateSportsTaskAttachments(
+          selectedTask._id,
+          formData
+        );
       } else if (localStorage.getItem("role") === "music-coach") {
-        await addOrUpdateMusicTaskAttachments(selectedTask._id, formData);
+        uploadResponse = await addOrUpdateMusicTaskAttachments(
+          selectedTask._id,
+          formData
+        );
       } else {
-        await updateTaskAttachments(selectedTask._id, formData);
+        uploadResponse = await updateTaskAttachments(selectedTask._id, formData);
       }
-      getTaskDetailsByTaskId(selectedTask._id);
+      console.debug("Upload response for attachments:", uploadResponse);
+      // Refresh task and update UI
+      await getTaskDetailsByTaskId(selectedTask._id);
       setFiles([]);
     } catch (error) {
       console.error("Error uploading files:", error);
@@ -2377,17 +2422,14 @@ export const TaskDetailsModal = ({
   const handleEditChange = (field, value) => {
     setEditedValues((prev) => ({ ...prev, [field]: value }));
   };
-
-  // Save changes for a specific field
   const saveFieldChange = async (field) => {
-    if (!canManageTask) {
-      return;
-    }
+    if (!canManageTask) return;
+
     setIsUpdating(true);
+
     try {
       let data = {};
 
-      // Special handling for assignedUser field
       if (field === "assignedUser") {
         data = { assignedUser: editedValues[field] };
       } else {
@@ -2395,14 +2437,27 @@ export const TaskDetailsModal = ({
       }
 
       const response = await updateTask(selectedTask._id, JSON.stringify(data));
+      const updatedTask =
+        response?.task || response?.data?.task || response?.data || response;
 
-      if (response && response.success) {
-        getTaskDetailsByTaskId(selectedTask._id);
+      console.log("Update response:", response);
+      console.log("Updated task object:", updatedTask);
+
+      if (updatedTask && (updatedTask._id || updatedTask.id)) {
+        const refreshedTask = await getTaskBytaskId(selectedTask._id);
+
+        console.log("Refreshed task:", refreshedTask);
+
+        if (refreshedTask) {
+          setSelectedTask(refreshedTask);
+          setComments(refreshedTask.comments || []);
+        }
+
         setEditMode((prev) => ({ ...prev, [field]: false }));
       } else {
         console.error(
           `Error updating ${field}:`,
-          response?.message || "Unknown error"
+          response?.message || response?.data?.message || "Unknown error"
         );
       }
     } catch (error) {
@@ -2411,7 +2466,6 @@ export const TaskDetailsModal = ({
       setIsUpdating(false);
     }
   };
-
   // Cancel editing for a specific field
   const cancelEdit = (field) => {
     setEditMode((prev) => ({ ...prev, [field]: false }));
@@ -2426,6 +2480,9 @@ export const TaskDetailsModal = ({
   const isOverdue =
     new Date(selectedTask.deadline) < new Date() &&
     selectedTask.status.toLowerCase() !== "completed";
+
+  console.log("Selected Task:", selectedTask);
+  console.log("Attachments:", selectedTask?.attachments);
 
   return (
     <div className="modal-overlay" onClick={onClose}>
@@ -2596,9 +2653,9 @@ export const TaskDetailsModal = ({
                           handleEditChange("priority", e.target.value)
                         }
                       >
-                        <option value="High">High</option>
-                        <option value="Medium">Medium</option>
-                        <option value="Low">Low</option>
+                        <option value="high">High</option>
+                        <option value="medium">Medium</option>
+                        <option value="low">Low</option>
                       </select>
                       <div className="edit-field-actions">
                         <button
@@ -2627,8 +2684,8 @@ export const TaskDetailsModal = ({
                       {selectedTask.priority.toLowerCase() === "high"
                         ? "🔴 High"
                         : selectedTask.priority.toLowerCase() === "medium"
-                        ? "🟡 Medium"
-                        : "🟢 Low"}
+                          ? "🟡 Medium"
+                          : "🟢 Low"}
                       {canManageTask && " ✏️"}
                     </span>
                   )}
@@ -2804,48 +2861,42 @@ export const TaskDetailsModal = ({
               </div>
 
               {selectedTask.attachments &&
-              selectedTask.attachments.length > 0 ? (
+                selectedTask.attachments.length > 0 ? (
                 <div className="existing-files">
                   <h4>Existing Files</h4>
                   <div className="file-list">
-                    {selectedTask.attachments.map((file, index) => (
-                      <div key={index} className="file-item">
-                        <div className="file-icon">
-                          {file.fileType?.startsWith("image/")
-                            ? "🖼️"
-                            : file.fileType === "application/pdf"
-                            ? "📄"
-                            : "📎"}
-                        </div>
-                        <div className="file-details">
-                          <div className="file-name">{file.name}</div>
-                          <div className="file-meta">
-                            <span className="file-size">{file.fileName}</span>
-                            <div className="download-wrapper">
-                              <a
-                                href={file.fileUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="file-download"
-                              >
-                                Download
-                              </a>
-                                {canManageTask && (
-                                  <div
-                                    className="file-download file-download-delete"
-                                    onClick={() => {
-                                      setSelectedAttachmentId(file._id);
-                                      setShowDeleteModal(true);
-                                    }}
-                                  >
-                                    Delete
-                                  </div>
-                                )}
+                    {selectedTask.attachments.map((file, index) => {
+                      const fileUrl = typeof file === "string" ? file : file.fileUrl;
+                      const fileName =
+                        typeof file === "string"
+                          ? file.split("\\").pop().split("/").pop()
+                          : file.fileName || file.name || "Attachment";
+
+                      return (
+                        <div key={index} className="file-item">
+                          <div className="file-icon">📎</div>
+
+                          <div className="file-details">
+                            <div className="file-name">{fileName}</div>
+
+                            <div className="file-meta">
+                              <span className="file-size">{fileName}</span>
+
+                              <div className="download-wrapper">
+                                <a
+                                  href={fileUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="file-download"
+                                >
+                                  Download
+                                </a>
+                              </div>
                             </div>
                           </div>
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
               ) : (
@@ -3002,9 +3053,8 @@ export const TaskDetailsModal = ({
         <div className="modal-footer">
           <div className="status-actions">
             <button
-              className={`status-button pending ${
-                selectedTask.status.toLowerCase() === "pending" ? "active" : ""
-              }`}
+              className={`status-button pending ${selectedTask.status.toLowerCase() === "pending" ? "active" : ""
+                }`}
               onClick={() => handleStatusChange("pending")}
               disabled={
                 selectedTask.status.toLowerCase() === "pending" ||
@@ -3015,11 +3065,10 @@ export const TaskDetailsModal = ({
               {isUpdating ? "Updating..." : "Waiting to Start"}
             </button>
             <button
-              className={`status-button in-progress ${
-                selectedTask.status.toLowerCase() === "in progress"
-                  ? "active"
-                  : ""
-              }`}
+              className={`status-button in-progress ${selectedTask.status.toLowerCase() === "in progress"
+                ? "active"
+                : ""
+                }`}
               onClick={() => handleStatusChange("in progress")}
               disabled={
                 selectedTask.status.toLowerCase() === "in progress" ||
@@ -3030,11 +3079,10 @@ export const TaskDetailsModal = ({
               {isUpdating ? "Updating..." : "Working On It"}
             </button>
             <button
-              className={`status-button completed ${
-                selectedTask.status.toLowerCase() === "completed"
-                  ? "active"
-                  : ""
-              }`}
+              className={`status-button completed ${selectedTask.status.toLowerCase() === "completed"
+                ? "active"
+                : ""
+                }`}
               onClick={() => handleStatusChange("completed")}
               disabled={
                 selectedTask.status.toLowerCase() === "completed" ||
@@ -3594,7 +3642,7 @@ const TaskCard = ({ task }) => {
 
   const isOverdue =
     new Date(task.deadline) < new Date() &&
-    task.status.toLowerCase() !== "completed";
+    (task.status || "").toLowerCase() !== "completed";
 
   return (
     <div
@@ -3614,8 +3662,8 @@ const TaskCard = ({ task }) => {
           {task.priority === "High"
             ? "🔴"
             : task.priority === "Medium"
-            ? "🟡"
-            : "🟢"}
+              ? "🟡"
+              : "🟢"}
         </span>
       </div>
     </div>
@@ -3847,7 +3895,8 @@ const TaskManagement = () => {
   const getTaskDetailsByTaskId = async (id) => {
     try {
       const response = await getTaskBytaskId(id);
-      setSelectedTask(response.data?.task);
+      console.debug("Fetched task from getTaskBytaskId:", response);
+      setSelectedTask(response);
     } catch (err) {
       console.error("Error updating task status:", err);
       addToast("Failed to fetch Task based on id", "error");
@@ -3894,15 +3943,17 @@ const TaskManagement = () => {
         addToast("Students cannot update tasks", "error");
         return;
       }
-      await updateTask(id, JSON.stringify(updateData));
+      const response = await updateTask(id, JSON.stringify(updateData));
+      const updatedTask =
+        response?.task || response?.data?.task || response?.data || response;
+
       addToast("Task updated successfully", "success");
 
       // Refresh tasks with current filters
       getAllTasks(filters);
       getTaskDetailsByTaskId(id);
-      // Update selected task if it's the one being edited
-      if (selectedTask && selectedTask._id === id) {
-        setSelectedTask((prev) => ({ ...prev, ...updateData }));
+      if (updatedTask && updatedTask._id === id) {
+        setSelectedTask(updatedTask);
       }
     } catch (error) {
       console.error("Error updating task:", error);
@@ -3917,33 +3968,33 @@ const TaskManagement = () => {
   };
 
   // Handle drag-and-drop
-  const handleDragEnd = async (result) => {
-    if (isStudent) {
-      return;
-    }
-    if (!result.destination) return;
+  // const handleDragEnd = async (result) => {
+  //   if (isStudent) {
+  //     return;
+  //   }
+  //   if (!result.destination) return;
 
-    const { source, destination, draggableId } = result;
+  //   const { source, destination, draggableId } = result;
 
-    // If dropped in the same column and same position, do nothing
-    if (
-      source.droppableId === destination.droppableId &&
-      source.index === destination.index
-    ) {
-      return;
-    }
+  // If dropped in the same column and same position, do nothing
+  // if (
+  //   source.droppableId === destination.droppableId &&
+  //   source.index === destination.index
+  // ) {
+  //   return;
+  // }
 
-    // Get the new status based on the destination column
-    const newStatus = destination.droppableId;
+  // Get the new status based on the destination column
+  // const newStatus = destination.droppableId;
 
-    // Find the task that was dragged
-    const task = tasks.find((t) => t._id === draggableId);
+  // Find the task that was dragged
+  // const task = tasks.find((t) => t._id === draggableId);
 
-    if (task && task.status.toLowerCase() !== newStatus) {
-      // Update the task status
-      await updateTaskStatus(task._id, newStatus);
-    }
-  };
+  // if (task && task.status.toLowerCase() !== newStatus) {
+  // Update the task status
+  //     await updateTaskStatus(task._id, newStatus);
+  //   }
+  // };
 
   // Get filtered tasks for each column
   const pendingTasks = tasks.filter(
@@ -4012,143 +4063,214 @@ const TaskManagement = () => {
           <p>Loading tasks...</p>
         </div>
       ) : (
-        <DragDropContext onDragEnd={handleDragEnd}>
-          <div className="task-categories">
-            <Droppable droppableId="pending">
-              {(provided) => (
-                <div
-                  className="category-column pending"
-                  ref={provided.innerRef}
-                  {...provided.droppableProps}
-                >
-                  <h3>🚀 Waiting to Start</h3>
-                  {pendingTasks.map((task, index) => (
-                    <Draggable
-                      key={task._id}
-                      draggableId={task._id}
-                      index={index}
-                    >
-                      {(provided, snapshot) => (
-                        <div
-                          ref={provided.innerRef}
-                          {...provided.draggableProps}
-                          {...provided.dragHandleProps}
-                          style={{
-                            ...provided.draggableProps.style,
-                            opacity: snapshot.isDragging ? 0.8 : 1,
-                          }}
-                          onClick={() => handleTaskClick(task)}
-                        >
-                          <TaskCard task={task} />
-                        </div>
-                      )}
-                    </Draggable>
-                  ))}
-                  {provided.placeholder}
-                  {pendingTasks.length === 0 && (
-                    <div className="empty-column-message">
-                      <p>No tasks waiting to start</p>
-                      {!isStudent && (
-                        <button
-                          className="add-here-button"
-                          onClick={() => setShowCreateTask(true)}
-                        >
-                          Add Task Here
-                        </button>
-                      )}
-                    </div>
-                  )}
-                </div>
-              )}
-            </Droppable>
+        // <DragDropContext onDragEnd={handleDragEnd}>
+        //   <div className="task-categories">
+        //     <Droppable droppableId="pending">
+        //       {(provided) => (
+        //         <div
+        //           className="category-column pending"
+        //           ref={provided.innerRef}
+        //           {...provided.droppableProps}
+        //         >
+        //           <h3>🚀 Waiting to Start</h3>
+        //           {pendingTasks.map((task, index) => (
+        //             <Draggable
+        //               key={task._id}
+        //               draggableId={task._id}
+        //               index={index}
+        //             >
+        //               {(provided, snapshot) => (
+        //                 <div
+        //                   ref={provided.innerRef}
+        //                   {...provided.draggableProps}
+        //                   {...provided.dragHandleProps}
+        //                   style={{
+        //                     ...provided.draggableProps.style,
+        //                     opacity: snapshot.isDragging ? 0.8 : 1,
+        //                   }}
+        //                   onClick={() => handleTaskClick(task)}
+        //                 >
+        //                   <TaskCard task={task} />
+        //                 </div>
+        //               )}
+        //             </Draggable>
+        //           ))}
+        //           {provided.placeholder}
+        //           {pendingTasks.length === 0 && (
+        //             <div className="empty-column-message">
+        //               <p>No tasks waiting to start</p>
+        //               {!isStudent && (
+        //                 <button
+        //                   className="add-here-button"
+        //                   onClick={() => setShowCreateTask(true)}
+        //                 >
+        //                   Add Task Here
+        //                 </button>
+        //               )}
+        //             </div>
+        //           )}
+        //         </div>
+        //       )}
+        //     </Droppable>
 
-            <Droppable droppableId="in progress">
-              {(provided) => (
-                <div
-                  className="category-column in-progress"
-                  ref={provided.innerRef}
-                  {...provided.droppableProps}
-                >
-                  <h3>⚙️ Working On It</h3>
-                  {inProgressTasks.map((task, index) => (
-                    <Draggable
-                      key={task._id}
-                      draggableId={task._id}
-                      index={index}
-                    >
-                      {(provided, snapshot) => (
-                        <div
-                          ref={provided.innerRef}
-                          {...provided.draggableProps}
-                          {...provided.dragHandleProps}
-                          style={{
-                            ...provided.draggableProps.style,
-                            opacity: snapshot.isDragging ? 0.8 : 1,
-                          }}
-                          onClick={() => handleTaskClick(task)}
-                        >
-                          <TaskCard task={task} />
-                        </div>
-                      )}
-                    </Draggable>
-                  ))}
-                  {provided.placeholder}
-                  {inProgressTasks.length === 0 && (
-                    <div className="empty-column-message">
-                      <p>No tasks in progress</p>
-                      <p className="drag-hint">
-                        Drag tasks here to start working on them
-                      </p>
-                    </div>
-                  )}
-                </div>
-              )}
-            </Droppable>
+        //     <Droppable droppableId="in progress">
+        //       {(provided) => (
+        //         <div
+        //           className="category-column in-progress"
+        //           ref={provided.innerRef}
+        //           {...provided.droppableProps}
+        //         >
+        //           <h3>⚙️ Working On It</h3>
+        //           {inProgressTasks.map((task, index) => (
+        //             <Draggable
+        //               key={task._id}
+        //               draggableId={task._id}
+        //               index={index}
+        //             >
+        //               {(provided, snapshot) => (
+        //                 <div
+        //                   ref={provided.innerRef}
+        //                   {...provided.draggableProps}
+        //                   {...provided.dragHandleProps}
+        //                   style={{
+        //                     ...provided.draggableProps.style,
+        //                     opacity: snapshot.isDragging ? 0.8 : 1,
+        //                   }}
+        //                   onClick={() => handleTaskClick(task)}
+        //                 >
+        //                   <TaskCard task={task} />
+        //                 </div>
+        //               )}
+        //             </Draggable>
+        //           ))}
+        //           {provided.placeholder}
+        //           {inProgressTasks.length === 0 && (
+        //             <div className="empty-column-message">
+        //               <p>No tasks in progress</p>
+        //               <p className="drag-hint">
+        //                 Drag tasks here to start working on them
+        //               </p>
+        //             </div>
+        //           )}
+        //         </div>
+        //       )}
+        //     </Droppable>
 
-            <Droppable droppableId="completed">
-              {(provided) => (
-                <div
-                  className="category-column completed"
-                  ref={provided.innerRef}
-                  {...provided.droppableProps}
-                >
-                  <h3>🎉 All Done!</h3>
-                  {completedTasks.map((task, index) => (
-                    <Draggable
-                      key={task._id}
-                      draggableId={task._id}
-                      index={index}
-                    >
-                      {(provided, snapshot) => (
-                        <div
-                          ref={provided.innerRef}
-                          {...provided.draggableProps}
-                          {...provided.dragHandleProps}
-                          style={{
-                            ...provided.draggableProps.style,
-                            opacity: snapshot.isDragging ? 0.8 : 1,
-                          }}
-                          onClick={() => handleTaskClick(task)}
-                        >
-                          <TaskCard task={task} />
-                        </div>
-                      )}
-                    </Draggable>
-                  ))}
-                  {provided.placeholder}
-                  {completedTasks.length === 0 && (
-                    <div className="empty-column-message">
-                      <p>No completed tasks</p>
-                      <p className="drag-hint">
-                        Drag tasks here when they're done
-                      </p>
-                    </div>
-                  )}
-                </div>
-              )}
-            </Droppable>
+        //     <Droppable droppableId="completed">
+        //       {(provided) => (
+        //         <div
+        //           className="category-column completed"
+        //           ref={provided.innerRef}
+        //           {...provided.droppableProps}
+        //         >
+        //           <h3>🎉 All Done!</h3>
+        //           {completedTasks.map((task, index) => (
+        //             <Draggable
+        //               key={task._id}
+        //               draggableId={task._id}
+        //               index={index}
+        //             >
+        //               {(provided, snapshot) => (
+        //                 <div
+        //                   ref={provided.innerRef}
+        //                   {...provided.draggableProps}
+        //                   {...provided.dragHandleProps}
+        //                   style={{
+        //                     ...provided.draggableProps.style,
+        //                     opacity: snapshot.isDragging ? 0.8 : 1,
+        //                   }}
+        //                   onClick={() => handleTaskClick(task)}
+        //                 >
+        //                   <TaskCard task={task} />
+        //                 </div>
+        //               )}
+        //             </Draggable>
+        //           ))}
+        //           {provided.placeholder}
+        //           {completedTasks.length === 0 && (
+        //             <div className="empty-column-message">
+        //               <p>No completed tasks</p>
+        //               <p className="drag-hint">
+        //                 Drag tasks here when they're done
+        //               </p>
+        //             </div>
+        //           )}
+        //         </div>
+        //       )}
+        //     </Droppable>
+        //   </div>
+        // </DragDropContext>
+
+
+        <div className="task-categories">
+          <div className="category-column pending">
+            <h3>🚀 Waiting to Start</h3>
+
+            {pendingTasks.map((task) => (
+              <div
+                key={task._id}
+                className="task-card-wrapper"
+                onClick={() => handleTaskClick(task)}
+              >
+                <TaskCard task={task} />
+              </div>
+            ))}
+
+            {pendingTasks.length === 0 && (
+              <div className="empty-column-message">
+                <p>No tasks waiting to start</p>
+                {!isStudent && (
+                  <button
+                    className="add-here-button"
+                    onClick={() => setShowCreateTask(true)}
+                  >
+                    Add Task Here
+                  </button>
+                )}
+              </div>
+            )}
           </div>
-        </DragDropContext>
+
+          <div className="category-column in-progress">
+            <h3>⚙️ Working On It</h3>
+
+            {inProgressTasks.map((task) => (
+              <div
+                key={task._id}
+                className="task-card-wrapper"
+                onClick={() => handleTaskClick(task)}
+              >
+                <TaskCard task={task} />
+              </div>
+            ))}
+
+            {inProgressTasks.length === 0 && (
+              <div className="empty-column-message">
+                <p>No tasks in progress</p>
+              </div>
+            )}
+          </div>
+
+          <div className="category-column completed">
+            <h3>🎉 All Done!</h3>
+
+            {completedTasks.map((task) => (
+              <div
+                key={task._id}
+                className="task-card-wrapper"
+                onClick={() => handleTaskClick(task)}
+              >
+                <TaskCard task={task} />
+              </div>
+            ))}
+
+            {completedTasks.length === 0 && (
+              <div className="empty-column-message">
+                <p>No completed tasks</p>
+              </div>
+            )}
+          </div>
+        </div>
       )}
     </div>
   );

@@ -37,10 +37,10 @@ exports.getSubmissions = async (req, res) => {
     // Build filters object
     const filters = {
       courseType: courseType || "all",
-      status: status || "pending",
+      status: status || "all",
       balagruhaId: balagruhaId || "all",
       dateRange: dateRange || "all",
-      sortBy: sortBy || "oldest_first",
+      sortBy: sortBy || "newest_first",
       limit: parseInt(limit) || 20,
       offset: parseInt(offset) || 0,
     };
@@ -54,14 +54,14 @@ exports.getSubmissions = async (req, res) => {
     // Format submissions for response
     const formattedSubmissions = submissions.map((submission) => ({
       id: submission._id,
-      studentId: submission.studentId._id,
-      studentName: submission.studentId.name || "Unknown",
-      studentEmail: submission.studentId.email || "",
-      balagruhaIds: submission.studentId.balagruhaIds || [],
-      balagruhaName: submission.studentId.balagruhaIds?.[0]?.name || "N/A",
-      courseId: submission.courseId._id,
-      courseTitle: submission.courseId.title,
-      courseCategory: submission.courseId.category,
+      studentId: submission.studentId?._id || null,
+      studentName: submission.studentId?.name || "Unknown",
+      studentEmail: submission.studentId?.email || "",
+      balagruhaIds: submission.studentId?.balagruhaIds || [],
+      balagruhaName: submission.studentId?.balagruhaIds?.[0]?.name || "N/A",
+      courseId: submission.courseId?._id || null,
+      courseTitle: submission.courseId?.title || "Unknown Course",
+      courseCategory: submission.courseId?.category || "",
       taskId: submission.taskId,
       taskTitle: submission.taskTitle,
       submissionType: submission.submissionType,
@@ -214,9 +214,8 @@ exports.submitGrade = async (req, res) => {
 
     // Send notification to student
     const coach = await User.findById(gradedBy);
-    const notificationMessage = `Coach ${coach.name} graded your "${submission.taskTitle}" submission! ${
-      coinsAwarded > 0 ? `+${coinsAwarded} coins` : ""
-    }`;
+    const notificationMessage = `Coach ${coach.name} graded your "${submission.taskTitle}" submission! ${coinsAwarded > 0 ? `+${coinsAwarded} coins` : ""
+      }`;
 
     try {
       await Notification.createPersonal(
@@ -340,9 +339,8 @@ exports.bulkGrade = async (req, res) => {
         }
 
         // Send notification
-        const notificationMessage = `Coach ${coach.name} graded your "${submission.taskTitle}" submission! ${
-          coinsAwarded > 0 ? `+${coinsAwarded} coins` : ""
-        }`;
+        const notificationMessage = `Coach ${coach.name} graded your "${submission.taskTitle}" submission! ${coinsAwarded > 0 ? `+${coinsAwarded} coins` : ""
+          }`;
 
         try {
           await Notification.createPersonal(

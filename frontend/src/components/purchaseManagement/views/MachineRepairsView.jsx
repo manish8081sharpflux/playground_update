@@ -67,7 +67,8 @@ export default function MachineRepairsView() {
         costEstimate: purchase.costEstimate,
         requiredParts: purchase.requiredParts,
         attachments: [],
-        existingAttachments: purchase.attachments || [],
+        existingAttachments:
+          purchase.attachments || purchase.attachment || purchase.existingAttachments || [],
       });
       setEditingItem(purchase);
       // const select = balagruhas.filter((item) => {
@@ -93,28 +94,46 @@ export default function MachineRepairsView() {
   const FilePreview = ({ file }) => {
     const [preview, setPreview] = useState("");
 
+    const getAttachmentUrl = (attachment) => {
+      if (!attachment) return "";
+      if (typeof attachment === "string") return attachment;
+      return attachment.fileUrl || attachment.url || "";
+    };
+
+    const getAttachmentName = (attachment) => {
+      if (!attachment) return "Document";
+      if (typeof attachment === "string") {
+        const cleaned = attachment.split("?")[0].split("#")[0] || "";
+        return cleaned.split("/").pop() || "Document";
+      }
+      return attachment.fileName || attachment.name || "Document";
+    };
+
+    const getAttachmentExtension = (attachment) => {
+      const name = getAttachmentName(attachment);
+      const url = getAttachmentUrl(attachment);
+      const source = name || url;
+      const cleaned = source?.split("?")[0].split("#")[0] || "";
+      return cleaned.split(".").pop().toLowerCase();
+    };
+
     useEffect(() => {
-      if (file) {
-        if (file instanceof File) {
-          // For new files
-          const reader = new FileReader();
-          reader.onloadend = () => {
-            setPreview(reader.result);
-          };
-          reader.readAsDataURL(file);
-        } else {
-          // For existing files from server
-          setPreview(file.fileUrl || file.url);
-        }
+      if (!file) return;
+
+      if (file instanceof File) {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setPreview(reader.result);
+        };
+        reader.readAsDataURL(file);
+      } else {
+        setPreview(getAttachmentUrl(file));
       }
     }, [file]);
 
-    const isImage = (file) => {
+    const isImage = (attachment) => {
       const imageTypes = ["jpg", "jpeg", "png", "gif"];
-      const extension = file.name
-        ? file.name.split(".").pop().toLowerCase()
-        : (file.fileUrl || file.url)?.split(".").pop().toLowerCase();
-      return imageTypes.includes(extension);
+      return imageTypes.includes(getAttachmentExtension(attachment));
     };
 
     return (
@@ -128,7 +147,7 @@ export default function MachineRepairsView() {
         ) : (
           <div className="preview-document">
             <i className="fas fa-file-pdf"></i>
-            <span>{file.name || "Document"}</span>
+            <span>{getAttachmentName(file)}</span>
           </div>
         )}
       </div>
@@ -885,7 +904,7 @@ export default function MachineRepairsView() {
                                 <FilePreview file={file} />
                                 <div className="attachment-actions">
                                   <a
-                                    href={file.fileUrl}
+                                    href={file.fileUrl || file.url}
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="view-button"

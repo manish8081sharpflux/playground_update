@@ -240,7 +240,7 @@
 
 .header {
   /* background-color: #8a7bff; */
-  padding: 10px;
+  /* padding: 10px; */
   display: flex;
   align-items: center;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
@@ -250,14 +250,13 @@
 .user-info {
   display: flex;
   align-items: center;
-  margin-right: 20px;
+  margin-right: 40px;
   flex-direction: row !important;
 }
 
 .user-info h2 {
   color: white;
-  margin: 0;
-  margin-right: 10px;
+  /* margin: 0; */
 }
 
 .avatar {
@@ -295,7 +294,9 @@
 
 /* Top Menu Styles */
 .top-menu .menu-item {
-  min-width: 80px;
+  margin-top:10px;
+  margin-bottom: 10px;
+  min-width: 100px;
   padding: 10px;
   background-color: white;
   border-radius: 50px;
@@ -564,4 +565,22 @@
   50% {
     transform: scale(1.05);
   }
+}
+
+/* Keep route layout stable when feature dashboards import generic .main-content rules. */
+.app-layout {
+  height: 100vh;
+  overflow: hidden;
+}
+
+.app-container {
+  min-height: 0;
+  overflow: hidden;
+}
+
+.app-layout > .app-container > main.main-content {
+  flex: 1;
+  min-height: 0;
+  background-color: #f9f9f9;
+  overflow-y: auto;
 }
