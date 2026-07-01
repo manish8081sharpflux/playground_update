@@ -157,6 +157,20 @@
   overflow-y: auto;
 }
 
+.main-content-full-page {
+  display: block !important;
+  flex: 1 1 100% !important;
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0;
+  overflow-x: hidden;
+}
+
+.main-content.main-content-full-page > * {
+  width: 100%;
+  max-width: none;
+}
+
 .loading-screen {
   display: flex;
   flex-direction: column;

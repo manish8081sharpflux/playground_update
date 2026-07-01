@@ -1,18 +1,26 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, ChevronDown, ChevronRight, Download, RefreshCw, Search, ArrowUpDown } from 'lucide-react';
-import toast from 'react-hot-toast';
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import {
+  ArrowLeft,
+  ChevronDown,
+  ChevronRight,
+  Download,
+  RefreshCw,
+  Search,
+  ArrowUpDown,
+} from "lucide-react";
+import toast from "react-hot-toast";
 
-import { api } from '../api';
-import { useRBAC } from '../contexts/RBACContext';
-import Breadcrumbs from '../components/shop/Breadcrumbs';
-import ShopAdminControls from '../components/shop/ShopAdminControls';
+import { api } from "../api";
+import { useRBAC } from "../contexts/RBACContext";
+import Breadcrumbs from "../components/shop/Breadcrumbs";
+import ShopAdminControls from "../components/shop/ShopAdminControls";
 
 export default function MasterInventoryReport() {
   const navigate = useNavigate();
   const { hasPermission, isLoading: rbacLoading } = useRBAC();
 
-  const canManageShop = hasPermission('Shop Management', 'Manage');
+  const canManageShop = hasPermission("Shop Management", "Manage");
 
   const [rows, setRows] = useState([]);
   const [balagruhaBreakdown, setBalagruhaBreakdown] = useState([]);
@@ -20,17 +28,17 @@ export default function MasterInventoryReport() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const [searchTerm, setSearchTerm] = useState('');
-  const [categoryFilter, setCategoryFilter] = useState('all');
-  const [sortBy, setSortBy] = useState('sku');
-  const [sortOrder, setSortOrder] = useState('asc');
+  const [searchTerm, setSearchTerm] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState("all");
+  const [sortBy, setSortBy] = useState("sku");
+  const [sortOrder, setSortOrder] = useState("asc");
 
   // SECURITY CHECK: Redirect unauthorized users
   useEffect(() => {
     if (rbacLoading) return;
 
     if (!canManageShop) {
-      navigate('/access-denied', { replace: true });
+      navigate("/access-denied", { replace: true });
     }
   }, [canManageShop, navigate, rbacLoading]);
 
@@ -39,12 +47,15 @@ export default function MasterInventoryReport() {
       setLoading(true);
       setError(null);
 
-      const response = await api.get('/api/v2/shop/admin/inventory/master-report');
+      const response = await api.get(
+        "/api/v2/shop/admin/inventory/master-report",
+      );
       setRows(response.data.products || []);
       setBalagruhaBreakdown(response.data.balagruhaBreakdown || []);
     } catch (err) {
-      console.error('Error fetching master inventory report:', err);
-      const message = err.response?.data?.message || 'Failed to load master inventory report';
+      console.error("Error fetching master inventory report:", err);
+      const message =
+        err.response?.data?.message || "Failed to load master inventory report";
       setError(message);
       toast.error(message);
     } finally {
@@ -61,11 +72,13 @@ export default function MasterInventoryReport() {
     const term = searchTerm.trim().toLowerCase();
 
     return rows.filter((row) => {
-      const matchesSearch = !term ||
+      const matchesSearch =
+        !term ||
         row.sku?.toLowerCase().includes(term) ||
         row.name?.toLowerCase().includes(term);
 
-      const matchesCategory = categoryFilter === 'all' || row.category === categoryFilter;
+      const matchesCategory =
+        categoryFilter === "all" || row.category === categoryFilter;
 
       return matchesSearch && matchesCategory;
     });
@@ -73,16 +86,20 @@ export default function MasterInventoryReport() {
 
   const sortedRows = useMemo(() => {
     const compare = (a, b) => {
-      const dir = sortOrder === 'desc' ? -1 : 1;
+      const dir = sortOrder === "desc" ? -1 : 1;
 
       const aVal = a?.[sortBy];
       const bVal = b?.[sortBy];
 
-      if (typeof aVal === 'number' && typeof bVal === 'number') {
+      if (typeof aVal === "number" && typeof bVal === "number") {
         return (aVal - bVal) * dir;
       }
 
-      return String(aVal ?? '').localeCompare(String(bVal ?? ''), undefined, { sensitivity: 'base' }) * dir;
+      return (
+        String(aVal ?? "").localeCompare(String(bVal ?? ""), undefined, {
+          sensitivity: "base",
+        }) * dir
+      );
     };
 
     return [...filteredRows].sort(compare);
@@ -100,7 +117,7 @@ export default function MasterInventoryReport() {
           }
           map.get(key).push({
             balagruhaName: bg.balagruhaName,
-            quantity: item.deployed
+            quantity: item.deployed,
           });
         }
       }
@@ -109,7 +126,7 @@ export default function MasterInventoryReport() {
   }, [balagruhaBreakdown]);
 
   const toggleExpanded = (rowId) => {
-    setExpandedRows(prev => {
+    setExpandedRows((prev) => {
       const next = new Set(prev);
       if (next.has(rowId)) {
         next.delete(rowId);
@@ -122,17 +139,25 @@ export default function MasterInventoryReport() {
 
   const handleSort = (key) => {
     if (sortBy === key) {
-      setSortOrder(prev => (prev === 'asc' ? 'desc' : 'asc'));
+      setSortOrder((prev) => (prev === "asc" ? "desc" : "asc"));
       return;
     }
 
     setSortBy(key);
-    setSortOrder('asc');
+    setSortOrder("asc");
   };
 
   const exportCSV = () => {
     try {
-      const headers = ['SKU', 'Name', 'Category', 'In Store', 'Deployed', 'Balagruha', 'Balagruha Qty'];
+      const headers = [
+        "SKU",
+        "Name",
+        "Category",
+        "In Store",
+        "Deployed",
+        "Balagruha",
+        "Balagruha Qty",
+      ];
       const csvRows = [];
       for (const row of sortedRows) {
         const bgEntries = productBalagruhaMap.get(row._id) || [];
@@ -143,42 +168,44 @@ export default function MasterInventoryReport() {
           row.category,
           row.stock ?? 0,
           row.deployed ?? 0,
-          '',
-          ''
+          "",
+          "",
         ]);
         // Sub-rows for each Balagruha with deployed stock
         for (const entry of bgEntries) {
           csvRows.push([
-            '',
-            '',
-            '',
-            '',
-            '',
+            "",
+            "",
+            "",
+            "",
+            "",
             entry.balagruhaName,
-            entry.quantity
+            entry.quantity,
           ]);
         }
       }
 
       const csvContent = [
-        headers.join(','),
-        ...csvRows.map(r => r.map(v => `"${String(v ?? '').replace(/"/g, '""')}"`).join(','))
-      ].join('\n');
+        headers.join(","),
+        ...csvRows.map((r) =>
+          r.map((v) => `"${String(v ?? "").replace(/"/g, '""')}"`).join(","),
+        ),
+      ].join("\n");
 
-      const blob = new Blob([csvContent], { type: 'text/csv' });
+      const blob = new Blob([csvContent], { type: "text/csv" });
       const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
+      const a = document.createElement("a");
       a.href = url;
-      a.download = `master-inventory-report-${new Date().toISOString().split('T')[0]}.csv`;
+      a.download = `master-inventory-report-${new Date().toISOString().split("T")[0]}.csv`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
       window.URL.revokeObjectURL(url);
 
-      toast.success('Report exported');
+      toast.success("Report exported");
     } catch (err) {
-      console.error('Error exporting master inventory report:', err);
-      toast.error('Failed to export report');
+      console.error("Error exporting master inventory report:", err);
+      toast.error("Failed to export report");
     }
   };
 
@@ -207,14 +234,18 @@ export default function MasterInventoryReport() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <button
-                onClick={() => navigate('/shop/admin/inventory')}
+                onClick={() => navigate("/shop/admin/inventory")}
                 className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
               >
                 <ArrowLeft className="w-5 h-5 text-slate-600" />
               </button>
               <div>
-                <h1 className="text-2xl font-bold text-slate-900">Master Inventory Report</h1>
-                <p className="text-slate-600 mt-1">In-store stock vs deployed quantities</p>
+                <h1 className="text-2xl font-bold text-slate-900">
+                  Master Inventory Report
+                </h1>
+                <p className="text-slate-600 mt-1">
+                  In-store stock vs deployed quantities
+                </p>
               </div>
             </div>
             <div className="flex items-center gap-3">
@@ -230,7 +261,9 @@ export default function MasterInventoryReport() {
                 disabled={loading}
                 className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50"
               >
-                <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
+                <RefreshCw
+                  className={`w-5 h-5 ${loading ? "animate-spin" : ""}`}
+                />
                 Refresh
               </button>
             </div>
@@ -245,7 +278,9 @@ export default function MasterInventoryReport() {
         <div className="bg-white rounded-lg border border-slate-200 p-4 mb-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Search</label>
+              <label className="block text-sm font-medium text-slate-700 mb-1">
+                Search
+              </label>
               <div className="relative">
                 <Search className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
                 <input
@@ -258,19 +293,32 @@ export default function MasterInventoryReport() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Category</label>
+              <label className="block text-sm font-medium text-slate-700 mb-1">
+                Category
+              </label>
               <select
                 value={categoryFilter}
                 onChange={(e) => setCategoryFilter(e.target.value)}
                 className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
               >
                 <option value="all">All Categories</option>
-                <option value="stationery">Stationery</option>
-                <option value="sports">Sports</option>
-                <option value="books">Books</option>
-                <option value="uniforms">Uniforms</option>
-                <option value="digital">Digital</option>
-                <option value="other">Other</option>
+                {[
+                  ...new Set([
+                    "ISF Shop",
+                    "Medicines",
+                    "Consumables",
+                    "Repairs",
+                    "Infra",
+                    "Others",
+                    ...rows.map((r) => r.category).filter(Boolean),
+                  ]),
+                ]
+                  .sort()
+                  .map((cat) => (
+                    <option key={cat} value={cat}>
+                      {cat}
+                    </option>
+                  ))}
               </select>
             </div>
           </div>
@@ -298,7 +346,7 @@ export default function MasterInventoryReport() {
                     <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
                       <button
                         type="button"
-                        onClick={() => handleSort('sku')}
+                        onClick={() => handleSort("sku")}
                         className="inline-flex items-center gap-2 hover:text-slate-700"
                       >
                         SKU
@@ -308,7 +356,7 @@ export default function MasterInventoryReport() {
                     <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
                       <button
                         type="button"
-                        onClick={() => handleSort('name')}
+                        onClick={() => handleSort("name")}
                         className="inline-flex items-center gap-2 hover:text-slate-700"
                       >
                         Name
@@ -318,7 +366,7 @@ export default function MasterInventoryReport() {
                     <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
                       <button
                         type="button"
-                        onClick={() => handleSort('category')}
+                        onClick={() => handleSort("category")}
                         className="inline-flex items-center gap-2 hover:text-slate-700"
                       >
                         Category
@@ -328,7 +376,7 @@ export default function MasterInventoryReport() {
                     <th className="px-6 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">
                       <button
                         type="button"
-                        onClick={() => handleSort('stock')}
+                        onClick={() => handleSort("stock")}
                         className="inline-flex items-center gap-2 hover:text-slate-700"
                       >
                         In Store
@@ -338,7 +386,7 @@ export default function MasterInventoryReport() {
                     <th className="px-6 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">
                       <button
                         type="button"
-                        onClick={() => handleSort('deployed')}
+                        onClick={() => handleSort("deployed")}
                         className="inline-flex items-center gap-2 hover:text-slate-700"
                       >
                         Deployed
@@ -350,7 +398,8 @@ export default function MasterInventoryReport() {
                 <tbody className="divide-y divide-slate-200">
                   {sortedRows.map((row) => {
                     const bgEntries = productBalagruhaMap.get(row._id) || [];
-                    const hasDeployed = (row.deployed ?? 0) > 0 && bgEntries.length > 0;
+                    const hasDeployed =
+                      (row.deployed ?? 0) > 0 && bgEntries.length > 0;
                     const isExpanded = expandedRows.has(row._id);
 
                     return (
@@ -362,20 +411,29 @@ export default function MasterInventoryReport() {
                                 type="button"
                                 onClick={() => toggleExpanded(row._id)}
                                 className="p-1 rounded hover:bg-slate-200 transition-colors text-slate-500 hover:text-slate-700"
-                                aria-label={isExpanded ? 'Collapse Balagruha breakdown' : 'Expand Balagruha breakdown'}
-                              >
-                                {isExpanded
-                                  ? <ChevronDown className="w-4 h-4" />
-                                  : <ChevronRight className="w-4 h-4" />
+                                aria-label={
+                                  isExpanded
+                                    ? "Collapse Balagruha breakdown"
+                                    : "Expand Balagruha breakdown"
                                 }
+                              >
+                                {isExpanded ? (
+                                  <ChevronDown className="w-4 h-4" />
+                                ) : (
+                                  <ChevronRight className="w-4 h-4" />
+                                )}
                               </button>
                             ) : null}
                           </td>
                           <td className="px-6 py-4">
-                            <span className="font-mono text-sm text-slate-700">{row.sku}</span>
+                            <span className="font-mono text-sm text-slate-700">
+                              {row.sku}
+                            </span>
                           </td>
                           <td className="px-6 py-4">
-                            <span className="font-medium text-slate-900">{row.name}</span>
+                            <span className="font-medium text-slate-900">
+                              {row.name}
+                            </span>
                           </td>
                           <td className="px-6 py-4">
                             <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-800 capitalize">
@@ -383,26 +441,40 @@ export default function MasterInventoryReport() {
                             </span>
                           </td>
                           <td className="px-6 py-4 text-right">
-                            <span className="font-semibold text-slate-900">{row.stock ?? 0}</span>
+                            <span className="font-semibold text-slate-900">
+                              {row.stock ?? 0}
+                            </span>
                           </td>
                           <td className="px-6 py-4 text-right">
-                            <span className="font-semibold text-slate-900">{row.deployed ?? 0}</span>
+                            <span className="font-semibold text-slate-900">
+                              {row.deployed ?? 0}
+                            </span>
                           </td>
                         </tr>
-                        {isExpanded && bgEntries.map((entry, idx) => (
-                          <tr key={`${row._id}-bg-${idx}`} className="bg-purple-50/50">
-                            <td className="px-3 py-2"></td>
-                            <td colSpan={3} className="px-6 py-2 pl-12">
-                              <span className="text-sm text-purple-700 font-medium">{entry.balagruhaName}</span>
-                            </td>
-                            <td className="px-6 py-2 text-right">
-                              <span className="text-sm text-slate-400">&mdash;</span>
-                            </td>
-                            <td className="px-6 py-2 text-right">
-                              <span className="text-sm font-medium text-purple-700">{entry.quantity}</span>
-                            </td>
-                          </tr>
-                        ))}
+                        {isExpanded &&
+                          bgEntries.map((entry, idx) => (
+                            <tr
+                              key={`${row._id}-bg-${idx}`}
+                              className="bg-purple-50/50"
+                            >
+                              <td className="px-3 py-2"></td>
+                              <td colSpan={3} className="px-6 py-2 pl-12">
+                                <span className="text-sm text-purple-700 font-medium">
+                                  {entry.balagruhaName}
+                                </span>
+                              </td>
+                              <td className="px-6 py-2 text-right">
+                                <span className="text-sm text-slate-400">
+                                  &mdash;
+                                </span>
+                              </td>
+                              <td className="px-6 py-2 text-right">
+                                <span className="text-sm font-medium text-purple-700">
+                                  {entry.quantity}
+                                </span>
+                              </td>
+                            </tr>
+                          ))}
                       </React.Fragment>
                     );
                   })}
@@ -410,7 +482,9 @@ export default function MasterInventoryReport() {
               </table>
 
               {sortedRows.length === 0 && (
-                <div className="p-10 text-center text-slate-600">No results.</div>
+                <div className="p-10 text-center text-slate-600">
+                  No results.
+                </div>
               )}
             </div>
           )}

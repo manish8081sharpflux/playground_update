@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import React, { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import {
   Package,
   Truck,
@@ -9,10 +9,10 @@ import {
   X,
   ChevronUp,
   ChevronDown,
-  Settings
-} from 'lucide-react';
-import { api } from '../../api';
-import { useRBAC } from '../../contexts/RBACContext';
+  Settings,
+} from "lucide-react";
+import { api } from "../../api";
+import { useRBAC } from "../../contexts/RBACContext";
 
 /**
  * ShopAdminControls Component - Sprint5-Story-15
@@ -32,13 +32,19 @@ const ShopAdminControls = () => {
   const { hasPermission, isLoading: rbacLoading, permissions } = useRBAC();
 
   const permissionsLoaded = Object.keys(permissions || {}).length > 0;
-  const canManageShop = !rbacLoading && permissionsLoaded && hasPermission('Shop Management', 'Manage');
-
+  const canCreate = hasPermission("Shop Management", "Create");
+  const canUpdate = hasPermission("Shop Management", "Update");
+  const canDelete = hasPermission("Shop Management", "Delete");
+  const canManage = hasPermission("Shop Management", "Manage");
+  const canManageShop =
+    !rbacLoading &&
+    permissionsLoaded &&
+    (canCreate || canUpdate || canDelete || canManage);
   // Panel state
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [position, setPosition] = useState(() => {
     // Load saved position from localStorage or use default
-    const saved = localStorage.getItem('shopAdminControlsPosition');
+    const saved = localStorage.getItem("shopAdminControlsPosition");
     return saved ? JSON.parse(saved) : { x: 20, y: 100 };
   });
   const [isDragging, setIsDragging] = useState(false);
@@ -48,14 +54,14 @@ const ShopAdminControls = () => {
   const [stockAlerts, setStockAlerts] = useState({
     lowStock: 0,
     outOfStock: 0,
-    loading: true
+    loading: true,
   });
 
   // Quick stats state
   const [quickStats, setQuickStats] = useState({
     totalProducts: 0,
     totalOrders: 0,
-    loading: true
+    loading: true,
   });
 
   // Fetch stock alerts
@@ -78,40 +84,44 @@ const ShopAdminControls = () => {
 
   const fetchStockAlerts = async () => {
     try {
-      const response = await api.get('/api/v2/shop/admin/inventory/stock-alerts');
+      const response = await api.get(
+        "/api/v2/shop/admin/inventory/stock-alerts",
+      );
       setStockAlerts({
         lowStock: response.data.lowStock || 0,
         outOfStock: response.data.outOfStock || 0,
-        loading: false
+        loading: false,
       });
     } catch (err) {
-      console.error('Error fetching stock alerts:', err);
-      setStockAlerts(prev => ({ ...prev, loading: false }));
+      console.error("Error fetching stock alerts:", err);
+      setStockAlerts((prev) => ({ ...prev, loading: false }));
     }
   };
 
   const fetchQuickStats = async () => {
     try {
-      const response = await api.get('/api/v2/shop/admin/inventory/quick-stats');
+      const response = await api.get(
+        "/api/v2/shop/admin/inventory/quick-stats",
+      );
       setQuickStats({
         totalProducts: response.data.totalProducts || 0,
         totalOrders: response.data.totalOrders || 0,
-        loading: false
+        loading: false,
       });
     } catch (err) {
-      console.error('Error fetching quick stats:', err);
-      setQuickStats(prev => ({ ...prev, loading: false }));
+      console.error("Error fetching quick stats:", err);
+      setQuickStats((prev) => ({ ...prev, loading: false }));
     }
   };
 
   // Handle mouse down on panel header (start drag)
   const handleMouseDown = (e) => {
-    if (e.target.closest('.admin-control-button')) return; // Don't drag when clicking buttons
+    if (e.target.closest(".admin-control-button")) return; // Don't drag when clicking buttons
 
     setIsDragging(true);
     setDragOffset({
       x: e.clientX - position.x,
-      y: e.clientY - position.y
+      y: e.clientY - position.y,
     });
   };
 
@@ -129,7 +139,7 @@ const ShopAdminControls = () => {
 
       const constrainedPosition = {
         x: Math.max(0, Math.min(newX, maxX)),
-        y: Math.max(0, Math.min(newY, maxY))
+        y: Math.max(0, Math.min(newY, maxY)),
       };
 
       setPosition(constrainedPosition);
@@ -139,18 +149,21 @@ const ShopAdminControls = () => {
       if (isDragging) {
         setIsDragging(false);
         // Save position to localStorage
-        localStorage.setItem('shopAdminControlsPosition', JSON.stringify(position));
+        localStorage.setItem(
+          "shopAdminControlsPosition",
+          JSON.stringify(position),
+        );
       }
     };
 
     if (isDragging) {
-      document.addEventListener('mousemove', handleMouseMove);
-      document.addEventListener('mouseup', handleMouseUp);
+      document.addEventListener("mousemove", handleMouseMove);
+      document.addEventListener("mouseup", handleMouseUp);
     }
 
     return () => {
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
+      document.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("mouseup", handleMouseUp);
     };
   }, [isDragging, dragOffset, position]);
 
@@ -160,45 +173,52 @@ const ShopAdminControls = () => {
 
   const adminLinks = [
     {
-      label: 'Products',
+      label: "Products",
       icon: Package,
-      path: '/shop/admin/products',
-      color: 'purple'
+      path: "/shop/admin/products",
+      color: "purple",
+      show: canCreate || canUpdate || canManage,
     },
     {
-      label: 'Vendors',
+      label: "Vendors",
       icon: Truck,
-      path: '/shop/admin/vendors',
-      color: 'purple'
+      path: "/shop/admin/vendors",
+      color: "purple",
+      show: canCreate || canUpdate || canManage,
     },
     {
-      label: 'Inventory',
+      label: "Inventory",
       icon: AlertTriangle,
-      path: '/shop/admin/inventory',
-      color: 'orange',
-      badge: stockAlerts.lowStock + stockAlerts.outOfStock > 0
-        ? stockAlerts.lowStock + stockAlerts.outOfStock
-        : null
+      path: "/shop/admin/inventory",
+      color: "orange",
+      badge:
+        stockAlerts.lowStock + stockAlerts.outOfStock > 0
+          ? stockAlerts.lowStock + stockAlerts.outOfStock
+          : null,
+      show: canUpdate || canManage,
     },
     {
-      label: 'Master Report',
+      label: "Master Report",
       icon: FileText,
-      path: '/shop/admin/inventory/master-report',
-      color: 'green'
+      path: "/shop/admin/inventory/master-report",
+      color: "green",
+      show: canManage,
     },
     {
-      label: 'Analytics',
+      label: "Analytics",
       icon: BarChart3,
-      path: '/shop/admin/analytics',
-      color: 'blue'
+      path: "/shop/admin/analytics",
+      color: "blue",
+      show: canManage,
     },
     {
-      label: 'Reports',
+      label: "Reports",
       icon: FileText,
-      path: '/shop/admin/reports',
-      color: 'green'
-    }
-  ];
+      path: "/shop/admin/reports",
+      color: "green",
+      show: canManage,
+    },
+  ].filter((link) => link.show);
 
   if (rbacLoading || !canManageShop) {
     return null;
@@ -207,19 +227,19 @@ const ShopAdminControls = () => {
   return (
     <div
       className={`fixed z-50 bg-white rounded-lg shadow-2xl border-2 border-purple-300 ${
-        isDragging ? 'cursor-grabbing' : ''
+        isDragging ? "cursor-grabbing" : ""
       }`}
       style={{
         left: `${position.x}px`,
         top: `${position.y}px`,
-        width: isCollapsed ? '180px' : '280px',
-        transition: isDragging ? 'none' : 'width 0.2s ease'
+        width: isCollapsed ? "180px" : "280px",
+        transition: isDragging ? "none" : "width 0.2s ease",
       }}
     >
       {/* Header - Draggable */}
       <div
         className={`bg-gradient-to-r from-purple-600 to-purple-700 text-white px-3 py-2 rounded-t-lg flex items-center justify-between ${
-          isDragging ? 'cursor-grabbing' : 'cursor-grab'
+          isDragging ? "cursor-grabbing" : "cursor-grab"
         }`}
         onMouseDown={handleMouseDown}
       >
@@ -230,7 +250,7 @@ const ShopAdminControls = () => {
         <button
           onClick={() => setIsCollapsed(!isCollapsed)}
           className="admin-control-button p-1 hover:bg-purple-800 rounded transition-colors"
-          title={isCollapsed ? 'Expand' : 'Collapse'}
+          title={isCollapsed ? "Expand" : "Collapse"}
         >
           {isCollapsed ? (
             <ChevronDown className="w-4 h-4" />
@@ -248,7 +268,9 @@ const ShopAdminControls = () => {
             <div className="mb-3 p-2 bg-orange-50 border border-orange-200 rounded-lg">
               <div className="flex items-center gap-2 mb-2">
                 <AlertTriangle className="w-4 h-4 text-orange-600" />
-                <span className="text-xs font-semibold text-orange-900">Stock Alerts</span>
+                <span className="text-xs font-semibold text-orange-900">
+                  Stock Alerts
+                </span>
               </div>
               <div className="space-y-1 text-xs">
                 {stockAlerts.lowStock > 0 && (
@@ -269,15 +291,21 @@ const ShopAdminControls = () => {
 
           {/* Quick Stats */}
           <div className="mb-3 p-2 bg-slate-50 border border-slate-200 rounded-lg">
-            <div className="text-xs font-semibold text-slate-700 mb-2">Quick Stats</div>
+            <div className="text-xs font-semibold text-slate-700 mb-2">
+              Quick Stats
+            </div>
             <div className="grid grid-cols-2 gap-2 text-xs">
               <div>
                 <div className="text-slate-600">Products</div>
-                <div className="font-bold text-slate-900">{quickStats.totalProducts}</div>
+                <div className="font-bold text-slate-900">
+                  {quickStats.totalProducts}
+                </div>
               </div>
               <div>
                 <div className="text-slate-600">Orders</div>
-                <div className="font-bold text-slate-900">{quickStats.totalOrders}</div>
+                <div className="font-bold text-slate-900">
+                  {quickStats.totalOrders}
+                </div>
               </div>
             </div>
           </div>
@@ -294,8 +322,8 @@ const ShopAdminControls = () => {
                   onClick={() => navigate(link.path)}
                   className={`admin-control-button w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                     isActive
-                      ? 'bg-purple-100 text-purple-700 border-2 border-purple-300'
-                      : 'bg-slate-50 text-slate-700 hover:bg-slate-100 border-2 border-transparent'
+                      ? "bg-purple-100 text-purple-700 border-2 border-purple-300"
+                      : "bg-slate-50 text-slate-700 hover:bg-slate-100 border-2 border-transparent"
                   }`}
                 >
                   <div className="flex items-center gap-2">

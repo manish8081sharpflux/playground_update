@@ -1,33 +1,36 @@
-const PurchaseRequest = require('../models/purchaseRequest');
-const ShopItem = require('../models/shopItem');
-const User = require('../models/user');
-const InventoryTransaction = require('../models/inventoryTransaction');
-const mongoose = require('mongoose');
-const { errorLogger } = require('../config/pino-config');
+const PurchaseRequest = require("../models/purchaseRequest");
+const ShopItem = require("../models/shopItem");
+const User = require("../models/user");
+const InventoryTransaction = require("../models/inventoryTransaction");
+const mongoose = require("mongoose");
+const { errorLogger } = require("../config/pino-config");
 
 /**
  * PM Error Codes — Sprint 2 E5 Story 5
  * Structured error codes for role-specific error handling
  */
 const PR_ERROR = {
-  NOT_FOUND: 'PR_NOT_FOUND',
-  INVALID_TRANSITION: 'PR_INVALID_TRANSITION',
-  UNAUTHORIZED: 'PR_UNAUTHORIZED',
-  VALIDATION_FAILED: 'PR_VALIDATION_FAILED',
-  DUPLICATE_ACTION: 'PR_DUPLICATE_ACTION',
-  INSUFFICIENT_STOCK: 'PR_INSUFFICIENT_STOCK',
+  NOT_FOUND: "PR_NOT_FOUND",
+  INVALID_TRANSITION: "PR_INVALID_TRANSITION",
+  UNAUTHORIZED: "PR_UNAUTHORIZED",
+  VALIDATION_FAILED: "PR_VALIDATION_FAILED",
+  DUPLICATE_ACTION: "PR_DUPLICATE_ACTION",
+  INSUFFICIENT_STOCK: "PR_INSUFFICIENT_STOCK",
 };
 
 /** Log a failed PM operation for audit trail */
 function logPmOperation(userId, requestId, action, error) {
-  errorLogger.error({
-    pmOperation: true,
-    userId: userId?.toString(),
-    requestId: requestId?.toString(),
-    action,
-    error: typeof error === 'string' ? error : error?.message,
-    timestamp: new Date().toISOString(),
-  }, `PM operation failed: ${action}`);
+  errorLogger.error(
+    {
+      pmOperation: true,
+      userId: userId?.toString(),
+      requestId: requestId?.toString(),
+      action,
+      error: typeof error === "string" ? error : error?.message,
+      timestamp: new Date().toISOString(),
+    },
+    `PM operation failed: ${action}`,
+  );
 }
 
 /**
@@ -42,22 +45,37 @@ function logPmOperation(userId, requestId, action, error) {
  */
 exports.createPurchaseRequest = async (req, res) => {
   try {
-    const { balagruhaId, category, items, reason, justification, deadline, priority } = req.body;
+    const {
+      balagruhaId,
+      category,
+      items,
+      reason,
+      justification,
+      deadline,
+      priority,
+    } = req.body;
     const userId = req.user._id;
 
-    const normalizedPriority = typeof priority === 'string' ? priority.toLowerCase().trim() : '';
-    const allowedPriorities = new Set(['low', 'medium', 'high']);
-    const finalPriority = allowedPriorities.has(normalizedPriority) ? normalizedPriority : 'medium';
+    const normalizedPriority =
+      typeof priority === "string" ? priority.toLowerCase().trim() : "";
+    const allowedPriorities = new Set(["low", "medium", "high"]);
+    const finalPriority = allowedPriorities.has(normalizedPriority)
+      ? normalizedPriority
+      : "medium";
 
     // Files are in req.files (uploaded by multer automatically)
     const uploadedFiles = req.files || [];
 
     // Sprint5-Story-24: Role-based access control
-    const user = await User.findById(userId).select('role balagruhaIds');
-    if (user && typeof user.canCreatePurchaseRequest === 'function' && !user.canCreatePurchaseRequest()) {
+    const user = await User.findById(userId).select("role balagruhaIds");
+    if (
+      user &&
+      typeof user.canCreatePurchaseRequest === "function" &&
+      !user.canCreatePurchaseRequest()
+    ) {
       return res.status(403).json({
         success: false,
-        message: 'You do not have permission to create purchase requests.'
+        message: "You do not have permission to create purchase requests.",
       });
     }
 
@@ -65,15 +83,23 @@ exports.createPurchaseRequest = async (req, res) => {
     if (!category) {
       return res.status(400).json({
         success: false,
-        message: 'Category is required'
+        message: "Category is required",
       });
     }
 
-    const validCategories = ['ISF Shop', 'Medicines', 'Consumables', 'Repairs', 'Infra', 'Others'];
+    const validCategories = [
+      "ISF Shop",
+      "Medicines",
+      "Consumables",
+      "Repairs",
+      "Infra",
+      "Others",
+    ];
     if (!validCategories.includes(category)) {
       return res.status(400).json({
         success: false,
-        message: 'Invalid category value. Must be one of: ISF Shop, Medicines, Consumables, Repairs, Infra, Others'
+        message:
+          "Invalid category value. Must be one of: ISF Shop, Medicines, Consumables, Repairs, Infra, Others",
       });
     }
 
@@ -82,8 +108,11 @@ exports.createPurchaseRequest = async (req, res) => {
     // to avoid timezone off-by-one when later rendering as a date.
     let parsedDeadline = null;
     if (deadline) {
-      if (typeof deadline === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(deadline)) {
-        const [y, m, d] = deadline.split('-').map((v) => Number(v));
+      if (
+        typeof deadline === "string" &&
+        /^\d{4}-\d{2}-\d{2}$/.test(deadline)
+      ) {
+        const [y, m, d] = deadline.split("-").map((v) => Number(v));
         parsedDeadline = new Date(y, m - 1, d);
       } else {
         parsedDeadline = new Date(deadline);
@@ -92,7 +121,7 @@ exports.createPurchaseRequest = async (req, res) => {
       if (Number.isNaN(parsedDeadline.getTime())) {
         return res.status(400).json({
           success: false,
-          message: 'Invalid deadline format'
+          message: "Invalid deadline format",
         });
       }
     }
@@ -101,15 +130,18 @@ exports.createPurchaseRequest = async (req, res) => {
     if (!balagruhaId) {
       return res.status(400).json({
         success: false,
-        message: 'Balagruha or STOCK selection is required'
+        message: "Balagruha or STOCK selection is required",
       });
     }
 
     // Validate balagruhaId is either 'STOCK' or valid ObjectId
-    if (balagruhaId !== 'STOCK' && !mongoose.Types.ObjectId.isValid(balagruhaId)) {
+    if (
+      balagruhaId !== "STOCK" &&
+      !mongoose.Types.ObjectId.isValid(balagruhaId)
+    ) {
       return res.status(400).json({
         success: false,
-        message: 'Invalid Balagruha ID format'
+        message: "Invalid Balagruha ID format",
       });
     }
 
@@ -117,39 +149,63 @@ exports.createPurchaseRequest = async (req, res) => {
     if (!items) {
       return res.status(400).json({
         success: false,
-        message: 'Items are required'
+        message: "Items are required",
       });
     }
 
     // Parse items (comes as JSON string in multipart form)
-    const parsedItems = typeof items === 'string' ? JSON.parse(items) : items;
+    const parsedItems = typeof items === "string" ? JSON.parse(items) : items;
 
     if (!parsedItems || parsedItems.length === 0) {
       return res.status(400).json({
         success: false,
-        message: 'At least one product is required'
+        message: "At least one product is required",
       });
     }
 
     // Validate and snapshot each item
     const validatedItems = [];
     for (const item of parsedItems) {
+      if (!item.productId || item.isManualEntry) {
+        if (!item.productName || !item.productName.trim()) {
+          return res.status(400).json({
+            success: false,
+            message: "Product name is required for manual entries",
+          });
+        }
+        validatedItems.push({
+          productId: null,
+          productName: item.productName.trim(),
+          productSKU: item.productSKU || "MANUAL",
+          requestedQuantity: parseInt(item.requestedQuantity) || 1,
+          currentStock: 0,
+          lowStockThreshold: 0,
+          estimatedUnitCost: parseFloat(item.estimatedUnitCost) || 0,
+          estimatedTotalCost:
+            (parseInt(item.requestedQuantity) || 1) *
+            (parseFloat(item.estimatedUnitCost) || 0),
+          isPendingProduct: false,
+        });
+        continue;
+      }
       const product = await ShopItem.findById(item.productId);
-
       if (!product) {
         return res.status(404).json({
           success: false,
-          message: `Product ${item.productId} not found`
+          message: `Product ${item.productId} not found`,
         });
       }
 
       // VALIDATION: Purchase Manager can only request for assigned balagruhas
-      if (req.user.role === 'purchase-manager') {
+      if (req.user.role === "purchase-manager") {
         const userBalagruhas = req.user.balagruhaIds || [];
-        if (product.balagruhaId && !userBalagruhas.includes(product.balagruhaId.toString())) {
+        if (
+          product.balagruhaId &&
+          !userBalagruhas.includes(product.balagruhaId.toString())
+        ) {
           return res.status(403).json({
             success: false,
-            message: `No access to product: ${product.name}`
+            message: `No access to product: ${product.name}`,
           });
         }
       }
@@ -158,10 +214,9 @@ exports.createPurchaseRequest = async (req, res) => {
       if (!item.requestedQuantity || item.requestedQuantity < 1) {
         return res.status(400).json({
           success: false,
-          message: `Invalid quantity for product: ${product.name}`
+          message: `Invalid quantity for product: ${product.name}`,
         });
       }
-
 
       // Sprint5-Story-25: Track pending products
       const isPendingProduct = product.isPendingProduct === true;
@@ -174,41 +229,49 @@ exports.createPurchaseRequest = async (req, res) => {
         currentStock: product.stock,
         lowStockThreshold: product.lowStockThreshold,
         estimatedUnitCost: parseFloat(item.estimatedUnitCost) || 0,
-        estimatedTotalCost: (parseInt(item.requestedQuantity) || 1) * (parseFloat(item.estimatedUnitCost) || 0),
-        isPendingProduct  // Sprint5-Story-25: Mark if this is a pending product
+        estimatedTotalCost:
+          (parseInt(item.requestedQuantity) || 1) *
+          (parseFloat(item.estimatedUnitCost) || 0),
+        isPendingProduct, // Sprint5-Story-25: Mark if this is a pending product
       });
     }
 
     // Process uploaded files
-    const attachments = uploadedFiles.map(file => ({
+    const attachments = uploadedFiles.map((file) => ({
       filename: file.originalname,
-      fileUrl: `/uploads/${file.filename}`,  // Relative path for frontend
-      uploadedAt: new Date()
+      fileUrl: `/uploads/${file.filename}`, // Relative path for frontend
+      uploadedAt: new Date(),
     }));
 
     // Sprint5-Story-24: Calculate approval threshold
-    const maxItemCost = Math.max(...validatedItems.map(item => item.estimatedUnitCost));
-    const totalOrderCost = validatedItems.reduce((sum, item) => sum + item.estimatedTotalCost, 0);
+    const maxItemCost = Math.max(
+      ...validatedItems.map((item) => item.estimatedUnitCost),
+    );
+    const totalOrderCost = validatedItems.reduce(
+      (sum, item) => sum + item.estimatedTotalCost,
+      0,
+    );
 
     const ITEM_THRESHOLD = 1000; // Rs 1,000 per item
     const ORDER_THRESHOLD = 25000; // Rs 25,000 total order
 
-    const isSmallPurchase = (maxItemCost <= ITEM_THRESHOLD) && (totalOrderCost <= ORDER_THRESHOLD);
+    const isSmallPurchase =
+      maxItemCost <= ITEM_THRESHOLD && totalOrderCost <= ORDER_THRESHOLD;
 
     // Set initial status based on approval requirement
     // Small purchases go directly to 'pending', large purchases require approval
-    const initialStatus = isSmallPurchase ? 'pending' : 'pending_approval';
+    const initialStatus = isSmallPurchase ? "pending" : "pending_approval";
 
     // Create purchase request
     const purchaseRequest = new PurchaseRequest({
-      balagruhaId: balagruhaId,  // Now required: either 'STOCK' or ObjectId
+      balagruhaId: balagruhaId, // Now required: either 'STOCK' or ObjectId
       category: category.trim(),
       deadline: parsedDeadline,
       priority: finalPriority,
       items: validatedItems,
       attachments,
-      reason: reason?.trim() || '',
-      justification: justification?.trim() || '',
+      reason: reason?.trim() || "",
+      justification: justification?.trim() || "",
       requestedBy: userId,
       status: initialStatus,
       thresholdAnalysis: {
@@ -216,8 +279,8 @@ exports.createPurchaseRequest = async (req, res) => {
         totalOrderCost,
         itemThreshold: ITEM_THRESHOLD,
         orderThreshold: ORDER_THRESHOLD,
-        requiresApproval: !isSmallPurchase
-      }
+        requiresApproval: !isSmallPurchase,
+      },
     });
 
     await purchaseRequest.save();
@@ -226,31 +289,33 @@ exports.createPurchaseRequest = async (req, res) => {
     for (const item of validatedItems) {
       if (item.isPendingProduct) {
         await ShopItem.findByIdAndUpdate(item.productId, {
-          createdInRequest: purchaseRequest._id
+          createdInRequest: purchaseRequest._id,
         });
       }
     }
 
     // Populate for response
-    await purchaseRequest.populate('requestedBy', 'name email role');
-    await purchaseRequest.populate('items.productId', 'name sku stock lowStockThreshold');
+    await purchaseRequest.populate("requestedBy", "name email role");
+    await purchaseRequest.populate(
+      "items.productId",
+      "name sku stock lowStockThreshold",
+    );
     // Sprint5-Story-21: Skip populate if STOCK
-    if (balagruhaId && balagruhaId !== 'STOCK') {
-      await purchaseRequest.populate('balagruhaId', 'name');
+    if (balagruhaId && balagruhaId !== "STOCK") {
+      await purchaseRequest.populate("balagruhaId", "name");
     }
 
     res.status(201).json({
       success: true,
-      message: 'Purchase request created successfully',
-      data: { purchaseRequest }
+      message: "Purchase request created successfully",
+      data: { purchaseRequest },
     });
-
   } catch (error) {
-    errorLogger.error({ err: error }, 'Error creating purchase request:');
+    errorLogger.error({ err: error }, "Error creating purchase request:");
     res.status(500).json({
       success: false,
-      message: 'Error creating purchase request',
-      error: error.message
+      message: "Error creating purchase request",
+      error: error.message,
     });
   }
 };
@@ -266,7 +331,14 @@ exports.getMyPurchaseRequests = async (req, res) => {
     const userRole = req.user.role;
     const { status, balagruhaId, category, startDate, endDate } = req.query;
 
-    const validCategories = ['ISF Shop', 'Medicines', 'Consumables', 'Repairs', 'Infra', 'Others'];
+    const validCategories = [
+      "ISF Shop",
+      "Medicines",
+      "Consumables",
+      "Repairs",
+      "Infra",
+      "Others",
+    ];
 
     // Role-based filtering
     // This endpoint is now only used for non-admin/non-purchase-manager roles
@@ -276,20 +348,21 @@ exports.getMyPurchaseRequests = async (req, res) => {
     // All roles using this endpoint see ONLY their own requests
     query.requestedBy = userId;
 
-    if (status && status !== 'all') {
+    if (status && status !== "all") {
       query.status = status;
     }
 
     // Balagruha filter - user can filter their own requests by balagruha
-    if (balagruhaId && balagruhaId !== 'all') {
+    if (balagruhaId && balagruhaId !== "all") {
       query.balagruhaId = balagruhaId;
     }
 
-    if (category && category !== 'All Categories') {
+    if (category && category !== "All Categories") {
       if (!validCategories.includes(category)) {
         return res.status(400).json({
           success: false,
-          message: 'Invalid category value. Must be one of: ISF Shop, Medicines, Consumables, Repairs, Infra, Others'
+          message:
+            "Invalid category value. Must be one of: ISF Shop, Medicines, Consumables, Repairs, Infra, Others",
         });
       }
       query.category = category;
@@ -315,29 +388,33 @@ exports.getMyPurchaseRequests = async (req, res) => {
     }
 
     const requests = await PurchaseRequest.find(query)
-      .populate('requestedBy', 'name email role')
-      .populate('reviewedBy', 'name email')
-      .populate('deliveredByCoachId', 'name email')  // Story 2.6: Delivery tracking
-      .populate({path:'items.productId',select:'name sku stock lowStockThreshold images approvedVendors',populate:{path:'approvedVendors.vendorId',select:'name'}})
+      .populate("requestedBy", "name email role")
+      .populate("reviewedBy", "name email")
+      .populate("deliveredByCoachId", "name email") // Story 2.6: Delivery tracking
+      .populate({
+        path: "items.productId",
+        select: "name sku stock lowStockThreshold images approvedVendors",
+        populate: { path: "approvedVendors.vendorId", select: "name" },
+      })
       .sort({ createdAt: -1 });
 
     // Sprint5-Story-21: Manually populate balagruhaId (skip if STOCK)
     for (const request of requests) {
-      if (request.balagruhaId && request.balagruhaId !== 'STOCK') {
-        await request.populate('balagruhaId', 'name');
+      if (request.balagruhaId && request.balagruhaId !== "STOCK") {
+        await request.populate("balagruhaId", "name");
       }
     }
 
     res.json({
       success: true,
-      data: { requests, count: requests.length }
+      data: { requests, count: requests.length },
     });
   } catch (error) {
-    errorLogger.error({ err: error }, 'Error fetching purchase requests:');
+    errorLogger.error({ err: error }, "Error fetching purchase requests:");
     res.status(500).json({
       success: false,
-      message: 'Error fetching purchase requests',
-      error: error.message
+      message: "Error fetching purchase requests",
+      error: error.message,
     });
   }
 };
@@ -353,9 +430,26 @@ exports.getMyPurchaseRequests = async (req, res) => {
  */
 exports.getAllPurchaseRequests = async (req, res) => {
   try {
-    const { status, balagruhaId, category, startDate, endDate, priority, requestedBy, page = 1, limit = 20 } = req.query;
+    const {
+      status,
+      balagruhaId,
+      category,
+      startDate,
+      endDate,
+      priority,
+      requestedBy,
+      page = 1,
+      limit = 20,
+    } = req.query;
 
-    const validCategories = ['ISF Shop', 'Medicines', 'Consumables', 'Repairs', 'Infra', 'Others'];
+    const validCategories = [
+      "ISF Shop",
+      "Medicines",
+      "Consumables",
+      "Repairs",
+      "Infra",
+      "Others",
+    ];
     const userId = req.user._id;
     const userRole = req.user.role;
 
@@ -363,35 +457,39 @@ exports.getAllPurchaseRequests = async (req, res) => {
     const query = {};
 
     // Role-based filtering
-    if (userRole === 'admin') {
+    if (userRole === "admin") {
       // Admin sees ALL requests - no filter
-    } else if (userRole === 'purchase-manager') {
+    } else if (userRole === "purchase-manager") {
       // Purchase Manager sees ALL requests in their assigned Balagruha(s)
-      const user = await User.findById(userId).select('balagruhaIds');
-      const userBalagruhaIds = (user.balagruhaIds || []).map(id => id.toString());
+      const user = await User.findById(userId).select("balagruhaIds");
+      const userBalagruhaIds = (user.balagruhaIds || []).map((id) =>
+        id.toString(),
+      );
 
       // Show requests from assigned balagruhas OR STOCK requests
       query.$or = [
         { balagruhaId: { $in: userBalagruhaIds } },
-        { balagruhaId: 'STOCK' }
+        { balagruhaId: "STOCK" },
       ];
     } else {
       // Other roles (Coach, Medical Incharge, etc.) see ONLY their own requests
       query.requestedBy = userId;
     }
 
-    if (status && status !== 'all') {
+    if (status && status !== "all") {
       query.status = status;
     }
 
     // Balagruha filter - respect role-based restrictions
-    if (balagruhaId && balagruhaId !== 'all') {
-      if (userRole === 'purchase-manager') {
+    if (balagruhaId && balagruhaId !== "all") {
+      if (userRole === "purchase-manager") {
         // For purchase-manager, ensure they can only filter by their assigned balagruhas or STOCK
-        const user = await User.findById(userId).select('balagruhaIds');
-        const userBalagruhaIds = (user.balagruhaIds || []).map(id => id.toString());
+        const user = await User.findById(userId).select("balagruhaIds");
+        const userBalagruhaIds = (user.balagruhaIds || []).map((id) =>
+          id.toString(),
+        );
 
-        if (balagruhaId === 'STOCK' || userBalagruhaIds.includes(balagruhaId)) {
+        if (balagruhaId === "STOCK" || userBalagruhaIds.includes(balagruhaId)) {
           // Override $or when filtering by specific balagruha
           delete query.$or;
           query.balagruhaId = balagruhaId;
@@ -403,11 +501,12 @@ exports.getAllPurchaseRequests = async (req, res) => {
       }
     }
 
-    if (category && category !== 'All Categories') {
+    if (category && category !== "All Categories") {
       if (!validCategories.includes(category)) {
         return res.status(400).json({
           success: false,
-          message: 'Invalid category value. Must be one of: ISF Shop, Medicines, Consumables, Repairs, Infra, Others'
+          message:
+            "Invalid category value. Must be one of: ISF Shop, Medicines, Consumables, Repairs, Infra, Others",
         });
       }
       query.category = category;
@@ -433,8 +532,8 @@ exports.getAllPurchaseRequests = async (req, res) => {
     }
 
     // FIX-020: Priority filter
-    if (priority && priority !== 'all') {
-      const validPriorities = ['low', 'medium', 'high'];
+    if (priority && priority !== "all") {
+      const validPriorities = ["low", "medium", "high"];
       const normalizedPriority = priority.toLowerCase().trim();
       if (validPriorities.includes(normalizedPriority)) {
         query.priority = normalizedPriority;
@@ -442,8 +541,8 @@ exports.getAllPurchaseRequests = async (req, res) => {
     }
 
     // FIX-020: Coach (requestedBy) filter — only for admin and purchase-manager
-    if (requestedBy && requestedBy !== 'all') {
-      if (userRole === 'admin' || userRole === 'purchase-manager') {
+    if (requestedBy && requestedBy !== "all") {
+      if (userRole === "admin" || userRole === "purchase-manager") {
         if (mongoose.Types.ObjectId.isValid(requestedBy)) {
           query.requestedBy = new mongoose.Types.ObjectId(requestedBy);
         }
@@ -463,15 +562,19 @@ exports.getAllPurchaseRequests = async (req, res) => {
     // Execute paginated query — fetch with createdAt sort, then re-sort by priority in-memory
     const [requests, total] = await Promise.all([
       PurchaseRequest.find(query)
-        .populate('requestedBy', 'name email role')
-        .populate('reviewedBy', 'name email')
-        .populate('deliveredByCoachId', 'name email')
-        .populate({path:'items.productId',select:'name sku stock lowStockThreshold images approvedVendors',populate:{path:'approvedVendors.vendorId',select:'name'}})
-        .populate('balagruhaId', 'name')
+        .populate("requestedBy", "name email role")
+        .populate("reviewedBy", "name email")
+        .populate("deliveredByCoachId", "name email")
+        .populate({
+          path: "items.productId",
+          select: "name sku stock lowStockThreshold images approvedVendors",
+          populate: { path: "approvedVendors.vendorId", select: "name" },
+        })
+        .populate("balagruhaId", "name")
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(parseInt(limit)),
-      PurchaseRequest.countDocuments(query)
+      PurchaseRequest.countDocuments(query),
     ]);
 
     // FIX-020: In-memory priority-first sort (high > medium > low), stable secondary by createdAt desc
@@ -486,23 +589,23 @@ exports.getAllPurchaseRequests = async (req, res) => {
 
     res.json({
       success: true,
-      data: { 
-        requests, 
+      data: {
+        requests,
         count: requests.length,
         pagination: {
           page: parseInt(page),
           limit: parseInt(limit),
           total,
-          pages: Math.ceil(total / parseInt(limit))
-        }
-      }
+          pages: Math.ceil(total / parseInt(limit)),
+        },
+      },
     });
   } catch (error) {
-    errorLogger.error({ err: error }, 'Error fetching purchase requests:');
+    errorLogger.error({ err: error }, "Error fetching purchase requests:");
     res.status(500).json({
       success: false,
-      message: 'Error fetching purchase requests',
-      error: error.message
+      message: "Error fetching purchase requests",
+      error: error.message,
     });
   }
 };
@@ -520,48 +623,53 @@ exports.cancelPurchaseRequest = async (req, res) => {
     const request = await PurchaseRequest.findById(id);
 
     if (!request) {
-      logPmOperation(userId, id, 'cancel', 'Purchase request not found');
+      logPmOperation(userId, id, "cancel", "Purchase request not found");
       return res.status(404).json({
         success: false,
         errorCode: PR_ERROR.NOT_FOUND,
-        message: 'Purchase request not found'
+        message: "Purchase request not found",
       });
     }
 
     // Validate: Only requester can cancel
     if (request.requestedBy.toString() !== userId.toString()) {
-      logPmOperation(userId, id, 'cancel', 'Not the requester');
+      logPmOperation(userId, id, "cancel", "Not the requester");
       return res.status(403).json({
         success: false,
         errorCode: PR_ERROR.UNAUTHORIZED,
-        message: 'You can only cancel your own requests'
+        message: "You can only cancel your own requests",
       });
     }
 
     // Validate: Can only cancel pending requests
-    if (request.status !== 'pending_approval') {
-      logPmOperation(userId, id, 'cancel', `Invalid transition from ${request.status}`);
+    if (request.status !== "pending_approval") {
+      logPmOperation(
+        userId,
+        id,
+        "cancel",
+        `Invalid transition from ${request.status}`,
+      );
       return res.status(400).json({
         success: false,
         errorCode: PR_ERROR.INVALID_TRANSITION,
-        message: `Cannot cancel ${request.status} request. Only pending requests can be cancelled.`
+        message: `Cannot cancel ${request.status} request. Only pending requests can be cancelled.`,
       });
     }
 
-    request.status = 'cancelled';
+    request.status = "cancelled";
     await request.save();
 
     res.json({
       success: true,
-      message: 'Purchase request cancelled successfully',
-      data: { request }
+      message: "Purchase request cancelled successfully",
+      data: { request },
     });
   } catch (error) {
-    errorLogger.error({ err: error }, 'Error cancelling purchase request:');
+    errorLogger.error({ err: error }, "Error cancelling purchase request:");
     res.status(500).json({
       success: false,
-      message: 'Error cancelling purchase request',
-      error: error.message
+      message: "Error cancelling purchase request",
+      error: error.message,
     });
   }
 };
@@ -578,62 +686,70 @@ exports.getPurchaseRequestById = async (req, res) => {
     const userRole = req.user.role;
 
     const request = await PurchaseRequest.findById(id)
-      .populate('requestedBy', 'name email role')
-      .populate('reviewedBy', 'name email')
-      .populate('completedBy', 'name email')
+      .populate("requestedBy", "name email role")
+      .populate("reviewedBy", "name email")
+      .populate("completedBy", "name email")
       .populate({
-        path: 'items.productId',
-        select: 'name sku stock lowStockThreshold images approvedVendors',
-        populate: { path: 'approvedVendors.vendorId', select: 'name contactPerson phone' }
+        path: "items.productId",
+        select: "name sku stock lowStockThreshold images approvedVendors",
+        populate: {
+          path: "approvedVendors.vendorId",
+          select: "name contactPerson phone",
+        },
       })
-      .populate('inventoryTransactionIds');
+      .populate("inventoryTransactionIds");
 
     if (!request) {
       return res.status(404).json({
         success: false,
         errorCode: PR_ERROR.NOT_FOUND,
-        message: 'Purchase request not found'
+        message: "Purchase request not found",
       });
     }
 
     // Sprint5: Resource-level access control (align with list filtering)
-    if (userRole === 'purchase-manager') {
+    if (userRole === "purchase-manager") {
       const requestBalagruhaId = request.balagruhaId;
-      const userBalagruhaIds = (req.user.balagruhaIds || []).map((bgId) => bgId.toString());
-      const requestBalagruhaIdStr = requestBalagruhaId?.toString?.() ?? requestBalagruhaId;
+      const userBalagruhaIds = (req.user.balagruhaIds || []).map((bgId) =>
+        bgId.toString(),
+      );
+      const requestBalagruhaIdStr =
+        requestBalagruhaId?.toString?.() ?? requestBalagruhaId;
 
-      const hasAccess = requestBalagruhaId === 'STOCK' || userBalagruhaIds.includes(requestBalagruhaIdStr);
+      const hasAccess =
+        requestBalagruhaId === "STOCK" ||
+        userBalagruhaIds.includes(requestBalagruhaIdStr);
       if (!hasAccess) {
         return res.status(403).json({
           success: false,
-          message: 'You do not have permission to view this purchase request'
+          message: "You do not have permission to view this purchase request",
         });
       }
-    } else if (userRole !== 'admin') {
+    } else if (userRole !== "admin") {
       // Non-admin non-PM users can only view their own requests
       if (request.requestedBy?._id?.toString() !== userId.toString()) {
         return res.status(403).json({
           success: false,
-          message: 'You do not have permission to view this purchase request'
+          message: "You do not have permission to view this purchase request",
         });
       }
     }
 
     // Sprint5-Story-21: Populate balagruhaId only when not STOCK
-    if (request.balagruhaId && request.balagruhaId !== 'STOCK') {
-      await request.populate('balagruhaId', 'name');
+    if (request.balagruhaId && request.balagruhaId !== "STOCK") {
+      await request.populate("balagruhaId", "name");
     }
 
     res.json({
       success: true,
-      data: { request }
+      data: { request },
     });
   } catch (error) {
-    errorLogger.error({ err: error }, 'Error fetching purchase request:');
+    errorLogger.error({ err: error }, "Error fetching purchase request:");
     res.status(500).json({
       success: false,
-      message: 'Error fetching purchase request',
-      error: error.message
+      message: "Error fetching purchase request",
+      error: error.message,
     });
   }
 };
@@ -654,56 +770,61 @@ exports.approvePurchaseRequest = async (req, res) => {
     if (!request) {
       return res.status(404).json({
         success: false,
-        message: 'Purchase request not found'
+        message: "Purchase request not found",
       });
     }
 
     // Validate: Can only approve pending requests
-    if (request.status !== 'pending_approval') {
-      logPmOperation(adminId, id, 'approve', `Invalid transition from ${request.status}`);
+    if (request.status !== "pending_approval") {
+      logPmOperation(
+        adminId,
+        id,
+        "approve",
+        `Invalid transition from ${request.status}`,
+      );
       return res.status(400).json({
         success: false,
         errorCode: PR_ERROR.INVALID_TRANSITION,
-        message: `Cannot approve a request with status "${request.status}". Only pending_approval requests can be approved.`
+        message: `Cannot approve a request with status "${request.status}". Only pending_approval requests can be approved.`,
       });
     }
 
     // VALIDATION: Cannot approve own request
     if (request.requestedBy.toString() === adminId.toString()) {
-      logPmOperation(adminId, id, 'approve', 'Self-approval attempted');
+      logPmOperation(adminId, id, "approve", "Self-approval attempted");
       return res.status(403).json({
         success: false,
         errorCode: PR_ERROR.UNAUTHORIZED,
-        message: 'Cannot approve your own request. Another admin must approve.'
+        message: "Cannot approve your own request. Another admin must approve.",
       });
     }
 
     // Update request
     // After approval, set to 'pending' so PM can follow normal workflow (ordered -> delivered_store -> delivered_balagruha)
-    request.status = 'pending';
+    request.status = "pending";
     request.reviewedBy = adminId;
     request.reviewedAt = new Date();
-    request.reviewNotes = reviewNotes?.trim() || '';
+    request.reviewNotes = reviewNotes?.trim() || "";
 
     await request.save();
 
     // Populate for response
-    await request.populate('reviewedBy', 'name email');
-    await request.populate('requestedBy', 'name email');
-    await request.populate('items.productId', 'name sku');
-    await request.populate('balagruhaId', 'name');
+    await request.populate("reviewedBy", "name email");
+    await request.populate("requestedBy", "name email");
+    await request.populate("items.productId", "name sku");
+    await request.populate("balagruhaId", "name");
 
     res.json({
       success: true,
-      message: 'Purchase request approved successfully',
-      data: { request }
+      message: "Purchase request approved successfully",
+      data: { request },
     });
   } catch (error) {
-    errorLogger.error({ err: error }, 'Error approving purchase request:');
+    errorLogger.error({ err: error }, "Error approving purchase request:");
     res.status(500).json({
       success: false,
-      message: 'Error approving purchase request',
-      error: error.message
+      message: "Error approving purchase request",
+      error: error.message,
     });
   }
 };
@@ -723,7 +844,7 @@ exports.rejectPurchaseRequest = async (req, res) => {
     if (!reviewNotes || reviewNotes.trim().length === 0) {
       return res.status(400).json({
         success: false,
-        message: 'Rejection reason is required'
+        message: "Rejection reason is required",
       });
     }
 
@@ -732,20 +853,20 @@ exports.rejectPurchaseRequest = async (req, res) => {
     if (!request) {
       return res.status(404).json({
         success: false,
-        message: 'Purchase request not found'
+        message: "Purchase request not found",
       });
     }
 
     // Validate: Can only reject pending requests
-    if (request.status !== 'pending_approval') {
+    if (request.status !== "pending_approval") {
       return res.status(400).json({
         success: false,
-        message: `Cannot reject ${request.status} request. Only pending requests can be rejected.`
+        message: `Cannot reject ${request.status} request. Only pending requests can be rejected.`,
       });
     }
 
     // Update request
-    request.status = 'rejected';
+    request.status = "rejected";
     request.reviewedBy = adminId;
     request.reviewedAt = new Date();
     request.reviewNotes = reviewNotes.trim();
@@ -753,22 +874,22 @@ exports.rejectPurchaseRequest = async (req, res) => {
     await request.save();
 
     // Populate for response
-    await request.populate('reviewedBy', 'name email');
-    await request.populate('requestedBy', 'name email');
-    await request.populate('items.productId', 'name sku');
-    await request.populate('balagruhaId', 'name');
+    await request.populate("reviewedBy", "name email");
+    await request.populate("requestedBy", "name email");
+    await request.populate("items.productId", "name sku");
+    await request.populate("balagruhaId", "name");
 
     res.json({
       success: true,
-      message: 'Purchase request rejected',
-      data: { request }
+      message: "Purchase request rejected",
+      data: { request },
     });
   } catch (error) {
-    errorLogger.error({ err: error }, 'Error rejecting purchase request:');
+    errorLogger.error({ err: error }, "Error rejecting purchase request:");
     res.status(500).json({
       success: false,
-      message: 'Error rejecting purchase request',
-      error: error.message
+      message: "Error rejecting purchase request",
+      error: error.message,
     });
   }
 };
@@ -783,10 +904,10 @@ exports.getPurchaseRequestStats = async (req, res) => {
     const stats = await PurchaseRequest.aggregate([
       {
         $group: {
-          _id: '$status',
-          count: { $sum: 1 }
-        }
-      }
+          _id: "$status",
+          count: { $sum: 1 },
+        },
+      },
     ]);
 
     // Convert to object format — initialize all 10 statuses (FIX-039)
@@ -801,24 +922,24 @@ exports.getPurchaseRequestStats = async (req, res) => {
       cancelled: 0,
       rejected: 0,
       on_hold: 0,
-      total: 0
+      total: 0,
     };
 
-    stats.forEach(stat => {
+    stats.forEach((stat) => {
       statsObj[stat._id] = stat.count;
       statsObj.total += stat.count;
     });
 
     res.json({
       success: true,
-      data: { stats: statsObj }
+      data: { stats: statsObj },
     });
   } catch (error) {
-    errorLogger.error({ err: error }, 'Error fetching purchase request stats:');
+    errorLogger.error({ err: error }, "Error fetching purchase request stats:");
     res.status(500).json({
       success: false,
-      message: 'Error fetching statistics',
-      error: error.message
+      message: "Error fetching statistics",
+      error: error.message,
     });
   }
 };
@@ -837,36 +958,38 @@ exports.getLowStockProducts = async (req, res) => {
     // Build query for low-stock products
     let query = {
       isActive: true,
-      $expr: { $lte: ['$stock', '$lowStockThreshold'] }  // stock <= lowStockThreshold
+      $expr: { $lte: ["$stock", "$lowStockThreshold"] }, // stock <= lowStockThreshold
     };
 
     // Filter by user's assigned balagruhas (Purchase Manager)
-    if (req.user.role === 'purchase-manager') {
+    if (req.user.role === "purchase-manager") {
       query.$or = [
-        { balagruhaId: { $in: userBalagruhas } },  // Products from assigned balagruhas
-        { balagruhaId: null }  // Shop-wide products (no specific balagruha)
+        { balagruhaId: { $in: userBalagruhas } }, // Products from assigned balagruhas
+        { balagruhaId: null }, // Shop-wide products (no specific balagruha)
       ];
     }
     // Admin sees all low-stock products
     // (no additional filter needed)
 
     const products = await ShopItem.find(query)
-      .populate('balagruhaId', 'name')
-      .select('name sku stock lowStockThreshold price images balagruhaId isActive')
-      .sort({ stock: 1, name: 1 })  // Out of stock first, then by name
+      .populate("balagruhaId", "name")
+      .select(
+        "name sku stock lowStockThreshold price images balagruhaId isActive",
+      )
+      .sort({ stock: 1, name: 1 }) // Out of stock first, then by name
       .limit(1000);
 
     res.json({
       success: true,
       products,
-      count: products.length
+      count: products.length,
     });
   } catch (error) {
-    errorLogger.error({ err: error }, 'Error fetching low-stock products:');
+    errorLogger.error({ err: error }, "Error fetching low-stock products:");
     res.status(500).json({
       success: false,
-      message: 'Error fetching low-stock products',
-      error: error.message
+      message: "Error fetching low-stock products",
+      error: error.message,
     });
   }
 };
@@ -905,55 +1028,64 @@ exports.completePurchaseRequest = async (req, res) => {
       session.endSession();
       return res.status(404).json({
         success: false,
-        message: 'Purchase request not found'
+        message: "Purchase request not found",
       });
     }
 
     // Validate: Can only complete approved requests
-    if (request.status !== 'approved') {
+    if (request.status !== "approved") {
       await session.abortTransaction();
       session.endSession();
       return res.status(400).json({
         success: false,
-        message: `Cannot complete ${request.status} request. Only approved requests can be completed.`
+        message: `Cannot complete ${request.status} request. Only approved requests can be completed.`,
       });
     }
 
     // Validate: Purchase Manager can only complete own requests
-    if (req.user.role === 'purchase-manager' && request.requestedBy.toString() !== userId.toString()) {
+    if (
+      req.user.role === "purchase-manager" &&
+      request.requestedBy.toString() !== userId.toString()
+    ) {
       await session.abortTransaction();
       session.endSession();
       return res.status(403).json({
         success: false,
-        message: 'You can only complete your own requests'
+        message: "You can only complete your own requests",
       });
     }
 
     // 2. IDEMPOTENCY CHECK
-    if (request.inventoryTransactionIds && request.inventoryTransactionIds.length > 0) {
+    if (
+      request.inventoryTransactionIds &&
+      request.inventoryTransactionIds.length > 0
+    ) {
       await session.abortTransaction();
       session.endSession();
       return res.status(400).json({
         success: false,
-        message: 'This request has already been completed. Stock has already been updated.'
+        message:
+          "This request has already been completed. Stock has already been updated.",
       });
     }
 
     // 3. VALIDATE ALL PRODUCTS EXIST
-    const productIds = items.map(item => item.productId);
-    const products = await ShopItem.find({ _id: { $in: productIds } }).session(session);
+    const productIds = items.map((item) => item.productId);
+    const products = await ShopItem.find({ _id: { $in: productIds } }).session(
+      session,
+    );
 
     if (products.length !== items.length) {
       await session.abortTransaction();
       session.endSession();
       return res.status(404).json({
         success: false,
-        message: 'One or more products not found'
+        message: "One or more products not found",
       });
     }
 
     // Create a map for quick product lookup
-    const productMap = new Map(products.map(p => [p._id.toString(), p]));
+    const productMap = new Map(products.map((p) => [p._id.toString(), p]));
 
     // 4. ATOMIC MULTI-PRODUCT STOCK UPDATE
     const inventoryTransactionIds = [];
@@ -968,7 +1100,7 @@ exports.completePurchaseRequest = async (req, res) => {
         session.endSession();
         return res.status(404).json({
           success: false,
-          message: `Product ${itemUpdate.productId} not found`
+          message: `Product ${itemUpdate.productId} not found`,
         });
       }
 
@@ -982,11 +1114,13 @@ exports.completePurchaseRequest = async (req, res) => {
         // ACTIVATE PENDING PRODUCT
         product.isPendingProduct = false;
         product.isActive = true;
-        product.stock = receivedQty;  // Set initial stock (not increment)
-        product.lowStockThreshold = getDefaultThresholdForCategory(product.category);
-        product.price = actualUnitCost || 0;  // Set price based on actual cost
+        product.stock = receivedQty; // Set initial stock (not increment)
+        product.lowStockThreshold = getDefaultThresholdForCategory(
+          product.category,
+        );
+        product.price = actualUnitCost || 0; // Set price based on actual cost
         // Set balagruhaId based on request
-        if (request.balagruhaId && request.balagruhaId !== 'STOCK') {
+        if (request.balagruhaId && request.balagruhaId !== "STOCK") {
           product.balagruhaId = request.balagruhaId;
         }
       } else {
@@ -998,17 +1132,17 @@ exports.completePurchaseRequest = async (req, res) => {
       // Create inventory transaction record
       const transaction = new InventoryTransaction({
         productId: product._id,
-        transactionType: 'purchase_request',
-        quantity: receivedQty,  // Positive for stock increase
+        transactionType: "purchase_request",
+        quantity: receivedQty, // Positive for stock increase
         previousStock: previousStock,
         newStock: product.stock,
         reference: {
-          type: 'purchase_request',
-          id: request._id
+          type: "purchase_request",
+          id: request._id,
         },
         reason: `Purchase request ${request.requestId} completed`,
-        notes: `Supplier: ${supplierName || 'N/A'}, Invoice: ${invoiceNumber || 'N/A'}, Purchase Date: ${new Date(purchaseDate).toLocaleDateString()}`,
-        performedBy: userId
+        notes: `Supplier: ${supplierName || "N/A"}, Invoice: ${invoiceNumber || "N/A"}, Purchase Date: ${new Date(purchaseDate).toLocaleDateString()}`,
+        performedBy: userId,
       });
 
       await transaction.save({ session });
@@ -1016,7 +1150,7 @@ exports.completePurchaseRequest = async (req, res) => {
 
       // Update item in request with actual purchase details
       const requestItem = request.items.find(
-        item => item.productId.toString() === itemUpdate.productId.toString()
+        (item) => item.productId.toString() === itemUpdate.productId.toString(),
       );
 
       if (requestItem) {
@@ -1029,11 +1163,11 @@ exports.completePurchaseRequest = async (req, res) => {
     }
 
     // 5. UPDATE PURCHASE REQUEST
-    request.status = 'completed';
+    request.status = "completed";
     request.completedBy = userId;
     request.completedAt = new Date();
-    request.supplierName = supplierName?.trim() || '';
-    request.invoiceNumber = invoiceNumber?.trim() || '';
+    request.supplierName = supplierName?.trim() || "";
+    request.invoiceNumber = invoiceNumber?.trim() || "";
     request.purchaseDate = new Date(purchaseDate);
     request.actualTotalCost = actualTotalCost;
     request.inventoryTransactionIds = inventoryTransactionIds;
@@ -1045,12 +1179,12 @@ exports.completePurchaseRequest = async (req, res) => {
     session.endSession();
 
     // 7. POPULATE AND RETURN RESPONSE
-    await request.populate('completedBy', 'name email');
-    await request.populate('requestedBy', 'name email');
-    await request.populate('reviewedBy', 'name email');
-    await request.populate('items.productId', 'name sku stock');
-    await request.populate('balagruhaId', 'name');
-    await request.populate('inventoryTransactionIds');
+    await request.populate("completedBy", "name email");
+    await request.populate("requestedBy", "name email");
+    await request.populate("reviewedBy", "name email");
+    await request.populate("items.productId", "name sku stock");
+    await request.populate("balagruhaId", "name");
+    await request.populate("inventoryTransactionIds");
 
     res.json({
       success: true,
@@ -1058,20 +1192,23 @@ exports.completePurchaseRequest = async (req, res) => {
       data: {
         request,
         transactionsCreated: inventoryTransactionIds.length,
-        totalStockAdded: items.reduce((sum, item) => sum + item.receivedQuantity, 0)
-      }
+        totalStockAdded: items.reduce(
+          (sum, item) => sum + item.receivedQuantity,
+          0,
+        ),
+      },
     });
-
   } catch (error) {
     // ROLLBACK on any error
     await session.abortTransaction();
     session.endSession();
 
-    errorLogger.error({ err: error }, 'Error completing purchase request:');
+    errorLogger.error({ err: error }, "Error completing purchase request:");
     res.status(500).json({
       success: false,
-      message: 'Error completing purchase request. All changes have been rolled back.',
-      error: error.message
+      message:
+        "Error completing purchase request. All changes have been rolled back.",
+      error: error.message,
     });
   }
 };
@@ -1089,7 +1226,8 @@ exports.updateStatus = async (req, res) => {
 
   try {
     const { id } = req.params;
-    const { status, notes, repairTechnicianName, supplierName, invoiceNumber } = req.body;  // Story 2.6: Add repairTechnicianName; FIX-019: Add supplierName, invoiceNumber
+    const { status, notes, repairTechnicianName, supplierName, invoiceNumber } =
+      req.body; // Story 2.6: Add repairTechnicianName; FIX-019: Add supplierName, invoiceNumber
     const userId = req.user._id;
     const userRole = req.user.role;
 
@@ -1097,61 +1235,66 @@ exports.updateStatus = async (req, res) => {
       return res.status(400).json({
         success: false,
         errorCode: PR_ERROR.VALIDATION_FAILED,
-        message: 'Status is required'
+        message: "Status is required",
       });
     }
 
     const allowedStatuses = new Set([
-      'pending',
-      'ordered',
-      'delivered_store',
-      'delivered_balagruha',
-      'rejected',
-      'on_hold'
+      "pending",
+      "ordered",
+      "delivered_store",
+      "delivered_balagruha",
+      "rejected",
+      "on_hold",
     ]);
 
     if (!allowedStatuses.has(status)) {
       return res.status(400).json({
         success: false,
         errorCode: PR_ERROR.VALIDATION_FAILED,
-        message: `Invalid status: ${status}`
+        message: `Invalid status: ${status}`,
       });
     }
 
     const request = await PurchaseRequest.findById(id);
 
     if (!request) {
-      logPmOperation(userId, id, 'updateStatus', 'Purchase request not found');
+      logPmOperation(userId, id, "updateStatus", "Purchase request not found");
       return res.status(404).json({
         success: false,
         errorCode: PR_ERROR.NOT_FOUND,
-        message: 'Purchase request not found'
+        message: "Purchase request not found",
       });
     }
 
     const currentStatus = request.status;
 
     // Sprint5: Resource-level access control (align with list filtering)
-    if (userRole === 'purchase-manager') {
+    if (userRole === "purchase-manager") {
       const requestBalagruhaId = request.balagruhaId;
-      const userBalagruhaIds = (req.user.balagruhaIds || []).map((bgId) => bgId.toString());
-      const requestBalagruhaIdStr = requestBalagruhaId?.toString?.() ?? requestBalagruhaId;
+      const userBalagruhaIds = (req.user.balagruhaIds || []).map((bgId) =>
+        bgId.toString(),
+      );
+      const requestBalagruhaIdStr =
+        requestBalagruhaId?.toString?.() ?? requestBalagruhaId;
 
-      const hasAccess = requestBalagruhaId === 'STOCK' || userBalagruhaIds.includes(requestBalagruhaIdStr);
+      const hasAccess =
+        requestBalagruhaId === "STOCK" ||
+        userBalagruhaIds.includes(requestBalagruhaIdStr);
       if (!hasAccess) {
         return res.status(403).json({
           success: false,
-          message: 'You do not have permission to update this purchase request'
+          message: "You do not have permission to update this purchase request",
         });
       }
     }
 
     // Story 2.6: Require Repair Technician Name for Repairs category at delivered_store
-    if (status === 'delivered_store' && request.category === 'Repairs') {
+    if (status === "delivered_store" && request.category === "Repairs") {
       if (!repairTechnicianName || !repairTechnicianName.trim()) {
         return res.status(400).json({
           success: false,
-          message: 'Repair Technician Name is required for repair items'
+          message: "Repair Technician Name is required for repair items",
         });
       }
     }
@@ -1159,32 +1302,46 @@ exports.updateStatus = async (req, res) => {
     // Transition Guards (Story 2.1 strict lifecycle)
     let allowed = false;
 
-    if (currentStatus === 'pending' && status === 'ordered') {
+    if (currentStatus === "pending" && status === "ordered") {
       // Guard: Purchase Manager or Admin
-      allowed = userRole === 'purchase-manager' || userRole === 'admin';
-    } else if (currentStatus === 'ordered' && status === 'delivered_store') {
+      allowed = userRole === "purchase-manager" || userRole === "admin";
+    } else if (currentStatus === "ordered" && status === "delivered_store") {
       // Guard: Purchase Manager or Admin
-      allowed = userRole === 'purchase-manager' || userRole === 'admin';
-    } else if (currentStatus === 'delivered_store' && status === 'delivered_balagruha') {
+      allowed = userRole === "purchase-manager" || userRole === "admin";
+    } else if (
+      currentStatus === "delivered_store" &&
+      status === "delivered_balagruha"
+    ) {
       // Guard: Requester (Coach) or Admin
-      allowed = request.requestedBy.toString() === userId.toString() || userRole === 'admin';
-    } else if (currentStatus === 'pending' && (status === 'rejected' || status === 'on_hold')) {
+      allowed =
+        request.requestedBy.toString() === userId.toString() ||
+        userRole === "admin";
+    } else if (
+      currentStatus === "pending" &&
+      (status === "rejected" || status === "on_hold")
+    ) {
       // Keep existing non-happy-path statuses constrained to pending only
-      allowed = userRole === 'purchase-manager' || userRole === 'admin';
+      allowed = userRole === "purchase-manager" || userRole === "admin";
     }
 
     if (!allowed) {
-      logPmOperation(userId, id, 'updateStatus', `Transition ${currentStatus} → ${status} denied for role ${userRole}`);
+      logPmOperation(
+        userId,
+        id,
+        "updateStatus",
+        `Transition ${currentStatus} → ${status} denied for role ${userRole}`,
+      );
       return res.status(403).json({
         success: false,
         errorCode: PR_ERROR.INVALID_TRANSITION,
-        message: `Transition from ${currentStatus} to ${status} not allowed for your role.`
+        message: `Transition from ${currentStatus} to ${status} not allowed for your role.`,
       });
     }
 
     // FIX-007: Start session for inventory-affecting transitions
-    const needsInventory = (status === 'delivered_store' || status === 'delivered_balagruha');
-    if (needsInventory && process.env.NODE_ENV !== 'test') {
+    const needsInventory =
+      status === "delivered_store" || status === "delivered_balagruha";
+    if (needsInventory && process.env.NODE_ENV !== "test") {
       session = await mongoose.startSession();
       session.startTransaction();
     }
@@ -1201,22 +1358,26 @@ exports.updateStatus = async (req, res) => {
       status,
       changedBy: userId,
       changedAt: new Date(),
-      notes: notes || `Status changed to ${status}`
+      notes: notes || `Status changed to ${status}`,
     });
 
     // FIX-019: Capture supplier/invoice at 'ordered' transition
-    if (status === 'ordered') {
+    if (status === "ordered") {
       if (supplierName) requestDoc.supplierName = supplierName.trim();
       if (invoiceNumber) requestDoc.invoiceNumber = invoiceNumber.trim();
     }
 
     // Story 2.6: Capture Repair Technician Name at delivered_store for Repairs
-    if (status === 'delivered_store' && requestDoc.category === 'Repairs' && repairTechnicianName) {
+    if (
+      status === "delivered_store" &&
+      requestDoc.category === "Repairs" &&
+      repairTechnicianName
+    ) {
       requestDoc.repairTechnicianName = repairTechnicianName.trim();
     }
 
     // Story 2.6: Auto-capture delivery info at delivered_balagruha
-    if (status === 'delivered_balagruha') {
+    if (status === "delivered_balagruha") {
       requestDoc.deliveredByCoachId = userId;
       requestDoc.deliveredToBalagruhaAt = new Date();
     }
@@ -1224,7 +1385,7 @@ exports.updateStatus = async (req, res) => {
     // FIX-007: Inventory updates on state machine transitions
     const inventoryTransactionIds = [];
 
-    if (status === 'delivered_store') {
+    if (status === "delivered_store") {
       // delivered_store: Items received at store — increase stock
       for (const item of requestDoc.items) {
         let productQuery = ShopItem.findById(item.productId);
@@ -1232,7 +1393,9 @@ exports.updateStatus = async (req, res) => {
         const product = await productQuery;
 
         if (!product) {
-          throw new Error(`Product ${item.productName || item.productId} not found`);
+          throw new Error(
+            `Product ${item.productName || item.productId} not found`,
+          );
         }
 
         const receivedQty = item.requestedQuantity;
@@ -1242,28 +1405,30 @@ exports.updateStatus = async (req, res) => {
 
         const txnData = {
           productId: product._id,
-          transactionType: 'received',
+          transactionType: "received",
           quantity: receivedQty,
           previousStock: previousStock,
           newStock: product.stock,
           reference: {
-            type: 'purchase_request',
-            id: requestDoc._id
+            type: "purchase_request",
+            id: requestDoc._id,
           },
           reason: `Purchase request ${requestDoc.requestId} delivered to store`,
           notes: notes || `Status transition: ordered -> delivered_store`,
-          performedBy: userId
+          performedBy: userId,
         };
 
         if (session) {
-          const [txn] = await InventoryTransaction.create([txnData], { session });
+          const [txn] = await InventoryTransaction.create([txnData], {
+            session,
+          });
           inventoryTransactionIds.push(txn._id);
         } else {
           const txn = await InventoryTransaction.create(txnData);
           inventoryTransactionIds.push(txn._id);
         }
       }
-    } else if (status === 'delivered_balagruha') {
+    } else if (status === "delivered_balagruha") {
       // delivered_balagruha: Items deployed from store to balagruha — track deployment
       for (const item of requestDoc.items) {
         let productQuery = ShopItem.findById(item.productId);
@@ -1271,28 +1436,34 @@ exports.updateStatus = async (req, res) => {
         const product = await productQuery;
 
         if (!product) {
-          throw new Error(`Product ${item.productName || item.productId} not found`);
+          throw new Error(
+            `Product ${item.productName || item.productId} not found`,
+          );
         }
 
         const deployedQty = item.requestedQuantity;
 
         const txnData = {
           productId: product._id,
-          transactionType: 'deployed',
+          transactionType: "deployed",
           quantity: -deployedQty,
           previousStock: product.stock,
-          newStock: product.stock,  // Stock doesn't change — already at store
+          newStock: product.stock, // Stock doesn't change — already at store
           reference: {
-            type: 'purchase_request',
-            id: requestDoc._id
+            type: "purchase_request",
+            id: requestDoc._id,
           },
           reason: `Purchase request ${requestDoc.requestId} deployed to balagruha`,
-          notes: notes || `Status transition: delivered_store -> delivered_balagruha`,
-          performedBy: userId
+          notes:
+            notes ||
+            `Status transition: delivered_store -> delivered_balagruha`,
+          performedBy: userId,
         };
 
         if (session) {
-          const [txn] = await InventoryTransaction.create([txnData], { session });
+          const [txn] = await InventoryTransaction.create([txnData], {
+            session,
+          });
           inventoryTransactionIds.push(txn._id);
         } else {
           const txn = await InventoryTransaction.create(txnData);
@@ -1305,7 +1476,7 @@ exports.updateStatus = async (req, res) => {
     if (inventoryTransactionIds.length > 0) {
       requestDoc.inventoryTransactionIds = [
         ...(requestDoc.inventoryTransactionIds || []),
-        ...inventoryTransactionIds
+        ...inventoryTransactionIds,
       ];
     }
 
@@ -1320,24 +1491,24 @@ exports.updateStatus = async (req, res) => {
     res.status(200).json({
       success: true,
       message: `Status updated to ${status}`,
-      data: { request: requestDoc }
+      data: { request: requestDoc },
     });
   } catch (error) {
     if (session) {
       await session.abortTransaction();
       session.endSession();
     }
-    errorLogger.error({ err: error }, 'Error updating status:');
-    if (error.name === 'ValidationError' || error.name === 'CastError') {
+    errorLogger.error({ err: error }, "Error updating status:");
+    if (error.name === "ValidationError" || error.name === "CastError") {
       return res.status(400).json({
         success: false,
-        message: error.message || 'Invalid request'
+        message: error.message || "Invalid request",
       });
     }
     res.status(500).json({
       success: false,
-      message: 'Error updating status',
-      error: error.message
+      message: "Error updating status",
+      error: error.message,
     });
   }
 };
@@ -1350,7 +1521,7 @@ exports.updateStatus = async (req, res) => {
 exports.assignFromStock = async (req, res) => {
   let session = null;
   // Bypass transaction in test environment to avoid replica set errors
-  if (process.env.NODE_ENV !== 'test') {
+  if (process.env.NODE_ENV !== "test") {
     session = await mongoose.startSession();
     session.startTransaction();
   }
@@ -1361,14 +1532,14 @@ exports.assignFromStock = async (req, res) => {
     const userId = req.user._id;
     const userRole = req.user.role;
 
-    if (userRole !== 'purchase-manager' && userRole !== 'admin') {
+    if (userRole !== "purchase-manager" && userRole !== "admin") {
       if (session) {
         await session.abortTransaction();
         session.endSession();
       }
       return res.status(403).json({
         success: false,
-        message: 'Only Purchase Manager can assign from stock'
+        message: "Only Purchase Manager can assign from stock",
       });
     }
 
@@ -1383,17 +1554,22 @@ exports.assignFromStock = async (req, res) => {
       }
       return res.status(404).json({
         success: false,
-        message: 'Purchase request not found'
+        message: "Purchase request not found",
       });
     }
 
     // Sprint5: Resource-level access control (align with list filtering)
-    if (userRole === 'purchase-manager') {
+    if (userRole === "purchase-manager") {
       const requestBalagruhaId = request.balagruhaId;
-      const userBalagruhaIds = (req.user.balagruhaIds || []).map((bgId) => bgId.toString());
-      const requestBalagruhaIdStr = requestBalagruhaId?.toString?.() ?? requestBalagruhaId;
+      const userBalagruhaIds = (req.user.balagruhaIds || []).map((bgId) =>
+        bgId.toString(),
+      );
+      const requestBalagruhaIdStr =
+        requestBalagruhaId?.toString?.() ?? requestBalagruhaId;
 
-      const hasAccess = requestBalagruhaId === 'STOCK' || userBalagruhaIds.includes(requestBalagruhaIdStr);
+      const hasAccess =
+        requestBalagruhaId === "STOCK" ||
+        userBalagruhaIds.includes(requestBalagruhaIdStr);
       if (!hasAccess) {
         if (session) {
           await session.abortTransaction();
@@ -1401,19 +1577,19 @@ exports.assignFromStock = async (req, res) => {
         }
         return res.status(403).json({
           success: false,
-          message: 'You do not have permission to update this purchase request'
+          message: "You do not have permission to update this purchase request",
         });
       }
     }
 
-    if (request.status !== 'pending') {
+    if (request.status !== "pending") {
       if (session) {
         await session.abortTransaction();
         session.endSession();
       }
       return res.status(400).json({
         success: false,
-        message: 'Only pending requests can be assigned from stock'
+        message: "Only pending requests can be assigned from stock",
       });
     }
 
@@ -1428,7 +1604,9 @@ exports.assignFromStock = async (req, res) => {
       }
 
       if (product.stock < item.requestedQuantity) {
-        throw new Error(`Insufficient stock for ${product.name}. Available: ${product.stock}, Requested: ${item.requestedQuantity}`);
+        throw new Error(
+          `Insufficient stock for ${product.name}. Available: ${product.stock}, Requested: ${item.requestedQuantity}`,
+        );
       }
 
       const previousStock = product.stock;
@@ -1436,29 +1614,34 @@ exports.assignFromStock = async (req, res) => {
       await product.save({ session });
 
       // Create Inventory Transaction
-      await InventoryTransaction.create([{
-        productId: product._id,
-        transactionType: 'purchase_request',
-        quantity: -item.requestedQuantity,
-        previousStock,
-        newStock: product.stock,
-        reference: {
-          type: 'purchase_request',
-          id: request._id
-        },
-        reason: 'Assigned from Stock (Shortcut)',
-        notes: `${request.requestId}: Shortcut assignment`,
-        performedBy: userId
-      }], { session });
+      await InventoryTransaction.create(
+        [
+          {
+            productId: product._id,
+            transactionType: "purchase_request",
+            quantity: -item.requestedQuantity,
+            previousStock,
+            newStock: product.stock,
+            reference: {
+              type: "purchase_request",
+              id: request._id,
+            },
+            reason: "Assigned from Stock (Shortcut)",
+            notes: `${request.requestId}: Shortcut assignment`,
+            performedBy: userId,
+          },
+        ],
+        { session },
+      );
     }
 
     // Update PR Status -> delivered_store (skip ordered)
-    request.status = 'delivered_store';
+    request.status = "delivered_store";
     request.statusHistory.push({
-      status: 'delivered_store',
+      status: "delivered_store",
       changedBy: userId,
       changedAt: new Date(),
-      notes: notes || 'Assigned from stock (Shortcut)'
+      notes: notes || "Assigned from stock (Shortcut)",
     });
 
     await request.save({ session });
@@ -1470,19 +1653,19 @@ exports.assignFromStock = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      message: 'Stock assigned and request moved to delivered_store',
-      data: { request }
+      message: "Stock assigned and request moved to delivered_store",
+      data: { request },
     });
-
   } catch (error) {
     if (session) {
       await session.abortTransaction();
       session.endSession();
     }
-    errorLogger.error({ err: error }, 'Error assigning from stock:');
-    res.status(400).json({ // 400 for business logic errors (like insufficient stock)
+    errorLogger.error({ err: error }, "Error assigning from stock:");
+    res.status(400).json({
+      // 400 for business logic errors (like insufficient stock)
       success: false,
-      message: error.message || 'Error assigning from stock'
+      message: error.message || "Error assigning from stock",
     });
   }
 };
@@ -1494,18 +1677,18 @@ exports.assignFromStock = async (req, res) => {
  */
 function getDefaultThresholdForCategory(category) {
   const thresholds = {
-    'Consumables': 20,
-    'Stationery': 15,
-    'Hygiene': 25,
-    'Equipment': 5,
-    'stationery': 15,
-    'sports': 10,
-    'books': 8,
-    'uniforms': 10,
-    'digital': 5,
-    'other': 10
+    Consumables: 20,
+    Stationery: 15,
+    Hygiene: 25,
+    Equipment: 5,
+    stationery: 15,
+    sports: 10,
+    books: 8,
+    uniforms: 10,
+    digital: 5,
+    other: 10,
   };
-  return thresholds[category] || 10;  // Default to 10 if category not found
+  return thresholds[category] || 10; // Default to 10 if category not found
 }
 
 /**
@@ -1517,19 +1700,22 @@ function getDefaultThresholdForCategory(category) {
 exports.getPendingCount = async (req, res) => {
   try {
     const userId = req.user._id;
-    const userRole = typeof req.user.role === 'string' ? req.user.role.toLowerCase() : req.user.role?.roleName?.toLowerCase() || '';
+    const userRole =
+      typeof req.user.role === "string"
+        ? req.user.role.toLowerCase()
+        : req.user.role?.roleName?.toLowerCase() || "";
 
     // Build query for pending status
-    let query = { status: 'pending' };
+    let query = { status: "pending" };
 
     // PM sees only their assigned balagruhas + STOCK
-    if (userRole === 'purchase-manager') {
-      const user = await User.findById(userId).select('balagruhaIds');
+    if (userRole === "purchase-manager") {
+      const user = await User.findById(userId).select("balagruhaIds");
       const balagruhaIds = user?.balagruhaIds || [];
 
       query.$or = [
         { balagruhaId: { $in: balagruhaIds } },
-        { balagruhaId: 'STOCK' }
+        { balagruhaId: "STOCK" },
       ];
     }
 
@@ -1538,7 +1724,7 @@ exports.getPendingCount = async (req, res) => {
     // Also get high priority count
     const highPriority = await PurchaseRequest.countDocuments({
       ...query,
-      priority: 'high'
+      priority: "high",
     });
 
     res.status(200).json({
@@ -1546,15 +1732,14 @@ exports.getPendingCount = async (req, res) => {
       data: {
         total,
         highPriority,
-        normalPriority: total - highPriority
-      }
+        normalPriority: total - highPriority,
+      },
     });
-
   } catch (error) {
-    errorLogger.error({ err: error }, 'Error getting pending count:');
+    errorLogger.error({ err: error }, "Error getting pending count:");
     res.status(500).json({
       success: false,
-      message: 'Error fetching pending request count'
+      message: "Error fetching pending request count",
     });
   }
 };
@@ -1567,7 +1752,15 @@ exports.getPendingCount = async (req, res) => {
 exports.updatePurchaseRequest = async (req, res) => {
   try {
     const { id } = req.params;
-    const { balagruhaId, category, items, reason, justification, deadline, priority } = req.body;
+    const {
+      balagruhaId,
+      category,
+      items,
+      reason,
+      justification,
+      deadline,
+      priority,
+    } = req.body;
     const userId = req.user._id;
 
     const request = await PurchaseRequest.findById(id);
@@ -1575,33 +1768,43 @@ exports.updatePurchaseRequest = async (req, res) => {
     if (!request) {
       return res.status(404).json({
         success: false,
-        message: 'Purchase request not found'
+        message: "Purchase request not found",
       });
     }
 
     // Story 2.1 strict lifecycle: Only allow updates if status is 'pending'
-    if (request.status !== 'pending') {
+    if (request.status !== "pending") {
       return res.status(400).json({
         success: false,
-        message: `Cannot update request with status: ${request.status}. Only pending requests can be edited.`
+        message: `Cannot update request with status: ${request.status}. Only pending requests can be edited.`,
       });
     }
 
     // Permission check: Only requester or Admin can edit
-    if (req.user.role !== 'admin' && String(request.requestedBy) !== String(userId)) {
+    if (
+      req.user.role !== "admin" &&
+      String(request.requestedBy) !== String(userId)
+    ) {
       return res.status(403).json({
         success: false,
-        message: 'You do not have permission to update this request'
+        message: "You do not have permission to update this request",
       });
     }
 
     // Validate category if provided
     if (category) {
-      const validCategories = ['ISF Shop', 'Medicines', 'Consumables', 'Repairs', 'Infra', 'Others'];
+      const validCategories = [
+        "ISF Shop",
+        "Medicines",
+        "Consumables",
+        "Repairs",
+        "Infra",
+        "Others",
+      ];
       if (!validCategories.includes(category)) {
         return res.status(400).json({
           success: false,
-          message: 'Invalid category'
+          message: "Invalid category",
         });
       }
       request.category = category;
@@ -1609,10 +1812,13 @@ exports.updatePurchaseRequest = async (req, res) => {
 
     // Validate balagruhaId if provided
     if (balagruhaId) {
-      if (balagruhaId !== 'STOCK' && !mongoose.Types.ObjectId.isValid(balagruhaId)) {
+      if (
+        balagruhaId !== "STOCK" &&
+        !mongoose.Types.ObjectId.isValid(balagruhaId)
+      ) {
         return res.status(400).json({
           success: false,
-          message: 'Invalid Balagruha ID format'
+          message: "Invalid Balagruha ID format",
         });
       }
       request.balagruhaId = balagruhaId;
@@ -1620,10 +1826,11 @@ exports.updatePurchaseRequest = async (req, res) => {
 
     // Update basic fields
     if (reason !== undefined) request.reason = reason.trim();
-    if (justification !== undefined) request.justification = justification.trim();
+    if (justification !== undefined)
+      request.justification = justification.trim();
     if (priority !== undefined) {
       const normalizedPriority = priority.toLowerCase().trim();
-      const allowedPriorities = new Set(['low', 'medium', 'high']);
+      const allowedPriorities = new Set(["low", "medium", "high"]);
       if (allowedPriorities.has(normalizedPriority)) {
         request.priority = normalizedPriority;
       }
@@ -1635,8 +1842,11 @@ exports.updatePurchaseRequest = async (req, res) => {
         request.deadline = null;
       } else {
         let parsedDeadline;
-        if (typeof deadline === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(deadline)) {
-          const [y, m, d] = deadline.split('-').map((v) => Number(v));
+        if (
+          typeof deadline === "string" &&
+          /^\d{4}-\d{2}-\d{2}$/.test(deadline)
+        ) {
+          const [y, m, d] = deadline.split("-").map((v) => Number(v));
           parsedDeadline = new Date(y, m - 1, d);
         } else {
           parsedDeadline = new Date(deadline);
@@ -1645,7 +1855,7 @@ exports.updatePurchaseRequest = async (req, res) => {
         if (Number.isNaN(parsedDeadline.getTime())) {
           return res.status(400).json({
             success: false,
-            message: 'Invalid deadline format'
+            message: "Invalid deadline format",
           });
         }
         request.deadline = parsedDeadline;
@@ -1654,21 +1864,47 @@ exports.updatePurchaseRequest = async (req, res) => {
 
     // Update items if provided
     if (items) {
-      const parsedItems = typeof items === 'string' ? JSON.parse(items) : items;
+      const parsedItems = typeof items === "string" ? JSON.parse(items) : items;
       if (!Array.isArray(parsedItems) || parsedItems.length === 0) {
         return res.status(400).json({
           success: false,
-          message: 'At least one product is required'
+          message: "At least one product is required",
         });
       }
 
       const validatedItems = [];
       for (const item of parsedItems) {
+        // Handle manual entries (no productId)
+        if (!item.productId || item.isManualEntry) {
+          if (!item.productName || !item.productName.trim()) {
+            return res.status(400).json({
+              success: false,
+              message: "Product name is required for manual entries",
+            });
+          }
+
+          validatedItems.push({
+            productId: null,
+            productName: item.productName.trim(),
+            productSKU: item.productSKU || "MANUAL",
+            requestedQuantity: parseInt(item.requestedQuantity) || 1,
+            currentStock: 0,
+            lowStockThreshold: 0,
+            estimatedUnitCost: parseFloat(item.estimatedUnitCost) || 0,
+            estimatedTotalCost:
+              (parseInt(item.requestedQuantity) || 1) *
+              (parseFloat(item.estimatedUnitCost) || 0),
+            isPendingProduct: false,
+          });
+          continue; // Skip product lookup for manual entries
+        }
+
         const product = await ShopItem.findById(item.productId);
+
         if (!product) {
           return res.status(404).json({
             success: false,
-            message: `Product ${item.productId} not found`
+            message: `Product ${item.productId} not found`,
           });
         }
 
@@ -1680,35 +1916,43 @@ exports.updatePurchaseRequest = async (req, res) => {
           currentStock: product.stock,
           lowStockThreshold: product.lowStockThreshold,
           estimatedUnitCost: parseFloat(item.estimatedUnitCost) || 0,
-          estimatedTotalCost: (parseInt(item.requestedQuantity) || 1) * (parseFloat(item.estimatedUnitCost) || 0),
-          isPendingProduct: product.isPendingProduct === true
+          estimatedTotalCost:
+            (parseInt(item.requestedQuantity) || 1) *
+            (parseFloat(item.estimatedUnitCost) || 0),
+          isPendingProduct: product.isPendingProduct === true,
         });
       }
       request.items = validatedItems;
 
       // Recalculate threshold analysis
-      const maxItemCost = Math.max(...validatedItems.map(item => item.estimatedUnitCost));
-      const totalOrderCost = validatedItems.reduce((sum, item) => sum + item.estimatedTotalCost, 0);
+      const maxItemCost = Math.max(
+        ...validatedItems.map((item) => item.estimatedUnitCost),
+      );
+      const totalOrderCost = validatedItems.reduce(
+        (sum, item) => sum + item.estimatedTotalCost,
+        0,
+      );
       const ITEM_THRESHOLD = 1000;
       const ORDER_THRESHOLD = 25000;
-      const isSmallPurchase = (maxItemCost <= ITEM_THRESHOLD) && (totalOrderCost <= ORDER_THRESHOLD);
+      const isSmallPurchase =
+        maxItemCost <= ITEM_THRESHOLD && totalOrderCost <= ORDER_THRESHOLD;
 
       request.thresholdAnalysis = {
         maxItemCost,
         totalOrderCost,
         itemThreshold: ITEM_THRESHOLD,
         orderThreshold: ORDER_THRESHOLD,
-        requiresApproval: !isSmallPurchase
+        requiresApproval: !isSmallPurchase,
       };
     }
 
     // Handle new attachments if uploaded
     const uploadedFiles = req.files || [];
     if (uploadedFiles.length > 0) {
-      const newAttachments = uploadedFiles.map(file => ({
+      const newAttachments = uploadedFiles.map((file) => ({
         filename: file.originalname,
         fileUrl: `/uploads/${file.filename}`,
-        uploadedAt: new Date()
+        uploadedAt: new Date(),
       }));
       request.attachments = [...request.attachments, ...newAttachments];
     }
@@ -1716,24 +1960,26 @@ exports.updatePurchaseRequest = async (req, res) => {
     await request.save();
 
     // Populate for response
-    await request.populate('requestedBy', 'name email role');
-    await request.populate('items.productId', 'name sku stock lowStockThreshold');
-    if (request.balagruhaId && request.balagruhaId !== 'STOCK') {
-      await request.populate('balagruhaId', 'name');
+    await request.populate("requestedBy", "name email role");
+    await request.populate(
+      "items.productId",
+      "name sku stock lowStockThreshold",
+    );
+    if (request.balagruhaId && request.balagruhaId !== "STOCK") {
+      await request.populate("balagruhaId", "name");
     }
 
     res.json({
       success: true,
-      message: 'Purchase request updated successfully',
-      data: { purchaseRequest: request }
+      message: "Purchase request updated successfully",
+      data: { purchaseRequest: request },
     });
-
   } catch (error) {
-    errorLogger.error({ err: error }, 'Error updating purchase request:');
+    errorLogger.error({ err: error }, "Error updating purchase request:");
     res.status(500).json({
       success: false,
-      message: 'Error updating purchase request',
-      error: error.message
+      message: "Error updating purchase request",
+      error: error.message,
     });
   }
 };
@@ -1753,24 +1999,27 @@ exports.deletePurchaseRequest = async (req, res) => {
     if (!request) {
       return res.status(404).json({
         success: false,
-        message: 'Purchase request not found'
+        message: "Purchase request not found",
       });
     }
 
     // Only allow deletion if status is 'pending' or 'cancelled'
-    const allowedStatuses = ['pending', 'cancelled', 'pending_approval'];
+    const allowedStatuses = ["pending", "cancelled", "pending_approval"];
     if (!allowedStatuses.includes(request.status)) {
       return res.status(400).json({
         success: false,
-        message: `Cannot delete request with status: ${request.status}`
+        message: `Cannot delete request with status: ${request.status}`,
       });
     }
 
     // Permission check: Only requester or Admin can delete
-    if (req.user.role !== 'admin' && String(request.requestedBy) !== String(userId)) {
+    if (
+      req.user.role !== "admin" &&
+      String(request.requestedBy) !== String(userId)
+    ) {
       return res.status(403).json({
         success: false,
-        message: 'You do not have permission to delete this request'
+        message: "You do not have permission to delete this request",
       });
     }
 
@@ -1778,15 +2027,14 @@ exports.deletePurchaseRequest = async (req, res) => {
 
     res.json({
       success: true,
-      message: 'Purchase request deleted successfully'
+      message: "Purchase request deleted successfully",
     });
-
   } catch (error) {
-    errorLogger.error({ err: error }, 'Error deleting purchase request:');
+    errorLogger.error({ err: error }, "Error deleting purchase request:");
     res.status(500).json({
       success: false,
-      message: 'Error deleting purchase request',
-      error: error.message
+      message: "Error deleting purchase request",
+      error: error.message,
     });
   }
 };
@@ -1801,9 +2049,9 @@ exports.getRequesters = async (req, res) => {
     const { balagruhaId } = req.query;
 
     const matchStage = {};
-    if (balagruhaId && balagruhaId !== 'all') {
-      if (balagruhaId === 'STOCK') {
-        matchStage.balagruhaId = 'STOCK';
+    if (balagruhaId && balagruhaId !== "all") {
+      if (balagruhaId === "STOCK") {
+        matchStage.balagruhaId = "STOCK";
       } else if (mongoose.Types.ObjectId.isValid(balagruhaId)) {
         matchStage.balagruhaId = new mongoose.Types.ObjectId(balagruhaId);
       }
@@ -1817,40 +2065,40 @@ exports.getRequesters = async (req, res) => {
     pipeline.push(
       {
         $group: {
-          _id: '$requestedBy'
-        }
+          _id: "$requestedBy",
+        },
       },
       {
         $lookup: {
-          from: 'users',
-          localField: '_id',
-          foreignField: '_id',
-          as: 'user'
-        }
+          from: "users",
+          localField: "_id",
+          foreignField: "_id",
+          as: "user",
+        },
       },
-      { $unwind: '$user' },
+      { $unwind: "$user" },
       {
         $project: {
-          _id: '$user._id',
-          name: '$user.name',
-          email: '$user.email'
-        }
+          _id: "$user._id",
+          name: "$user.name",
+          email: "$user.email",
+        },
       },
-      { $sort: { name: 1 } }
+      { $sort: { name: 1 } },
     );
 
     const requesters = await PurchaseRequest.aggregate(pipeline);
 
     res.json({
       success: true,
-      data: requesters
+      data: requesters,
     });
   } catch (error) {
-    errorLogger.error({ err: error }, 'Error fetching requesters:');
+    errorLogger.error({ err: error }, "Error fetching requesters:");
     res.status(500).json({
       success: false,
-      message: 'Error fetching requesters',
-      error: error.message
+      message: "Error fetching requesters",
+      error: error.message,
     });
   }
 };
@@ -1867,7 +2115,7 @@ exports.batchOrder = async (req, res) => {
     if (!Array.isArray(requestIds) || requestIds.length === 0) {
       return res.status(400).json({
         success: false,
-        message: 'requestIds array is required and must not be empty'
+        message: "requestIds array is required and must not be empty",
       });
     }
 
@@ -1876,7 +2124,7 @@ exports.batchOrder = async (req, res) => {
       if (!mongoose.Types.ObjectId.isValid(id)) {
         return res.status(400).json({
           success: false,
-          message: `Invalid request ID: ${id}`
+          message: `Invalid request ID: ${id}`,
         });
       }
     }
@@ -1884,33 +2132,33 @@ exports.batchOrder = async (req, res) => {
     // Fetch all requests
     const requests = await PurchaseRequest.find({
       _id: { $in: requestIds },
-      status: 'pending'
+      status: "pending",
     });
 
     if (requests.length === 0) {
       return res.status(400).json({
         success: false,
-        message: 'No pending requests found for the given IDs'
+        message: "No pending requests found for the given IDs",
       });
     }
 
     const userId = req.user._id;
-    const updateNote = notes || 'Bulk ordered via batch-order endpoint';
+    const updateNote = notes || "Bulk ordered via batch-order endpoint";
 
     // Batch update all pending requests to 'ordered'
     const result = await PurchaseRequest.updateMany(
-      { _id: { $in: requests.map(r => r._id) } },
+      { _id: { $in: requests.map((r) => r._id) } },
       {
-        $set: { status: 'ordered' },
+        $set: { status: "ordered" },
         $push: {
           statusHistory: {
-            status: 'ordered',
+            status: "ordered",
             changedBy: userId,
             changedAt: new Date(),
-            notes: updateNote
-          }
-        }
-      }
+            notes: updateNote,
+          },
+        },
+      },
     );
 
     res.json({
@@ -1919,15 +2167,15 @@ exports.batchOrder = async (req, res) => {
       data: {
         totalRequested: requestIds.length,
         totalUpdated: result.modifiedCount,
-        skipped: requestIds.length - requests.length
-      }
+        skipped: requestIds.length - requests.length,
+      },
     });
   } catch (error) {
-    errorLogger.error({ err: error }, 'Error in batch order:');
+    errorLogger.error({ err: error }, "Error in batch order:");
     res.status(500).json({
       success: false,
-      message: 'Error processing batch order',
-      error: error.message
+      message: "Error processing batch order",
+      error: error.message,
     });
   }
 };

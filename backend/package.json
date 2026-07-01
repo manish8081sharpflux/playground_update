@@ -28,7 +28,7 @@
     "@ffmpeg/util": "^0.12.2",
     "@logtail/pino": "^0.5.2",
     "@tensorflow/tfjs-backend-wasm": "^4.22.0",
-    "@tensorflow/tfjs-node": "^4.22.0",
+    "@tensorflow/tfjs-node": "^4.11.0",
     "@vladmandic/human": "^3.3.6",
     "axios": "^1.8.4",
     "bcryptjs": "^3.0.2",

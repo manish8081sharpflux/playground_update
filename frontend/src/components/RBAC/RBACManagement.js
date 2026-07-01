@@ -23,8 +23,6 @@ const RBACManagement = () => {
 
     const response = await fetchRolesandPermissions();
 
-
-
     // Simulate API call delay
     setTimeout(() => {
       const apiResponse = response;
@@ -113,7 +111,7 @@ const RBACManagement = () => {
             id: role._id,
             name: capitalizeFirstLetter(role.roleName),
             description: `${capitalizeFirstLetter(
-              role.roleName
+              role.roleName,
             )} role with specific permissions`,
             color: getRoleColor(index),
             icon: getRoleIcon(role.roleName),
@@ -226,7 +224,7 @@ const RBACManagement = () => {
   const filteredRoles = roles.filter(
     (role) =>
       role.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      role.description.toLowerCase().includes(searchTerm.toLowerCase())
+      role.description.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
   // Count total permissions for a role
@@ -255,7 +253,6 @@ const RBACManagement = () => {
     // Format and set permissions in the requested structure
     const formatted = formatPermissionsForAPI(role.permissions);
     setFormattedPermissions(formatted);
-
   };
 
   // Handle permission toggle
@@ -284,7 +281,6 @@ const RBACManagement = () => {
       const formatted = formatPermissionsForAPI(updated);
       setFormattedPermissions(formatted);
 
-
       return updated;
     });
   };
@@ -296,7 +292,7 @@ const RBACManagement = () => {
     // Check if all permissions are currently enabled
     const modulePermissions = tempPermissions[moduleId];
     const allEnabled = Object.values(modulePermissions).every(
-      (value) => value === true
+      (value) => value === true,
     );
 
     // Toggle all permissions
@@ -312,7 +308,6 @@ const RBACManagement = () => {
       const formatted = formatPermissionsForAPI(updated);
       setFormattedPermissions(formatted);
 
-
       return updated;
     });
   };
@@ -324,7 +319,7 @@ const RBACManagement = () => {
     // Check if all modules have this action enabled
     const allEnabled = modules.every(
       (module) =>
-        tempPermissions[module.id] && tempPermissions[module.id][actionId]
+        tempPermissions[module.id] && tempPermissions[module.id][actionId],
     );
 
     // Toggle the action for all modules
@@ -356,7 +351,6 @@ const RBACManagement = () => {
       const formatted = formatPermissionsForAPI(updated);
       setFormattedPermissions(formatted);
 
-
       return updated;
     });
   };
@@ -366,45 +360,27 @@ const RBACManagement = () => {
     const permissionsForAPI = formatPermissionsForAPI(tempPermissions);
 
     try {
-      const response = await updateRolePermissions(
-        id,
-        JSON.stringify(permissionsForAPI, null, 2)
+      // ✅ Pass object directly, NOT JSON.stringify
+      console.log(
+        "Sending to API:",
+        JSON.stringify(permissionsForAPI, null, 2),
       );
+      const response = await updateRolePermissions(id, permissionsForAPI);
+      console.log("API Response:", response);
 
-      fetchRolesAndPermissions();
+      // ✅ Refetch from DB to confirm changes saved
+      await fetchRolesAndPermissions();
     } catch (error) {
       console.error("Error updating role permissions:", error);
     }
 
-    // Here you would make your API call with the formatted permissions
-    // Example:
-    // api.updateRolePermissions(selectedRole.id, permissionsForAPI)
-    //    .then(response => {
-    //        // Handle success
-    //        setRoles(prev =>
-    //            prev.map(role =>
-    //                role.id === selectedRole.id
-    //                    ? { ...role, permissions: tempPermissions }
-    //                    : role
-    //            )
-    //        );
-    //        setSelectedRole(prev => ({ ...prev, permissions: tempPermissions }));
-    //        setIsEditing(false);
-    //        setShowSaveConfirmation(true);
-    //        setFormattedPermissions(permissionsForAPI);
-    //    })
-    //    .catch(error => {
-    //        // Handle error
-    //        console.error("Failed to update permissions:", error);
-    //    });
-
-    // For now, we'll just update the local state
+    // Update local state (UI stays same as before)
     setRoles((prev) =>
       prev.map((role) =>
         role.id === selectedRole.id
           ? { ...role, permissions: tempPermissions }
-          : role
-      )
+          : role,
+      ),
     );
 
     setSelectedRole((prev) => ({ ...prev, permissions: tempPermissions }));
@@ -412,12 +388,10 @@ const RBACManagement = () => {
     setShowSaveConfirmation(true);
     setFormattedPermissions(permissionsForAPI);
 
-    // Hide confirmation after 3 seconds
     setTimeout(() => {
       setShowSaveConfirmation(false);
     }, 3000);
   };
-
   // Cancel editing
   const cancelEditing = () => {
     setTempPermissions(JSON.parse(JSON.stringify(selectedRole.permissions)));
@@ -437,7 +411,7 @@ const RBACManagement = () => {
 
     // Check if all other modules have the same actions
     const commonActions = firstModuleActions.filter((action) =>
-      modules.every((module) => module.actions.some((a) => a.id === action.id))
+      modules.every((module) => module.actions.some((a) => a.id === action.id)),
     );
 
     return commonActions;
@@ -506,7 +480,7 @@ const RBACManagement = () => {
               {filteredRoles.map((role) => {
                 const permissionCount = countPermissions(role.permissions);
                 const percentage = Math.round(
-                  (permissionCount.granted / permissionCount.total) * 100
+                  (permissionCount.granted / permissionCount.total) * 100,
                 );
 
                 return (
@@ -541,8 +515,8 @@ const RBACManagement = () => {
                                 percentage > 75
                                   ? "#27ae60"
                                   : percentage > 40
-                                  ? "#f39c12"
-                                  : "#e74c3c",
+                                    ? "#f39c12"
+                                    : "#e74c3c",
                             }}
                           ></div>
                         </div>
@@ -678,7 +652,7 @@ const RBACManagement = () => {
                         const allEnabled =
                           modulePermissions &&
                           Object.values(modulePermissions).every(
-                            (value) => value === true
+                            (value) => value === true,
                           );
 
                         return (
@@ -724,7 +698,7 @@ const RBACManagement = () => {
                                         handleCheckboxChange(
                                           e,
                                           module.id,
-                                          action.id
+                                          action.id,
                                         )
                                       }
                                       disabled={!isEditing}

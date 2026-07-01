@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import FilterPanel from "./FilterPanel";
+import { useRBAC } from "../../contexts/RBACContext";
 import ProductGrid from "./ProductGrid";
 import ShopNavigation from "./ShopNavigation";
 import Breadcrumbs from "./Breadcrumbs";
@@ -15,7 +16,9 @@ import { api } from "../../api";
  */
 const ShopHome = () => {
   const { user } = useAuth();
+  const { hasPermission } = useRBAC();
   const isStudent = user?.role?.toLowerCase() === "student";
+  const canManageShop = hasPermission("Shop Management", "Manage");
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -23,11 +26,12 @@ const ShopHome = () => {
     page: 1,
     limit: 20,
     total: 0,
-    pages: 0
+    pages: 0,
   });
 
   // Story 2.2: Request Item Modal State
-  const [selectedProductForRequest, setSelectedProductForRequest] = useState(null);
+  const [selectedProductForRequest, setSelectedProductForRequest] =
+    useState(null);
 
   const [filters, setFilters] = useState({
     category: null,
@@ -35,7 +39,7 @@ const ShopHome = () => {
     minPrice: null,
     maxPrice: 500,
     inStock: true,
-    sort: "-createdAt"
+    sort: "-createdAt",
   });
 
   // Fetch products
@@ -47,7 +51,7 @@ const ShopHome = () => {
       const params = {
         page: pagination.page,
         limit: pagination.limit,
-        sort: filters.sort
+        sort: filters.sort,
       };
 
       // FIX-043: Support multi-select categories (comma-separated)
@@ -57,12 +61,13 @@ const ShopHome = () => {
         params.category = "ISF Shop";
       } else if (filters.category) {
         params.category = Array.isArray(filters.category)
-          ? filters.category.join(',')
+          ? filters.category.join(",")
           : filters.category;
       }
       if (filters.search) params.search = filters.search;
       if (filters.minPrice) params.minPrice = filters.minPrice;
-      if (filters.maxPrice !== null && filters.maxPrice !== undefined) params.maxPrice = filters.maxPrice;
+      if (filters.maxPrice !== null && filters.maxPrice !== undefined)
+        params.maxPrice = filters.maxPrice;
       if (filters.inStock !== undefined) params.inStock = filters.inStock;
 
       const response = await api.get(`/api/v2/shop/products`, { params });
@@ -71,7 +76,10 @@ const ShopHome = () => {
       setPagination(response.data.pagination);
     } catch (err) {
       console.error("Error fetching products:", err);
-      setError(err.response?.data?.message || "Failed to load products. Please try again.");
+      setError(
+        err.response?.data?.message ||
+          "Failed to load products. Please try again.",
+      );
     } finally {
       setLoading(false);
     }
@@ -79,20 +87,23 @@ const ShopHome = () => {
 
   // Fetch products on mount and filter change
   useEffect(() => {
-    const debounceTimer = setTimeout(() => {
-      fetchProducts();
-    }, filters.search ? 300 : 0); // Debounce search
+    const debounceTimer = setTimeout(
+      () => {
+        fetchProducts();
+      },
+      filters.search ? 300 : 0,
+    ); // Debounce search
 
     return () => clearTimeout(debounceTimer);
   }, [fetchProducts]);
 
   // Handle filter change
   const handleFilterChange = (newFilters) => {
-    setFilters(prev => ({
+    setFilters((prev) => ({
       ...prev,
-      ...newFilters
+      ...newFilters,
     }));
-    setPagination(prev => ({ ...prev, page: 1 })); // Reset to page 1
+    setPagination((prev) => ({ ...prev, page: 1 })); // Reset to page 1
   };
 
   // Clear all filters
@@ -103,21 +114,21 @@ const ShopHome = () => {
       minPrice: null,
       maxPrice: 500,
       inStock: true,
-      sort: "-createdAt"
+      sort: "-createdAt",
     });
-    setPagination(prev => ({ ...prev, page: 1 }));
+    setPagination((prev) => ({ ...prev, page: 1 }));
   };
 
   // Handle page change
   const handlePageChange = (newPage) => {
-    setPagination(prev => ({ ...prev, page: newPage }));
+    setPagination((prev) => ({ ...prev, page: newPage }));
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   // Handle sort change
   const handleSortChange = (sortValue) => {
-    setFilters(prev => ({ ...prev, sort: sortValue }));
-    setPagination(prev => ({ ...prev, page: 1 }));
+    setFilters((prev) => ({ ...prev, sort: sortValue }));
+    setPagination((prev) => ({ ...prev, page: 1 }));
   };
 
   // Handle request item (Story 2.2)
@@ -126,9 +137,9 @@ const ShopHome = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-slate-50 main-content main-content-full-page">
       {/* Admin Controls - Draggable floating panel for admins only */}
-      {user?.role?.toLowerCase() === "admin" && <ShopAdminControls />}
+      {canManageShop && <ShopAdminControls />}
 
       {/* Page Header */}
       <div className="bg-white border-b border-slate-200 sticky top-0 z-10">

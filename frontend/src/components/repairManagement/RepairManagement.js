@@ -604,7 +604,6 @@ export default function RepairManagement() {
             <table>
               <thead>
                 <tr>
-                  <th>Request ID</th>
                   <th>Issue Name</th>
                   <th>Description</th>
                   <th>Date</th>
@@ -618,7 +617,6 @@ export default function RepairManagement() {
               <tbody>
                 {filteredRepairRequests?.map((request) => (
                   <tr key={request._id}>
-                    <td>{request._id}</td>
                     <td>{request.issueName}</td>
                     <td>{request.description}</td>
                     <td>

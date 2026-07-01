@@ -8,7 +8,7 @@
  */
 
 const { Canvas, Image } = require('canvas');
-const tf = require('@tensorflow/tfjs-node');
+const tf = require('@tensorflow/tfjs');
 const FaceEmbedding = require('../models/FaceEmbedding');
 const FRSession = require('../models/FRSession');
 const frCacheService = require('./frCacheService');

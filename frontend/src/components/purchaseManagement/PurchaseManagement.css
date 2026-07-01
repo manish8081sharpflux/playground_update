@@ -80,7 +80,6 @@
 .purchase-purchases-section {
   padding: 20px;
   background-color: #f8f9fa;
-  min-height: 100vh;
 }
 
 .purchase-section-header {
@@ -555,8 +554,13 @@
 /* Purchase Management Container */
 .purchase-management-container {
   padding: 20px;
-  max-width: 1400px;
-  margin: 0 auto;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.purchase-content {
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .purchase-header {
@@ -590,11 +594,15 @@
 .purchase-type-dropdown {
   padding: 10px 16px;
   font-size: 16px;
+  line-height: 1.5;        /* ← fixes text/emoji clipping */
+  height: auto;            /* ← allows height to grow with content */
+  min-height: 44px;        /* ← ensures enough height */
   border: 2px solid #d1d5db;
   border-radius: 8px;
   background-color: white;
   cursor: pointer;
   transition: all 0.2s;
+  appearance: auto;        /* ← ensures native dropdown arrow shows properly */
 }
 
 .purchase-type-dropdown:hover {
@@ -605,6 +613,27 @@
   outline: none;
   border-color: #3b82f6;
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.product-filter {
+  margin: 10px 0;
+}
+
+.product-filter .checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  color: #374151;
+}
+
+.product-filter .checkbox-label input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  flex-shrink: 0;
+  cursor: pointer;
 }
 
 /* Shop Inventory View */
