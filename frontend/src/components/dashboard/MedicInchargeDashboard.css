@@ -748,17 +748,25 @@ body {
     box-shadow: 0 8px 18px rgba(0, 123, 255, 0.22);
 }
 
-.medic-action-button {
-    background-color: #3da5d9;
-    color: white;
-    border: none;
-    padding: 10px 15px;
+.medic-search-filter select {
+    width: 180px;
+    height: 42px;
+    padding: 0 12px;
+    border: 1px solid #ddd;
     border-radius: 8px;
-    cursor: pointer;
     font-family: 'Patrick Hand', cursive;
-    font-size: 16px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    transition: all 0.3s;
+    font-size: 15px;
+    background: #fff;
+}
+
+.medic-search-filter .medic-action-button {
+    margin-left: auto;
+    height: 42px;
+    padding: 0 18px;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .medic-action-button:hover {
@@ -1466,10 +1474,20 @@ pre {
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
+.medic-data-table {
+  overflow-x: hidden;
+}
+
 .medic-data-table table {
-    width: 100%;
-    min-width: 1200px; /* Ensure table doesn't squish */
-    border-collapse: collapse;
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+}
+
+.medic-data-table th,
+.medic-data-table td {
+  white-space: normal;
+  word-break: break-word;
 }
 
 .medic-data-table th {

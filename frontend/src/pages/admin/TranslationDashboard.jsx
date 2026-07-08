@@ -97,7 +97,7 @@ const TranslationDashboard = () => {
           <select
             value={selectedCourse}
             onChange={handleCourseChange}
-            className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-purple-500 text-lg"
+            className="w-full px-4 h-16 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-purple-500 text-lg"
             disabled={loading}
           >
             <option value="">-- Choose a published course --</option>

@@ -1,4 +1,4 @@
-import { api, headers } from './client';
+import { api, apiWithoutContentType } from './client';
 
 export const getSportsOverview = async (balagruhaId, date) => {
   try {
@@ -14,7 +14,7 @@ export const getSportsOverview = async (balagruhaId, date) => {
 
 export const createSportsTask = async (data) => {
   try {
-    const response = await api.post(`/api/v1/sports/task`, data, { headers });
+    const response = await apiWithoutContentType.post(`/api/v1/sports/task`, data);
     return response.data;
   } catch (error) {
     console.error("Error creating sports task:", error);
@@ -34,12 +34,14 @@ export const updateSportsTask = async (taskId, data) => {
 
 export const addOrUpdateSportsTaskAttachments = async (taskId, data) => {
   try {
-    const response = await api.post(
+    const response = await apiWithoutContentType.post(
       `/api/v1/sports/task/attachments/${taskId}`,
-      data,
-      { headers }
+      data
     );
-    return response.data;
+    const res = response.data;
+    if (res && res.success && res.data && res.data.task) return res.data.task;
+    if (res && res.task) return res.task;
+    return res;
   } catch (error) {
     console.error("Error adding/updating attachments:", error);
     throw error;
@@ -48,10 +50,9 @@ export const addOrUpdateSportsTaskAttachments = async (taskId, data) => {
 
 export const addOrUpdateSportsTaskComments = async (taskId, data) => {
   try {
-    const response = await api.post(
+    const response = await apiWithoutContentType.post(
       `/api/v1/sports/tasks/comment/${taskId}`,
-      data,
-      { headers }
+      data
     );
     return response.data;
   } catch (error) {

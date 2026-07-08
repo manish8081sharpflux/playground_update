@@ -25,6 +25,19 @@ const CheckInForm = ({
   const [attachmentImages, setAttachmentImages] = useState([]);
   const [attachmentPDFs, setAttachmentPDFs] = useState([]);
 
+
+  const [errors, setErrors] = useState({});
+
+  const today = new Date().toISOString().split("T")[0];
+
+  const getMinAllowedDate = () => {
+    const date = new Date();
+    date.setFullYear(date.getFullYear() - 10);
+    return date.toISOString().split("T")[0];
+  };
+
+  const minAllowedDate = getMinAllowedDate();
+
   // Handle symptoms change from SymptomsSelector
   const handleSymptomsUpdate = (updates) => {
     if (updates.symptoms) {
@@ -92,11 +105,32 @@ const CheckInForm = ({
       e.preventDefault();
     }
 
-    // Validate required fields
-    if (!temperature || !date || !time) {
-      alert("Please fill in all required fields (temperature, date, time)");
+    const newErrors = {};
+
+    if (!date) {
+      newErrors.date = "Date is required";
+    } else if (date > today) {
+      newErrors.date = "Future date is not allowed";
+    } else if (date < minAllowedDate) {
+      newErrors.date = "Date cannot be older than 10 years";
+    }
+
+    if (!time) {
+      newErrors.time = "Time is required";
+    }
+
+    if (!temperature) {
+      newErrors.temperature = "Temperature is required";
+    } else if (Number(temperature) < 90 || Number(temperature) > 110) {
+      newErrors.temperature = "Temperature must be between 90°F and 110°F";
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
       return;
     }
+
+    setErrors({});
 
     // Prepare form data
     const formData = new FormData();
@@ -235,9 +269,14 @@ const CheckInForm = ({
               <input
                 type="date"
                 value={date}
+                min={minAllowedDate}
+                max={today}
                 onChange={(e) => setDate(e.target.value)}
                 required
               />
+              {errors.date && (
+                <span className="error-message">{errors.date}</span>
+              )}
             </div>
             <div className="form-group">
               <label>
@@ -249,6 +288,9 @@ const CheckInForm = ({
                 onChange={(e) => setTime(e.target.value)}
                 required
               />
+              {errors.time && (
+                <span className="error-message">{errors.time}</span>
+              )}
             </div>
           </div>
 
@@ -260,11 +302,19 @@ const CheckInForm = ({
               <input
                 type="number"
                 step="0.1"
+                min="90"
+                max="110"
                 value={temperature}
                 onChange={(e) => setTemperature(e.target.value)}
                 placeholder="e.g., 98.6"
                 required
               />
+
+              {errors.temperature && (
+                <span className="error-message">
+                  {errors.temperature}
+                </span>
+              )}
             </div>
             <div className="form-group">
               <label>Health Status</label>

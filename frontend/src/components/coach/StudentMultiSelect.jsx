@@ -1,38 +1,93 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState } from 'react';
 
 export default function StudentMultiSelect({ students, selectedStudents, onSelectionChange, balagruhas }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedBalagruhaFilter, setSelectedBalagruhaFilter] = useState('all');
 
-  // Debug logging
-  useEffect(() => {
-  }, [students, balagruhas]);
+  const normalizeList = (value) => (Array.isArray(value) ? value : []);
+
+  const getEntityId = (value) => {
+    if (!value) return '';
+    if (typeof value === 'string' || typeof value === 'number') return value.toString();
+    const nestedId = value._id || value.id || value.value || value.$oid;
+    if (nestedId) return nestedId.toString();
+    if (typeof value.toString === 'function' && value.toString !== Object.prototype.toString) {
+      return value.toString();
+    }
+    return '';
+  };
+
+  const getStudentBalagruhaIds = (student) => {
+    const values = [];
+
+    if (Array.isArray(student.balagruhaIds)) {
+      values.push(...student.balagruhaIds);
+    }
+
+    if (student.balagruhaId) {
+      values.push(student.balagruhaId);
+    }
+
+    if (student.balagruha) {
+      values.push(student.balagruha);
+    }
+
+    return Array.from(new Set(values.map(getEntityId).filter(Boolean)));
+  };
+
+  const getStudentBalagruhaNames = (student) => {
+    const names = [];
+
+    if (Array.isArray(student.balagruhaNames)) {
+      names.push(...student.balagruhaNames.filter(Boolean));
+    }
+
+    const possibleBalagruhas = [
+      ...(Array.isArray(student.balagruhaIds) ? student.balagruhaIds : []),
+      student.balagruhaId,
+      student.balagruha,
+    ].filter(Boolean);
+
+    possibleBalagruhas.forEach((item) => {
+      if (typeof item === 'object' && item.name) {
+        names.push(item.name);
+      }
+    });
+
+    const source = normalizeList(balagruhas);
+    getStudentBalagruhaIds(student).forEach((bgId) => {
+      const bg = source.find((item) => getEntityId(item) === bgId);
+      if (bg?.name) names.push(bg.name);
+    });
+
+    return Array.from(new Set(names));
+  };
 
   // Filter students based on search query and Balagruha filter
-  const filteredStudents = useMemo(() => {
-    let filtered = students;
+  let filteredStudents = normalizeList(students).filter((student) =>
+    !student.role || student.role?.toLowerCase() === 'student'
+  );
 
-    // Filter by Balagruha
-    if (selectedBalagruhaFilter !== 'all') {
-      filtered = filtered.filter(student => 
-        student.balagruhaIds?.some(bg => bg._id?.toString() === selectedBalagruhaFilter || bg.id?.toString() === selectedBalagruhaFilter)
+  // Filter by Balagruha
+  if (selectedBalagruhaFilter !== 'all') {
+    filteredStudents = filteredStudents.filter((student) =>
+      getStudentBalagruhaIds(student).includes(selectedBalagruhaFilter.toString())
+    );
+  }
+
+  // Filter by search query
+  if (searchQuery.trim()) {
+    const query = searchQuery.toLowerCase().trim();
+    filteredStudents = filteredStudents.filter((student) => {
+      const balagruhaNames = getStudentBalagruhaNames(student);
+      return (
+        student.name?.toLowerCase().includes(query) ||
+        student.userId?.toString().toLowerCase().includes(query) ||
+        student.email?.toLowerCase().includes(query) ||
+        balagruhaNames.some((name) => name?.toLowerCase().includes(query))
       );
-    }
-
-    // Filter by search query
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(
-        (student) =>
-          student.name?.toLowerCase().includes(query) ||
-          student.userId?.toString().toLowerCase().includes(query) ||
-          student.balagruhaNames?.some(name => name.toLowerCase().includes(query))
-      );
-    }
-
-    return filtered;
-  }, [students, searchQuery, selectedBalagruhaFilter]);
-
+    });
+  }
   // Check if a student is selected
   const isStudentSelected = (studentId) => {
     return selectedStudents.some((s) => s._id === studentId);
@@ -71,7 +126,7 @@ export default function StudentMultiSelect({ students, selectedStudents, onSelec
       {/* Header with selection count and bulk actions */}
       <div className="flex items-center justify-between mb-3">
         <h3 className="font-medium text-gray-900">
-          Select Students ({selectedStudents.length} of {students.length} selected)
+          Select Students ({selectedStudents.length} of {filteredStudents.length} shown)
         </h3>
         <div className="flex gap-2">
           <button
@@ -101,18 +156,21 @@ export default function StudentMultiSelect({ students, selectedStudents, onSelec
             className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           >
             <option value="all">All Balagruhas</option>
-            {balagruhas.map((bg) => (
-              <option key={bg.id} value={bg.id}>
-                {bg.name}
-              </option>
-            ))}
+            {balagruhas.map((bg) => {
+              const bgId = getEntityId(bg);
+              return (
+                <option key={bgId} value={bgId}>
+                  {bg.name}
+                </option>
+              );
+            })}
           </select>
         )}
         
         {/* Search Filter */}
         <input
           type="text"
-          placeholder="🔍 Search students by name, ID, or Balagruha..."
+          placeholder="Search students by name, ID, or Balagruha..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -129,6 +187,7 @@ export default function StudentMultiSelect({ students, selectedStudents, onSelec
           <div className="divide-y divide-gray-200">
             {filteredStudents.map((student) => {
               const isSelected = isStudentSelected(student._id);
+              const balagruhaNames = getStudentBalagruhaNames(student);
               return (
                 <label
                   key={student._id}
@@ -150,9 +209,9 @@ export default function StudentMultiSelect({ students, selectedStudents, onSelec
                       {student.userId && (
                         <span className="mr-2">ID: {student.userId}</span>
                       )}
-                      {student.balagruhaNames && student.balagruhaNames.length > 0 && (
+                      {balagruhaNames.length > 0 && (
                         <span className="text-xs bg-gray-100 px-2 py-0.5 rounded ml-2">
-                          {student.balagruhaNames.join(', ')}
+                          {balagruhaNames.join(', ')}
                         </span>
                       )}
                     </div>

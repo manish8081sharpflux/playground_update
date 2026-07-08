@@ -140,7 +140,7 @@ export default function AdminCourseDashboard() {
             <div className="flex items-center gap-4">
               <button
                 onClick={handleAssignCourse}
-                className="flex items-center gap-2 px-6 py-3 bg-white text-purple-600 rounded-lg hover:bg-purple-50 transition-colors font-semibold shadow-md hover:shadow-lg"
+                className=" flex items-center gap-2 px-6 py-3 bg-white text-purple-600 rounded-lg hover:bg-purple-50 transition-colors font-semibold shadow-md hover:shadow-lg"
               >
                 <Users size={20} />
                 Assign Courses
@@ -168,12 +168,13 @@ export default function AdminCourseDashboard() {
       {/* Filter Bar */}
       <div className="bg-white shadow-sm border-b border-gray-200">
         <div className="px-6 py-4">
-          <div className="flex items-center gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-[220px_220px_1fr] gap-4 items-center">
+
             {/* Category Filter */}
             <select
               value={categoryFilter}
               onChange={(e) => setCategoryFilter(e.target.value)}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+              className="w-full h-11 px-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 bg-white"
             >
               <option value="all">All Categories</option>
               <option value="Computer Apps">Computer Apps</option>
@@ -186,7 +187,7 @@ export default function AdminCourseDashboard() {
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+              className="w-full h-11 px-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 bg-white"
             >
               <option value="all">All Statuses</option>
               <option value="draft">Draft</option>
@@ -195,23 +196,23 @@ export default function AdminCourseDashboard() {
             </select>
 
             {/* Search Bar */}
-            <div className="flex-1 relative">
-              <Search
-                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
-                size={20}
-              />
+            {/* Search Bar */}
+            <div className="flex-1 flex items-center h-11 border border-gray-300 rounded-lg overflow-hidden bg-white focus-within:ring-2 focus-within:ring-purple-500">
+              <div className="w-12 h-full flex items-center justify-center bg-gray-50 border-r border-gray-200">
+                <Search size={18} className="text-gray-400" />
+              </div>
+
               <input
                 type="text"
                 placeholder="Search courses..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                className="flex-1 h-full px-4 bg-transparent !border-0 !outline-none !ring-0 !shadow-none focus:!border-0 focus:!outline-none focus:!ring-0 focus:!shadow-none"
               />
             </div>
           </div>
         </div>
       </div>
-
       {/* Course List */}
       <div className="px-6 py-6">
         {error ? (

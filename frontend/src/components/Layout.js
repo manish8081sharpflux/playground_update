@@ -4,7 +4,7 @@ import { Outlet, useNavigate, Link, useLocation } from "react-router-dom";
 import "./Layout.css";
 import { useAuth } from "../contexts/AuthContext";
 import { useRBAC } from "../contexts/RBACContext";
-// usePermission removed — Layout uses useRBAC directly (Story 8.2)
+// usePermission removed - Layout uses useRBAC directly (Story 8.2)
 import { useCoinBalance } from "../contexts/CoinBalanceContext";
 import CartIcon from "./shop/CartIcon";
 import FloatingDeliveriesButton from "./shop/FloatingDeliveriesButton";
@@ -31,8 +31,8 @@ export const useSidebar = () => {
 
 const Layout = () => {
   const { user, logout, isAuthenticated, isLoading: authLoading } = useAuth();
-  const { isLoading: rbacLoading } = useRBAC();
-  // canRead removed — was destructured from usePermission but never used (Story 8.2)
+  const { isLoading: rbacLoading, hasPermission, permissions } = useRBAC();
+  // canRead removed - was destructured from usePermission but never used (Story 8.2)
   const { balance: coinBalance } = useCoinBalance(); // Sprint5-Story-08: Use context for coin balance
   const navigate = useNavigate();
   const location = useLocation(); // Get current location
@@ -141,12 +141,12 @@ const Layout = () => {
     // { id: 14, name: "Quizzes", link: "/admin/quizzes", roles: ["admin"] }, // Moved to Course Management page
     { id: 15, name: "Translations", link: "/admin/translations", roles: ["admin"] },
     // Sprint 2 Story 05: split the old mislabeled "Courses" entry into
-    // two — a read-only content browser at /coach/courses and the
+    // two - a read-only content browser at /coach/courses and the
     // existing syllabus grading tracker at /coach/grading.
     { id: 16, name: "Courses", link: "/coach/courses", roles: ["coach"] },
     { id: 161, name: "Grading", link: "/coach/grading", roles: ["coach"] },
     { id: 17, name: "Assignments", link: "/coach/assignments", roles: ["coach", "admin"] },
-    // Medical: Doctors Data Bank — shared directory managed by medical incharge + admin
+    // Medical: Doctors Data Bank - shared directory managed by medical incharge + admin
     { id: 19, name: "Doctors", link: "/medical/doctors", roles: ["medical-incharge", "admin"] },
     {
       id: 18,
@@ -283,7 +283,7 @@ const Layout = () => {
       <div className="notifications-panel">
         <div className="notifications-header">
           <h3>Notifications</h3>
-          <button onClick={handleCloseNotifications}>✖</button>
+          <button onClick={handleCloseNotifications}>&times;</button>
         </div>
         <div className="notifications-list">
           {isLoadingNotifications ? (
@@ -320,6 +320,36 @@ const Layout = () => {
     );
   };
 
+  const canReadModule = (moduleName) => {
+    return hasPermission(moduleName, "Read") || hasPermission(moduleName, "Manage");
+  };
+
+  const canAccessCoachMenu = (menu) => {
+    const userRole = localStorage.getItem("role") || "guest";
+
+    if (userRole !== "coach") {
+      return true;
+    }
+
+    const permissionMap = {
+      "/users": ["User Management"],
+      "/machines": ["Machine Management"],
+      "/task": ["Task Management"],
+      "/attendance": ["Attendance Management"],
+      "/repair": ["Purchase Management"],
+      "/purchase": ["Purchase Management"],
+      "/shop": ["Shop Management"],
+      "/wtf": ["WTF Management", "WTF Interaction", "WTF Submission"],
+      "/coach/courses": ["LMS Management"],
+      "/coach/grading": ["LMS Management"],
+      "/coach/assignments": ["LMS Management"],
+    };
+
+    const requiredModules = permissionMap[menu.link];
+    if (!requiredModules) return true;
+
+    return requiredModules.some(canReadModule);
+  };
   // Check if we're on the dashboard
   const isDashboard =
     location.pathname === "/dashboard" || location.pathname === "/";
@@ -329,9 +359,9 @@ const Layout = () => {
     const userRole = localStorage.getItem("role") || "guest";
     setRole(userRole);
 
-    // Filter menus based on user role
+    // Filter menus based on user role and coach RBAC permissions.
     const filteredMenus = topMenus.filter((menu) =>
-      menu.roles.includes(userRole)
+      menu.roles.includes(userRole) && canAccessCoachMenu(menu)
     );
 
     setVisibleMenus(filteredMenus);
@@ -349,7 +379,7 @@ const Layout = () => {
       const interval = setInterval(fetchPendingPurchaseCount, 60000);
       return () => clearInterval(interval);
     }
-  }, []);
+  }, [permissions, rbacLoading]);
 
   // Removed duplicate declaration of sportCoachMenu
 
@@ -483,7 +513,7 @@ const Layout = () => {
                   isSidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"
                 }
               >
-                ☰
+                &#9776;
               </button>
             </div>
           )}
@@ -573,7 +603,7 @@ const Layout = () => {
                   className="notification-bell"
                   onClick={handleNotificationClick}
                 >
-                  🔔
+                  &#128276;
                   {notifications > 0 && (
                     <span className="notification-badge">{notifications}</span>
                   )}

@@ -2230,10 +2230,16 @@ class WtfService {
     }
   }
 
-  static async getCoachSuggestions({ page = 1, limit = 20, status = null }) {
+  static async getCoachSuggestions({ page = 1, limit = 20, status = null, coachId = null }) {
     try {
-      // Keep args minimal for backward compatibility (and to satisfy unit tests)
-      const result = await getSubmissionsForReviewDA({ page, limit, type: null });
+      const result = await getSubmissionsForReviewDA({
+        page,
+        limit,
+        type: null,
+        isCoachSuggestion: true,
+        status,
+        coachId,
+      });
 
       if (!result?.success) {
         return {
@@ -2265,6 +2271,7 @@ class WtfService {
           studentName:
             submission.studentName || meta.studentName || "Unknown Student",
           coachName: submission.suggestedBy || meta.suggestedBy || "Coach",
+          coachId: meta.coachId,
           workType,
           type: normalizedType,
           title: submission.title,

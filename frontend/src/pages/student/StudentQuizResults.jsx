@@ -12,7 +12,10 @@ export default function LifeSkillsQuizResults() {
   const location = useLocation();
   // Results are nested in "results" key within the response object
   const results = location.state?.results?.results;
-  const quizId = location.state?.results?.quizId;
+  const quizId =
+    location.state?.quizId ||
+    location.state?.results?.quizId ||
+    results?.quizId;
 
   // If no results data, redirect back to Life Skills page
   // If no results data, redirect back to Life Skills page

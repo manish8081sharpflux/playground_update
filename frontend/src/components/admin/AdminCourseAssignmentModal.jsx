@@ -19,6 +19,13 @@ export default function AdminCourseAssignmentModal({ isOpen, onClose, course, on
   const [searchQuery, setSearchQuery] = useState('');
   const [balagruhaFilter, setBalagruhaFilter] = useState('all');
 
+  const normalizeList = (value) => (Array.isArray(value) ? value : []);
+
+  const getResponseList = (response, key) => {
+    const data = response?.data?.data;
+    return normalizeList(data?.[key] || data || response?.data?.[key]);
+  };
+
   // Fetch all Balagruhas and students on mount
   useEffect(() => {
     if (isOpen) {
@@ -26,6 +33,30 @@ export default function AdminCourseAssignmentModal({ isOpen, onClose, course, on
     }
   }, [isOpen]);
 
+  const fetchAllStudents = async () => {
+    const firstResponse = await api.get('/api/users', {
+      params: { role: 'student', page: 1, limit: 1000 },
+    });
+    const firstStudents = getResponseList(firstResponse, 'users');
+    const totalPages = firstResponse.data?.pagination?.pages || 1;
+
+    if (totalPages <= 1) {
+      return firstStudents;
+    }
+
+    const remainingResponses = await Promise.all(
+      Array.from({ length: totalPages - 1 }, (_, index) =>
+        api.get('/api/users', {
+          params: { role: 'student', page: index + 2, limit: 1000 },
+        })
+      )
+    );
+
+    return [
+      ...firstStudents,
+      ...remainingResponses.flatMap((response) => getResponseList(response, 'users')),
+    ];
+  };
   const fetchData = async () => {
     setDataLoading(true);
     try {
@@ -33,24 +64,19 @@ export default function AdminCourseAssignmentModal({ isOpen, onClose, course, on
       const balagruhasResponse = await api.get(
         `/api/v1/balagruha`
       );
-      const allBalagruhas = balagruhasResponse.data.data || [];
+      const allBalagruhas = getResponseList(balagruhasResponse, 'balagruhas');
       setBalagruhas(allBalagruhas);
       // Select all by default
       setSelectedBalagruhas(allBalagruhas);
-      
-      // Then fetch all students
-      const studentsResponse = await api.get(
-        `/api/users?role=student`
-      );
-      
-      const studentsData = studentsResponse.data.data || [];
-      // Add balagruhaNames to each student for display
+
+      // Then fetch all students across all pages
+      const studentsData = (await fetchAllStudents())
+        .filter((student) => student?.role === 'student');
+      // Normalize Balagruha data for the Specific Students filter/search UI.
       const studentsWithBalagruhaInfo = studentsData.map(student => ({
         ...student,
-        balagruhaNames: student.balagruhaIds?.map(bgId => {
-          const bg = allBalagruhas.find(b => (b._id || b.id)?.toString() === bgId?.toString());
-          return bg?.name;
-        }).filter(Boolean) || []
+        balagruhaIds: getStudentBalagruhaIds(student),
+        balagruhaNames: getStudentBalagruhaNames(student, allBalagruhas),
       }));
       setStudents(studentsWithBalagruhaInfo);
     } catch (error) {
@@ -119,25 +145,93 @@ export default function AdminCourseAssignmentModal({ isOpen, onClose, course, on
     }
   };
 
+  const getEntityId = (value) => {
+    if (!value) return '';
+    if (typeof value === 'string' || typeof value === 'number') return value.toString();
+    const nestedId = value._id || value.id || value.value || value.$oid;
+    if (nestedId) return nestedId.toString();
+    if (typeof value.toString === 'function' && value.toString !== Object.prototype.toString) {
+      return value.toString();
+    }
+    return '';
+  };
+
+
+  // Helper: get all Balagruha IDs from student safely
+  const getStudentBalagruhaIds = (student) => {
+    const values = [];
+
+    if (Array.isArray(student.balagruhaIds)) {
+      values.push(...student.balagruhaIds);
+    }
+
+    if (student.balagruhaId) {
+      values.push(student.balagruhaId);
+    }
+
+    if (student.balagruha) {
+      values.push(student.balagruha);
+    }
+
+    return Array.from(new Set(values.map(getEntityId).filter(Boolean)));
+  };
+
+  // Helper: get Balagruha names safely
+  const getStudentBalagruhaNames = (student, balagruhaSource = balagruhas) => {
+    const names = [];
+
+    if (Array.isArray(student.balagruhaNames)) {
+      names.push(...student.balagruhaNames.filter(Boolean));
+    }
+
+    const possibleBalagruhas = [
+      ...(Array.isArray(student.balagruhaIds) ? student.balagruhaIds : []),
+      student.balagruhaId,
+      student.balagruha,
+    ].filter(Boolean);
+
+    possibleBalagruhas.forEach((item) => {
+      if (typeof item === 'object' && item.name) {
+        names.push(item.name);
+      }
+    });
+
+    getStudentBalagruhaIds(student).forEach((bgId) => {
+      const bg = normalizeList(balagruhaSource).find((item) => getEntityId(item) === bgId);
+      if (bg?.name) names.push(bg.name);
+    });
+
+    return Array.from(new Set(names));
+  };
+
   // Filter students by search and Balagruha filter
   const filteredStudents = students.filter(student => {
+    const studentBalagruhaIds = getStudentBalagruhaIds(student);
+    const studentBalagruhaNames = getStudentBalagruhaNames(student);
+
     // Filter by Balagruha
     if (balagruhaFilter !== 'all') {
-      const isInSelectedBalagruha = student.balagruhaIds?.some(bgId => 
-        bgId?.toString() === balagruhaFilter
+      const isInSelectedBalagruha = studentBalagruhaIds.includes(
+        balagruhaFilter.toString()
       );
+
       if (!isInSelectedBalagruha) return false;
     }
 
     // Filter by search query
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase();
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase().trim();
+
       const matchesName = student.name?.toLowerCase().includes(query);
       const matchesId = student.userId?.toString().toLowerCase().includes(query);
-      const matchesBalagruha = student.balagruhaNames?.some(name => 
-        name.toLowerCase().includes(query)
+      const matchesEmail = student.email?.toLowerCase().includes(query);
+      const matchesBalagruha = studentBalagruhaNames.some(name =>
+        name?.toLowerCase().includes(query)
       );
-      if (!matchesName && !matchesId && !matchesBalagruha) return false;
+
+      if (!matchesName && !matchesId && !matchesEmail && !matchesBalagruha) {
+        return false;
+      }
     }
 
     return true;
@@ -147,9 +241,9 @@ export default function AdminCourseAssignmentModal({ isOpen, onClose, course, on
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+      <div className="mt-12 bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[85vh] overflow-y-auto">
         {/* Header */}
-        <div className="bg-purple-600 text-white px-6 py-4 flex items-center justify-between rounded-t-lg">
+        <div className="bg-blue-600 text-white px-6 py-4 flex items-center justify-between rounded-t-lg">
           <div>
             <h2 className="text-2xl font-bold">Assign Course (Admin)</h2>
             <p className="text-purple-100 text-sm mt-1">
@@ -171,15 +265,14 @@ export default function AdminCourseAssignmentModal({ isOpen, onClose, course, on
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Assign To <span className="text-red-500">*</span>
             </label>
-            
+
             {/* Entire Balagruha Option */}
             <div
               onClick={() => setAssignmentType('balagruha')}
-              className={`border-2 rounded-lg p-4 cursor-pointer mb-3 transition ${
-                assignmentType === 'balagruha'
+              className={`border-2 rounded-lg p-4 cursor-pointer mb-3 transition ${assignmentType === 'balagruha'
                   ? 'border-purple-500 bg-purple-50'
                   : 'border-gray-300 hover:border-purple-300'
-              }`}
+                }`}
             >
               <div className="flex items-start">
                 <input
@@ -195,7 +288,7 @@ export default function AdminCourseAssignmentModal({ isOpen, onClose, course, on
                   <div className="text-sm text-gray-600">
                     All students in selected Balagruha(s) will receive this course
                   </div>
-                  
+
                   {/* Balagruha multi-select checkboxes */}
                   <div className="mt-3 border border-gray-200 rounded-lg p-3 bg-white">
                     <div className="flex items-center justify-between mb-2">
@@ -225,7 +318,7 @@ export default function AdminCourseAssignmentModal({ isOpen, onClose, course, on
                         </button>
                       </div>
                     </div>
-                    
+
                     <div className="space-y-2 max-h-32 overflow-y-auto">
                       {dataLoading ? (
                         <div className="text-center text-gray-500 py-4">Loading Balagruhas...</div>
@@ -240,7 +333,7 @@ export default function AdminCourseAssignmentModal({ isOpen, onClose, course, on
                           >
                             <input
                               type="checkbox"
-                              checked={selectedBalagruhas.some(selected => 
+                              checked={selectedBalagruhas.some(selected =>
                                 (selected._id || selected.id)?.toString() === (bg._id || bg.id)?.toString()
                               )}
                               onChange={(e) => {
@@ -267,11 +360,10 @@ export default function AdminCourseAssignmentModal({ isOpen, onClose, course, on
             {/* Specific Students Option */}
             <div
               onClick={() => setAssignmentType('students')}
-              className={`border-2 rounded-lg p-4 cursor-pointer transition ${
-                assignmentType === 'students'
+              className={`border-2 rounded-lg p-4 cursor-pointer transition ${assignmentType === 'students'
                   ? 'border-purple-500 bg-purple-50'
                   : 'border-gray-300 hover:border-purple-300'
-              }`}
+                }`}
             >
               <div className="flex items-start">
                 <input
@@ -334,11 +426,11 @@ export default function AdminCourseAssignmentModal({ isOpen, onClose, course, on
                     </option>
                   ))}
                 </select>
-                
+
                 {/* Search Filter */}
                 <input
                   type="text"
-                  placeholder="🔍 Search students by name, ID, or Balagruha..."
+                  placeholder="Ã°Å¸â€Â Search students by name, ID, or Balagruha..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
@@ -351,8 +443,8 @@ export default function AdminCourseAssignmentModal({ isOpen, onClose, course, on
                   <div className="p-4 text-center text-gray-500">Loading students...</div>
                 ) : filteredStudents.length === 0 ? (
                   <div className="p-4 text-center text-gray-500">
-                    {searchQuery || balagruhaFilter !== 'all' 
-                      ? 'No students match your filters' 
+                    {searchQuery || balagruhaFilter !== 'all'
+                      ? 'No students match your filters'
                       : 'No students available'}
                   </div>
                 ) : (
@@ -360,9 +452,8 @@ export default function AdminCourseAssignmentModal({ isOpen, onClose, course, on
                     {filteredStudents.map((student) => (
                       <label
                         key={student._id}
-                        className={`flex items-center p-3 cursor-pointer hover:bg-gray-50 transition ${
-                          selectedStudents.some(s => s._id === student._id) ? 'bg-purple-50' : ''
-                        }`}
+                        className={`flex items-center p-3 cursor-pointer hover:bg-gray-50 transition ${selectedStudents.some(s => s._id === student._id) ? 'bg-purple-50' : ''
+                          }`}
                       >
                         <input
                           type="checkbox"

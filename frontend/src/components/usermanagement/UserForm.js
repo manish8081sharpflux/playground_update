@@ -131,13 +131,25 @@ const UserForm = ({ mode = "add", user = null, onSuccess, onCancel }) => {
   };
 
   const generateRandomPassword = () => {
-    const chars = "123456789";
-    let password = "";
-    for (let i = 0; i < 7; i++) {
-      password += chars.charAt(Math.floor(Math.random() * chars.length));
+    const uppercase = "ABCDEFGHJKLMNPQRSTUVWXYZ";
+    const lowercase = "abcdefghijkmnopqrstuvwxyz";
+    const numbers = "23456789";
+    const specialChars = "!@#$%^&*";
+    const allChars = uppercase + lowercase + numbers + specialChars;
+    const passwordChars = [
+      uppercase.charAt(Math.floor(Math.random() * uppercase.length)),
+      lowercase.charAt(Math.floor(Math.random() * lowercase.length)),
+      numbers.charAt(Math.floor(Math.random() * numbers.length)),
+      specialChars.charAt(Math.floor(Math.random() * specialChars.length)),
+    ];
+
+    for (let i = passwordChars.length; i < 10; i++) {
+      passwordChars.push(
+        allChars.charAt(Math.floor(Math.random() * allChars.length))
+      );
     }
 
-    return password;
+    return passwordChars.sort(() => Math.random() - 0.5).join("");
   };
 
   useEffect(() => {
@@ -181,12 +193,21 @@ const UserForm = ({ mode = "add", user = null, onSuccess, onCancel }) => {
       setFormData({
         name: user.name || "",
         email: user.email || "",
-        userId: user?.userId || "",
+        userId: user?.userId != null ? String(user.userId) : "",
         role: user.role || "student",
         status: user.status || "active",
         age: user.age || "",
         gender: user.gender || "",
-        balagruhaIds: user.balagruhaIds || [],
+        balagruhaIds: (user.balagruhaIds || []).map((bg) => {
+          if (typeof bg === "object" && bg.name) return bg;
+
+          const bgId = bg?._id || bg;
+          const matchedBalagruha = balagruhaOptions.find(
+            (option) => String(option._id) === String(bgId)
+          );
+
+          return matchedBalagruha || { _id: bgId };
+        }),
         parentalStatus: user.parentalStatus || "",
         nextActionDate: user.nextActionDate || "",
         guardianName1: user.guardianName1 || "",
@@ -352,6 +373,30 @@ const UserForm = ({ mode = "add", user = null, onSuccess, onCancel }) => {
     return { isValid: true, message: "Strong password" };
   };
 
+  const today = new Date().toISOString().split("T")[0];
+
+  const getMinAllowedDate = () => {
+    const date = new Date();
+    date.setFullYear(date.getFullYear() - 10); // past limit: 10 years
+    return date.toISOString().split("T")[0];
+  };
+
+  const minAllowedDate = getMinAllowedDate();
+
+  const validateLimitedDate = (dateValue, fieldLabel) => {
+    if (!dateValue) return "";
+
+    if (dateValue > today) {
+      return `${fieldLabel} cannot be in the future`;
+    }
+
+    if (dateValue < minAllowedDate) {
+      return `${fieldLabel} cannot be older than 10 years`;
+    }
+
+    return "";
+  };
+
   const validateForm = () => {
     const newErrors = {};
 
@@ -399,10 +444,13 @@ const UserForm = ({ mode = "add", user = null, onSuccess, onCancel }) => {
     // Student-specific validation
     if (formData.role === "student") {
       // UserId validation
-      if (!formData.userId.trim()) {
+      const userIdValue = String(formData.userId || "").trim();
+      if (!userIdValue) {
         newErrors.userId = "User ID is required";
-      } else if (formData.userId.trim().length < 3) {
+      } else if (userIdValue.length < 3) {
         newErrors.userId = "User ID must be at least 3 characters long";
+      } else if (!/^\d+$/.test(userIdValue)) {
+        newErrors.userId = "User ID must contain only numbers";
       }
 
       // Age validation
@@ -485,6 +533,26 @@ const UserForm = ({ mode = "add", user = null, onSuccess, onCancel }) => {
       }
     }
 
+    (formData.medicalHistory || []).forEach((history, index) => {
+      const diagnosisDateError = validateLimitedDate(
+        history.date,
+        "Diagnosis date"
+      );
+
+      if (diagnosisDateError) {
+        newErrors[`medicalHistory_${index}_date`] = diagnosisDateError;
+      }
+
+      const statusDateError = validateLimitedDate(
+        history.currentStatus?.date,
+        "Status date"
+      );
+
+      if (statusDateError) {
+        newErrors[`medicalHistory_${index}_statusDate`] = statusDateError;
+      }
+    });
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -556,10 +624,13 @@ const UserForm = ({ mode = "add", user = null, onSuccess, onCancel }) => {
         break;
 
       case "userId":
-        if (!value.trim()) {
+        const userIdValue = String(value || "").trim();
+        if (!userIdValue) {
           fieldError = "User ID is required";
-        } else if (value.trim().length < 3) {
+        } else if (userIdValue.length < 3) {
           fieldError = "User ID must be at least 3 characters long";
+        } else if (!/^\d+$/.test(userIdValue)) {
+          fieldError = "User ID must contain only numbers";
         }
         break;
 
@@ -837,13 +908,20 @@ const UserForm = ({ mode = "add", user = null, onSuccess, onCancel }) => {
 
   const getBalagruhaName = (balagruha) => {
     if (!balagruha) return "";
+
+    const balagruhaId = getBalagruhaIdValue(balagruha);
+
+    const match = balagruhaOptions.find(
+      (option) => String(option._id) === String(balagruhaId)
+    );
+
+    if (match?.name) return match.name;
+
     if (typeof balagruha === "object" && balagruha.name) {
       return balagruha.name;
     }
-    const match = balagruhaOptions.find(
-      (option) => option._id === getBalagruhaIdValue(balagruha),
-    );
-    return match?.name || "";
+
+    return "";
   };
 
   const normalizedMachines = useMemo(() => {
@@ -882,19 +960,19 @@ const UserForm = ({ mode = "add", user = null, onSuccess, onCancel }) => {
       );
       const updatedMachines = exists
         ? prev.assignedMachines.filter(
-            (assigned) =>
-              (assigned?._id || assigned) !== machine._id &&
-              assigned?.machineId !== machine.machineId,
-          )
+          (assigned) =>
+            (assigned?._id || assigned) !== machine._id &&
+            assigned?.machineId !== machine.machineId
+        )
         : [
-            ...prev.assignedMachines,
-            {
-              _id: machine._id,
-              machineId: machine.machineId,
-              serialNumber: machine.serialNumber,
-              assignedBalagruha: machine.assignedBalagruha,
-            },
-          ];
+          ...prev.assignedMachines,
+          {
+            _id: machine._id,
+            machineId: machine.machineId,
+            serialNumber: machine.serialNumber,
+            assignedBalagruha: machine.assignedBalagruha,
+          },
+        ];
       return { ...prev, assignedMachines: updatedMachines };
     });
   };
@@ -903,6 +981,10 @@ const UserForm = ({ mode = "add", user = null, onSuccess, onCancel }) => {
     e.preventDefault();
 
     if (!validateForm()) {
+      setErrors((prev) => ({
+        ...prev,
+        submit: "Please fill all required fields before submitting.",
+      }));
       return;
     }
 
@@ -911,11 +993,16 @@ const UserForm = ({ mode = "add", user = null, onSuccess, onCancel }) => {
     try {
       const formDataToSend = new FormData();
 
-      //   Add basic fields
-      formDataToSend.append("name", formData.name);
-      if (formData.email.trim()) {
-        formDataToSend.append("email", formData.email.trim());
-      }
+      const appendIfNotBlank = (key, value) => {
+        const normalizedValue = value == null ? "" : String(value).trim();
+        if (normalizedValue) {
+          formDataToSend.append(key, normalizedValue);
+        }
+      };
+
+      // Add basic fields
+      formDataToSend.append("name", String(formData.name || "").trim());
+      appendIfNotBlank("email", formData.email);
       formDataToSend.append("role", formData.role);
       formDataToSend.append("status", formData.status);
 
@@ -934,11 +1021,11 @@ const UserForm = ({ mode = "add", user = null, onSuccess, onCancel }) => {
       }
       // Add student-specific fields if role is student
       if (formData.role === "student") {
-        formDataToSend.append("age", formData.age);
-        formDataToSend.append("userId", formData.userId);
+        formDataToSend.append("age", String(formData.age || "").trim());
+        formDataToSend.append("userId", String(formData.userId || "").trim());
         formDataToSend.append("gender", formData.gender);
         formDataToSend.append("parentalStatus", formData.parentalStatus);
-        formDataToSend.append("nextActionDate", formData.nextActionDate);
+        appendIfNotBlank("nextActionDate", formData.nextActionDate);
         if (
           formData.parentalStatus === "has one" ||
           formData.parentalStatus === "has guardian"
@@ -1129,6 +1216,13 @@ const UserForm = ({ mode = "add", user = null, onSuccess, onCancel }) => {
             onCapture={(file, previewUrl) => {
               setFiles((prev) => ({ ...prev, facialData: file }));
               setPreviews((prev) => ({ ...prev, facialData: previewUrl }));
+
+              setErrors((prev) => {
+                const newErrors = { ...prev };
+                delete newErrors.facialData;
+                return newErrors;
+              });
+
               handleCloseModal();
             }}
           />
@@ -1146,8 +1240,8 @@ const UserForm = ({ mode = "add", user = null, onSuccess, onCancel }) => {
         </div>
         {mode === "edit" && (
           <div className="user-info">
-            <span>User ID: {user?._id}</span>
-            <span>
+            {/* <span>User ID: {user?._id}</span> */}
+            <span className="text-sm">
               Last Updated: {new Date(user?.updatedAt).toLocaleDateString()}
             </span>
           </div>
@@ -1308,16 +1402,15 @@ const UserForm = ({ mode = "add", user = null, onSuccess, onCancel }) => {
                   <label aria-required="true">Balagruha</label>
                   <div className="form-balagruha-selector">
                     <div
-                      className={`form-dropdown-header ${
-                        errors.balagruhaIds ? "form-error redbtndiv" : ""
-                      }`}
+                      className={`form-dropdown-header ${errors.balagruhaIds ? "form-error redbtndiv" : ""
+                        }`}
                       onClick={() => setDropdownOpen((prev) => !prev)}
                     >
                       <span>
                         {formData.balagruhaIds.length
                           ? `${formData.balagruhaIds
-                              .map((bg) => bg.name)
-                              .join(", ")}`
+                            .map((bg) => getBalagruhaName(bg))
+                            .join(", ")}`
                           : "Select Balagruha"}
                       </span>
                       <span className="form-dropdown-arrow">
@@ -1340,11 +1433,11 @@ const UserForm = ({ mode = "add", user = null, onSuccess, onCancel }) => {
                               checked={
                                 formData.role === "student"
                                   ? formData.balagruhaIds.some(
-                                      (bg) => bg._id === option._id,
-                                    )
+                                    (bg) => bg._id === option._id
+                                  )
                                   : formData.balagruhaIds.some(
-                                      (bg) => bg._id === option._id,
-                                    )
+                                    (bg) => bg._id === option._id
+                                  )
                               }
                               onChange={(e) => {
                                 if (formData.role === "student") {
@@ -1362,8 +1455,8 @@ const UserForm = ({ mode = "add", user = null, onSuccess, onCancel }) => {
                                   );
                                   const selectedBalagruhas = isSelected
                                     ? formData.balagruhaIds.filter(
-                                        (bg) => bg._id !== option._id,
-                                      )
+                                      (bg) => bg._id !== option._id
+                                    )
                                     : [...formData.balagruhaIds, option];
                                   setFormData((prev) => ({
                                     ...prev,
@@ -1456,9 +1549,8 @@ const UserForm = ({ mode = "add", user = null, onSuccess, onCancel }) => {
                               </h4>
                               <span>
                                 {machinesForBal.length > 0
-                                  ? `${machinesForBal.length} machine${
-                                      machinesForBal.length > 1 ? "s" : ""
-                                    }`
+                                  ? `${machinesForBal.length} machine${machinesForBal.length > 1 ? "s" : ""
+                                  }`
                                   : "No machines"}
                               </span>
                             </div>
@@ -1652,139 +1744,139 @@ const UserForm = ({ mode = "add", user = null, onSuccess, onCancel }) => {
                 {((formData.parentalStatus && formData.parentalStatus) ===
                   "has one" ||
                   (formData.parentalStatus && formData.parentalStatus) ===
-                    "has guardian") && (
-                  <>
-                    <div className="form-group">
-                      <label htmlFor="guardianContact">
-                        {formData.parentalStatus === "has one"
-                          ? "Parent Name"
-                          : "Guardian Name"}{" "}
-                        *
-                      </label>
-                      <input
-                        type="text"
-                        id="guardianName1"
-                        name="guardianName1"
-                        value={formData.guardianName1}
-                        onChange={handleInputChange}
-                        className={errors.guardianName1 ? "error" : ""}
-                        placeholder={
-                          formData.parentalStatus === "has one"
+                  "has guardian") && (
+                    <>
+                      <div className="form-group">
+                        <label htmlFor="guardianContact">
+                          {formData.parentalStatus === "has one"
                             ? "Parent Name"
-                            : "Guardian Name"
-                        }
-                      />
-                      {errors.guardianName1 && (
-                        <span className="error-message">
-                          {errors.guardianName1}
-                        </span>
-                      )}
-                    </div>
-                    <div className="form-group">
-                      <label htmlFor="guardianContact">
-                        {formData.parentalStatus === "has one"
-                          ? "Parent Contact"
-                          : "Guardian Contact"}{" "}
-                        *
-                      </label>
-                      <input
-                        type="tel"
-                        id="guardianContact1"
-                        name="guardianContact1"
-                        value={formData.guardianContact1}
-                        onChange={handleInputChange}
-                        className={errors.guardianContact1 ? "error" : ""}
-                        placeholder="10-digit mobile number"
-                        pattern="[0-9]{10}"
-                      />
-                      {errors.guardianContact1 && (
-                        <span className="error-message">
-                          {errors.guardianContact1}
-                        </span>
-                      )}
-                    </div>
-                  </>
-                )}
+                            : "Guardian Name"}{" "}
+                          *
+                        </label>
+                        <input
+                          type="text"
+                          id="guardianName1"
+                          name="guardianName1"
+                          value={formData.guardianName1}
+                          onChange={handleInputChange}
+                          className={errors.guardianName1 ? "error" : ""}
+                          placeholder={
+                            formData.parentalStatus === "has one"
+                              ? "Parent Name"
+                              : "Guardian Name"
+                          }
+                        />
+                        {errors.guardianName1 && (
+                          <span className="error-message">
+                            {errors.guardianName1}
+                          </span>
+                        )}
+                      </div>
+                      <div className="form-group">
+                        <label htmlFor="guardianContact">
+                          {formData.parentalStatus === "has one"
+                            ? "Parent Contact"
+                            : "Guardian Contact"}{" "}
+                          *
+                        </label>
+                        <input
+                          type="tel"
+                          id="guardianContact1"
+                          name="guardianContact1"
+                          value={formData.guardianContact1}
+                          onChange={handleInputChange}
+                          className={errors.guardianContact1 ? "error" : ""}
+                          placeholder="10-digit mobile number"
+                          pattern="[0-9]{10}"
+                        />
+                        {errors.guardianContact1 && (
+                          <span className="error-message">
+                            {errors.guardianContact1}
+                          </span>
+                        )}
+                      </div>
+                    </>
+                  )}
 
                 {(formData.parentalStatus && formData.parentalStatus) ===
                   "has both" && (
-                  <>
-                    <div className="form-group">
-                      <label htmlFor="guardianName1">Fathers Name*</label>
-                      <input
-                        type="text"
-                        id="guardianName1"
-                        name="guardianName1"
-                        value={formData.guardianName1}
-                        onChange={handleInputChange}
-                        className={errors.guardianName1 ? "error" : ""}
-                        placeholder="Father's Name"
-                      />
-                      {errors.guardianName1 && (
-                        <span className="error-message">
-                          {errors.guardianName1}
-                        </span>
-                      )}
-                    </div>
-                    <div className="form-group">
-                      <label htmlFor="guardianContact">
-                        Father's Contact *
-                      </label>
-                      <input
-                        type="tel"
-                        id="guardianContact1"
-                        name="guardianContact1"
-                        value={formData.guardianContact1}
-                        onChange={handleInputChange}
-                        className={errors.guardianContact1 ? "error" : ""}
-                        placeholder="Contact No"
-                        pattern="[0-9]{10}"
-                      />
-                      {errors.guardianContact1 && (
-                        <span className="error-message">
-                          {errors.guardianContact1}
-                        </span>
-                      )}
-                    </div>
-                    <div className="form-group">
-                      <label htmlFor="guardianName2">Mother's Name *</label>
-                      <input
-                        type="text"
-                        id="guardianName2"
-                        name="guardianName2"
-                        value={formData.guardianName2}
-                        onChange={handleInputChange}
-                        className={errors.guardianName2 ? "error" : ""}
-                        placeholder="Mothers Name"
-                      />
-                      {errors.guardianName2 && (
-                        <span className="error-message">
-                          {errors.guardianName2}
-                        </span>
-                      )}
-                    </div>
-                    <div className="form-group">
-                      <label htmlFor="guardianContact2">
-                        Mother's Contact *
-                      </label>
-                      <input
-                        type="tel"
-                        id="guardianContact2"
-                        name="guardianContact2"
-                        value={formData.guardianContact2}
-                        onChange={handleInputChange}
-                        className={errors.guardianContact2 ? "error" : ""}
-                        placeholder="10-digit mobile number"
-                        pattern="[0-9]{10}"
-                      />
-                      {errors.guardianContact2 && (
-                        <span className="error-message">
-                          {errors.guardianContact2}
-                        </span>
-                      )}
-                    </div>
-                  </>
-                )}
+                    <>
+                      <div className="form-group">
+                        <label htmlFor="guardianName1">Fathers Name*</label>
+                        <input
+                          type="text"
+                          id="guardianName1"
+                          name="guardianName1"
+                          value={formData.guardianName1}
+                          onChange={handleInputChange}
+                          className={errors.guardianName1 ? "error" : ""}
+                          placeholder="Father's Name"
+                        />
+                        {errors.guardianName1 && (
+                          <span className="error-message">
+                            {errors.guardianName1}
+                          </span>
+                        )}
+                      </div>
+                      <div className="form-group">
+                        <label htmlFor="guardianContact">
+                          Father's Contact *
+                        </label>
+                        <input
+                          type="tel"
+                          id="guardianContact1"
+                          name="guardianContact1"
+                          value={formData.guardianContact1}
+                          onChange={handleInputChange}
+                          className={errors.guardianContact1 ? "error" : ""}
+                          placeholder="Contact No"
+                          pattern="[0-9]{10}"
+                        />
+                        {errors.guardianContact1 && (
+                          <span className="error-message">
+                            {errors.guardianContact1}
+                          </span>
+                        )}
+                      </div>
+                      <div className="form-group">
+                        <label htmlFor="guardianName2">Mother's Name *</label>
+                        <input
+                          type="text"
+                          id="guardianName2"
+                          name="guardianName2"
+                          value={formData.guardianName2}
+                          onChange={handleInputChange}
+                          className={errors.guardianName2 ? "error" : ""}
+                          placeholder="Mothers Name"
+                        />
+                        {errors.guardianName2 && (
+                          <span className="error-message">
+                            {errors.guardianName2}
+                          </span>
+                        )}
+                      </div>
+                      <div className="form-group">
+                        <label htmlFor="guardianContact2">
+                          Mother's Contact *
+                        </label>
+                        <input
+                          type="tel"
+                          id="guardianContact2"
+                          name="guardianContact2"
+                          value={formData.guardianContact2}
+                          onChange={handleInputChange}
+                          className={errors.guardianContact2 ? "error" : ""}
+                          placeholder="10-digit mobile number"
+                          pattern="[0-9]{10}"
+                        />
+                        {errors.guardianContact2 && (
+                          <span className="error-message">
+                            {errors.guardianContact2}
+                          </span>
+                        )}
+                      </div>
+                    </>
+                  )}
 
                 {/* <div className="form-group">
                             <label htmlFor="nextActionDate">Next Action Date</label>
@@ -1881,9 +1973,8 @@ const UserForm = ({ mode = "add", user = null, onSuccess, onCancel }) => {
                     </h4>
                     <button
                       type="button"
-                      className={`remove-medical-btn ${
-                        history.isExisting ? "disabled" : ""
-                      }`}
+                      className={`remove-medical-btn ${history.isExisting ? "disabled" : ""
+                        }`}
                       onClick={() => handleRemoveMedicalHistory(index)}
                       title={
                         history.isExisting
@@ -1932,6 +2023,8 @@ const UserForm = ({ mode = "add", user = null, onSuccess, onCancel }) => {
                       <input
                         type="date"
                         value={history.date}
+                        min={minAllowedDate}
+                        max={today}
                         onChange={(e) =>
                           handleMedicalHistoryChange(
                             index,
@@ -1940,6 +2033,12 @@ const UserForm = ({ mode = "add", user = null, onSuccess, onCancel }) => {
                           )
                         }
                       />
+
+                      {errors[`medicalHistory_${index}_date`] && (
+                        <span className="error-message">
+                          {errors[`medicalHistory_${index}_date`]}
+                        </span>
+                      )}
                     </div>
                   </div>
 
@@ -2018,6 +2117,8 @@ const UserForm = ({ mode = "add", user = null, onSuccess, onCancel }) => {
                       <input
                         type="date"
                         value={history.currentStatus?.date || ""}
+                        min={minAllowedDate}
+                        max={today}
                         onChange={(e) =>
                           handleMedicalHistoryStatusChange(
                             index,
@@ -2026,6 +2127,12 @@ const UserForm = ({ mode = "add", user = null, onSuccess, onCancel }) => {
                           )
                         }
                       />
+
+                      {errors[`medicalHistory_${index}_statusDate`] && (
+                        <span className="error-message">
+                          {errors[`medicalHistory_${index}_statusDate`]}
+                        </span>
+                      )}
                     </div>
                   </div>
 

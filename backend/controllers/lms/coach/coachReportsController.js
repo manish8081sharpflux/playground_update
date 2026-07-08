@@ -337,8 +337,13 @@ exports.getCourseDetail = async (req, res) => {
  */
 exports.getSlowLearners = async (req, res) => {
     try {
-        const { threshold } = req.query;
-        const coachBalagruhaIds = req.user.balagruhaIds || [];
+        const { threshold, coachId } = req.query;
+        let coachBalagruhaIds = req.user.balagruhaIds || [];
+
+        if (coachId && req.user.role === 'admin') {
+            const selectedCoach = await User.findById(coachId).select('balagruhaIds').lean();
+            coachBalagruhaIds = selectedCoach?.balagruhaIds || [];
+        }
 
         // Get scoped student IDs
         const studentIds = await getBalagruhaStudentIds(coachBalagruhaIds);

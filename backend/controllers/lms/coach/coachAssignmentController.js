@@ -662,12 +662,11 @@ exports.deleteAssignment = async (req, res) => {
     }
 
     // Mark as cancelled instead of deleting
-    assignment.status = "cancelled";
-    await assignment.save();
+    await CourseAssignment.findByIdAndDelete(assignmentId);
 
     res.status(200).json({
       success: true,
-      message: "Assignment cancelled successfully",
+      message: "Assignment deleted successfully",
     });
   } catch (error) {
     errorLogger.error({ err: error }, "Error deleting assignment:");

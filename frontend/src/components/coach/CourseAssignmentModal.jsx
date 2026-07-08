@@ -7,6 +7,7 @@ import { useAuth } from '../../contexts/AuthContext';
 export default function CourseAssignmentModal({ isOpen, onClose, coachId, onAssignmentCreated }) {
   const { user } = useAuth();
   const isAdmin = user?.role === 'admin';
+  const effectiveCoachId = coachId || user?.id || user?._id;
   
   const [loading, setLoading] = useState(false);
   const [courses, setCourses] = useState([]);
@@ -22,6 +23,70 @@ export default function CourseAssignmentModal({ isOpen, onClose, coachId, onAssi
   const [sendInAppNotification, setSendInAppNotification] = useState(true);
   const [sendEmailNotification, setSendEmailNotification] = useState(true);
 
+  const normalizeList = (value) => (Array.isArray(value) ? value : []);
+
+  const getResponseList = (response, key) => {
+    const data = response?.data?.data;
+    return normalizeList(data?.[key] || data || response?.data?.[key]);
+  };
+
+  const getEntityId = (value) => {
+    if (!value) return '';
+    if (typeof value === 'string' || typeof value === 'number') return value.toString();
+    const nestedId = value._id || value.id || value.value || value.$oid;
+    if (nestedId) return nestedId.toString();
+    if (typeof value.toString === 'function' && value.toString !== Object.prototype.toString) {
+      return value.toString();
+    }
+    return '';
+  };
+
+  const getStudentBalagruhaIds = (student) => {
+    const values = [];
+
+    if (Array.isArray(student.balagruhaIds)) {
+      values.push(...student.balagruhaIds);
+    }
+
+    if (student.balagruhaId) {
+      values.push(student.balagruhaId);
+    }
+
+    if (student.balagruha) {
+      values.push(student.balagruha);
+    }
+
+    return Array.from(new Set(values.map(getEntityId).filter(Boolean)));
+  };
+
+  const getStudentBalagruhaNames = (student, balagruhaSource = balagruhasInfo) => {
+    const names = [];
+
+    if (Array.isArray(student.balagruhaNames)) {
+      names.push(...student.balagruhaNames.filter(Boolean));
+    }
+
+    const possibleBalagruhas = [
+      ...(Array.isArray(student.balagruhaIds) ? student.balagruhaIds : []),
+      student.balagruhaId,
+      student.balagruha,
+    ].filter(Boolean);
+
+    possibleBalagruhas.forEach((item) => {
+      if (typeof item === 'object' && item.name) {
+        names.push(item.name);
+      }
+    });
+
+    normalizeList(balagruhaSource).forEach((bg) => {
+      if (getStudentBalagruhaIds(student).includes(getEntityId(bg)) && bg?.name) {
+        names.push(bg.name);
+      }
+    });
+
+    return Array.from(new Set(names));
+  };
+
   // Fetch published courses and students on mount
   useEffect(() => {
     if (isOpen) {
@@ -32,7 +97,7 @@ export default function CourseAssignmentModal({ isOpen, onClose, coachId, onAssi
         fetchCoachStudents();
       }
     }
-  }, [isOpen, coachId, isAdmin]);
+  }, [isOpen, effectiveCoachId, isAdmin]);
 
   const fetchPublishedCourses = async () => {
     try {
@@ -48,10 +113,36 @@ export default function CourseAssignmentModal({ isOpen, onClose, coachId, onAssi
     }
   };
 
+  const fetchAllStudents = async () => {
+    const firstResponse = await api.get('/api/users', {
+      params: { role: 'student', page: 1, limit: 1000 },
+    });
+    const firstStudents = getResponseList(firstResponse, 'users');
+    const totalPages = firstResponse.data?.pagination?.pages || 1;
+
+    if (totalPages <= 1) {
+      return firstStudents;
+    }
+
+    const remainingResponses = await Promise.all(
+      Array.from({ length: totalPages - 1 }, (_, index) =>
+        api.get('/api/users', {
+          params: { role: 'student', page: index + 2, limit: 1000 },
+        })
+      )
+    );
+
+    return [
+      ...firstStudents,
+      ...remainingResponses.flatMap((response) => getResponseList(response, 'users')),
+    ];
+  };
   const fetchCoachStudents = async () => {
+    if (!effectiveCoachId) return;
+
     try {
       const response = await api.get(
-        `/api/v2/lms/coach/${coachId}/students`
+        `/api/v2/lms/coach/${effectiveCoachId}/students`
       );
       setStudents(response.data.data || []);
       const balagruhas = response.data.balagruhas || [];
@@ -72,7 +163,7 @@ export default function CourseAssignmentModal({ isOpen, onClose, coachId, onAssi
       const balagruhasResponse = await api.get(
         `/api/v1/balagruha`
       );
-      const allBalagruhas = balagruhasResponse.data.data?.balagruhas || [];
+      const allBalagruhas = getResponseList(balagruhasResponse, 'balagruhas');
       setBalagruhasInfo(allBalagruhas);
       
       // Select all by default
@@ -80,19 +171,14 @@ export default function CourseAssignmentModal({ isOpen, onClose, coachId, onAssi
         setSelectedBalagruhas(allBalagruhas);
       }
       
-      // Fetch all students
-      const studentsResponse = await api.get(
-        `/api/users?role=student`
-      );
-      
-      const studentsData = studentsResponse.data.data || [];
+      // Fetch all students across all pages
+      const studentsData = (await fetchAllStudents())
+        .filter((student) => student?.role === 'student');
       // Add balagruhaNames to each student
       const studentsWithInfo = studentsData.map(student => ({
         ...student,
-        balagruhaNames: student.balagruhaIds?.map(bgId => {
-          const bg = allBalagruhas.find(b => (b._id || b.id)?.toString() === bgId?.toString());
-          return bg?.name;
-        }).filter(Boolean) || []
+        balagruhaIds: getStudentBalagruhaIds(student),
+        balagruhaNames: getStudentBalagruhaNames(student, allBalagruhas)
       }));
       
       setStudents(studentsWithInfo);
@@ -129,7 +215,7 @@ export default function CourseAssignmentModal({ isOpen, onClose, coachId, onAssi
     try {
       const payload = {
         courseId: selectedCourse._id,
-        assignedBy: coachId,
+        assignedBy: effectiveCoachId,
         assignedTo: {
           type: assignmentType,
           ...(assignmentType === 'balagruha'
@@ -193,8 +279,8 @@ export default function CourseAssignmentModal({ isOpen, onClose, coachId, onAssi
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-start justify-center z-50 overflow-y-auto p-4 pt-8">
-      <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[85vh] overflow-y-auto my-4">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="mt-12 bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[85vh] overflow-y-auto">
         {/* Header */}
         <div className="bg-blue-600 text-white px-6 py-4 flex items-center justify-between rounded-t-lg">
           <h2 className="text-2xl font-bold">Assign Course</h2>
@@ -202,7 +288,7 @@ export default function CourseAssignmentModal({ isOpen, onClose, coachId, onAssi
             onClick={handleClose}
             className="text-white hover:text-gray-200 text-2xl"
           >
-            ✕
+            x
           </button>
         </div>
 
@@ -231,8 +317,8 @@ export default function CourseAssignmentModal({ isOpen, onClose, coachId, onAssi
             </select>
             {selectedCourse && (
               <div className="mt-2 text-sm text-gray-600">
-                <span className="font-medium">Category:</span> {selectedCourse.category} •{' '}
-                <span className="font-medium">Difficulty:</span> {selectedCourse.difficultyLevel} •{' '}
+                <span className="font-medium">Category:</span> {selectedCourse.category} -{' '}
+                <span className="font-medium">Difficulty:</span> {selectedCourse.difficultyLevel} -{' '}
                 <span className="font-medium">Content Items:</span> {selectedCourse.contentItemCount || 0}
               </div>
             )}
@@ -307,12 +393,12 @@ export default function CourseAssignmentModal({ isOpen, onClose, coachId, onAssi
                             >
                               <input
                                 type="checkbox"
-                                checked={selectedBalagruhas.some(sbg => (sbg._id || sbg.id) === bgId)}
+                                checked={selectedBalagruhas.some(sbg => getEntityId(sbg) === getEntityId(bgId))}
                                 onChange={(e) => {
                                   if (e.target.checked) {
                                     setSelectedBalagruhas([...selectedBalagruhas, bg]);
                                   } else {
-                                    setSelectedBalagruhas(selectedBalagruhas.filter(sbg => (sbg._id || sbg.id) !== bgId));
+                                    setSelectedBalagruhas(selectedBalagruhas.filter(sbg => getEntityId(sbg) !== getEntityId(bgId)));
                                   }
                                 }}
                                 className="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"

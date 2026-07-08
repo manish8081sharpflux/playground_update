@@ -45,7 +45,7 @@ export default function GradingPanel({
       });
     } catch (error) {
       console.error('Error submitting grade:', error);
-      alert('Failed to submit grade. Please try again.');
+      // alert('Failed to submit grade. Please try again.');
     } finally {
       setIsSubmitting(false);
     }

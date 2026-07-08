@@ -30,6 +30,30 @@ router.post(
   adminAssignmentController.createAdminAssignment
 );
 
+/**
+ * @route PUT /api/v2/lms/admin/courses/assignments/:assignmentId
+ * @desc Admin updates an assignment (due date, status)
+ * @access Private (Admin only)
+ */
+router.put(
+  '/assignments/:assignmentId',
+  authenticate,
+  authorize('LMS Management', 'Manage'),
+  adminAssignmentController.updateAssignment
+);
+
+/**
+ * @route DELETE /api/v2/lms/admin/courses/assignments/:assignmentId
+ * @desc Admin permanently deletes an assignment
+ * @access Private (Admin only)
+ */
+router.delete(
+  '/assignments/:assignmentId',
+  authenticate,
+  authorize('LMS Management', 'Manage'),
+  adminAssignmentController.deleteAssignment
+);
+
 // ==================== COURSE AUDIT LOG ====================
 
 /**

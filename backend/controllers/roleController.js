@@ -146,3 +146,53 @@ exports.getAllRolePermissions = async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 };
+
+
+exports.fixAdminUserDeletePermission = async (req, res) => {
+  try {
+    const role = await Role.findOne({
+      roleName: { $regex: /^admin$/i },
+    });
+
+    if (!role) {
+      return res.status(404).json({
+        success: false,
+        message: "Admin role not found",
+      });
+    }
+
+    const permission = role.permissions.find(
+      (p) => p.module?.trim().toLowerCase() === "user management"
+    );
+
+    if (!permission) {
+      role.permissions.push({
+        module: "User Management",
+        actions: ["Create", "Read", "Update", "Delete"],
+        scope: "all",
+      });
+    } else {
+      const hasDelete = permission.actions.some(
+        (a) => a.trim().toLowerCase() === "delete"
+      );
+
+      if (!hasDelete) {
+        permission.actions.push("Delete");
+      }
+    }
+
+    await role.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Admin Delete permission added successfully",
+      role,
+    });
+  } catch (error) {
+    errorLogger.error({ err: error }, "Error fixing admin delete permission:");
+    res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+};

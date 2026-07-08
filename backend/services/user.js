@@ -56,10 +56,50 @@ const enrichUsersWithMedicalHistory = (users = []) => {
 };
 
 // Function for create User
+
 exports.createUser = async (payload) => {
   try {
     // Check the user role
     let { role } = payload;
+
+    // Check duplicate Student User ID
+    if (role === UserTypes.STUDENT && payload.userId) {
+      const userIdValue = String(payload.userId).trim();
+
+      const existingStudent = await User.findOne({
+        role: UserTypes.STUDENT,
+        userId: userIdValue,
+      });
+
+      if (existingStudent) {
+        return {
+          success: false,
+          data: { user: null },
+          message: "User ID already exists. Please enter a different User ID",
+        };
+      }
+
+      payload.userId = userIdValue;
+    }
+
+    if (payload.email) {
+      const emailValue = String(payload.email).trim().toLowerCase();
+
+      const existingEmail = await User.findOne({
+        email: emailValue,
+      });
+
+      if (existingEmail) {
+        return {
+          success: false,
+          data: { user: null },
+          message: "Email already exists. Please use a different email address",
+        };
+      }
+
+      payload.email = emailValue;
+    }
+
     switch (role) {
       case UserTypes.STUDENT:
         // return Student.registerStudent(payload);
@@ -590,8 +630,8 @@ exports.getUserListByAssignedBalagruhaByRole = async ({ role, userId }) => {
 
     const balagruhaIds = Array.isArray(userInfo.data.balagruhaIds)
       ? userInfo.data.balagruhaIds
-          .map((item) => (item?._id ? item._id : item))
-          .filter(Boolean)
+        .map((item) => (item?._id ? item._id : item))
+        .filter(Boolean)
       : [];
 
     if (balagruhaIds.length === 0) {

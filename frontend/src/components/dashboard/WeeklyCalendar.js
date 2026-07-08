@@ -11,7 +11,12 @@ const WeeklyCalendar = ({
     users,
     fetchSchedules,
     selectedBalagruhaOfCoach,
-    onEventClick
+    selectedCoach,
+    onEventClick,
+    hideAddSchedule = false,
+    // readOnly = false,
+    canUpdateSchedule = false,
+    canDeleteSchedule = false,
 }) => {
     // Generate calendar days
     // const generateCalendarDays = () => {
@@ -298,8 +303,8 @@ const WeeklyCalendar = ({
 
     useEffect(() => {
         const { startDate, endDate } = getWeekDateRange(currentWeekOffset);
-        fetchSchedules(selectedBalagruhaOfCoach, startDate, endDate);
-    }, [currentWeekOffset, scheduleViewModal]);
+        fetchSchedules(selectedBalagruhaOfCoach, startDate, endDate, selectedCoach);
+    }, [currentWeekOffset, scheduleViewModal, selectedBalagruhaOfCoach, selectedCoach]);
 
     useEffect(() => {
         const days = generateCalendarDays(currentWeekOffset, calendarEvents);
@@ -482,38 +487,78 @@ const WeeklyCalendar = ({
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        const finalSchedules = currentSchedule.map((sch) => {
-            if (sch.date && sch.startTime && sch.endTime) {
-                const start = new Date(`${sch.date}T${sch.startTime}:00`);
-                const end = new Date(`${sch.date}T${sch.endTime}:00`);
+        if (formData.assignedTo.length === 0) {
+            showToast("Please select assigned user", "error");
+            return;
+        }
 
-                if (isNaN(start.getTime()) || isNaN(end.getTime())) {
-                    // throw new Error("Invalid date or time format.");
-                    showToast('Invalid date or time format.', 'error')
-                }
+        if (formData.balagruhaIds.length === 0) {
+            showToast("Please select balagruha", "error");
+            return;
+        }
 
-                if (start >= end) {
-                    // throw new Error("Start time must be before end time.");
-                    showToast('Start time must be before end time.', 'er')
-                }
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
 
-                return {
-                    ...sch,
-                    startTime: start.toISOString(),
-                    endTime: end.toISOString(),
-                };
-            } else {
-                // throw new Error("Missing date, start time, or end time.");
-                showToast('Missing date, start time, or end time.', 'error')
+        const finalSchedules = [];
+
+        for (const sch of currentSchedule) {
+            if (!sch.startTime) {
+                showToast("Please select start time", "error");
+                return;
             }
-        });
 
+            if (!sch.endTime) {
+                showToast("Please select end time", "error");
+                return;
+            }
 
-        setFormData(prev => ({
-            ...prev,
-            schedules: finalSchedules
-        }))
+            if (!sch.date) {
+                showToast("Please select date", "error");
+                return;
+            }
 
+            if (!sch.title || sch.title.trim().length < 3) {
+                showToast("Title must be at least 3 characters", "error");
+                return;
+            }
+
+            if (!sch.description || sch.description.trim().length < 5) {
+                showToast("Description must be at least 5 characters", "error");
+                return;
+            }
+
+            const selectedDate = new Date(sch.date);
+            selectedDate.setHours(0, 0, 0, 0);
+
+            if (selectedDate < today) {
+                showToast("Schedule date cannot be in the past", "error");
+                return;
+            }
+
+            const start = new Date(`${sch.date}T${sch.startTime}:00`);
+            const end = new Date(`${sch.date}T${sch.endTime}:00`);
+
+            if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+                showToast("Invalid date or time format", "error");
+                return;
+            }
+
+            if (start >= end) {
+                showToast("Start time must be before end time", "error");
+                return;
+            }
+
+            finalSchedules.push({
+                ...sch,
+                title: sch.title.trim(),
+                description: sch.description.trim(),
+                startTime: start.toISOString(),
+                endTime: end.toISOString(),
+            });
+        }
+
+        // keep your try/catch API code below this
         try {
             // const formDataToSend = new FormData();
             // formDataToSend.append('balagruhaIds', formData.balagruhaIds);
@@ -545,11 +590,19 @@ const WeeklyCalendar = ({
                 ])
                 setInputValue('');
                 const { startDate, endDate } = getWeekDateRange(currentWeekOffset);
-                fetchSchedules(selectedBalagruhaOfCoach, startDate, endDate);
+                fetchSchedules(selectedBalagruhaOfCoach, startDate, endDate, selectedCoach);
             }
             setShowModal(false);
         } catch (error) {
-            showToast(`${error.response.data.message} Task: ${error.response.data.overlappingSchedules[0].overlappingSchedule.title}, Slot time: ${new Date(error.response.data.overlappingSchedules[0].overlappingSchedule.startTime).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })} - ${new Date(error.response.data.overlappingSchedules[0].overlappingSchedule.endTime).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}`, 'error')
+            const message = error?.response?.data?.message || 'Failed to create schedule';
+            const overlap = error?.response?.data?.overlappingSchedules?.[0]?.overlappingSchedule;
+
+            if (overlap?.title && overlap?.startTime && overlap?.endTime) {
+                const slotTime = `${new Date(overlap.startTime).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })} - ${new Date(overlap.endTime).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}`;
+                showToast(`${message} Task: ${overlap.title}, Slot time: ${slotTime}`, 'error');
+            } else {
+                showToast(message, 'error');
+            }
         }
     }
 
@@ -581,32 +634,32 @@ const WeeklyCalendar = ({
         const hours = String(date.getHours()).padStart(2, '0');
         const minutes = String(date.getMinutes()).padStart(2, '0');
         return `${hours}:${minutes}`;
-        }
-
-    const handleEditOnchange = (field, value) => {
-        setSingleSchedule(prev => ({ ... prev, [field] : value }))
     }
 
-    const handleUpdate = async() => {
+    const handleEditOnchange = (field, value) => {
+        setSingleSchedule(prev => ({ ...prev, [field]: value }))
+    }
 
-       try {
-         const dataToSend = {
-            balagruhaId: singleSchedule.balagruhaId,
-            assignedTo: singleSchedule.assignedTo,
-            startTime: singleSchedule.startTime,
-            endTime: singleSchedule.endTime,
-            date: singleSchedule.date,
-            title: singleSchedule.title,
-            description: singleSchedule.description,
+    const handleUpdate = async () => {
+
+        try {
+            const dataToSend = {
+                balagruhaId: singleSchedule.balagruhaId,
+                assignedTo: singleSchedule.assignedTo,
+                startTime: singleSchedule.startTime,
+                endTime: singleSchedule.endTime,
+                date: singleSchedule.date,
+                title: singleSchedule.title,
+                description: singleSchedule.description,
+            }
+
+            await updateSchedule(dataToSend, singleSchedule._id);
+            showToast('Schedule updated Successfully', 'success');
+            setEditScheduleInput();
+
+        } catch (error) {
+            showToast(error.response.data.message || "Something went wrong, Failed to update schedule!", 'error')
         }
-
-        await updateSchedule(dataToSend, singleSchedule._id);
-        showToast('Schedule updated Successfully', 'success');
-        setEditScheduleInput();
-
-       } catch (error) {
-        showToast(error.response.data.message || "Something went wrong, Failed to update schedule!", 'error')
-       }
 
     }
 
@@ -629,11 +682,11 @@ const WeeklyCalendar = ({
         setEditScheduleInput();
     }
 
-    const handleDelete = async(id) => {
+    const handleDelete = async (id) => {
         try {
             await deleteSchedule(id);
             setScheduleViewModal(false);
-            showToast("Schedule deleted successfully", 'success'); 
+            showToast("Schedule deleted successfully", 'success');
         } catch (error) {
             showToast("Something went wrong while deleting schedule", 'error')
         }
@@ -641,7 +694,14 @@ const WeeklyCalendar = ({
 
     return (
         <>
-            <button className='add-task-button-schedule-btn' onClick={() => setShowModal(true)}>Add Schedule</button>
+            {!hideAddSchedule && (
+                <button
+                    className='add-task-button-schedule-btn'
+                    onClick={() => setShowModal(true)}
+                >
+                    Add Schedule
+                </button>
+            )}
             <div className="full-calendar">
                 <h3>Weekly Calendar</h3>
 
@@ -699,72 +759,72 @@ const WeeklyCalendar = ({
                 </div>
 
                 <div className="calendar-container">
-                        {/* Time Column */}
-                        <div className="time-column">
-                            <div className="calendar-day-header" style={{ marginBottom: "50px" }}>
-                                <h3>Time</h3>
-                            </div>
-                            <div className="time-slots">
-                                {/* Sprint6-Story-1-AC2: Extended to 9 PM (15 hours total) */}
-                                {Array.from({ length: 15 }, (_, i) => {
-                                    const hour = i + 7;
-                                    const date = new Date();
-                                    date.setHours(hour, 0, 0, 0);
-                                    return (
-                                        <div className="time-slot" key={hour}>
-                                            {date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
-                                        </div>
-                                    );
-                                })}
-                            </div>
+                    {/* Time Column */}
+                    <div className="time-column">
+                        <div className="calendar-day-header" >
+                            <h3>Time</h3>
+                        </div>
+                        <div className="time-slots">
+                            {/* Sprint6-Story-1-AC2: Extended to 9 PM (15 hours total) */}
+                            {Array.from({ length: 15 }, (_, i) => {
+                                const hour = i + 7;
+                                const date = new Date();
+                                date.setHours(hour, 0, 0, 0);
+                                return (
+                                    <div className="time-slot" key={hour}>
+                                        {date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+
+                    {/* Calendar Grid */}
+                    <div className="calendar-grid">
+                        {/* Day headers */}
+                        <div className="calendar-row calendar-header-row">
+                            {calendarDays.map((day, index) => (
+                                <div
+                                    key={`header-${index}`}
+                                    onClick={() => setSelectDate(day.date)}
+                                    className={`calendar-day-header ${day.date?.toDateString() === selectDate?.toDateString() ? 'today' : ''}`}
+                                >
+                                    {day.date.toLocaleDateString('en-US', { weekday: 'short' })}
+                                    <div className="day-date">
+                                        {day.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                                    </div>
+                                </div>
+                            ))}
                         </div>
 
-                        {/* Calendar Grid */}
-                        <div className="calendar-grid">
-                            {/* Day headers */}
-                            <div className="calendar-row calendar-header-row">
-                                {calendarDays.map((day, index) => (
-                                    <div
-                                        key={`header-${index}`}
-                                        onClick={() => setSelectDate(day.date)}
-                                        className={`calendar-day-header ${day.date?.toDateString() === selectDate?.toDateString() ? 'today' : ''}`}
-                                    >
-                                        {day.date.toLocaleDateString('en-US', { weekday: 'short' })}
-                                        <div className="day-date">
-                                            {day.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
+                        {/* Day columns */}
+                        <div className="calendar-row calendar-body-row">
+                            {calendarDays.map((day, index) => (
+                                <div key={`cell-${index}`} className="calendar-day-cell">
+                                    {/* Sprint6-Story-1-AC2: Extended to 15 hours (7 AM - 9 PM) */}
+                                    {Array.from({ length: 15 }, (_, i) => {
+                                        // const slotEvents = day.events.filter(ev => {
+                                        //     // 
+                                        //     const eventHour = new Date(ev.schedules[0].startTime).getHours();
+                                        //     return eventHour === i + 7;
+                                        // });
 
-                            {/* Day columns */}
-                            <div className="calendar-row calendar-body-row">
-                                {calendarDays.map((day, index) => (
-                                    <div key={`cell-${index}`} className="calendar-day-cell">
-                                        {/* Sprint6-Story-1-AC2: Extended to 15 hours (7 AM - 9 PM) */}
-                                        {Array.from({ length: 15 }, (_, i) => {
-                                            // const slotEvents = day.events.filter(ev => {
-                                            //     // 
-                                            //     const eventHour = new Date(ev.schedules[0].startTime).getHours();
-                                            //     return eventHour === i + 7;
-                                            // });
+                                        // const slotEvents = day.events.filter(ev => {
+                                        //     return ev.schedules.some(schedule => {
+                                        //         const eventHour = new Date(schedule.startTime).getHours();
+                                        //         return eventHour === i + 7;
+                                        //     });
+                                        // });
 
-                                            // const slotEvents = day.events.filter(ev => {
-                                            //     return ev.schedules.some(schedule => {
-                                            //         const eventHour = new Date(schedule.startTime).getHours();
-                                            //         return eventHour === i + 7;
-                                            //     });
-                                            // });
-
-                                            const slotEvents = day.events.flatMap(ev =>
-                                                ev.schedules.filter(schedule => {
-                                                    const eventHour = new Date(schedule.startTime).getHours();
-                                                    return eventHour === i + 7;
-                                                })
-                                            );
-                                            return (
-                                                <div key={i} className="calendar-time-cell">
-                                                    {/* {slotEvents.length === 0 ? (
+                                        const slotEvents = day.events.flatMap(ev =>
+                                            ev.schedules.filter(schedule => {
+                                                const eventHour = new Date(schedule.startTime).getHours();
+                                                return eventHour === i + 7;
+                                            })
+                                        );
+                                        return (
+                                            <div key={i} className="calendar-time-cell">
+                                                {/* {slotEvents.length === 0 ? (
                                                                 <div className="no-events">No events</div>
                                                             ) : (
                                                                 // slotEvents.map(event => {
@@ -820,48 +880,48 @@ const WeeklyCalendar = ({
                                                                 })
                                                             )} */}
 
-                                                    {slotEvents.length === 0 ? (
-                                                        <div className="no-events">No events</div>
-                                                    ) : (
-                                                        slotEvents.map(schedule => {
-                                                            return (
-                                                                (
-                                                                    <div
-                                                                        key={schedule._id}
-                                                                        className="calendar-event"
-                                                                        style={{ backgroundColor: getEventColor(schedule.type) }}
-                                                                        onClick={() => handleScheduleViewModal(schedule)} // You might pass the full schedule
-                                                                    >
-                                                                        <div className="event-title">{schedule.title}</div>
-                                                                        <div className="event-coach">Coach: {schedule?.assignedToUser?.name}</div>
-                                                                        <div className="event-time">
-                                                                            {new Date(schedule.startTime).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })} -
-                                                                            {new Date(schedule.endTime).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
-                                                                        </div>
-                                                                        <div
-                                                                            className="event-status-indicator"
-                                                                            style={{
-                                                                                backgroundColor:
-                                                                                    schedule.status === "Confirmed" ? "#4caf50" :
-                                                                                        schedule.status === "Pending" ? "#ff9800" :
-                                                                                            schedule.status === "Completed" ? "#8a7bff" : "#f44336"
-                                                                            }}
-                                                                        ></div>
+                                                {slotEvents.length === 0 ? (
+                                                    <div className="no-events">No events</div>
+                                                ) : (
+                                                    slotEvents.map(schedule => {
+                                                        return (
+                                                            (
+                                                                <div
+                                                                    key={schedule._id}
+                                                                    className="calendar-event"
+                                                                    style={{ backgroundColor: getEventColor(schedule.type) }}
+                                                                    onClick={() => handleScheduleViewModal(schedule)} // You might pass the full schedule
+                                                                >
+                                                                    <div className="event-title">{schedule.title}</div>
+                                                                    <div className="event-coach">Coach: {schedule?.assignedToUser?.name}</div>
+                                                                    <div className="event-time">
+                                                                        {new Date(schedule.startTime).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })} -
+                                                                        {new Date(schedule.endTime).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
                                                                     </div>
-                                                                )
+                                                                    <div
+                                                                        className="event-status-indicator"
+                                                                        style={{
+                                                                            backgroundColor:
+                                                                                schedule.status === "Confirmed" ? "#4caf50" :
+                                                                                    schedule.status === "Pending" ? "#ff9800" :
+                                                                                        schedule.status === "Completed" ? "#8a7bff" : "#f44336"
+                                                                        }}
+                                                                    ></div>
+                                                                </div>
                                                             )
-                                                        })
-                                                    )}
+                                                        )
+                                                    })
+                                                )}
 
-                                                </div>
-                                            );
-                                        })}
-                                    </div>
-                                ))}
-                            </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            ))}
                         </div>
                     </div>
-                }
+                </div>
+
 
                 {showModal && (
                     <div className="modal-overlay">
@@ -967,7 +1027,7 @@ const WeeklyCalendar = ({
                                         type="text"
                                         onClick={() => setBalagruhaDropdown(prev => !prev)}
                                         // value={formData?.assignedTo[0]}
-                                        // readOnly
+                                        readOnly
                                         value={balagruhas
                                             .filter(bal => formData.balagruhaIds.includes(bal._id))
                                             .map(bal => bal.name)
@@ -1000,7 +1060,10 @@ const WeeklyCalendar = ({
                                             ) : (
                                                 <div style={{ height: "200px", width: "100%", backgroundColor: "#fff", overflowY: "auto", position: "absolute" }}>
                                                     {balagruhas.map((bal) => (
-                                                        <label key={bal._id} style={{ display: "flex", gap: "20px", cursor: "pointer" }}>
+                                                        <label
+                                                            key={bal._id}
+                                                            className="balagruha-option"
+                                                        >
                                                             <input
                                                                 type="checkbox"
                                                                 checked={formData.balagruhaIds.includes(bal._id)}
@@ -1016,8 +1079,11 @@ const WeeklyCalendar = ({
                                                                             balagruhaIds: prev.balagruhaIds.filter(id => id !== bal._id)
                                                                         }));
                                                                     }
+                                                                    setBalagruhaDropdown(false);
                                                                 }}
                                                             />
+
+
                                                             <span>{bal.name}</span>
                                                         </label>
                                                     ))}
@@ -1034,14 +1100,19 @@ const WeeklyCalendar = ({
 
                                 {currentSchedule?.map((item, index) => (
                                     <div key={index} style={{ backgroundColor: "#f7f7f7", padding: "20px", marginTop: "20px" }}>
-                                        <div className='close-btn-newdetails'>
-                                            <button
-                                                className="close-button"
-                                                onClick={() => handleRemoveDetailForm(index)}
-                                            >
-                                                ×
-                                            </button>
-                                        </div>
+                                        {index > 0 && (
+                                            <div className="close-btn-newdetails">
+                                                <button
+                                                    type="button"
+                                                    className="delete-detail-btn"
+                                                    onClick={() => handleRemoveDetailForm(index)}
+                                                >
+                                                    ×
+                                                </button>
+                                            </div>
+                                        )}
+
+
                                         <div className="form-group">
                                             <label htmlFor="startTime">Start Time</label>
                                             <TimePicker12
@@ -1076,6 +1147,7 @@ const WeeklyCalendar = ({
                                                 type="date"
                                                 id="date"
                                                 name="date"
+                                                min={new Date().toISOString().split("T")[0]}
                                                 value={item.date}
                                                 onChange={(e) => {
                                                     const updated = [...currentSchedule];
@@ -1149,135 +1221,154 @@ const WeeklyCalendar = ({
                                 </div>
                             </form>
                         </div>
-                    </div>
+                    </div >
                 )}
 
-                {scheduleViewModal && (
-                    <div className="modal-overlay">
-                        <div className="modal-content-schedule">
-                            <div className="modal-header">
-                                {/* <h3>{modalMode === 'create' ? 'Add New Balagruha' : 'Edit Balagruha'}</h3> */}
-                                <h3>View schedule</h3>
-                                <button
-                                    className="close-button"
-                                    onClick={handleCloseViewSchedule}
-                                >
-                                    ×
-                                </button>
-                            </div>
-                            <div>
-                                <div className='master-div-schedule'>
-                                    <div className='view-container'>
-                                        <label htmlFor="" className='schedule-label'>Title: </label>
-                                        {editScheduleInput === 'title' ? (
-                                            <div style={{ display: "flex", gap: "10px" }}>
-                                                <input className='schedule-edit-input' value={singleSchedule?.title} onChange={(e) => handleEditOnchange('title', e.target.value)} />
-                                                <button className='schedule-edit-btn' onClick={handleUpdate}>✅ </button>
-                                                <button className='schedule-edit-btn' onClick={() => setEditScheduleInput()}>❌ </button>
-                                            </div>
-                                        ) : (
-                                            <div style={{ display: "flex", gap: "10px" }}>
-                                                <p className='schedule-p'>{singleSchedule?.title}</p>
-                                                <p className='edit-schedule' onClick={() => handleEditInput('title')}>✏️</p>
-                                            </div>
-                                        )}
-                                    </div>
-                                    <div className='view-container'>
-                                        <label htmlFor="" className='schedule-label'>Description: </label>
-                                        {editScheduleInput === 'description' ? (
-                                            <div style={{ display: "flex", gap: "10px" }}>
-                                                <input className='schedule-edit-input' value={singleSchedule?.description} onChange={(e) => handleEditOnchange('description', e.target.value)}/>
-                                                <button className='schedule-edit-btn' onClick={handleUpdate}>✅ </button>
-                                                <button className='schedule-edit-btn' onClick={() => setEditScheduleInput()}>❌ </button>
-                                            </div>
-                                        ) : (
-                                            <div style={{ display: "flex", gap: "10px" }}>
-                                                <p className='schedule-p'>{singleSchedule?.description}</p>
-                                                <p className='edit-schedule' onClick={() => handleEditInput('description')}>✏️</p>
-                                            </div>
-                                        )}
-                                    </div>
-                                    <div className='view-container'>
-                                        <label htmlFor="" className='schedule-label'>Date: </label>
-                                        {/* <p className='schedule-p'>{new Date(singleSchedule?.date).toLocaleDateString()}</p> */}
-                                        {editScheduleInput === 'date' ? (
-                                            <div>
-                                                <input
-                                                type='date'
-                                                className='schedule-edit-input'
-                                                value={new Date(singleSchedule?.date).toISOString().split('T')[0]}
-                                                onChange={(e) => handleEditOnchange('date', e.target.value)}
-                                            />
-                                              <button className='schedule-edit-btn' onClick={handleUpdate}>✅ </button>
-                                                <button className='schedule-edit-btn' onClick={() => setEditScheduleInput()}>❌ </button>
-                                            </div>
-                                        ) : (
-                                            <div style={{ display: "flex", gap: "10px" }}>
-                                                <p className='schedule-p'>{new Date(singleSchedule?.date).toLocaleDateString()}</p>
-                                                <p className='edit-schedule' onClick={() => handleEditInput('date')}>✏️</p>
-                                            </div>
-                                        )}
-                                    </div>
-                                    <div className='view-container'>
-                                        <label htmlFor="" className='schedule-label'>Start Time: </label>
-                                        {/* <p className='schedule-p'>{new Date(singleSchedule?.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p> */}
-                                        {editScheduleInput === 'startTime' ? (
-                                            <div>
-                                               <TimePicker12
-                                                    className='schedule-edit-input'
-                                                    value={singleSchedule?.startTime ? getLocalTimeHHMM(singleSchedule.startTime) : ''}
-                                                    onChange={(e) => handleEditOnchangeForDate('startTime', e.target.value)}
-                                                    />
-                                              <button className='schedule-edit-btn' onClick={handleUpdate}>✅ </button>
-                                                <button className='schedule-edit-btn' onClick={() => setEditScheduleInput()}>❌ </button>
-                                            </div>
-                                        ) : (
-                                            <div style={{ display: "flex", gap: "10px" }}>
-                                                <p className='schedule-p'>{new Date(singleSchedule?.startTime).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}</p>
-                                                <p className='edit-schedule' onClick={() => handleEditInput('startTime')}>✏️</p>
-                                            </div>
-                                        )}
-                                    </div>
-                                    <div className='view-container'>
-                                        <label htmlFor="" className='schedule-label'>End Time: </label>
-                                        {/* <p className='schedule-p'>{new Date(singleSchedule?.endTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p> */}
-                                         {editScheduleInput === 'endTime' ? (
-                                            <div>
-                                               <TimePicker12
-                                                    className='schedule-edit-input'
-                                                    value={singleSchedule?.endTime ? getLocalTimeHHMM(singleSchedule.endTime) : ''}
-                                                    onChange={(e) => handleEditOnchangeForDate('endTime', e.target.value)}
-                                                    />
-                                              <button className='schedule-edit-btn' onClick={handleUpdate}>✅ </button>
-                                                <button className='schedule-edit-btn' onClick={() => setEditScheduleInput()}>❌ </button>
-                                            </div>
-                                        ) : (
-                                            <div style={{ display: "flex", gap: "10px" }}>
-                                                <p className='schedule-p'>{new Date(singleSchedule?.endTime).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}</p>
-                                                <p className='edit-schedule' onClick={() => handleEditInput('endTime')}>✏️</p>
-                                            </div>
-                                        )}
-                                    </div>
-                                    <div className='view-container'>
-                                        <label htmlFor="" className='schedule-label'>Balagruha: </label>
-                                        <p className='schedule-p'>{singleSchedule?.balagruha?.name}</p>
-                                    </div>
-                                    <div className='view-container'>
-                                        <label htmlFor="" className='schedule-label'>Assigned To: </label>
-                                        <p className='schedule-p'>{singleSchedule?.assignedToUser?.name}</p>
-                                    </div>
-                                    <div className='view-container'>
-                                        <label htmlFor="" className='schedule-label'>Created By: </label>
-                                        <p className='schedule-p'>{singleSchedule?.createdByUser?.name}</p>
-                                    </div>
+                {
+                    scheduleViewModal && (
+                        <div className="modal-overlay">
+                            <div className="modal-content-schedule">
+                                <div className="modal-header">
+                                    {/* <h3>{modalMode === 'create' ? 'Add New Balagruha' : 'Edit Balagruha'}</h3> */}
+                                    <h3>View schedule</h3>
+                                    <button
+                                        className="close-button"
+                                        onClick={handleCloseViewSchedule}
+                                    >
+                                        ×
+                                    </button>
                                 </div>
-                                <button onClick={() => handleDelete(singleSchedule._id)} className='delete-btn-schedule'>🗑️ Delete Schedule</button>
+                                <div>
+                                    <div className='master-div-schedule'>
+                                        <div className='view-container'>
+                                            <label htmlFor="" className='schedule-label'>Title: </label>
+                                            {editScheduleInput === 'title' ? (
+                                                <div style={{ display: "flex", gap: "10px" }}>
+                                                    <input className='schedule-edit-input' value={singleSchedule?.title} onChange={(e) => handleEditOnchange('title', e.target.value)} />
+                                                    <button className='schedule-edit-btn' onClick={handleUpdate}>✅ </button>
+                                                    <button className='schedule-edit-btn' onClick={() => setEditScheduleInput()}>❌ </button>
+                                                </div>
+                                            ) : (
+                                                <div style={{ display: "flex", gap: "10px" }}>
+                                                    <p className='schedule-p'>{singleSchedule?.title}</p>
+                                                    {canUpdateSchedule && (
+                                                        <p className='edit-schedule' onClick={() => handleEditInput('title')}>✏️</p>
+                                                    )}
+                                                </div>
+                                            )}
+                                        </div>
+                                        <div className='view-container'>
+                                            <label htmlFor="" className='schedule-label'>Description: </label>
+                                            {editScheduleInput === 'description' ? (
+                                                <div style={{ display: "flex", gap: "10px" }}>
+                                                    <input className='schedule-edit-input' value={singleSchedule?.description} onChange={(e) => handleEditOnchange('description', e.target.value)} />
+                                                    <button className='schedule-edit-btn' onClick={handleUpdate}>✅ </button>
+                                                    <button className='schedule-edit-btn' onClick={() => setEditScheduleInput()}>❌ </button>
+                                                </div>
+                                            ) : (
+                                                <div style={{ display: "flex", gap: "10px" }}>
+                                                    <p className='schedule-p'>{singleSchedule?.description}</p>
+                                                    {canUpdateSchedule && (
+                                                        <p className='edit-schedule' onClick={() => handleEditInput('description')}>✏️</p>
+                                                    )}
+                                                </div>
+                                            )}
+                                        </div>
+                                        <div className='view-container'>
+                                            <label htmlFor="" className='schedule-label'>Date: </label>
+                                            {/* <p className='schedule-p'>{new Date(singleSchedule?.date).toLocaleDateString()}</p> */}
+                                            {editScheduleInput === 'date' ? (
+                                                <div>
+                                                    <input
+                                                        type='date'
+                                                        className='schedule-edit-input'
+                                                        value={new Date(singleSchedule?.date).toISOString().split('T')[0]}
+                                                        onChange={(e) => handleEditOnchange('date', e.target.value)}
+                                                    />
+                                                    <button className='schedule-edit-btn' onClick={handleUpdate}>✅ </button>
+                                                    <button className='schedule-edit-btn' onClick={() => setEditScheduleInput()}>❌ </button>
+                                                </div>
+                                            ) : (
+                                                <div style={{ display: "flex", gap: "10px" }}>
+                                                    <p className='schedule-p'>{new Date(singleSchedule?.date).toLocaleDateString()}</p>
+                                                    {canUpdateSchedule && (
+                                                        <p className='edit-schedule' onClick={() => handleEditInput('date')}>✏️</p>
+                                                    )}
+                                                </div>
+                                            )}
+                                        </div>
+                                        <div className='view-container'>
+                                            <label htmlFor="" className='schedule-label'>Start Time: </label>
+                                            {/* <p className='schedule-p'>{new Date(singleSchedule?.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p> */}
+                                            {editScheduleInput === 'startTime' ? (
+                                                <div>
+                                                    <TimePicker12
+                                                        className='schedule-edit-input'
+                                                        value={singleSchedule?.startTime ? getLocalTimeHHMM(singleSchedule.startTime) : ''}
+                                                        onChange={(e) => handleEditOnchangeForDate('startTime', e.target.value)}
+                                                    />
+                                                    <button className='schedule-edit-btn' onClick={handleUpdate}>✅ </button>
+                                                    <button className='schedule-edit-btn' onClick={() => setEditScheduleInput()}>❌ </button>
+                                                </div>
+                                            ) : (
+                                                <div style={{ display: "flex", gap: "10px" }}>
+                                                    <p className='schedule-p'>{new Date(singleSchedule?.startTime).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}</p>
+                                                    {canUpdateSchedule && (
+                                                        <p className='edit-schedule' onClick={() => handleEditInput('startTime')}>✏️</p>
+                                                    )}
+                                                </div>
+                                            )}
+                                        </div>
+                                        <div className='view-container'>
+                                            <label htmlFor="" className='schedule-label'>End Time: </label>
+                                            {/* <p className='schedule-p'>{new Date(singleSchedule?.endTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p> */}
+                                            {editScheduleInput === 'endTime' ? (
+                                                <div>
+                                                    <TimePicker12
+                                                        className='schedule-edit-input'
+                                                        value={singleSchedule?.endTime ? getLocalTimeHHMM(singleSchedule.endTime) : ''}
+                                                        onChange={(e) => handleEditOnchangeForDate('endTime', e.target.value)}
+                                                    />
+                                                    <button className='schedule-edit-btn' onClick={handleUpdate}>✅ </button>
+                                                    <button className='schedule-edit-btn' onClick={() => setEditScheduleInput()}>❌ </button>
+                                                </div>
+                                            ) : (
+                                                <div style={{ display: "flex", gap: "10px" }}>
+                                                    <p className='schedule-p'>{new Date(singleSchedule?.endTime).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}</p>
+                                                    {canUpdateSchedule && (
+                                                        <p className='edit-schedule' onClick={() => handleEditInput('endTime')}>✏️</p>
+                                                    )}
+                                                </div>
+                                            )}
+                                        </div>
+                                        <div className='view-container'>
+                                            <label htmlFor="" className='schedule-label'>Balagruha: </label>
+                                            <p className='schedule-p'>{singleSchedule?.balagruha?.name}</p>
+                                        </div>
+                                        <div className='view-container'>
+                                            <label htmlFor="" className='schedule-label'>Assigned To: </label>
+                                            <p className='schedule-p'>{singleSchedule?.assignedToUser?.name}</p>
+                                        </div>
+                                        <div className='view-container'>
+                                            <label htmlFor="" className='schedule-label'>Created By: </label>
+                                            <p className='schedule-p'>{singleSchedule?.createdByUser?.name}</p>
+                                        </div>
+                                    </div>
+                                    {canDeleteSchedule && (
+                                        <button
+                                            onClick={() => handleDelete(singleSchedule._id)}
+                                            className='delete-btn-schedule'
+                                        >
+                                            🗑️ Delete Schedule
+                                        </button>
+                                    )}
+                                </div>
                             </div>
                         </div>
-                    </div>
-                )}
+                    )
+                }
 
-            </div>
+            </div >
         </>
     );
 };

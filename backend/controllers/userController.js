@@ -30,6 +30,14 @@ exports.getAllUsers = async (req, res) => {
       delete queryFilter.balagruhaId;
     }
     
+    const { role, status } = req.query;
+    if (role) {
+      queryFilter.role = role;
+    }
+    if (status) {
+      queryFilter.status = status;
+    }
+
     // Pagination parameters
     const { page = 1, limit = 20 } = req.query;
     const pageNum = parseInt(page);
@@ -225,7 +233,7 @@ exports.createUserV1 = async (req, res) => {
     // check the request if from localhost/ offline case
     let isOfflineReq = isRequestFromLocalhost(req);
     req.body.isOfflineReq = isOfflineReq;
-    // Capture the facial file reference NOW — service mutation removes it
+    // Capture the facial file reference now; service mutation removes it
     // from req.body before save.
     const facialFileForEmbedding = req.body.facialData;
     let result = await createUser(req.body);
@@ -771,7 +779,7 @@ exports.getUserInfo = async (req, res) => {
 /**
  * If an admin uploaded a `facialData` photo while creating or updating a user,
  * extract a face embedding from it and save it to the FaceEmbedding collection
- * so that Face-ID login can match against it. Best-effort: never throws —
+ * so that Face-ID login can match against it. Best-effort: never throws;
  * failures here don't fail the user save.
  */
 async function registerFacialEmbeddingIfPresent(userId, facialFile, adminId) {
@@ -804,6 +812,10 @@ const extractMedicalHistory = (req) => {
           otherAttachments: [],
           currentStatus: {},
         };
+      }
+
+      if (!field) {
+        return;
       }
 
       if (field.startsWith("currentStatus.")) {

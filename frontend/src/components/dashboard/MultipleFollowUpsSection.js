@@ -9,6 +9,16 @@ const MultipleFollowUpsSection = ({ followUps, balagruhaId, onChange }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [coaches, setCoaches] = useState([]);
 
+  const today = new Date().toISOString().split("T")[0];
+
+  const getMinAllowedDate = () => {
+    const date = new Date();
+    date.setFullYear(date.getFullYear() - 10);
+    return date.toISOString().split("T")[0];
+  };
+
+  const minAllowedDate = getMinAllowedDate();
+
   useEffect(() => {
     if (balagruhaId) {
       fetchCoaches(balagruhaId);
@@ -136,6 +146,8 @@ const MultipleFollowUpsSection = ({ followUps, balagruhaId, onChange }) => {
                 <input
                   type="date"
                   value={followUp.followUpDate || ""}
+                  min={minAllowedDate}
+                  max={today}
                   onChange={(e) =>
                     updateFollowUp(followUpIndex, "followUpDate", e.target.value)
                   }

@@ -108,9 +108,25 @@ export default function StudentQuizPage() {
 
   const handleSubmitQuiz = async () => {
     // Check if all questions are answered
-    const unansweredCount = questions.length - Object.keys(answers).length;
-    if (unansweredCount > 0) {
-      toast.error(`Please answer all questions (${unansweredCount} remaining)`);
+    // const unansweredCount = questions.length - Object.keys(answers).length;
+    // if (unansweredCount > 0) {
+    //   toast.error(`Please answer all questions (${unansweredCount} remaining)`);
+    //   return;
+    // }
+
+    const unansweredQuestions = questions.filter(q => {
+      const qId = q.id || q._id;
+      const answer = answers[qId];
+
+      if (q.type === "fill_blank") {
+        return !answer || answer.trim() === "";
+      }
+
+      return !answer;
+    });
+
+    if (unansweredQuestions.length > 0) {
+      toast.error(`Please answer all questions (${unansweredQuestions.length} remaining)`);
       return;
     }
 
@@ -119,10 +135,16 @@ export default function StudentQuizPage() {
       const studentId = localStorage.getItem('userId') || 'student1';
 
       // Format answers
-      const formattedAnswers = questions.map(q => ({
-        questionId: q.id || q._id,
-        selectedOptionId: answers[q.id || q._id]
-      }));
+      const formattedAnswers = questions.map(q => {
+        const questionId = q.id || q._id;
+        const answer = answers[questionId];
+
+        return {
+          questionId,
+          selectedOptionId: q.type === 'fill_blank' ? null : answer,
+          answerText: q.type === 'fill_blank' ? answer : null
+        };
+      });
 
       const response = await api.post(
         `/api/v2/lms/student/${studentId}/courses/${courseSlug}/quiz/submit`,
@@ -141,7 +163,11 @@ export default function StudentQuizPage() {
 
         // Navigate to results page
         navigate(`${baseRoute}/quiz/results`, {
-          state: { results: response.data }
+          state: {
+            results: response.data,
+            quizId: quizId,
+            courseId: courseId
+          }
         });
       } else {
         const errorMsg = response.data.error || response.data.message || 'Failed to submit quiz';
@@ -188,7 +214,17 @@ export default function StudentQuizPage() {
   const qId = currentQuestion.id || currentQuestion._id;
   const currentAnswer = answers[qId];
   const isLastQuestion = currentQuestionIndex === questions.length - 1;
-  const canSubmit = Object.keys(answers).length === questions.length && !submitting;
+  const canSubmit =
+    questions.every(q => {
+      const qId = q.id || q._id;
+      const answer = answers[qId];
+
+      if (q.type === "fill_blank") {
+        return answer && answer.trim() !== "";
+      }
+
+      return !!answer;
+    }) && !submitting;
 
   return (
     <div className="bg-gray-100 min-h-screen pb-20">
@@ -240,43 +276,67 @@ export default function StudentQuizPage() {
 
           {/* Answer Options */}
           <div className="space-y-3">
-            {(() => {
-              // DEBUG: Logic to handle True/False if options are missing
-              let displayOptions = currentQuestion.options || [];
+            {currentQuestion.type === 'fill_blank' ? (
+              <>
+                <input
+                  type="text"
+                  placeholder="Type your answer here..."
+                  value={currentAnswer || ""}
+                  onChange={(e) => handleAnswerSelect(e.target.value)}
+                  onBlur={(e) => handleAnswerSelect(e.target.value.trim())}
+                  disabled={!audioCompleted && !!currentQuestion.audioUrl}
+                  className={`w-full px-4 py-3 rounded-lg border-2 ${currentAnswer?.trim()
+                    ? "border-gray-300 focus:border-blue-500"
+                    : "border-red-400 focus:border-red-500"
+                    } focus:outline-none`}
+                />
 
-              if (currentQuestion.type === 'true_false' && displayOptions.length === 0) {
-                displayOptions = [
-                  { id: 'True', text: 'True' },
-                  { id: 'False', text: 'False' }
-                ];
-              }
+                {(!currentAnswer || currentAnswer.trim() === "") && (
+                  <p className="mt-2 text-sm text-red-500">
+                    Answer is required.
+                  </p>
+                )}
+              </>
+            ) : (
+              (() => {
+                let displayOptions = currentQuestion.options || [];
 
-              return displayOptions.map((option, idx) => {
-                const optId = option.id || option._id;
-                return (
-                  <label
-                    key={optId}
-                    className={`flex items-center p-4 rounded-lg border-2 cursor-pointer transition-all ${currentAnswer === optId
-                      ? 'border-blue-500 bg-blue-50'
-                      : 'border-gray-300 hover:border-blue-300 hover:bg-gray-50'
-                      } ${!audioCompleted && currentQuestion.audioUrl ? 'opacity-50 cursor-not-allowed' : ''}`}
-                  >
-                    <input
-                      type="radio"
-                      name={`question-${currentQuestion.id || currentQuestion._id}`}
-                      value={optId}
-                      checked={currentAnswer === optId}
-                      onChange={() => handleAnswerSelect(optId)}
-                      disabled={!audioCompleted && !!currentQuestion.audioUrl}
-                      className="w-5 h-5 text-blue-600 focus:ring-blue-500"
-                    />
-                    <span className="ml-3 text-gray-800 font-medium">
-                      {String.fromCharCode(65 + idx)}. {option.text}
-                    </span>
-                  </label>
-                );
-              });
-            })()}
+                if (currentQuestion.type === 'true_false' && displayOptions.length === 0) {
+                  displayOptions = [
+                    { id: 'True', text: 'True' },
+                    { id: 'False', text: 'False' }
+                  ];
+                }
+
+                return displayOptions.map((option, idx) => {
+                  const optId = option.id || option._id;
+
+                  return (
+                    <label
+                      key={optId}
+                      className={`flex items-center p-4 rounded-lg border-2 cursor-pointer transition-all ${currentAnswer === optId
+                        ? 'border-blue-500 bg-blue-50'
+                        : 'border-gray-300 hover:border-blue-300 hover:bg-gray-50'
+                        } ${!audioCompleted && currentQuestion.audioUrl ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    >
+                      <input
+                        type="radio"
+                        name={`question-${currentQuestion.id || currentQuestion._id}`}
+                        value={optId}
+                        checked={currentAnswer === optId}
+                        onChange={() => handleAnswerSelect(optId)}
+                        disabled={!audioCompleted && !!currentQuestion.audioUrl}
+                        className="w-5 h-5 text-blue-600 focus:ring-blue-500"
+                      />
+
+                      <span className="ml-3 text-gray-800 font-medium">
+                        {String.fromCharCode(65 + idx)}. {option.text}
+                      </span>
+                    </label>
+                  );
+                });
+              })()
+            )}
           </div>
 
           {/* Audio Enforcement Message */}
@@ -342,7 +402,10 @@ export default function StudentQuizPage() {
           <div className="grid grid-cols-10 gap-2">
             {questions.map((q, idx) => {
               const qId = q.id || q._id;
-              const isAnswered = !!answers[qId];
+              const isAnswered =
+                q.type === "fill_blank"
+                  ? !!answers[qId]?.trim()
+                  : !!answers[qId];
               const isCurrent = idx === currentQuestionIndex;
               return (
                 <button

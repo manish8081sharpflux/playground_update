@@ -2,8 +2,21 @@
 import React, { useState, useEffect } from 'react';
 import './coach-styles.css';
 import WeeklyCalendar from './WeeklyCalendar';
-import { getBalagruha, getTasks, updateTask, fetchUsers, getTaskBytaskId, getUserBalagruhas, getSchedulesCoach, getAssignableUsersForSchedule } from '../../api'
+import {
+    getBalagruha,
+    getTasks,
+    updateTask,
+    fetchUsers,
+    getTaskBytaskId,
+    getUserBalagruhas,
+    getSchedulesCoach,
+    getAssignableUsersForSchedule,
+    getMedicalConditionBasedOnBalagruha,
+    getMyPurchaseRequests,
+    getAllShopItems
+} from '../../api';
 import { TaskDetailsModal } from '../TaskManagement/taskmanagement';
+import { useRBAC } from '../../contexts/RBACContext';
 
 function CoachDashboard() {
     // State variables remain the same
@@ -20,10 +33,14 @@ function CoachDashboard() {
     const [students, setStudents] = useState([]);
     const [attendance, setAttendance] = useState([]);
     const [tasks, setTasks] = useState([]);
+    const [medicalData, setMedicalData] = useState([]);
+    const [purchaseData, setPurchaseData] = useState([]);
+    const [isfShopData, setIsfShopData] = useState([]);
     const [balagruhas, setBalagruhas] = useState([]);
     const [machines, setMachines] = useState([]);
     const [selectedBalagruha, setSelectedBalagruha] = useState();
     const [schedules, setSchedules] = useState([]);
+    const { hasPermission, isLoading: rbacLoading, permissions } = useRBAC();
     const [chatMessages, setChatMessages] = useState({
         child: [
             { sender: "child", message: "Hello Coach! How are you today?", time: "10:30 AM" },
@@ -45,19 +62,143 @@ function CoachDashboard() {
         ]
     });
 
+    const [searchText, setSearchText] = useState("");
+    const [statusFilter, setStatusFilter] = useState("all");
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 5;
+
+    useEffect(() => {
+        setSearchText("");
+        setStatusFilter("all");
+        setCurrentPage(1);
+    }, [coachMenuSelected, selectedBalagruha, permissions, rbacLoading]);
+
+    const getCurrentData = () => {
+        if (coachMenuSelected === 2) return tasks;
+        if (coachMenuSelected === 3) return medicalData;
+        if (coachMenuSelected === 7) return purchaseData;
+        if (coachMenuSelected === 8) return isfShopData;
+        return [];
+    };
+
+    const formatDate = (date) => {
+        return date ? new Date(date).toLocaleDateString("en-IN") : "N/A";
+    };
+
+    const getSymptoms = (item) => {
+        if (Array.isArray(item.symptoms) && item.symptoms.length > 0) {
+            return item.symptoms.join(", ").replaceAll("_", " ");
+        }
+
+        return item.customSymptom || "N/A";
+    };
+
+    const getSearchValue = (item) => {
+        if (coachMenuSelected === 2) {
+            return `${item.title} ${item.status} ${item.date} ${item.attendees?.[0]}`;
+        }
+
+        if (coachMenuSelected === 3) {
+            return `${item.userName || item.studentName || item.name} ${item.healthStatus} ${getSymptoms(item)} ${formatDate(item.date)}`;
+        }
+
+        if (coachMenuSelected === 7) {
+            return `${item.requestId} ${(item.items || []).map(i => i.productName).join(" ")} ${item.status} ${formatDate(item.createdAt)}`;
+        }
+
+        if (coachMenuSelected === 8) {
+            return `${item.name} ${item.category} ${item.purchaseCategory} ${item.stock} ${item.price} ${item.discountPrice}`;
+        }
+
+        return "";
+    };
+
+    const getItemStatus = (item) => {
+        if (coachMenuSelected === 2) {
+            return formatStatus(item.status);
+        }
+
+        if (coachMenuSelected === 3) return item.healthStatus;
+        if (coachMenuSelected === 7) return item.status;
+
+        if (coachMenuSelected === 8) {
+            if (item.stock <= 0) return "out_of_stock";
+            if (item.stock <= item.lowStockThreshold) return "low_stock";
+            return "in_stock";
+        }
+
+        return "";
+    };
+
+    const filteredData = getCurrentData().filter((item) => {
+        const searchMatch = getSearchValue(item)
+            .toLowerCase()
+            .includes(searchText.toLowerCase());
+
+        const filterMatch =
+            statusFilter === "all" ||
+            getItemStatus(item)?.toLowerCase() === statusFilter.toLowerCase();
+
+        return searchMatch && filterMatch;
+    });
+
+    const totalPages = Math.max(
+        1,
+        Math.ceil(filteredData.length / itemsPerPage)
+    );
+
+    const paginatedData = filteredData.slice(
+        (currentPage - 1) * itemsPerPage,
+        currentPage * itemsPerPage
+    );
+
     // API function implementations
     const getBalagruhaList = async () => {
         try {
-            // Use getUserBalagruhas instead of getBalagruhaById - works for all roles
             const response = await getUserBalagruhas();
 
-            // Filter out STOCK option
-            const actualBalagruhas = (response?.data || []).filter(b => b._id !== 'STOCK');
+
+            const rawBalagruhas = Array.isArray(response?.data)
+                ? response.data
+                : Array.isArray(response?.data?.data)
+                    ? response.data.data
+                    : [];
+
+            const actualBalagruhas = rawBalagruhas.filter(
+                b => b._id !== "STOCK"
+            );
+
+
             setBalagruhas(actualBalagruhas);
+
+            if (actualBalagruhas.length > 0) {
+                setSelectedBalagruha(actualBalagruhas[0]._id);
+            }
         } catch (error) {
-            console.error('Error fetching balagruha list:', error);
+            console.error("Error fetching balagruha list:", error);
         }
     };
+
+    useEffect(() => {
+        if (!selectedBalagruha || !can("Schedule Management", "Read")) return;
+
+        const today = new Date();
+        const dayOfWeek = today.getDay();
+
+        const monday = new Date(today);
+        monday.setDate(today.getDate() - ((dayOfWeek + 6) % 7));
+        monday.setHours(0, 0, 0, 0);
+
+        const sunday = new Date(monday);
+        sunday.setDate(monday.getDate() + 6);
+        sunday.setHours(23, 59, 59, 999);
+
+        fetchSchedules(
+            selectedBalagruha,
+            monday.toISOString().slice(0, 10),
+            sunday.toISOString().slice(0, 10)
+        );
+    }, [selectedBalagruha, permissions, rbacLoading]);
 
     const getTasksList = async () => {
         try {
@@ -92,6 +233,66 @@ function CoachDashboard() {
         }
     };
 
+    const getMedicalList = async () => {
+        try {
+            const balagruhaIds = JSON.parse(
+                localStorage.getItem("balagruhaIds") || "[]"
+            );
+
+            console.log("Balagruha IDs:", balagruhaIds);
+
+            const response = await getMedicalConditionBasedOnBalagruha(
+                balagruhaIds
+            );
+
+            console.log("Medical Response:", response);
+
+            if (response.success) {
+                setMedicalData(response?.data?.medicalCheckIns || []);
+            } else {
+                setMedicalData([]);
+            }
+        } catch (error) {
+            console.error(error);
+            setMedicalData([]);
+        }
+    };
+
+    const getPurchaseList = async () => {
+        try {
+            const response = await getMyPurchaseRequests({
+                balagruhaId: selectedBalagruha,
+            });
+
+            console.log("Purchase Response:", response);
+
+            const purchaseList = response?.data?.requests || [];
+
+            setPurchaseData(Array.isArray(purchaseList) ? purchaseList : []);
+        } catch (error) {
+            console.error("Error fetching purchase data:", error);
+            setPurchaseData([]);
+        }
+    };
+
+    const getIsfShopList = async () => {
+        try {
+            const response = await getAllShopItems();
+
+            console.log("ISF Shop Response:", response);
+
+            const shopList =
+                response?.data ||
+                response?.products ||
+                [];
+
+            setIsfShopData(Array.isArray(shopList) ? shopList : []);
+        } catch (error) {
+            console.error("Error fetching ISF shop data:", error);
+            setIsfShopData([]);
+        }
+    };
+
     const getUsersList = async () => {
         try {
             // S6-S1-PROD-BUG-001: Use new API that returns filtered users based on role and Balagruha
@@ -117,38 +318,32 @@ function CoachDashboard() {
 
     const fetchSchedules = async (balagruha, startDate, endDate) => {
         try {
+            const userId = localStorage.getItem("userId");
+            const balagruhaId = balagruha || selectedBalagruha;
 
-            let dataToSend;
-            if (balagruha) {
-                dataToSend = {
-                    balagruhaIds: [balagruha],
-                    assignedTo: localStorage.getItem('userId'),
-                    startDate: startDate,
-                    endDate: endDate,
-                    status: [],
-                };
-            } else {
-                dataToSend = {
-                    balagruhaIds: [selectedBalagruha],
-                    assignedTo: localStorage.getItem('userId'),
-                    startDate: startDate,
-                    endDate: endDate,
-                    status: [],
-                };
+            if (!balagruhaId) {
+                console.warn("Please select a Balagruha first");
+                return;
             }
 
-            const response = await getSchedulesCoach(dataToSend);
+            const dataToSend = {
+                balagruhaIds: [balagruhaId],
+                assignedTo: userId,
+                startDate,
+                endDate,
+            };
 
-            setSchedules(response?.data?.schedules);
+            const response = await getSchedulesCoach(dataToSend);
+            setSchedules(response?.data?.schedules || []);
         } catch (error) {
-            console.error("Error in fetching schedules", error);
+            console.error("Error in fetching schedules", error?.response?.data || error);
         }
     };
 
     const getTaskDetailsByTaskId = async (id) => {
         try {
             const response = await getTaskBytaskId(id)
-            setSelectedTask(response.data?.task)
+            setSelectedTask(response)
         } catch (err) {
             console.error('Error updating task status:', err);
 
@@ -179,18 +374,54 @@ function CoachDashboard() {
         }
     };
 
+    useEffect(() => {
+        if (!selectedBalagruha) return;
+
+        if (can("Medical Management", "Read")) {
+            getMedicalList();
+        }
+
+        if (can("Purchase Management", "Read")) {
+            getPurchaseList();
+        }
+
+        if (can("Shop Management", "Read") || can("ISF Shop", "Read")) {
+            getIsfShopList();
+        }
+    }, [selectedBalagruha, permissions, rbacLoading]);
     // Load data when component mounts
     useEffect(() => {
         getBalagruhaList();
         getUsersList();
     }, []);
 
+    useEffect(() => {
+        if (balagruhas.length > 0 && !selectedBalagruha) {
+            setSelectedBalagruha(balagruhas[0]._id);
+        }
+    }, [balagruhas, selectedBalagruha]);
+
     // Load tasks when selected balagruha changes
     useEffect(() => {
-        if (selectedBalagruha) {
+        if (selectedBalagruha && can("Task Management", "Read")) {
             getTasksList();
         }
-    }, [selectedBalagruha, users]); // Also refresh when users are loaded for proper name display
+    }, [selectedBalagruha, users, permissions, rbacLoading]); // Also refresh when users are loaded for proper name display
+
+
+    useEffect(() => {
+        if (coachMenuSelected === 3 && can("Medical Management", "Read")) {
+            getMedicalList();
+        }
+
+        if (coachMenuSelected === 7 && can("Purchase Management", "Read")) {
+            getPurchaseList();
+        }
+
+        if (coachMenuSelected === 8 && (can("Shop Management", "Read") || can("ISF Shop", "Read"))) {
+            getIsfShopList();
+        }
+    }, [coachMenuSelected, selectedBalagruha, permissions, rbacLoading]);
 
     // Event handlers
     const handleEventClick = (event) => {
@@ -217,14 +448,52 @@ function CoachDashboard() {
         }));
     };
 
+    const permissionsLoaded = Object.keys(permissions || {}).length > 0;
+
+    const can = (moduleName, actionName = "Read") => {
+        if (rbacLoading || !permissionsLoaded) {
+            return false;
+        }
+
+        if (actionName.toLowerCase() === "read") {
+            return hasPermission(moduleName, "Read") || hasPermission(moduleName, "Manage");
+        }
+
+        return hasPermission(moduleName, actionName);
+    };
     // Coach menus - Sprint6-Story-1-AC3: Removed 6 unused cards, kept 5 active ones
     const coachMenus = [
-        { id: 1, name: "Daily Schedule", count: schedules?.length || 0 },
-        { id: 2, name: "Task Tracker", count: tasks.length },
-        { id: 3, name: "Medical", count: 0 }, // Medical count API not yet available
-        { id: 7, name: "Purchase", count: 0 }, // Purchase count API not yet available
-        { id: 8, name: "ISF Shop", count: 0 }, // Shop count API not yet available
-    ];
+        {
+            id: 1,
+            name: "Daily Schedule",
+            count: schedules?.length || 0,
+            show: can("Schedule Management", "Read"),
+        },
+        {
+            id: 2,
+            name: "Task Tracker",
+            count: tasks.length,
+            show: can("Task Management", "Read"),
+        },
+        {
+            id: 3,
+            name: "Medical",
+            count: medicalData.length,
+            show: can("Medical Management", "Read"),
+        },
+        {
+            id: 7,
+            name: "Purchase",
+            count: purchaseData.length,
+            show: can("Purchase Management", "Read"),
+        },
+        {
+            id: 8,
+            name: "ISF Shop",
+            count: isfShopData.length,
+            show: can("Shop Management", "Read") || can("ISF Shop", "Read"),
+        },
+    ].filter(menu => menu.show);
 
     // Top menus
     const topMenus = [
@@ -240,19 +509,81 @@ function CoachDashboard() {
         { id: 10, name: "Settings" },
     ];
 
-    // Generate dummy data for menu items
-    const getDummyData = (menuName) => {
-        const data = [];
-        for (let i = 1; i <= 10; i++) {
-            data.push({
-                id: i,
-                name: `${menuName} Item ${i}`,
-                status: Math.floor(Math.random() * 100),
-                date: new Date().toLocaleDateString()
-            });
+    useEffect(() => {
+        if (coachMenus.length > 0 && !coachMenus.some(menu => menu.id === coachMenuSelected)) {
+            setCoachMenuSelected(coachMenus[0].id);
         }
-        return data;
+    }, [permissions, rbacLoading, coachMenus.length, coachMenuSelected]);
+
+    // Generate dummy data for menu items
+    // const getDummyData = (menuName) => {
+    //     const data = [];
+    //     for (let i = 1; i <= 10; i++) {
+    //         data.push({
+    //             id: i,
+    //             name: `${menuName} Item ${i}`,
+    //             status: Math.floor(Math.random() * 100),
+    //             date: new Date().toLocaleDateString()
+    //         });
+    //     }
+    //     return data;
+    // };
+
+    const getStatusClass = (status = "") => {
+        const value = status.toLowerCase();
+
+        if (
+            value === "completed" ||
+            value === "normal" ||
+            value === "delivered_balagruha" ||
+            value === "active"
+        ) {
+            return "status-success";
+        }
+
+        if (
+            value === "pending" ||
+            value === "pending_approval" ||
+            value === "important" ||
+            value === "ordered" ||
+            value === "delivered_store"
+        ) {
+            return "status-warning";
+        }
+
+        if (
+            value === "critical" ||
+            value === "cancelled" ||
+            value === "rejected" ||
+            value === "inactive"
+        ) {
+            return "status-danger";
+        }
+
+        return "status-info";
     };
+
+    // const formatDate = (date) => {
+    //     return date ? new Date(date).toLocaleDateString("en-IN") : "N/A";
+    // };
+
+    const formatStatus = (status = "") => {
+        if (!status) return "N/A";
+
+        return status
+            .replaceAll("_", " ")
+            .replaceAll("-", " ")
+            .replace(/\b\w/g, (char) => char.toUpperCase());
+    };
+
+    // const getSymptoms = (item) => {
+    //     if (Array.isArray(item.symptoms) && item.symptoms.length > 0) {
+    //         return item.symptoms.join(", ").replaceAll("_", " ");
+    //     }
+
+    //     return item.customSymptom || "N/A";
+    // };
+
 
     // Chat window component
     const ChatWindow = ({ type, onClose }) => {
@@ -272,6 +603,7 @@ function CoachDashboard() {
             return () => clearTimeout(timeoutId);
         }, [chatMessages[type].length]);
 
+
         return (
             <div className="chat-window">
                 <div className="chat-header">
@@ -289,7 +621,7 @@ function CoachDashboard() {
                         onClick={onClose}
                         className="chat-close-btn"
                     >
-                        ✖
+                        &times;
                     </button>
                 </div>
 
@@ -331,7 +663,7 @@ function CoachDashboard() {
                         }}
                         className="send-btn"
                     >
-                        ➤
+                        &#10148;
                     </button>
                 </div>
             </div>
@@ -409,7 +741,7 @@ function CoachDashboard() {
                     <div className="coach-menus">
                         <div className="menu-grid">
                             {coachMenus.map(menu => (
-                                <div style={{ position: "relative" }}>
+                                <div key={menu.id} style={{ position: "relative" }}>
                                     <div
                                         key={menu.id}
                                         className={`menu-item ${coachMenuSelected === menu.id ? 'selected' : ''}`}
@@ -427,43 +759,251 @@ function CoachDashboard() {
                         {coachMenuSelected && coachMenuSelected !== 1 && (
                             <div className="data-display">
                                 <h3>{coachMenus.find(m => m.id === coachMenuSelected)?.name}</h3>
+                                <div className="table-controls">
+                                    <input
+                                        type="text"
+                                        placeholder="Search..."
+                                        value={searchText}
+                                        onChange={(e) => {
+                                            setSearchText(e.target.value);
+                                            setCurrentPage(1);
+                                        }}
+                                        className="table-search-input"
+                                    />
+
+                                    <select
+                                        value={statusFilter}
+                                        onChange={(e) => {
+                                            setStatusFilter(e.target.value);
+                                            setCurrentPage(1);
+                                        }}
+                                        className="table-filter-select"
+                                    >
+                                        <option value="all">All</option>
+
+                                        {coachMenuSelected === 2 && (
+                                            <>
+                                                <option value="Completed">Completed</option>
+                                                <option value="In Progress">In Progress</option>
+                                                <option value="Pending">Pending</option>
+                                            </>
+                                        )}
+
+                                        {coachMenuSelected === 3 && (
+                                            <>
+                                                <option value="normal">Normal</option>
+                                                <option value="important">Important</option>
+                                                <option value="critical">Critical</option>
+                                            </>
+                                        )}
+
+                                        {coachMenuSelected === 7 && (
+                                            <>
+                                                <option value="pending">Pending</option>
+                                                <option value="approved">Approved</option>
+                                                <option value="rejected">Rejected</option>
+                                                <option value="ordered">Ordered</option>
+                                            </>
+                                        )}
+
+                                        {coachMenuSelected === 8 && (
+                                            <>
+                                                <option value="in_stock">In Stock</option>
+                                                <option value="low_stock">Low Stock</option>
+                                                <option value="out_of_stock">Out of Stock</option>
+                                            </>
+                                        )}
+                                    </select>
+                                </div>
                                 <table className="data-table">
                                     <thead>
                                         <tr>
-                                            <th>Name</th>
-                                            <th>Status</th>
-                                            <th>Date</th>
+                                            {coachMenuSelected === 2 && (
+                                                <>
+                                                    <th>Task</th>
+                                                    <th>Status</th>
+                                                    <th>Deadline</th>
+                                                    <th>Assigned To</th>
+                                                </>
+                                            )}
+
+                                            {coachMenuSelected === 3 && (
+                                                <>
+                                                    <th>Student</th>
+                                                    <th>Health Status</th>
+                                                    <th>Symptoms</th>
+                                                    <th>Check-in Date</th>
+                                                </>
+                                            )}
+
+                                            {coachMenuSelected === 7 && (
+                                                <>
+                                                    {/* <th>Request ID</th> */}
+                                                    <th>Product</th>
+                                                    <th>Status</th>
+                                                    <th>Created On</th>
+                                                </>
+                                            )}
+
+                                            {coachMenuSelected === 8 && (
+                                                <>
+                                                    <th>Product</th>
+                                                    <th>Stock</th>
+                                                    <th>Category</th>
+                                                    <th>Price</th>
+                                                </>
+                                            )}
                                         </tr>
                                     </thead>
+
                                     <tbody>
-                                        {getDummyData(coachMenus.find(m => m.id === coachMenuSelected)?.name).map((item, index) => (
-                                            <tr key={item.id} className={index % 2 === 0 ? 'even-row' : 'odd-row'}>
-                                                <td>{item.name}</td>
-                                                <td>
-                                                    <div className="progress-bar-container">
-                                                        <div
-                                                            className="progress-bar"
-                                                            style={{
-                                                                width: `${item.status}%`,
-                                                                backgroundColor: item.status > 70 ? "#4caf50" : item.status > 40 ? "#ff9800" : "#f44336"
-                                                            }}
-                                                        ></div>
-                                                    </div>
+                                        {coachMenuSelected === 2 ? (
+                                            paginatedData.length > 0 ? (
+                                                paginatedData.map((item, index) => (
+                                                    <tr key={item.id} className={index % 2 === 0 ? "even-row" : "odd-row"}>
+                                                        <td>{item.title}</td>
+                                                        <td>
+                                                            <span className={`status-badge ${getStatusClass(item.status)}`}>
+                                                                {formatStatus(item.status)}
+                                                            </span>
+                                                        </td>
+                                                        <td>{item.date}</td>
+                                                        <td>{item.attendees?.[0] || "Unassigned"}</td>
+                                                    </tr>
+                                                ))
+                                            ) : (
+                                                <tr>
+                                                    <td colSpan="4" style={{ textAlign: "center" }}>
+                                                        No tasks found
+                                                    </td>
+                                                </tr>
+                                            )
+                                        ) : coachMenuSelected === 3 ? (
+                                            paginatedData.length > 0 ? (
+                                                paginatedData.map((item, index) => (
+                                                    <tr key={item._id || index} className={index % 2 === 0 ? "even-row" : "odd-row"}>
+                                                        <td>{item.userName || item.studentName || item.name || "N/A"}</td>
+                                                        <td>
+                                                            <span className={`status-badge ${getStatusClass(item.healthStatus)}`}>
+                                                                {formatStatus(item.healthStatus)}
+                                                            </span>
+                                                        </td>
+                                                        <td>{getSymptoms(item)}</td>
+                                                        <td>{formatDate(item.date)}</td>
+                                                    </tr>
+                                                ))
+                                            ) : (
+                                                <tr>
+                                                    <td colSpan="4" style={{ textAlign: "center" }}>
+                                                        No medical data found
+                                                    </td>
+                                                </tr>
+                                            )
+                                        ) : coachMenuSelected === 7 ? (
+                                            paginatedData.length > 0 ? (
+                                                paginatedData.map((item, index) => (
+                                                    <tr key={item._id || index} className={index % 2 === 0 ? "even-row" : "odd-row"}>
+                                                        {/* <td>{item.requestId || "N/A"}</td> */}
+                                                        <td>
+                                                            {item.items?.[0]?.productName || "N/A"}
+                                                            {item.items?.length > 1 && (
+                                                                <span style={{ marginLeft: "6px", fontSize: "12px", color: "#666" }}>
+                                                                    +{item.items.length - 1} more
+                                                                </span>
+                                                            )}
+                                                        </td>
+                                                        <td>
+                                                            <span className={`status-badge ${getStatusClass(item.status)}`}>
+                                                                {formatStatus(item.status)}
+                                                            </span>
+                                                        </td>
+                                                        <td>{formatDate(item.createdAt)}</td>
+                                                    </tr>
+                                                ))
+                                            ) : (
+                                                <tr>
+                                                    <td colSpan="4" style={{ textAlign: "center" }}>
+                                                        No purchase data found
+                                                    </td>
+                                                </tr>
+                                            )
+                                        ) : coachMenuSelected === 8 ? (
+                                            paginatedData.length > 0 ? (
+                                                paginatedData.map((item, index) => (
+                                                    <tr key={item._id || index} className={index % 2 === 0 ? "even-row" : "odd-row"}>
+                                                        <td>{item.name || "N/A"}</td>
+                                                        <td>
+                                                            <span
+                                                                className={`status-badge ${item.stock <= 0
+                                                                    ? "status-danger"
+                                                                    : item.stock <= item.lowStockThreshold
+                                                                        ? "status-warning"
+                                                                        : "status-success"
+                                                                    }`}
+                                                            >
+                                                                {item.stock ?? 0} in stock
+                                                            </span>
+                                                        </td>
+                                                        <td>{item.category || item.purchaseCategory || "N/A"}</td>
+                                                        <td>
+                                                            {item.discountPrice !== null && item.discountPrice !== undefined
+                                                                ? `${item.discountPrice} coins`
+                                                                : item.price !== undefined
+                                                                    ? `${item.price} coins`
+                                                                    : "N/A"}
+                                                        </td>
+                                                    </tr>
+                                                ))
+                                            ) : (
+                                                <tr>
+                                                    <td colSpan="4" style={{ textAlign: "center" }}>
+                                                        No ISF shop data found
+                                                    </td>
+                                                </tr>
+                                            )
+                                        ) : (
+                                            <tr>
+                                                <td colSpan="4" style={{ textAlign: "center" }}>
+                                                    No data found
                                                 </td>
-                                                <td>{item.date}</td>
                                             </tr>
-                                        ))}
+                                        )}
                                     </tbody>
                                 </table>
+                                {filteredData.length > itemsPerPage && (
+                                    <div className="pagination">
+                                        <button
+                                            disabled={currentPage === 1}
+                                            onClick={() => setCurrentPage((prev) => prev - 1)}
+                                        >
+                                            Prev
+                                        </button>
+
+                                        <span>
+                                            Page {currentPage} of {totalPages}
+                                        </span>
+
+                                        <button
+                                            disabled={currentPage === totalPages}
+                                            onClick={() => setCurrentPage((prev) => prev + 1)}
+                                        >
+                                            Next
+                                        </button>
+                                    </div>
+                                )}
                             </div>
                         )}
 
                         {/* Weekly Calendar (shown when Daily Schedule is selected) */}
-                        {coachMenuSelected === 1 && (
+                        {coachMenuSelected === 1 && can("Schedule Management", "Read") && (
                             <div className='full-calendar'>
                                 <WeeklyCalendar
                                     currentWeekOffset={currentWeekOffset}
                                     setCurrentWeekOffset={setCurrentWeekOffset}
+                                    hideAddSchedule={!can("Schedule Management", "Create")}
+                                    canUpdateSchedule={can("Schedule Management", "Update")}
+                                    canDeleteSchedule={can("Schedule Management", "Delete")}
+
                                     // calendarEvents={tasks.length > 0 ? tasks : [
                                     //     // Fallback dummy data if no tasks are loaded
                                     //     {

@@ -35,19 +35,33 @@ exports.getLatestMoodEntryByBalagruhaIds = async (balagruhaIds) => {
     const result = await getStudentMoodTrackerDetailsByBalagruhaIds({
       balagruhaIds,
     });
-    if (result.success) {
-      const moodInfo = [];
-      result.data.forEach((item) => {
-        moodInfo.push({ ...item.latestMoodTracker });
-      });
-      return {
-        success: true,
-        data: { moodInfo },
-        message: "Latest mood entry fetched successfully",
-      };
-    } else {
+
+    if (!result.success) {
       throw new Error(result.message || "Failed to fetch latest mood entry");
     }
+
+    const moodInfo = [];
+
+    result.data.forEach((item) => {
+      const latestMood =
+        Array.isArray(item.latestMoodTracker)
+          ? item.latestMoodTracker[0]
+          : item.latestMoodTracker;
+
+      if (latestMood && Object.keys(latestMood).length > 0) {
+        moodInfo.push({
+          ...latestMood,
+          userName: item.name || item.userName || latestMood.userName || "",
+          studentName: item.name || item.studentName || latestMood.studentName || "",
+        });
+      }
+    });
+
+    return {
+      success: true,
+      data: { moodInfo },
+      message: "Latest mood entry fetched successfully",
+    };
   } catch (error) {
     throw error;
   }
