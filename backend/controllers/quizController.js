@@ -3,6 +3,26 @@ const QuestionBank = require('../models/QuestionBank');
 const Course = require('../models/course');
 const { errorLogger } = require('../config/pino-config');
 
+const QUIZ_ENABLED_COURSE_CATEGORIES = ['Computer Apps', 'Life Skills'];
+
+const getQuizCourseValidationError = async (courseId) => {
+  if (!courseId) {
+    return 'Quiz must be associated with a course';
+  }
+
+  const course = await Course.findById(courseId).select('title category').lean();
+  if (!course) {
+    return 'Associated course was not found';
+  }
+
+  const courseType = course.category || course.title;
+  if (!QUIZ_ENABLED_COURSE_CATEGORIES.includes(courseType)) {
+    return `Quizzes can be published only for ${QUIZ_ENABLED_COURSE_CATEGORIES.join(' or ')} courses`;
+  }
+
+  return null;
+};
+
 /**
  * Quiz Controller - Sprint 2 Epic 02 Story 03
  * Handles quiz CRUD operations and publishing workflow
@@ -565,6 +585,11 @@ exports.publishQuiz = async (req, res) => {
 
     if (!quiz.chapter) {
       errors.push('Quiz must be associated with a chapter');
+    }
+
+    const courseError = await getQuizCourseValidationError(quiz.course);
+    if (courseError) {
+      errors.push(courseError);
     }
 
     if (errors.length > 0) {

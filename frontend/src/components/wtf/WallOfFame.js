@@ -2021,7 +2021,7 @@ Check console for detailed results.`);
         {/* Compact Background Settings Card - Only show for admins */}
         {(isAdmin || forceShowAdminControls) && (
           <div
-            className={`fixed z-40 bg-white rounded-lg shadow-xl border-2 border-blue-200 p-4 w-80 ${
+            className={`fixed z-40 bg-white rounded-lg shadow-xl border-2 border-blue-200 p-4 w-80 max-h-[58vh] overflow-hidden flex flex-col ${
               isDragging ? "cursor-grabbing" : "cursor-grab"
             }`}
             style={{
@@ -2034,7 +2034,7 @@ Check console for detailed results.`);
             }}
           >
             <div
-              className="text-md font-semibold text-blue-800 mb-3 flex items-center gap-2 cursor-grab active:cursor-grabbing"
+              className="text-md font-semibold text-blue-800 mb-3 flex items-center gap-2 cursor-grab active:cursor-grabbing flex-shrink-0"
               onMouseDown={handleMouseDown}
             >
               <span className="text-xs text-gray-400 select-none">⠿</span>
@@ -2058,7 +2058,7 @@ Check console for detailed results.`);
             </div>
 
             {!isBgPanelMinimized && (
-              <>
+              <div className="overflow-y-auto pr-1 -mr-1">
                 {/* Success/Error Messages */}
                 {bgSuccess && (
                   <div className="mb-2 p-2 bg-green-100 border border-green-300 rounded text-green-700 text-xs">
@@ -2371,7 +2371,7 @@ Check console for detailed results.`);
                     </div>
                   </div>
                 </div>
-              </>
+              </div>
             )}
           </div>
         )}

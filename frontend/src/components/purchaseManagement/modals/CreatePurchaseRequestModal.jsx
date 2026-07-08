@@ -541,20 +541,20 @@ export default function CreatePurchaseRequestModal({
   // ============================================================================
 
   const updateItemQuantity = (index, quantity) => {
-  const parsed = quantity === "" ? 0 : Math.max(0, parseInt(quantity) || 0);
-  setFormData((prev) => ({
-    ...prev,
-    items: prev.items.map((item, i) =>
-      i === index
-        ? {
-            ...item,
-            requestedQuantity: parsed,
-            estimatedTotalCost: parsed * (item.estimatedUnitCost || 0),
-          }
-        : item,
-    ),
-  }));
-};
+    const parsed = quantity === "" ? 0 : Math.max(0, parseInt(quantity) || 0);
+    setFormData((prev) => ({
+      ...prev,
+      items: prev.items.map((item, i) =>
+        i === index
+          ? {
+              ...item,
+              requestedQuantity: parsed,
+              estimatedTotalCost: parsed * (item.estimatedUnitCost || 0),
+            }
+          : item,
+      ),
+    }));
+  };
   // Update estimated unit cost for an item
   const updateItemCost = (index, cost) => {
     const unitCost = parseFloat(cost) || 0;
@@ -866,7 +866,14 @@ export default function CreatePurchaseRequestModal({
       return;
     }
 
-    // Deadline is optional
+    // Deadline is optional, but if provided it cannot be in the past
+    if (formData.deadline) {
+      const todayStr = new Date().toISOString().split("T")[0];
+      if (formData.deadline < todayStr) {
+        showToast("Deadline cannot be in the past", "error");
+        return;
+      }
+    }
 
     // Validation - At least one product
     if (formData.items.length === 0) {
@@ -1035,7 +1042,7 @@ export default function CreatePurchaseRequestModal({
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div
-        className="modal-container large"
+        className="modal-container large purchase-request-modal"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="modal-header">
@@ -1173,11 +1180,15 @@ export default function CreatePurchaseRequestModal({
               <input
                 type="date"
                 value={formData.deadline}
+                min={new Date().toISOString().split("T")[0]}
                 onChange={(e) =>
                   setFormData((prev) => ({ ...prev, deadline: e.target.value }))
                 }
                 className="form-input"
               />
+              <small className="form-hint">
+                Deadline must be today or a future date
+              </small>
             </div>
 
             {/* ================================================================ */}
@@ -1639,7 +1650,11 @@ export default function CreatePurchaseRequestModal({
                       <input
                         type="number"
                         className="form-control"
-                        value={newProductForm.stock}
+                        value={
+                          newProductForm.stock === "0"
+                            ? ""
+                            : newProductForm.stock
+                        }
                         onChange={(e) =>
                           handleNewProductFieldChange("stock", e.target.value)
                         }
@@ -1739,7 +1754,7 @@ export default function CreatePurchaseRequestModal({
               )}
 
               {/* Manual Product Name Entry */}
-              <div
+              {/* <div
                 style={{
                   display: "flex",
                   gap: "8px",
@@ -1823,7 +1838,7 @@ export default function CreatePurchaseRequestModal({
                 >
                   + Add Row
                 </button>
-              </div>
+              </div> */}
 
               {/* Toggle: Show All Products */}
               <div className="product-filter">
@@ -1974,62 +1989,173 @@ export default function CreatePurchaseRequestModal({
             {/* ================================================================ */}
 
             {formData.items.length > 0 && (
-              <div className="selected-products-section">
-                <h4>Selected Products ({formData.items.length})</h4>
+              <div
+                className="selected-products-section"
+                style={{
+                  backgroundColor: "#ffffff",
+                  border: "1px solid #e2e8f0",
+                  borderRadius: "12px",
+                  boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
+                  overflow: "hidden",
+                  marginTop: "8px",
+                }}
+              >
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    padding: "14px 20px",
+                    background:
+                      "linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)",
+                    borderBottom: "1px solid #e2e8f0",
+                  }}
+                >
+                  <h4
+                    style={{
+                      margin: 0,
+                      fontSize: "15px",
+                      fontWeight: "700",
+                      color: "#1e293b",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "8px",
+                    }}
+                  >
+                    🛒 Selected Products
+                    <span
+                      style={{
+                        backgroundColor: "#3b82f6",
+                        color: "white",
+                        borderRadius: "999px",
+                        padding: "2px 10px",
+                        fontSize: "12px",
+                        fontWeight: "700",
+                      }}
+                    >
+                      {formData.items.length}
+                    </span>
+                  </h4>
+                  <span
+                    style={{
+                      fontSize: "13px",
+                      color: "#64748b",
+                      fontWeight: "600",
+                    }}
+                  >
+                    Grand Total:{" "}
+                    <span style={{ color: "#16a34a", fontWeight: "800" }}>
+                      ₹
+                      {formData.items
+                        .reduce(
+                          (sum, item) => sum + (item.estimatedTotalCost || 0),
+                          0,
+                        )
+                        .toFixed(2)}
+                    </span>
+                  </span>
+                </div>
+
                 <div className="table-responsive">
-                  <table className="selected-items-table">
+                  <table
+                    className="selected-items-table"
+                    style={{
+                      width: "100%",
+                      borderCollapse: "collapse",
+                    }}
+                  >
                     <thead>
-                      <tr>
+                      <tr
+                        style={{
+                          backgroundColor: "#f8fafc",
+                        }}
+                      >
                         <th
                           style={{
-                            padding: "10px 16px",
-                            minWidth: "150px",
+                            padding: "10px 10px",
+                            width: "28%",
                             textAlign: "left",
+                            fontSize: "12px",
+                            textTransform: "uppercase",
+                            letterSpacing: "0.03em",
+                            color: "#64748b",
+                            fontWeight: "700",
+                            borderBottom: "2px solid #e2e8f0",
                           }}
                         >
                           Product
                         </th>
                         <th
                           style={{
-                            padding: "10px 16px",
-                            minWidth: "100px",
+                            padding: "10px 10px",
+                            width: "14%",
                             textAlign: "left",
+                            fontSize: "12px",
+                            textTransform: "uppercase",
+                            letterSpacing: "0.03em",
+                            color: "#64748b",
+                            fontWeight: "700",
+                            borderBottom: "2px solid #e2e8f0",
                           }}
                         >
                           SKU
                         </th>
                         <th
                           style={{
-                            padding: "10px 16px",
-                            width: "110px",
+                            padding: "10px 10px",
+                            width: "12%",
                             textAlign: "left",
+                            fontSize: "12px",
+                            textTransform: "uppercase",
+                            letterSpacing: "0.03em",
+                            color: "#64748b",
+                            fontWeight: "700",
+                            borderBottom: "2px solid #e2e8f0",
                           }}
                         >
-                          Quantity *
+                          Qty *
                         </th>
                         <th
                           style={{
-                            padding: "10px 16px",
-                            width: "140px",
+                            padding: "10px 10px",
+                            width: "16%",
                             textAlign: "left",
+                            fontSize: "12px",
+                            textTransform: "uppercase",
+                            letterSpacing: "0.03em",
+                            color: "#64748b",
+                            fontWeight: "700",
+                            borderBottom: "2px solid #e2e8f0",
                           }}
                         >
                           Est. Unit Cost (₹) *
                         </th>
                         <th
                           style={{
-                            padding: "10px 16px",
-                            width: "110px",
-                            textAlign: "left",
+                            padding: "10px 10px",
+                            width: "15%",
+                            textAlign: "right",
+                            fontSize: "12px",
+                            textTransform: "uppercase",
+                            letterSpacing: "0.03em",
+                            color: "#64748b",
+                            fontWeight: "700",
+                            borderBottom: "2px solid #e2e8f0",
                           }}
                         >
                           Total (₹)
                         </th>
                         <th
                           style={{
-                            padding: "10px 16px",
-                            width: "80px",
-                            textAlign: "left",
+                            padding: "10px 10px",
+                            width: "15%",
+                            textAlign: "center",
+                            fontSize: "12px",
+                            textTransform: "uppercase",
+                            letterSpacing: "0.03em",
+                            color: "#64748b",
+                            fontWeight: "700",
+                            borderBottom: "2px solid #e2e8f0",
                           }}
                         >
                           Action
@@ -2038,28 +2164,68 @@ export default function CreatePurchaseRequestModal({
                     </thead>
                     <tbody>
                       {formData.items.map((item, index) => (
-                        <tr key={item.productId}>
-                          <td>
+                        <tr
+                          key={item.productId}
+                          style={{
+                            backgroundColor:
+                              index % 2 === 0 ? "#ffffff" : "#fafbfc",
+                            transition: "background-color 0.15s ease",
+                          }}
+                          onMouseEnter={(e) =>
+                            (e.currentTarget.style.backgroundColor = "#f0f7ff")
+                          }
+                          onMouseLeave={(e) =>
+                            (e.currentTarget.style.backgroundColor =
+                              index % 2 === 0 ? "#ffffff" : "#fafbfc")
+                          }
+                        >
+                          <td
+                            style={{
+                              padding: "10px",
+                              borderBottom: "1px solid #f1f5f9",
+                              fontWeight: "600",
+                              color: "#1e293b",
+                              fontSize: "14px",
+                              overflowWrap: "anywhere",
+                            }}
+                          >
                             {item.productName}
-                            {/* Sprint5-Story-25: Badge for pending products */}
                             {item.isPendingProduct && (
                               <span
                                 style={{
                                   marginLeft: "8px",
                                   padding: "2px 8px",
-                                  backgroundColor: "#ff9800",
-                                  color: "white",
-                                  borderRadius: "4px",
-                                  fontSize: "11px",
-                                  fontWeight: "bold",
+                                  backgroundColor: "#fff3e0",
+                                  color: "#e65100",
+                                  border: "1px solid #ffcc80",
+                                  borderRadius: "999px",
+                                  fontSize: "10px",
+                                  fontWeight: "700",
                                 }}
                               >
-                                NEW PRODUCT
+                                NEW
                               </span>
                             )}
                           </td>
-                          <td className="sku-cell">{item.productSKU}</td>
-                          <td>
+                          <td
+                            className="sku-cell"
+                            style={{
+                              padding: "10px",
+                              borderBottom: "1px solid #f1f5f9",
+                              fontSize: "12px",
+                              color: "#64748b",
+                              fontFamily: "monospace",
+                              overflowWrap: "anywhere",
+                            }}
+                          >
+                            {item.productSKU}
+                          </td>
+                          <td
+                            style={{
+                              padding: "10px",
+                              borderBottom: "1px solid #f1f5f9",
+                            }}
+                          >
                             <input
                               type="number"
                               className="table-input"
@@ -2075,9 +2241,21 @@ export default function CreatePurchaseRequestModal({
                               min="0"
                               placeholder="0"
                               required
+                              style={{
+                                width: "100%",
+                                padding: "7px 8px",
+                                border: "1px solid #d1d5db",
+                                borderRadius: "6px",
+                                fontSize: "13px",
+                              }}
                             />
                           </td>
-                          <td>
+                          <td
+                            style={{
+                              padding: "10px",
+                              borderBottom: "1px solid #f1f5f9",
+                            }}
+                          >
                             <input
                               type="number"
                               className="table-input"
@@ -2089,18 +2267,34 @@ export default function CreatePurchaseRequestModal({
                               step="0.01"
                               placeholder="₹0.00"
                               required
+                              style={{
+                                width: "100%",
+                                padding: "7px 8px",
+                                border: "1px solid #d1d5db",
+                                borderRadius: "6px",
+                                fontSize: "13px",
+                              }}
                             />
                           </td>
                           <td
-                            style={{ textAlign: "right", fontWeight: "bold" }}
+                            style={{
+                              padding: "10px",
+                              textAlign: "right",
+                              fontWeight: "700",
+                              color: "#16a34a",
+                              fontSize: "14px",
+                              borderBottom: "1px solid #f1f5f9",
+                              whiteSpace: "nowrap",
+                            }}
                           >
                             ₹{(item.estimatedTotalCost || 0).toFixed(2)}
                           </td>
                           <td
                             style={{
-                              padding: "10px 16px",
+                              padding: "10px",
                               textAlign: "center",
                               verticalAlign: "middle",
+                              borderBottom: "1px solid #f1f5f9",
                             }}
                           >
                             {deleteConfirmIndex === index ? (
@@ -2168,7 +2362,29 @@ export default function CreatePurchaseRequestModal({
                                 className="btn-icon-remove"
                                 onClick={() => setDeleteConfirmIndex(index)}
                                 title="Remove product"
-                                style={{ display: "block", margin: "0 auto" }}
+                                style={{
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: "center",
+                                  margin: "0 auto",
+                                  width: "28px",
+                                  height: "28px",
+                                  borderRadius: "6px",
+                                  border: "1px solid #fecaca",
+                                  backgroundColor: "#fef2f2",
+                                  color: "#dc2626",
+                                  cursor: "pointer",
+                                  fontSize: "13px",
+                                  transition: "background-color 0.15s ease",
+                                }}
+                                onMouseEnter={(e) =>
+                                  (e.currentTarget.style.backgroundColor =
+                                    "#fee2e2")
+                                }
+                                onMouseLeave={(e) =>
+                                  (e.currentTarget.style.backgroundColor =
+                                    "#fef2f2")
+                                }
                               >
                                 ✖
                               </button>
@@ -2176,41 +2392,46 @@ export default function CreatePurchaseRequestModal({
                           </td>
                         </tr>
                       ))}
-                      {/* Total Row */}
-                      <tr
-                        style={{
-                          backgroundColor: "#f5f5f5",
-                          fontWeight: "bold",
-                          borderTop: "2px solid #ddd",
-                        }}
-                      >
-                        <td
-                          colSpan="4"
-                          style={{ textAlign: "right", padding: "12px" }}
-                        >
-                          Grand Total:
-                        </td>
-                        <td
-                          style={{
-                            textAlign: "right",
-                            padding: "12px",
-                            fontSize: "16px",
-                            color: "#16a34a",
-                          }}
-                        >
-                          ₹
-                          {formData.items
-                            .reduce(
-                              (sum, item) =>
-                                sum + (item.estimatedTotalCost || 0),
-                              0,
-                            )
-                            .toFixed(2)}
-                        </td>
-                        <td></td>
-                      </tr>
                     </tbody>
                   </table>
+                </div>
+
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "flex-end",
+                    alignItems: "center",
+                    gap: "10px",
+                    padding: "14px 20px",
+                    background:
+                      "linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%)",
+                    borderTop: "2px solid #d1fae5",
+                  }}
+                >
+                  <span
+                    style={{
+                      fontSize: "14px",
+                      fontWeight: "700",
+                      color: "#065f46",
+                    }}
+                  >
+                    Grand Total
+                  </span>
+                  <span
+                    style={{
+                      fontSize: "20px",
+                      fontWeight: "800",
+                      color: "#16a34a",
+                    }}
+                  >
+                    ₹
+                    {formData.items
+                      .reduce(
+                        (sum, item) => sum + (item.estimatedTotalCost || 0),
+                        0,
+                      )
+                      .toFixed(2)}
+                  </span>
                 </div>
               </div>
             )}

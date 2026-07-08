@@ -14,13 +14,21 @@ import { getCoachDeliveryStats } from '../../api';
  * - Navigates to /coach/deliveries on click
  */
 
+const getStoredUser = () => {
+  try {
+    return JSON.parse(localStorage.getItem('user') || '{}');
+  } catch (error) {
+    return {};
+  }
+};
+
 export default function FloatingDeliveriesButton() {
   const [pendingCount, setPendingCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
   // Check if user is admin
-  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const user = getStoredUser();
   const userRole = typeof user?.role === 'string' ? user.role : user?.role?.roleName;
   const isAdmin = userRole?.toLowerCase() === 'admin';
 

@@ -11,6 +11,28 @@ function escapeRegex(str) {
   return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
+function hasValue(value) {
+  return value !== undefined && value !== null && value !== '';
+}
+
+function hasApprovedVendor(product) {
+  return Array.isArray(product.approvedVendors) && product.approvedVendors.length > 0;
+}
+
+function isCompletedCatalogProduct(product) {
+  return (
+    hasValue(product.name) &&
+    hasValue(product.description) &&
+    hasValue(product.category) &&
+    hasValue(product.price) &&
+    hasValue(product.maxPrice) &&
+    hasValue(product.sellingPrice) &&
+    Number(product.stock) > 0 &&
+    product.isActive !== false &&
+    hasApprovedVendor(product)
+  );
+}
+
 /**
  * Admin Product Controller - Sprint5-Story-05
  * CRUD operations for shop products (admin only)
@@ -362,6 +384,24 @@ async function updateProduct(req, res) {
     if (updateData.stock !== undefined) updateData.stock = Number(updateData.stock);
     if (updateData.lowStockThreshold !== undefined) updateData.lowStockThreshold = Number(updateData.lowStockThreshold);
 
+    const existingProduct = await ShopItem.findById(productId).lean();
+
+    if (!existingProduct) {
+      return res.status(404).json({
+        success: false,
+        message: 'Product not found'
+      });
+    }
+
+    const mergedProduct = {
+      ...existingProduct,
+      ...updateData
+    };
+
+    if (existingProduct.isPendingProduct === true && isCompletedCatalogProduct(mergedProduct)) {
+      updateData.isPendingProduct = false;
+    }
+
     // Find and update product
     const product = await ShopItem.findByIdAndUpdate(
       productId,
@@ -371,13 +411,6 @@ async function updateProduct(req, res) {
         runValidators: true
       }
     );
-
-    if (!product) {
-      return res.status(404).json({
-        success: false,
-        message: 'Product not found'
-      });
-    }
 
     res.status(200).json({
       success: true,

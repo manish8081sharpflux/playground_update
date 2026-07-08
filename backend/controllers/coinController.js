@@ -142,7 +142,7 @@ exports.getUserCoinStats = async (req, res) => {
 exports.getUserTransactionHistory = async (req, res) => {
   try {
     const userId = req.user?.id;
-    const { type, source, startDate, endDate, page, limit } = req.query;
+    const { type, source, startDate, endDate, page, limit, sortBy } = req.query;
 
     if (!userId) {
       return res.status(HTTP_STATUS_CODE.UNAUTHORIZED).json({
@@ -168,7 +168,8 @@ exports.getUserTransactionHistory = async (req, res) => {
       startDate,
       endDate,
       page,
-      limit
+      limit,
+      sortBy
     });
 
     if (result.success) {

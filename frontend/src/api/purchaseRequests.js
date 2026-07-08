@@ -50,6 +50,8 @@ export const getMyPurchaseRequests = async (params = {}) => {
     if (params.balagruhaId) queryParams.append('balagruhaId', params.balagruhaId);
     if (params.startDate) queryParams.append('startDate', params.startDate);
     if (params.endDate) queryParams.append('endDate', params.endDate);
+    if (params.page) queryParams.append('page', params.page);
+    if (params.limit) queryParams.append('limit', params.limit);
     const response = await api.get(`/api/v2/shop/admin/purchase-requests/my?${queryParams.toString()}`);
     return response.data;
   } catch (error) {
@@ -65,6 +67,8 @@ export const getAllPurchaseRequests = async (params = {}) => {
     if (params.balagruhaId) queryParams.append('balagruhaId', params.balagruhaId);
     if (params.startDate) queryParams.append('startDate', params.startDate);
     if (params.endDate) queryParams.append('endDate', params.endDate);
+    if (params.page) queryParams.append('page', params.page);
+    if (params.limit) queryParams.append('limit', params.limit);
     const response = await api.get(`/api/v2/shop/admin/purchase-requests?${queryParams.toString()}`);
     return response.data;
   } catch (error) {

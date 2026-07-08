@@ -2,6 +2,16 @@ const ShopItem = require('../models/shopItem');
 const PurchaseRequest = require('../models/purchaseRequest');
 const { logger, errorLogger } = require('../config/pino-config');
 
+const escapeRegExp = (value) => String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+const currentPriceExpression = {
+  $cond: [
+    { $gt: ['$discountPrice', 0] },
+    '$discountPrice',
+    '$price'
+  ]
+};
+
 class ShopService {
   /**
    * Get filtered products with pagination
@@ -35,6 +45,11 @@ class ShopService {
         ]
       };
 
+      const addAndClause = (clause) => {
+        query.$and = query.$and || [];
+        query.$and.push(clause);
+      };
+
       // Category filter — FIX-043: Support comma-separated categories for multi-select
       if (category) {
         if (category.includes(',')) {
@@ -45,27 +60,56 @@ class ShopService {
       }
 
       // Story 2.5: Purchase category filter (scopes catalog by procurement bucket)
-      // Also check category field as fallback for products where purchaseCategory wasn't set properly
+      // Also check category field as fallback for products where purchaseCategory wasn't set properly.
+      // Use $and so this filter does not replace the active/pending visibility rule above.
       if (purchaseCategory) {
-        query.$or = [
-          { purchaseCategory: purchaseCategory },
-          { category: purchaseCategory }
-        ];
+        addAndClause({
+          $or: [
+            { purchaseCategory: purchaseCategory },
+            { category: purchaseCategory }
+          ]
+        });
       }
 
-      // Search filter (text index)
-      if (search) {
-        query.$text = { $search: search };
+      // Search filter - partial matching for the shop UI search box.
+      if (search && search.trim()) {
+        const searchRegex = new RegExp(escapeRegExp(search.trim()), 'i');
+        addAndClause({
+          $or: [
+            { name: searchRegex },
+            { description: searchRegex },
+            { sku: searchRegex }
+          ]
+        });
       }
 
       // Price range
       if (minPrice !== undefined || maxPrice !== undefined) {
-        query.price = {};
-        if (minPrice !== undefined) query.price.$gte = Number(minPrice);
-        if (maxPrice !== undefined) query.price.$lte = Number(maxPrice);
+        const priceExpressions = [];
+        const parsedMinPrice = Number(minPrice);
+        const parsedMaxPrice = Number(maxPrice);
+
+        if (
+          minPrice !== undefined &&
+          minPrice !== '' &&
+          !Number.isNaN(parsedMinPrice)
+        ) {
+          priceExpressions.push({ $gte: [currentPriceExpression, parsedMinPrice] });
+        }
+        if (
+          maxPrice !== undefined &&
+          maxPrice !== '' &&
+          !Number.isNaN(parsedMaxPrice)
+        ) {
+          priceExpressions.push({ $lte: [currentPriceExpression, parsedMaxPrice] });
+        }
+
+        if (priceExpressions.length > 0) {
+          addAndClause({ $expr: { $and: priceExpressions } });
+        }
       }
 
-      // Stock filter - Sprint5-Story-25: Don't filter out pending products by stock
+      // Stock filter
       // Updated to support granular stockStatus (low, out, high)
       const stockStatus = filters.stockStatus; // 'low', 'out', 'high', 'in_stock'
 
@@ -73,63 +117,27 @@ class ShopService {
         if (stockStatus === 'out') {
           query.stock = 0;
         } else if (stockStatus === 'low') {
-          query.$expr = {
-            $and: [
-              { $gt: ['$stock', 0] },
-              { $lte: ['$stock', '$lowStockThreshold'] }
-            ]
-          };
-        } else if (stockStatus === 'high') {
-          query.$expr = { $gt: ['$stock', '$lowStockThreshold'] };
-        } else if (stockStatus === 'in_stock' || inStock === true || inStock === 'true') {
-          // Default in_stock logic
-          query.$and = query.$and || [];
-          query.$and.push({
-            $or: [
-              { isPendingProduct: true },
-              { stock: { $gt: 0 } }
-            ]
+          addAndClause({
+            $expr: {
+              $and: [
+                { $gt: ['$stock', 0] },
+                { $lte: ['$stock', '$lowStockThreshold'] }
+              ]
+            }
           });
+        } else if (stockStatus === 'high') {
+          addAndClause({ $expr: { $gt: ['$stock', '$lowStockThreshold'] } });
+        } else if (stockStatus === 'in_stock' || inStock === true || inStock === 'true') {
+          query.stock = { $gt: 0 };
         }
       } else if (inStock === true || inStock === 'true') {
-        // Fallback to legacy boolean check if stockStatus not provided
-        query.$and = query.$and || [];
-        query.$and.push({
-          $or: [
-            { isPendingProduct: true },      // Pending products: include regardless of stock
-            { stock: { $gt: 0 } }            // Regular products: only if stock > 0
-          ]
-        });
+        query.stock = { $gt: 0 };
       }
 
-      // Balagruha Scoping (for filtered views like PM Low Stock).
-      // Coach-scoped admin views use actual ownership paths: Balagruha-specific
-      // products, products created by the selected coach, and products requested
-      // by that coach through purchase requests.
-      if (filters.coachScoped) {
-        const coachProductScope = [];
-
-        if (filters.balagruhaIds && Array.isArray(filters.balagruhaIds) && filters.balagruhaIds.length > 0) {
-          coachProductScope.push({ balagruhaId: { $in: filters.balagruhaIds } });
-        }
-
-        if (filters.coachId) {
-          coachProductScope.push({ createdBy: filters.coachId });
-        }
-
-        if (filters.requestedProductIds && Array.isArray(filters.requestedProductIds) && filters.requestedProductIds.length > 0) {
-          coachProductScope.push({ _id: { $in: filters.requestedProductIds } });
-        }
-
-        query.$and = query.$and || [];
-        query.$and.push(
-          coachProductScope.length > 0
-            ? { $or: coachProductScope }
-            : { _id: { $in: [] } }
-        );
-      } else if (filters.balagruhaIds && Array.isArray(filters.balagruhaIds) && filters.balagruhaIds.length > 0) {
-        query.$and = query.$and || [];
-        query.$and.push({
+      // Balagruha Scoping (for filtered views like PM Low Stock)
+      // supports passing array of IDs. Includes shop-wide items (null/undefined balagruhaId)
+      if (filters.balagruhaIds && Array.isArray(filters.balagruhaIds) && filters.balagruhaIds.length > 0) {
+        addAndClause({
           $or: [
             { balagruhaId: { $in: filters.balagruhaIds } },
             { balagruhaId: null },
@@ -140,14 +148,32 @@ class ShopService {
 
       const skip = (page - 1) * limit;
 
-      // Execute queries in parallel
-      const [products, total] = await Promise.all([
-        ShopItem.find(query)
+      let productQuery;
+      if (sort === 'price' || sort === '-price') {
+        productQuery = ShopItem.aggregate([
+          { $match: query },
+          { $addFields: { _sortPrice: currentPriceExpression } },
+          { $sort: { _sortPrice: sort === 'price' ? 1 : -1, _id: 1 } },
+          { $skip: skip },
+          { $limit: limit },
+          { $project: { __v: 0, _sortPrice: 0 } }
+        ]);
+      } else {
+        productQuery = ShopItem.find(query)
           .select('-__v')
           .sort(sort)
           .skip(skip)
           .limit(limit)
-          .lean(),
+          .lean();
+
+        if (sort === 'name' || sort === '-name') {
+          productQuery.collation({ locale: 'en', strength: 2 });
+        }
+      }
+
+      // Execute queries in parallel
+      const [products, total] = await Promise.all([
+        productQuery,
         ShopItem.countDocuments(query)
       ]);
 
@@ -165,7 +191,7 @@ class ShopService {
           primaryImageUrl,
           inStock: product.stock > 0,
           lowStock: product.stock > 0 && product.stock <= (product.lowStockThreshold || 10),
-          currentPrice: product.discountPrice !== null ? product.discountPrice : product.price
+          currentPrice: product.discountPrice > 0 ? product.discountPrice : product.price
         };
       });
 
@@ -269,7 +295,7 @@ class ShopService {
           primaryImageUrl,
           inStock: product.stock > 0,
           lowStock: product.stock > 0 && product.stock <= (product.lowStockThreshold || 10),
-          currentPrice: product.discountPrice !== null ? product.discountPrice : product.price
+          currentPrice: product.discountPrice > 0 ? product.discountPrice : product.price
         };
       });
 

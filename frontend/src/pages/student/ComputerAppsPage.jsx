@@ -164,6 +164,10 @@ export default function ComputerAppsPage() {
     }
   };
 
+  const isTaskCompleted = (item) => (
+    item?.isCompleted || item?.completed || item?.status === 'completed'
+  );
+
   // Render List View
   if (!courseId) {
     if (loading) return (
@@ -202,9 +206,9 @@ export default function ComputerAppsPage() {
 
   // Render Player View (Life Skills Style)
   return (
-    <div className="flex h-screen overflow-hidden bg-gray-50 font-sans">
+    <div className="flex bg-gray-50 font-sans">
       {/* Sidebar: Chapters */}
-      <div className="w-80 border-r border-gray-200 bg-white overflow-y-auto flex-shrink-0 flex flex-col">
+      <div className="w-80 border-r border-gray-200 bg-white flex-shrink-0 flex flex-col">
         <div className="p-6 border-b border-gray-100">
           <button
             onClick={() => navigate(`/student/computer-apps`)}
@@ -217,7 +221,7 @@ export default function ComputerAppsPage() {
           </h2>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-4 space-y-6">
+        <div className="flex-1 p-4 space-y-6">
           {selectedCourse?.modules?.map((module, mIdx) => (
             <div key={module.id}>
               <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 px-2">
@@ -244,7 +248,7 @@ export default function ComputerAppsPage() {
       </div>
 
       {/* Main Content: Card Grid */}
-      <div className="flex-1 overflow-y-auto bg-gray-50 p-8">
+      <div className="flex-1 bg-gray-50 p-8">
         {loading ? (
           <div className="flex justify-center items-center h-64">Loading content...</div>
         ) : selectedChapter ? (
@@ -264,21 +268,21 @@ export default function ComputerAppsPage() {
                 // Style based on type
                 if (item.type === 'video') {
                   return (
-                    <div key={item.id} className="bg-white border-2 border-indigo-200 rounded-2xl overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 group">
+                    <div key={item.id} className="bg-white border-2 border-indigo-200 rounded-2xl overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 group flex flex-col h-full">
                       <div className="bg-indigo-50 h-40 flex items-center justify-center group-hover:bg-indigo-100 transition-colors relative">
                         <span className="text-6xl filter drop-shadow-sm">🎬</span>
-                        {item.isCompleted && (
+                        {isTaskCompleted(item) && (
                           <div className="absolute top-3 right-3 bg-green-500 text-white p-1 rounded-full shadow-sm">
                             <CheckCircle size={16} />
                           </div>
                         )}
                       </div>
-                      <div className="p-5">
+                      <div className="p-5 flex flex-col flex-1">
                         <span className="inline-block px-2 py-1 bg-indigo-100 text-indigo-700 text-xs font-bold rounded-full mb-2 uppercase tracking-wide">Video Lesson</span>
                         <h3 className="text-lg font-bold text-gray-900 mb-3 line-clamp-2 leading-tight">{item.title}</h3>
                         <button
                           onClick={() => handleLaunchContent(item)}
-                          className="w-full py-2.5 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition-colors flex items-center justify-center gap-2"
+                          className="w-full mt-auto py-2.5 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition-colors flex items-center justify-center gap-2"
                         >
                           <PlayCircle size={18} /> Watch Now
                         </button>
@@ -287,22 +291,22 @@ export default function ComputerAppsPage() {
                   );
                 } else if (item.type === 'quiz') {
                   return (
-                    <div key={item.id} className="bg-white border-2 border-purple-200 rounded-2xl overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 group">
+                    <div key={item.id} className="bg-white border-2 border-purple-200 rounded-2xl overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 group flex flex-col h-full">
                       <div className="bg-purple-50 h-40 flex items-center justify-center group-hover:bg-purple-100 transition-colors relative">
                         <span className="text-6xl filter drop-shadow-sm">📝</span>
-                        {item.isCompleted && (
+                        {isTaskCompleted(item) && (
                           <div className="absolute top-3 right-3 bg-green-500 text-white p-1 rounded-full shadow-sm">
                             <CheckCircle size={16} />
                           </div>
                         )}
                       </div>
-                      <div className="p-5">
+                      <div className="p-5 flex flex-col flex-1">
                         <span className="inline-block px-2 py-1 bg-purple-100 text-purple-700 text-xs font-bold rounded-full mb-2 uppercase tracking-wide">Quiz Challenge</span>
                         <h3 className="text-lg font-bold text-gray-900 mb-2 line-clamp-2 leading-tight">{item.title}</h3>
                         <p className="text-sm text-gray-500 mb-4">{item.difficulty || 'Beginner'} Level</p>
                         <button
                           onClick={() => handleLaunchContent(item)}
-                          className="w-full py-2.5 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 transition-colors flex items-center justify-center gap-2"
+                          className="w-full mt-auto py-2.5 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 transition-colors flex items-center justify-center gap-2"
                         >
                           <HelpCircle size={18} /> Start Quiz
                         </button>
@@ -315,7 +319,7 @@ export default function ComputerAppsPage() {
                     <div key={item.id} className="bg-white border-2 border-amber-200 rounded-2xl overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 group">
                       <div className="bg-amber-50 h-40 flex items-center justify-center group-hover:bg-amber-100 transition-colors relative">
                         <span className="text-6xl filter drop-shadow-sm">🎧</span>
-                        {item.isCompleted && (
+                        {isTaskCompleted(item) && (
                           <div className="absolute top-3 right-3 bg-green-500 text-white p-1 rounded-full shadow-sm">
                             <CheckCircle size={16} />
                           </div>
@@ -343,7 +347,7 @@ export default function ComputerAppsPage() {
                         ) : (
                           <span className="text-6xl filter drop-shadow-sm">🖼️</span>
                         )}
-                        {item.isCompleted && (
+                        {isTaskCompleted(item) && (
                           <div className="absolute top-3 right-3 bg-green-500 text-white p-1 rounded-full shadow-sm">
                             <CheckCircle size={16} />
                           </div>
@@ -367,7 +371,7 @@ export default function ComputerAppsPage() {
                     <div key={item.id} className="bg-white border-2 border-red-200 rounded-2xl overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 group">
                       <div className="bg-red-50 h-40 flex items-center justify-center group-hover:bg-red-100 transition-colors relative">
                         <span className="text-6xl filter drop-shadow-sm">📄</span>
-                        {item.isCompleted && (
+                        {isTaskCompleted(item) && (
                           <div className="absolute top-3 right-3 bg-green-500 text-white p-1 rounded-full shadow-sm">
                             <CheckCircle size={16} />
                           </div>

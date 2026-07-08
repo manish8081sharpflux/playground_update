@@ -471,8 +471,18 @@ exports.getAllPurchaseRequests = async (req, res) => {
         { balagruhaId: { $in: userBalagruhaIds } },
         { balagruhaId: "STOCK" },
       ];
+    } else if (userRole === "medical-incharge") {
+      // Medical In-Charge is scoped to exactly one Balagruha — show ALL requests
+      // for that Balagruha regardless of who created them (e.g. Admin-created requests),
+      // same principle as Purchase Manager above.
+      const user = await User.findById(userId).select("balagruhaIds");
+      const userBalagruhaIds = (user.balagruhaIds || []).map((id) =>
+        id.toString(),
+      );
+
+      query.$or = [{ balagruhaId: { $in: userBalagruhaIds } }];
     } else {
-      // Other roles (Coach, Medical Incharge, etc.) see ONLY their own requests
+      // Other roles (Coach, etc.) see ONLY their own requests
       query.requestedBy = userId;
     }
 
@@ -482,14 +492,17 @@ exports.getAllPurchaseRequests = async (req, res) => {
 
     // Balagruha filter - respect role-based restrictions
     if (balagruhaId && balagruhaId !== "all") {
-      if (userRole === "purchase-manager") {
-        // For purchase-manager, ensure they can only filter by their assigned balagruhas or STOCK
+      if (userRole === "purchase-manager" || userRole === "medical-incharge") {
+        // Ensure they can only filter by their own assigned balagruha(s) (or STOCK, PM only)
         const user = await User.findById(userId).select("balagruhaIds");
         const userBalagruhaIds = (user.balagruhaIds || []).map((id) =>
           id.toString(),
         );
 
-        if (balagruhaId === "STOCK" || userBalagruhaIds.includes(balagruhaId)) {
+        const canFilterStock =
+          userRole === "purchase-manager" && balagruhaId === "STOCK";
+
+        if (canFilterStock || userBalagruhaIds.includes(balagruhaId)) {
           // Override $or when filtering by specific balagruha
           delete query.$or;
           query.balagruhaId = balagruhaId;
@@ -1388,6 +1401,11 @@ exports.updateStatus = async (req, res) => {
     if (status === "delivered_store") {
       // delivered_store: Items received at store — increase stock
       for (const item of requestDoc.items) {
+        // Skip manual entries (no linked ShopItem) — nothing to update in inventory
+        if (!item.productId) {
+          continue;
+        }
+
         let productQuery = ShopItem.findById(item.productId);
         if (session) productQuery = productQuery.session(session);
         const product = await productQuery;
@@ -1431,6 +1449,10 @@ exports.updateStatus = async (req, res) => {
     } else if (status === "delivered_balagruha") {
       // delivered_balagruha: Items deployed from store to balagruha — track deployment
       for (const item of requestDoc.items) {
+        if (!item.productId) {
+          continue;
+        }
+
         let productQuery = ShopItem.findById(item.productId);
         if (session) productQuery = productQuery.session(session);
         const product = await productQuery;
@@ -1711,7 +1733,9 @@ exports.getPendingCount = async (req, res) => {
     // PM sees only their assigned balagruhas + STOCK
     if (userRole === "purchase-manager") {
       const user = await User.findById(userId).select("balagruhaIds");
-      const balagruhaIds = user?.balagruhaIds || [];
+      const balagruhaIds = (user?.balagruhaIds || []).map((id) =>
+        id.toString(),
+      );
 
       query.$or = [
         { balagruhaId: { $in: balagruhaIds } },

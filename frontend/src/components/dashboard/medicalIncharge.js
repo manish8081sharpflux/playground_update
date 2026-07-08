@@ -16,6 +16,20 @@ import FollowUpsTooltip from "./FollowUpsTooltip";
 const CLOSED_STATUSES = new Set(["completed", "inactive", "closed", "resolved"]);
 const ACTIVE_STATUSES = new Set(["active", "ongoing", "in-progress", "scheduled", "pending", ""]);
 
+const parseStoredBalagruhaIds = () => {
+  try {
+    const parsed = JSON.parse(localStorage.getItem("balagruhaIds") || "[]");
+    return (Array.isArray(parsed) ? parsed : [])
+      .map((item) => item?._id || item?.id || item)
+      .filter(Boolean);
+  } catch (error) {
+    return (localStorage.getItem("balagruhaIds") || "")
+      .split(",")
+      .map((id) => id.trim())
+      .filter(Boolean);
+  }
+};
+
 const getDoctorVisitsList = (checkin = {}) => {
   if (Array.isArray(checkin.doctorVisits) && checkin.doctorVisits.length) {
     return checkin.doctorVisits.filter(Boolean);
@@ -106,6 +120,14 @@ const formatCaseDate = (date) => {
   });
 };
 
+const getStudentCountKey = (checkin = {}) => {
+  const studentId = checkin.studentId;
+  if (studentId && typeof studentId === "object") {
+    return studentId._id || studentId.id;
+  }
+  return studentId || checkin.userId || checkin._id;
+};
+
 const MedicInchargeDashboard = () => {
   const getVerticalPosition = (rect) => {
     const spaceBelow = window.innerHeight - rect.bottom;
@@ -186,7 +208,6 @@ const MedicInchargeDashboard = () => {
 
   useEffect(() => {
     fetchBalagruha()
-    fetchMedicalData()
 
     const handleGlobalClick = () => {
       setHoveredStudent(null);
@@ -199,6 +220,15 @@ const MedicInchargeDashboard = () => {
       document.removeEventListener('click', handleGlobalClick);
     };
   }, [])
+
+  // Fetch check-ins using the medic's actual assigned Balagruhas (balagruhaData),
+  // which can include multiple Balagruhas and is always fresh from the server —
+  // rather than a localStorage snapshot that can go stale if assignments change.
+  useEffect(() => {
+    if (balagruhaData.length > 0) {
+      fetchMedicalData(balagruhaData.map((bal) => bal._id));
+    }
+  }, [balagruhaData])
 
   // Handle navigation from Layout menu with state
   useEffect(() => {
@@ -348,13 +378,11 @@ const MedicInchargeDashboard = () => {
         criticalCount += 1;
       }
 
-      if (
-        checkInDate &&
-        checkInDate >= startOfMonth &&
-        checkInDate <= endOfMonth &&
-        healthStatus !== "normal"
-      ) {
-        sickStudents.add(checkin.studentId || checkin.userId || checkin._id);
+      if (checkInDate && checkInDate >= startOfMonth && checkInDate <= endOfMonth) {
+        const studentKey = getStudentCountKey(checkin);
+        if (studentKey) {
+          sickStudents.add(studentKey.toString());
+        }
       }
 
       if (isClosedCase(checkin)) {
@@ -587,7 +615,7 @@ const MedicInchargeDashboard = () => {
           } else {
             showToast("Medical Check-in updated successfully", "success");
           }
-          await fetchMedicalData();
+          await fetchMedicalData(balagruhaData.map((bal) => bal._id));
         } else {
           // Sprint6-Story-3-AC4: Show specific error message from backend
           const errorMessage = response.message || "Failed to update medical check-in";
@@ -683,7 +711,7 @@ const MedicInchargeDashboard = () => {
         const response = await createMedicalCheckin(formDataToSend);
         if (response.success) {
           showToast("Medical Check-in created successfully", "success");
-          await fetchMedicalData();
+          await fetchMedicalData(balagruhaData.map((bal) => bal._id));
         } else {
           // Sprint6-Story-3-AC4: Show specific error message from backend
           const errorMessage = response.message || "Failed to create medical check-in";
@@ -704,7 +732,7 @@ const MedicInchargeDashboard = () => {
       const response = await deleteMedicalCheckin(id);
       if (response.success) {
         showToast("Medical Check-in deleted successfully", "success");
-        fetchMedicalData(); // Refresh the list
+        fetchMedicalData(balagruhaData.map((bal) => bal._id)); // Refresh the list
       } else {
         showToast("Failed to delete medical check-in", "error");
       }
@@ -807,11 +835,15 @@ const MedicInchargeDashboard = () => {
     }
   }
 
-  const fetchMedicalData = async () => {
-    // Parse the JSON stringified array from localStorage
-    const balagruhaIdsFromStorage = JSON.parse(localStorage.getItem('balagruhaIds') || '[]');
-    const response = await getMedicalConditionBasedOnBalagruha(balagruhaIdsFromStorage);
-    if (response.success) {
+  const fetchMedicalData = async(balagruhaIds) => {
+    // Prefer the live list of the medic's assigned Balagruhas (from balagruhaData,
+    // passed in by the caller). Fall back to localStorage only if that isn't
+    // available yet, so students across every assigned Balagruha are included.
+    const idsToUse = balagruhaIds && balagruhaIds.length > 0
+      ? balagruhaIds
+      : parseStoredBalagruhaIds();
+    const response = await getMedicalConditionBasedOnBalagruha(idsToUse);
+    if(response.success) {
       // Show all check-ins for students in assigned balagruhas (not just ones created by this user)
       setRecentHealthCheckins(response?.data?.medicalCheckIns || []);
     } else {
@@ -1415,23 +1447,15 @@ const MedicInchargeDashboard = () => {
                   onDateRangeChange={handleDateRangeChange}
                 />
                 <div className="medic-search-filter">
-                  <input
-                    type="text"
-                    placeholder="Search student..."
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                    aria-label="Search students by name"
-                  />
-
-                  <select
-                    value={medicalStatus}
-                    onChange={(e) => setMedicalStatus(e.target.value)}
-                    aria-label="Filter by medical status"
-                  >
-                    <option value="all">All Statuses</option>
-                    <option value="normal">Normal</option>
-                    <option value="important">Important</option>
-                    <option value="critical">Critical</option>
+                  <div className="medic-search-box">
+                    <span className="medic-search-icon" aria-hidden="true">🔍</span>
+                    <input type="text" placeholder="Search student..." onChange={(e) => setSearch(e.target.value)} aria-label="Search students by name" />
+                  </div>
+                  <select onChange={(e) => setMedicalStatus(e.target.value)} aria-label="Filter by medical status">
+                    <option value={'all'}>All Statuses</option>
+                    <option value={'normal'}>Normal</option>
+                    <option value={'important'}>Important</option>
+                    <option value={'critical'}>Critical</option>
                   </select>
 
                   <select

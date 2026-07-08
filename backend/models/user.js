@@ -12,9 +12,21 @@ const userSchema = new mongoose.Schema(
       type: String,
       unique: true,
       sparse: true, // This allows multiple null values by indexing only non-null values
-      required: false, // Makes the field optional
+      required: [
+        function () {
+          return this.role !== "student";
+        },
+        "Email is required for non-student users",
+      ],
       trim: true,
       lowercase: true,
+      set: (value) => {
+        if (typeof value !== "string") {
+          return value;
+        }
+        const trimmed = value.trim();
+        return trimmed ? trimmed.toLowerCase() : undefined;
+      },
       match: [
         /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/,
         "Please enter a valid email",

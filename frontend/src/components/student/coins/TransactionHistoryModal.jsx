@@ -17,25 +17,85 @@ export default function TransactionHistoryModal({ isOpen, onClose, currentBalanc
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(false);
 
+  const getDateRange = (selectedDateFilter) => {
+    const now = new Date();
+    const start = new Date(now);
+    const formatDate = (date) => {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    };
+
+    if (selectedDateFilter === 'this_week') {
+      start.setDate(now.getDate() - now.getDay());
+    } else if (selectedDateFilter === 'this_month') {
+      start.setDate(1);
+    } else if (selectedDateFilter === 'last_3_months') {
+      start.setMonth(now.getMonth() - 3);
+    } else {
+      return null;
+    }
+
+    start.setHours(0, 0, 0, 0);
+    return {
+      startDate: formatDate(start),
+      endDate: formatDate(now)
+    };
+  };
+
+  const getFilterParams = (selectedFilter) => {
+    if (selectedFilter === 'earned') {
+      return { type: 'earned' };
+    }
+    if (selectedFilter === 'spent') {
+      return { type: 'spent' };
+    }
+    if (selectedFilter === 'quiz_bonus') {
+      return { source: 'quiz_pass' };
+    }
+    if (selectedFilter === 'coach_award') {
+      return { source: 'manual_award' };
+    }
+    if (selectedFilter === 'milestone') {
+      return { source: 'task' };
+    }
+    return {};
+  };
+
+  const sortTransactions = (items, selectedSortBy) => {
+    return [...items].sort((a, b) => {
+      if (selectedSortBy === 'oldest') {
+        return new Date(a.createdAt || a.timestamp) - new Date(b.createdAt || b.timestamp);
+      }
+      if (selectedSortBy === 'highest') {
+        return Math.abs(b.amount) - Math.abs(a.amount);
+      }
+      return new Date(b.createdAt || b.timestamp) - new Date(a.createdAt || a.timestamp);
+    });
+  };
+
   // Fetch transactions from API
-  const fetchTransactions = async () => {
+  const fetchTransactions = async (pageToFetch = page) => {
     try {
       setLoading(true);
 
       // Build query params
       const params = new URLSearchParams();
       params.append('limit', '20');
-      params.append('page', page.toString());
+      params.append('page', pageToFetch.toString());
 
-      if (filter !== 'all') {
-        params.append('type', filter);
+      const filterParams = getFilterParams(filter);
+      Object.entries(filterParams).forEach(([key, value]) => {
+        params.append(key, value);
+      });
+
+      const dateRange = getDateRange(dateFilter);
+      if (dateRange) {
+        params.append('startDate', dateRange.startDate);
+        params.append('endDate', dateRange.endDate);
       }
 
-      if (dateFilter !== 'all') {
-        params.append('dateFilter', dateFilter);
-      }
-
-      // Map sort options to API params
       if (sortBy === 'oldest') {
         params.append('sortBy', 'oldest_first');
       } else if (sortBy === 'highest') {
@@ -47,15 +107,16 @@ export default function TransactionHistoryModal({ isOpen, onClose, currentBalanc
       const response = await api.get(`/api/v1/coin/transactions?${params.toString()}`);
 
       if (response.data.success) {
-        const newTransactions = response.data.data.transactions || [];
+        const newTransactions = sortTransactions(response.data.data.transactions || [], sortBy);
 
-        if (page === 1) {
+        if (pageToFetch === 1) {
           setTransactions(newTransactions);
         } else {
-          setTransactions(prev => [...prev, ...newTransactions]);
+          setTransactions(prev => sortTransactions([...prev, ...newTransactions], sortBy));
         }
 
-        setHasMore(response.data.data.hasMore || false);
+        const pagination = response.data.data.pagination;
+        setHasMore(pagination ? pagination.page < pagination.pages : false);
       } else {
         toast.error('Failed to load transaction history');
       }
@@ -71,14 +132,15 @@ export default function TransactionHistoryModal({ isOpen, onClose, currentBalanc
   useEffect(() => {
     if (isOpen) {
       setPage(1);
-      fetchTransactions();
+      setTransactions([]);
+      fetchTransactions(1);
     }
   }, [isOpen, filter, dateFilter, sortBy]);
 
   // Fetch more transactions when page changes
   useEffect(() => {
     if (page > 1) {
-      fetchTransactions();
+      fetchTransactions(page);
     }
   }, [page]);
 
@@ -148,8 +210,8 @@ export default function TransactionHistoryModal({ isOpen, onClose, currentBalanc
               className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             >
               <option value="all">All</option>
-              <option value="earn">Earned</option>
-              <option value="spend">Spent</option>
+              <option value="earned">Earned</option>
+              <option value="spent">Spent</option>
               <option value="quiz_bonus">Quiz Bonus</option>
               <option value="coach_award">Coach Award</option>
               <option value="milestone">Milestone</option>

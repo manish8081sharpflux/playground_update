@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { getCoachDeliveries, getMyPurchaseRequests, updatePurchaseRequestStatus } from '../api';
+import { getCoachDeliveries, getMyPurchaseRequests, updatePurchaseRequestStatus, getUserBalagruhas } from '../api';
 import ShopNavigation from '../components/shop/ShopNavigation';
 import Breadcrumbs from '../components/shop/Breadcrumbs';
 import showToast from '../utils/toast';
@@ -123,6 +123,25 @@ export default function CoachRequestsDashboard() {
   const [ordersError, setOrdersError] = useState(null);
   const [ordersStatus, setOrdersStatus] = useState('pending_delivery');
 
+  // Lookup map of balagruhaId -> balagruha name, since purchase requests
+  // may return balagruhaId as a raw ID string instead of a populated object.
+  const [balagruhaMap, setBalagruhaMap] = useState({});
+
+  const fetchBalagruhaMap = useCallback(async () => {
+    try {
+      const response = await getUserBalagruhas();
+      if (response?.success) {
+        const map = {};
+        (response.data || []).forEach((bg) => {
+          map[bg._id] = bg.name;
+        });
+        setBalagruhaMap(map);
+      }
+    } catch (err) {
+      console.error('Error fetching balagruhas:', err);
+    }
+  }, []);
+
   const purchaseParams = useMemo(() => {
     const params = {};
 
@@ -218,12 +237,16 @@ export default function CoachRequestsDashboard() {
   }, [fetchPurchaseRequests]);
 
   useEffect(() => {
+    fetchBalagruhaMap();
+  }, [fetchBalagruhaMap]);
+
+  useEffect(() => {
     fetchDigitalOrders();
   }, [fetchDigitalOrders]);
 
   return (
     <div className="w-full min-h-screen bg-slate-50">
-      <ShopNavigation />
+      
 
       <div className="bg-white border-b border-slate-200">
         <div className="w-full px-4 py-6">
@@ -233,7 +256,7 @@ export default function CoachRequestsDashboard() {
           </p>
         </div>
       </div>
-
+      <ShopNavigation />
       <Breadcrumbs />
 
       <div className="w-full px-4 py-6 space-y-8">
@@ -334,10 +357,14 @@ export default function CoachRequestsDashboard() {
                 <tbody>
                   {purchaseRequests.map((req) => {
                     const priority = getPriority(req);
+                    const rawBalagruhaId =
+                      req?.balagruhaId?._id || req?.balagruhaId;
                     const balagruhaName =
                       req?.balagruhaId === 'STOCK'
                         ? 'STOCK'
-                        : req?.balagruhaId?.name || req?.balagruhaId || 'N/A';
+                        : req?.balagruhaId?.name ||
+                          balagruhaMap[rawBalagruhaId] ||
+                          'N/A';
 
                     const itemsCount = Array.isArray(req?.items) ? req.items.length : 0;
 

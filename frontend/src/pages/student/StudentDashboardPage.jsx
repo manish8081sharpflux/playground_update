@@ -25,7 +25,8 @@ export default function StudentDashboardPage() {
   // Fetch dashboard data from API
   const fetchDashboardData = async () => {
     try {
-      const studentId = localStorage.getItem('userId') || 'student123';
+      const studentId = localStorage.getItem('userId');
+      if (!studentId) return;
       const response = await api.get(`/api/v2/lms/student/${studentId}/dashboard`);
 
       if (response.data.success) {
@@ -108,6 +109,13 @@ export default function StudentDashboardPage() {
 
   // Effects
   useEffect(() => {
+    const studentId = localStorage.getItem('userId');
+    if (!studentId) {
+      // Don't fetch with a wrong fallback ID; wait for login to populate this.
+      setLoading(false);
+      return;
+    }
+
     // Fetch dashboard data on mount
     fetchDashboardData();
 

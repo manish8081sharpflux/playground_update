@@ -134,15 +134,26 @@ export default function ProductTable({ products, onEdit, onDelete }) {
 
                 {/* Status */}
                 <td className="px-4 py-4">
-                  {product.isActive ? (
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                      Active
-                    </span>
-                  ) : (
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                      Inactive
-                    </span>
-                  )}
+                  <div className="flex flex-col items-start gap-1">
+                    {product.isActive ? (
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                        Active
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                        Inactive
+                      </span>
+                    )}
+                    {product.isPendingProduct ? (
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
+                        Pending
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                        Completed
+                      </span>
+                    )}
+                  </div>
                 </td>
 
                 {/* Actions */}

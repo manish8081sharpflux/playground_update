@@ -35,7 +35,9 @@ export const getMedicalCheckInsByStudentId = async (studentId) => {
 
 export const getMoodBasedOnBalagruha = async (balagruhaIds) => {
   try {
-    const response = await api.post("/api/v1/mood-tracker/latest", balagruhaIds);
+    const response = await api.post("/api/v1/mood-tracker/latest", {
+      balagruhaIds: Array.isArray(balagruhaIds) ? balagruhaIds : [],
+    });
     return response.data;
   } catch (error) {
     console.error("Error fetching mood based on balagruha:", error);

@@ -56,8 +56,29 @@ export default function OrderReceipt() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <p className="text-slate-600">Loading receipt...</p>
+      <div
+        style={{
+          minHeight: "calc(100vh - 120px)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          backgroundColor: "#ffffff",
+        }}
+      >
+        <div style={{ textAlign: "center" }}>
+          <div
+            style={{
+              width: "48px",
+              height: "48px",
+              border: "4px solid #e9d5ff",
+              borderTopColor: "#9333ea",
+              borderRadius: "50%",
+              animation: "spin 0.8s linear infinite",
+              margin: "0 auto 16px",
+            }}
+          ></div>
+          <p style={{ color: "#475569", margin: 0 }}>Loading receipt...</p>
+        </div>
       </div>
     );
   }
@@ -71,9 +92,9 @@ export default function OrderReceipt() {
   }
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white receipt-print-root">
       {/* Receipt Container */}
-      <div className="bg-white p-8 max-w-2xl mx-auto">
+      <div className="bg-white p-8 max-w-2xl mx-auto receipt-print-area">
         {/* Receipt Header */}
         <div className="text-center mb-8 border-b-2 border-slate-900 pb-6">
           <h1 className="text-3xl font-bold text-slate-900 mb-2">ISF Shop</h1>
@@ -140,10 +161,10 @@ export default function OrderReceipt() {
         </table>
 
         {/* Footer */}
-        <div className="text-center text-sm text-slate-500 mt-8 pt-6 border-t border-slate-200">
+        {/* <div className="text-center text-sm text-slate-500 mt-8 pt-6 border-t border-slate-200">
           <p>Thank you for shopping with ISF Shop!</p>
           <p className="mt-2">Generated on {formatDateTime(new Date())}</p>
-        </div>
+        </div> */}
 
         {/* Print Buttons (hidden when printing) */}
         <div className="flex gap-3 mt-6 print:hidden">
@@ -173,14 +194,45 @@ export default function OrderReceipt() {
       {/* Print-specific styles */}
       <style>{`
         @media print {
-          body {
+          html, body {
             background: white;
+            height: auto !important;
           }
           .print\\:hidden {
             display: none !important;
           }
           @page {
             margin: 1cm;
+          }
+
+          /* Hide everything on the page by default when printing,
+             and collapse their height so they don't reserve blank space */
+          body * {
+            visibility: hidden !important;
+            height: 0 !important;
+            overflow: hidden !important;
+          }
+
+          /* Reveal only the receipt content and restore its natural size */
+          .receipt-print-area,
+          .receipt-print-area * {
+            visibility: visible !important;
+            height: auto !important;
+            overflow: visible !important;
+          }
+
+          /* Pull the receipt out of normal flow so surrounding layout
+             (navbar, dashboard widgets, sidebars) takes up no space at all */
+          .receipt-print-area {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+          }
+
+          /* Avoid the items table splitting awkwardly across pages */
+          table, tr, td, th {
+            page-break-inside: avoid;
           }
         }
       `}</style>

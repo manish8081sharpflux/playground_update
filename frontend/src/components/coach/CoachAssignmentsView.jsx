@@ -247,6 +247,7 @@ export default function CoachAssignmentsView({ coachId, coachName, balagruhaName
           <div className="flex flex-col md:flex-row gap-4 w-full">
 
             {/* Search */}
+            <div className="w-1/2">
             <input
               type="text"
               placeholder="Search assignments..."
@@ -254,8 +255,10 @@ export default function CoachAssignmentsView({ coachId, coachName, balagruhaName
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full md:flex-1 border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
+            </div>
 
             {/* Status Filter */}
+            <div className="w-1/2">
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}

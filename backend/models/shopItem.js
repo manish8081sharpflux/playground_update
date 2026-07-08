@@ -199,9 +199,9 @@ shopItemSchema.virtual('lowStock').get(function () {
   return this.stock > 0 && this.stock <= this.lowStockThreshold;
 });
 
-// Virtual: currentPrice (returns discountPrice if available, otherwise price)
+// Virtual: currentPrice (returns discountPrice only when greater than 0, otherwise price)
 shopItemSchema.virtual('currentPrice').get(function () {
-  return this.discountPrice !== null ? this.discountPrice : this.price;
+  return this.discountPrice > 0 ? this.discountPrice : this.price;
 });
 
 // Virtual: primaryImageUrl (returns primary image or first image or legacy imageUrl)

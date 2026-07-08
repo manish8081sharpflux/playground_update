@@ -5,6 +5,16 @@ const { errorLogger } = require('../../../config/pino-config');
 
 // ==================== GET APPS LIST ====================
 
+const isContentItemCompleted = (item, completedItems) => {
+  const itemId = item?._id?.toString();
+  const quizRef = item?.quizRef?._id?.toString() || item?.quizRef?.toString();
+  const metadataQuizId = item?.metadata?.quizId?._id?.toString() || item?.metadata?.quizId?.toString();
+
+  return completedItems.has(itemId) ||
+    (quizRef && completedItems.has(quizRef)) ||
+    (metadataQuizId && completedItems.has(metadataQuizId));
+};
+
 /**
  * @desc Get all Computer Apps applications (Modules/Courses) with progress
  * @route GET /api/v2/lms/student/:studentId/courses/computer-apps
@@ -28,16 +38,22 @@ exports.getComputerApps = async (req, res) => {
     // Map to response format
     const apps = appCourses.map(course => {
       const progress = progressMap.get(course._id.toString());
+      const completedItems = new Set(progress?.completedItems?.map(i => i.itemId?.toString()).filter(Boolean) || []);
 
       // Calculate tasks count recursively
       let totalTasks = 0;
+      let completedTasks = 0;
       course.modules?.forEach(m => {
         m.chapters?.forEach(c => {
-          totalTasks += c.contentItems?.length || 0;
+          (c.contentItems || []).forEach(item => {
+            totalTasks += 1;
+            if (isContentItemCompleted(item, completedItems)) {
+              completedTasks += 1;
+            }
+          });
         });
       });
 
-      const completedTasks = progress?.completedItems?.length || 0;
       const progressPercent = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
 
       // Determine status from progress or default
@@ -94,7 +110,7 @@ exports.getCourseHierarchy = async (req, res) => {
     }
 
     const progress = await StudentProgress.findOne({ student: studentId, course: courseId }).lean();
-    const completedItems = new Set(progress?.completedItems?.map(i => i.itemId.toString()) || []);
+    const completedItems = new Set(progress?.completedItems?.map(i => i.itemId?.toString()).filter(Boolean) || []);
 
     // Map Hierarchy
     const modules = course.modules.map(module => ({
@@ -104,10 +120,7 @@ exports.getCourseHierarchy = async (req, res) => {
         id: chapter._id,
         title: chapter.title,
         contentItems: chapter.contentItems.map(item => {
-          // Check if Item ID OR Quiz Ref is in completed items
-          const isCompleted = completedItems.has(item._id.toString()) ||
-            (item.quizRef && completedItems.has(item.quizRef.toString())) ||
-            (item.metadata?.quizId && completedItems.has(item.metadata.quizId.toString()));
+          const isCompleted = isContentItemCompleted(item, completedItems);
 
           return {
             id: item._id,

@@ -216,9 +216,7 @@ export default function ProductManagement() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {/* Search */}
             <div className="relative">
-              {!searchTerm && (
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-              )}
+              
               <input
                 type="text"
                 value={searchTerm}

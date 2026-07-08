@@ -60,7 +60,6 @@ const createEmptyMedicalHistoryEntry = () => ({
 });
 
 const UserForm = ({ mode = "add", user = null, onSuccess, onCancel }) => {
-
   const navigate = useNavigate();
   const [machines, setMachines] = useState([]);
   const role = localStorage.getItem("role");
@@ -118,7 +117,7 @@ const UserForm = ({ mode = "add", user = null, onSuccess, onCancel }) => {
   const [checkIns, setCheckIns] = useState([]);
   const [showCheckInForm, setShowCheckInForm] = useState(false);
   const [editingCheckIn, setEditingCheckIn] = useState(null);
-  const [formMode, setFormMode] = useState('create'); // 'create' or 'edit'
+  const [formMode, setFormMode] = useState("create"); // 'create' or 'edit'
   const [isLoadingCheckIns, setIsLoadingCheckIns] = useState(false);
 
   const fileInputRefs = {
@@ -164,8 +163,6 @@ const UserForm = ({ mode = "add", user = null, onSuccess, onCancel }) => {
 
   useEffect(() => {
     if (mode === "edit" && user) {
-
-
       const normalizedMedicalHistory = (user.medicalHistory || []).map(
         (history) => ({
           name: history.name || "",
@@ -189,7 +186,7 @@ const UserForm = ({ mode = "add", user = null, onSuccess, onCancel }) => {
             history.otherAttachmentUrls || history.otherAttachments || [],
           isExisting: true,
           isDirty: false,
-        })
+        }),
       );
 
       // Set basic user data
@@ -259,8 +256,8 @@ const UserForm = ({ mode = "add", user = null, onSuccess, onCancel }) => {
             const checkInsData = response.data.medicalCheckIns || response.data;
             // Debug log
             // Sort by date, newest first
-            const sortedCheckIns = checkInsData.sort((a, b) =>
-              new Date(b.date) - new Date(a.date)
+            const sortedCheckIns = checkInsData.sort(
+              (a, b) => new Date(b.date) - new Date(a.date),
             );
             setCheckIns(sortedCheckIns);
           }
@@ -319,7 +316,7 @@ const UserForm = ({ mode = "add", user = null, onSuccess, onCancel }) => {
     const handleClickOutside = (event) => {
       // For balagruha dropdown
       const balagruhaSelector = document.querySelector(
-        ".form-balagruha-selector"
+        ".form-balagruha-selector",
       );
 
       // Check if click is outside balagruha dropdown
@@ -347,11 +344,32 @@ const UserForm = ({ mode = "add", user = null, onSuccess, onCancel }) => {
 
   const validatePasswordStrength = (password) => {
     if (!password) return { isValid: false, message: "Password is required" };
-    if (password.length < 8) return { isValid: false, message: "Password must be at least 8 characters long" };
-    if (!/[A-Z]/.test(password)) return { isValid: false, message: "Password must contain at least one uppercase letter" };
-    if (!/[a-z]/.test(password)) return { isValid: false, message: "Password must contain at least one lowercase letter" };
-    if (!/[0-9]/.test(password)) return { isValid: false, message: "Password must contain at least one number" };
-    if (!/[!@#$%^&*]/.test(password)) return { isValid: false, message: "Password must contain at least one special character (!@#$%^&*)" };
+    if (password.length < 8)
+      return {
+        isValid: false,
+        message: "Password must be at least 8 characters long",
+      };
+    if (!/[A-Z]/.test(password))
+      return {
+        isValid: false,
+        message: "Password must contain at least one uppercase letter",
+      };
+    if (!/[a-z]/.test(password))
+      return {
+        isValid: false,
+        message: "Password must contain at least one lowercase letter",
+      };
+    if (!/[0-9]/.test(password))
+      return {
+        isValid: false,
+        message: "Password must contain at least one number",
+      };
+    if (!/[!@#$%^&*]/.test(password))
+      return {
+        isValid: false,
+        message:
+          "Password must contain at least one special character (!@#$%^&*)",
+      };
     return { isValid: true, message: "Strong password" };
   };
 
@@ -391,11 +409,12 @@ const UserForm = ({ mode = "add", user = null, onSuccess, onCancel }) => {
       newErrors.name = "Name must be less than 100 characters";
     }
 
-    // Email validation (if email is provided)
-    if (formData.email && formData.email.trim()) {
-      if (!validateEmail(formData.email)) {
-        newErrors.email = "Please enter a valid email address";
-      }
+    const emailValue = formData.email.trim();
+    const isEmailRequired = formData.role !== "student";
+    if (isEmailRequired && !emailValue) {
+      newErrors.email = "Email is required for non-student users";
+    } else if (emailValue && !validateEmail(emailValue)) {
+      newErrors.email = "Please enter a valid email address";
     }
 
     // Role validation
@@ -455,45 +474,56 @@ const UserForm = ({ mode = "add", user = null, onSuccess, onCancel }) => {
       }
 
       // Guardian validation based on parental status
-      if (formData.parentalStatus === "has one" || formData.parentalStatus === "has guardian") {
+      if (
+        formData.parentalStatus === "has one" ||
+        formData.parentalStatus === "has guardian"
+      ) {
         if (!formData.guardianName1 || !formData.guardianName1.trim()) {
-          const guardianType = formData.parentalStatus === "has one" ? "Parent" : "Guardian";
+          const guardianType =
+            formData.parentalStatus === "has one" ? "Parent" : "Guardian";
           newErrors.guardianName1 = `${guardianType} name is required`;
         } else if (formData.guardianName1.trim().length < 2) {
-          newErrors.guardianName1 = "Guardian name must be at least 2 characters long";
+          newErrors.guardianName1 =
+            "Guardian name must be at least 2 characters long";
         }
 
         if (!formData.guardianContact1 || !formData.guardianContact1.trim()) {
-          const guardianType = formData.parentalStatus === "has one" ? "Parent" : "Guardian";
+          const guardianType =
+            formData.parentalStatus === "has one" ? "Parent" : "Guardian";
           newErrors.guardianContact1 = `${guardianType} contact is required`;
         } else if (!validatePhoneNumber(formData.guardianContact1.trim())) {
-          newErrors.guardianContact1 = "Please enter a valid 10-digit phone number";
+          newErrors.guardianContact1 =
+            "Please enter a valid 10-digit phone number";
         }
       } else if (formData.parentalStatus === "has both") {
         // Father's details
         if (!formData.guardianName1 || !formData.guardianName1.trim()) {
           newErrors.guardianName1 = "Father's name is required";
         } else if (formData.guardianName1.trim().length < 2) {
-          newErrors.guardianName1 = "Father's name must be at least 2 characters long";
+          newErrors.guardianName1 =
+            "Father's name must be at least 2 characters long";
         }
 
         if (!formData.guardianContact1 || !formData.guardianContact1.trim()) {
           newErrors.guardianContact1 = "Father's contact is required";
         } else if (!validatePhoneNumber(formData.guardianContact1.trim())) {
-          newErrors.guardianContact1 = "Please enter a valid 10-digit phone number for father";
+          newErrors.guardianContact1 =
+            "Please enter a valid 10-digit phone number for father";
         }
 
         // Mother's details
         if (!formData.guardianName2 || !formData.guardianName2.trim()) {
           newErrors.guardianName2 = "Mother's name is required";
         } else if (formData.guardianName2.trim().length < 2) {
-          newErrors.guardianName2 = "Mother's name must be at least 2 characters long";
+          newErrors.guardianName2 =
+            "Mother's name must be at least 2 characters long";
         }
 
         if (!formData.guardianContact2 || !formData.guardianContact2.trim()) {
           newErrors.guardianContact2 = "Mother's contact is required";
         } else if (!validatePhoneNumber(formData.guardianContact2.trim())) {
-          newErrors.guardianContact2 = "Please enter a valid 10-digit phone number for mother";
+          newErrors.guardianContact2 =
+            "Please enter a valid 10-digit phone number for mother";
         }
       }
 
@@ -549,6 +579,17 @@ const UserForm = ({ mode = "add", user = null, onSuccess, onCancel }) => {
 
     // Real-time field validation
     validateField(name, value);
+    if (name === "role") {
+      setErrors((prev) => {
+        const nextErrors = { ...prev };
+        if (value === "student") {
+          delete nextErrors.email;
+        } else if (!formData.email.trim()) {
+          nextErrors.email = "Email is required for non-student users";
+        }
+        return nextErrors;
+      });
+    }
   };
 
   const validateField = (fieldName, value) => {
@@ -566,7 +607,9 @@ const UserForm = ({ mode = "add", user = null, onSuccess, onCancel }) => {
         break;
 
       case "email":
-        if (value && value.trim() && !validateEmail(value)) {
+        if (formData.role !== "student" && !value.trim()) {
+          fieldError = "Email is required for non-student users";
+        } else if (value && value.trim() && !validateEmail(value)) {
           fieldError = "Please enter a valid email address";
         }
         break;
@@ -615,9 +658,15 @@ const UserForm = ({ mode = "add", user = null, onSuccess, onCancel }) => {
         break;
 
       case "guardianName1":
-        if (formData.parentalStatus === "has one" || formData.parentalStatus === "has guardian") {
+        if (
+          formData.parentalStatus === "has one" ||
+          formData.parentalStatus === "has guardian"
+        ) {
           if (!value.trim()) {
-            fieldError = formData.parentalStatus === "has one" ? "Parent name is required" : "Guardian name is required";
+            fieldError =
+              formData.parentalStatus === "has one"
+                ? "Parent name is required"
+                : "Guardian name is required";
           } else if (value.trim().length < 2) {
             fieldError = "Guardian name must be at least 2 characters long";
           }
@@ -631,9 +680,15 @@ const UserForm = ({ mode = "add", user = null, onSuccess, onCancel }) => {
         break;
 
       case "guardianContact1":
-        if (formData.parentalStatus === "has one" || formData.parentalStatus === "has guardian") {
+        if (
+          formData.parentalStatus === "has one" ||
+          formData.parentalStatus === "has guardian"
+        ) {
           if (!value.trim()) {
-            fieldError = formData.parentalStatus === "has one" ? "Parent contact is required" : "Guardian contact is required";
+            fieldError =
+              formData.parentalStatus === "has one"
+                ? "Parent contact is required"
+                : "Guardian contact is required";
           } else if (!validatePhoneNumber(value.trim())) {
             fieldError = "Please enter a valid 10-digit phone number";
           }
@@ -641,7 +696,8 @@ const UserForm = ({ mode = "add", user = null, onSuccess, onCancel }) => {
           if (!value.trim()) {
             fieldError = "Father's contact is required";
           } else if (!validatePhoneNumber(value.trim())) {
-            fieldError = "Please enter a valid 10-digit phone number for father";
+            fieldError =
+              "Please enter a valid 10-digit phone number for father";
           }
         }
         break;
@@ -661,7 +717,8 @@ const UserForm = ({ mode = "add", user = null, onSuccess, onCancel }) => {
           if (!value.trim()) {
             fieldError = "Mother's contact is required";
           } else if (!validatePhoneNumber(value.trim())) {
-            fieldError = "Please enter a valid 10-digit phone number for mother";
+            fieldError =
+              "Please enter a valid 10-digit phone number for mother";
           }
         }
         break;
@@ -750,7 +807,10 @@ const UserForm = ({ mode = "add", user = null, onSuccess, onCancel }) => {
   const handleAddMedicalHistory = () => {
     setFormData((prev) => ({
       ...prev,
-      medicalHistory: [...prev.medicalHistory, createEmptyMedicalHistoryEntry()],
+      medicalHistory: [
+        ...prev.medicalHistory,
+        createEmptyMedicalHistoryEntry(),
+      ],
     }));
   };
 
@@ -896,7 +956,7 @@ const UserForm = ({ mode = "add", user = null, onSuccess, onCancel }) => {
       const exists = prev.assignedMachines.some(
         (assigned) =>
           (assigned?._id || assigned) === machine._id ||
-          assigned?.machineId === machine.machineId
+          assigned?.machineId === machine.machineId,
       );
       const updatedMachines = exists
         ? prev.assignedMachines.filter(
@@ -998,7 +1058,6 @@ const UserForm = ({ mode = "add", user = null, onSuccess, onCancel }) => {
         if (files.facialData) {
           formDataToSend.append("facialData", files.facialData);
         }
-
       }
 
       if (shouldShowMedicalHistorySection) {
@@ -1021,7 +1080,7 @@ const UserForm = ({ mode = "add", user = null, onSuccess, onCancel }) => {
               (history.prescriptions && history.prescriptions.length > 0) ||
               (history.otherAttachments && history.otherAttachments.length > 0);
             return hasContent;
-          }
+          },
         );
 
         historiesToSubmit.forEach((history, index) => {
@@ -1042,16 +1101,10 @@ const UserForm = ({ mode = "add", user = null, onSuccess, onCancel }) => {
           if (history.currentStatus) {
             appendIfPresent(
               "currentStatus.status",
-              history.currentStatus.status
+              history.currentStatus.status,
             );
-            appendIfPresent(
-              "currentStatus.notes",
-              history.currentStatus.notes
-            );
-            appendIfPresent(
-              "currentStatus.date",
-              history.currentStatus.date
-            );
+            appendIfPresent("currentStatus.notes", history.currentStatus.notes);
+            appendIfPresent("currentStatus.date", history.currentStatus.date);
           }
 
           (history.prescriptions || []).forEach((file) => {
@@ -1094,13 +1147,13 @@ const UserForm = ({ mode = "add", user = null, onSuccess, onCancel }) => {
   // Sprint6-Story-02: Check-in modal handlers
   // Sprint6-Story-02-Phase4: Inline form handlers
   const handleCreateCheckIn = () => {
-    setFormMode('create');
+    setFormMode("create");
     setEditingCheckIn(null);
     setShowCheckInForm(true);
   };
 
   const handleEditCheckIn = (checkIn) => {
-    setFormMode('edit');
+    setFormMode("edit");
     setEditingCheckIn(checkIn);
     setShowCheckInForm(true);
   };
@@ -1108,7 +1161,7 @@ const UserForm = ({ mode = "add", user = null, onSuccess, onCancel }) => {
   const handleCheckInSave = async (checkInData) => {
     try {
       let response;
-      if (formMode === 'create') {
+      if (formMode === "create") {
         response = await createMedicalCheckin(checkInData);
       } else {
         response = await updateMedicalCheckin(editingCheckIn._id, checkInData);
@@ -1119,9 +1172,10 @@ const UserForm = ({ mode = "add", user = null, onSuccess, onCancel }) => {
         const updatedCheckIns = await getMedicalCheckInsByStudentId(user._id);
         if (updatedCheckIns.success) {
           // Sprint6-Story-02-Phase4-BUG: response.data contains medicalCheckIns array
-          const checkInsData = updatedCheckIns.data.medicalCheckIns || updatedCheckIns.data;
-          const sortedCheckIns = checkInsData.sort((a, b) =>
-            new Date(b.date) - new Date(a.date)
+          const checkInsData =
+            updatedCheckIns.data.medicalCheckIns || updatedCheckIns.data;
+          const sortedCheckIns = checkInsData.sort(
+            (a, b) => new Date(b.date) - new Date(a.date),
           );
           setCheckIns(sortedCheckIns);
         }
@@ -1129,7 +1183,10 @@ const UserForm = ({ mode = "add", user = null, onSuccess, onCancel }) => {
         setEditingCheckIn(null);
       }
     } catch (error) {
-      console.error(`Error ${formMode === 'create' ? 'creating' : 'updating'} check-in:`, error);
+      console.error(
+        `Error ${formMode === "create" ? "creating" : "updating"} check-in:`,
+        error,
+      );
     }
   };
 
@@ -1140,7 +1197,11 @@ const UserForm = ({ mode = "add", user = null, onSuccess, onCancel }) => {
 
   const formatCheckInDate = (dateString) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+    return date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
   };
 
   return (
@@ -1197,7 +1258,9 @@ const UserForm = ({ mode = "add", user = null, onSuccess, onCancel }) => {
           <h3>Basic Information</h3>
 
           <div className="form-group">
-            <label htmlFor="name" aria-required="true">Name</label>
+            <label htmlFor="name" aria-required="true">
+              Name
+            </label>
             <input
               type="text"
               id="name"
@@ -1211,22 +1274,34 @@ const UserForm = ({ mode = "add", user = null, onSuccess, onCancel }) => {
               aria-describedby={errors.name ? "name-error" : undefined}
             />
             {errors.name && (
-              <span className="error-message" id="name-error">{errors.name}</span>
+              <span className="error-message" id="name-error">
+                {errors.name}
+              </span>
             )}
           </div>
 
           {localStorage.getItem("role") !== "medical-incharge" && (
             <>
               <div className="form-group">
-                <label htmlFor="email">Email</label>
+                <label htmlFor="email">
+                  Email {!isStudentRole && <span className="required">*</span>}
+                </label>
                 <input
                   type="email"
                   id="email"
                   name="email"
                   value={formData.email}
                   onChange={handleInputChange}
+                  className={errors.email ? "error" : ""}
                   placeholder="Enter email address"
+                  required={!isStudentRole}
+                  aria-describedby={errors.email ? "email-error" : undefined}
                 />
+                {errors.email && (
+                  <span className="error-message" id="email-error">
+                    {errors.email}
+                  </span>
+                )}
               </div>
 
               {localStorage.getItem("role") === "admin" && (
@@ -1266,7 +1341,9 @@ const UserForm = ({ mode = "add", user = null, onSuccess, onCancel }) => {
               )}
 
               <div className="form-group">
-                <label htmlFor="role" aria-required="true">Role</label>
+                <label htmlFor="role" aria-required="true">
+                  Role
+                </label>
                 <select
                   id="role"
                   name="role"
@@ -1284,7 +1361,9 @@ const UserForm = ({ mode = "add", user = null, onSuccess, onCancel }) => {
                   ))}
                 </select>
                 {errors.role && (
-                  <span className="error-message" id="role-error">{errors.role}</span>
+                  <span className="error-message" id="role-error">
+                    {errors.role}
+                  </span>
                 )}
               </div>
 
@@ -1367,10 +1446,12 @@ const UserForm = ({ mode = "add", user = null, onSuccess, onCancel }) => {
                                     ...prev,
                                     balagruhaIds: [option],
                                   }));
+
+                                  setDropdownOpen(false);
                                 } else {
                                   // Multi select for other roles
                                   const isSelected = formData.balagruhaIds.some(
-                                    (bg) => bg._id === option._id
+                                    (bg) => bg._id === option._id,
                                   );
                                   const selectedBalagruhas = isSelected
                                     ? formData.balagruhaIds.filter(
@@ -1383,9 +1464,7 @@ const UserForm = ({ mode = "add", user = null, onSuccess, onCancel }) => {
                                   }));
                                 }
                                 // Close dropdown if it's a student (single select)
-                                if (formData.role === "student") {
-                                  setDropdownOpen(false);
-                                }
+                                setDropdownOpen(false);
                               }}
                             />
                             {option.name}
@@ -1411,7 +1490,9 @@ const UserForm = ({ mode = "add", user = null, onSuccess, onCancel }) => {
             <h3>Student Information</h3>
 
             <div className="form-group">
-              <label htmlFor="userId" aria-required="true">User ID</label>
+              <label htmlFor="userId" aria-required="true">
+                User ID
+              </label>
               <input
                 type="text"
                 id="userId"
@@ -1425,7 +1506,9 @@ const UserForm = ({ mode = "add", user = null, onSuccess, onCancel }) => {
                 aria-describedby={errors.userId ? "userId-error" : undefined}
               />
               {errors.userId && (
-                <span className="error-message" id="userId-error">{errors.userId}</span>
+                <span className="error-message" id="userId-error">
+                  {errors.userId}
+                </span>
               )}
             </div>
 
@@ -1444,14 +1527,13 @@ const UserForm = ({ mode = "add", user = null, onSuccess, onCancel }) => {
                   </div>
                   <p className="machine-helper-text">
                     1) Select a Balagruha above · 2) Check the machines that
-                    belong to each Balagruha · 3) Use the Machine Manager to
-                    add or reassign hardware when required.
+                    belong to each Balagruha · 3) Use the Machine Manager to add
+                    or reassign hardware when required.
                   </p>
 
                   {formData.balagruhaIds.length === 0 ? (
                     <div className="no-balagruha-message">
-                      Please select a Balagruha first to view available
-                      machines
+                      Please select a Balagruha first to view available machines
                     </div>
                   ) : (
                     <div className="machine-grid">
@@ -1462,7 +1544,9 @@ const UserForm = ({ mode = "add", user = null, onSuccess, onCancel }) => {
                         return (
                           <div key={balId} className="machine-bal-card">
                             <div className="machine-bal-card__header">
-                              <h4>{getBalagruhaName(balagruha) || "Balagruha"}</h4>
+                              <h4>
+                                {getBalagruhaName(balagruha) || "Balagruha"}
+                              </h4>
                               <span>
                                 {machinesForBal.length > 0
                                   ? `${machinesForBal.length} machine${machinesForBal.length > 1 ? "s" : ""
@@ -1473,10 +1557,12 @@ const UserForm = ({ mode = "add", user = null, onSuccess, onCancel }) => {
 
                             {machinesForBal.length > 0 ? (
                               machinesForBal.map((machine) => {
-                                const isChecked = formData.assignedMachines.some(
-                                  (assigned) =>
-                                    (assigned?._id || assigned) === machine._id
-                                );
+                                const isChecked =
+                                  formData.assignedMachines.some(
+                                    (assigned) =>
+                                      (assigned?._id || assigned) ===
+                                      machine._id,
+                                  );
 
                                 return (
                                   <label
@@ -1486,7 +1572,9 @@ const UserForm = ({ mode = "add", user = null, onSuccess, onCancel }) => {
                                     <input
                                       type="checkbox"
                                       checked={isChecked}
-                                      onChange={() => toggleMachineSelection(machine)}
+                                      onChange={() =>
+                                        toggleMachineSelection(machine)
+                                      }
                                     />
                                     <span>
                                       <strong>{machine.machineId}</strong>
@@ -1507,8 +1595,8 @@ const UserForm = ({ mode = "add", user = null, onSuccess, onCancel }) => {
                               })
                             ) : (
                               <div className="no-machines-message">
-                                No machines mapped to this Balagruha yet. Use the
-                                Machine Manager to add one.
+                                No machines mapped to this Balagruha yet. Use
+                                the Machine Manager to add one.
                               </div>
                             )}
                           </div>
@@ -1519,19 +1607,18 @@ const UserForm = ({ mode = "add", user = null, onSuccess, onCancel }) => {
                         <div className="machine-bal-card">
                           <div className="machine-bal-card__header">
                             <h4>Unassigned Machines</h4>
-                            <span>
-                              {unassignedMachines.length} available
-                            </span>
+                            <span>{unassignedMachines.length} available</span>
                           </div>
                           <p className="machine-helper-text compact">
                             These machines are not linked to any Balagruha yet.
-                            You can still allocate them to a student, but consider
-                            mapping them in the Machine Manager for clarity.
+                            You can still allocate them to a student, but
+                            consider mapping them in the Machine Manager for
+                            clarity.
                           </p>
                           {unassignedMachines.map((machine) => {
                             const isChecked = formData.assignedMachines.some(
                               (assigned) =>
-                                (assigned?._id || assigned) === machine._id
+                                (assigned?._id || assigned) === machine._id,
                             );
 
                             return (
@@ -1542,7 +1629,9 @@ const UserForm = ({ mode = "add", user = null, onSuccess, onCancel }) => {
                                 <input
                                   type="checkbox"
                                   checked={isChecked}
-                                  onChange={() => toggleMachineSelection(machine)}
+                                  onChange={() =>
+                                    toggleMachineSelection(machine)
+                                  }
                                 />
                                 <span>
                                   <strong>{machine.machineId}</strong>
@@ -1573,7 +1662,9 @@ const UserForm = ({ mode = "add", user = null, onSuccess, onCancel }) => {
 
                 <div className="form-row">
                   <div className="form-group">
-                    <label htmlFor="age" aria-required="true">Age</label>
+                    <label htmlFor="age" aria-required="true">
+                      Age
+                    </label>
                     <input
                       type="number"
                       id="age"
@@ -1588,12 +1679,16 @@ const UserForm = ({ mode = "add", user = null, onSuccess, onCancel }) => {
                       aria-describedby={errors.age ? "age-error" : undefined}
                     />
                     {errors.age && (
-                      <span className="error-message" id="age-error">{errors.age}</span>
+                      <span className="error-message" id="age-error">
+                        {errors.age}
+                      </span>
                     )}
                   </div>
 
                   <div className="form-group">
-                    <label htmlFor="gender" aria-required="true">Gender</label>
+                    <label htmlFor="gender" aria-required="true">
+                      Gender
+                    </label>
                     <select
                       id="gender"
                       name="gender"
@@ -1601,7 +1696,9 @@ const UserForm = ({ mode = "add", user = null, onSuccess, onCancel }) => {
                       onChange={handleInputChange}
                       className={errors.gender ? "error" : ""}
                       aria-label="Student gender"
-                      aria-describedby={errors.gender ? "gender-error" : undefined}
+                      aria-describedby={
+                        errors.gender ? "gender-error" : undefined
+                      }
                     >
                       <option value="">Select Gender</option>
                       <option value="male">Male</option>
@@ -1609,13 +1706,17 @@ const UserForm = ({ mode = "add", user = null, onSuccess, onCancel }) => {
                       <option value="other">Other</option>
                     </select>
                     {errors.gender && (
-                      <span className="error-message" id="gender-error">{errors.gender}</span>
+                      <span className="error-message" id="gender-error">
+                        {errors.gender}
+                      </span>
                     )}
                   </div>
                 </div>
 
                 <div className="form-group">
-                  <label htmlFor="parentalStatus" aria-required="true">Parental Status</label>
+                  <label htmlFor="parentalStatus" aria-required="true">
+                    Parental Status
+                  </label>
                   <select
                     id="parentalStatus"
                     name="parentalStatus"
@@ -1623,7 +1724,9 @@ const UserForm = ({ mode = "add", user = null, onSuccess, onCancel }) => {
                     onChange={handleInputChange}
                     className={errors.parentalStatus ? "error" : ""}
                     aria-label="Student parental status"
-                    aria-describedby={errors.parentalStatus ? "parentalStatus-error" : undefined}
+                    aria-describedby={
+                      errors.parentalStatus ? "parentalStatus-error" : undefined
+                    }
                   >
                     <option value="">Select Status</option>
                     <option value="has both">Has Both Parents</option>
@@ -1791,7 +1894,9 @@ const UserForm = ({ mode = "add", user = null, onSuccess, onCancel }) => {
                         </div> */}
 
                 <div className="form-group">
-                  <label htmlFor="facialData" aria-required={mode === "add"}>Facial Photo {mode === "add" && "*"}</label>
+                  <label htmlFor="facialData" aria-required={mode === "add"}>
+                    Facial Photo {mode === "add" && "*"}
+                  </label>
                   <div className="file-upload-container">
                     <input
                       type="file"
@@ -1889,7 +1994,11 @@ const UserForm = ({ mode = "add", user = null, onSuccess, onCancel }) => {
                         type="text"
                         value={history.name}
                         onChange={(e) =>
-                          handleMedicalHistoryChange(index, "name", e.target.value)
+                          handleMedicalHistoryChange(
+                            index,
+                            "name",
+                            e.target.value,
+                          )
                         }
                         placeholder="eg: Asthma, Allergy"
                       />
@@ -1900,7 +2009,11 @@ const UserForm = ({ mode = "add", user = null, onSuccess, onCancel }) => {
                         type="text"
                         value={history.caseId}
                         onChange={(e) =>
-                          handleMedicalHistoryChange(index, "caseId", e.target.value)
+                          handleMedicalHistoryChange(
+                            index,
+                            "caseId",
+                            e.target.value,
+                          )
                         }
                         placeholder="Hospital reference number"
                       />
@@ -1913,7 +2026,11 @@ const UserForm = ({ mode = "add", user = null, onSuccess, onCancel }) => {
                         min={minAllowedDate}
                         max={today}
                         onChange={(e) =>
-                          handleMedicalHistoryChange(index, "date", e.target.value)
+                          handleMedicalHistoryChange(
+                            index,
+                            "date",
+                            e.target.value,
+                          )
                         }
                       />
 
@@ -1935,7 +2052,7 @@ const UserForm = ({ mode = "add", user = null, onSuccess, onCancel }) => {
                           handleMedicalHistoryChange(
                             index,
                             "doctorsName",
-                            e.target.value
+                            e.target.value,
                           )
                         }
                         placeholder="Treating doctor"
@@ -1950,7 +2067,7 @@ const UserForm = ({ mode = "add", user = null, onSuccess, onCancel }) => {
                           handleMedicalHistoryChange(
                             index,
                             "hospitalName",
-                            e.target.value
+                            e.target.value,
                           )
                         }
                         placeholder="Healthcare facility"
@@ -1967,7 +2084,7 @@ const UserForm = ({ mode = "add", user = null, onSuccess, onCancel }) => {
                         handleMedicalHistoryChange(
                           index,
                           "description",
-                          e.target.value
+                          e.target.value,
                         )
                       }
                       placeholder="Describe symptoms, triggers or treatment plans"
@@ -1983,7 +2100,7 @@ const UserForm = ({ mode = "add", user = null, onSuccess, onCancel }) => {
                           handleMedicalHistoryStatusChange(
                             index,
                             "status",
-                            e.target.value
+                            e.target.value,
                           )
                         }
                       >
@@ -2006,7 +2123,7 @@ const UserForm = ({ mode = "add", user = null, onSuccess, onCancel }) => {
                           handleMedicalHistoryStatusChange(
                             index,
                             "date",
-                            e.target.value
+                            e.target.value,
                           )
                         }
                       />
@@ -2028,7 +2145,7 @@ const UserForm = ({ mode = "add", user = null, onSuccess, onCancel }) => {
                         handleMedicalHistoryStatusChange(
                           index,
                           "notes",
-                          e.target.value
+                          e.target.value,
                         )
                       }
                       placeholder="Any active prescriptions, symptoms or care instructions"
@@ -2038,19 +2155,35 @@ const UserForm = ({ mode = "add", user = null, onSuccess, onCancel }) => {
                   <div className="form-row">
                     <div className="form-group">
                       <label>Prescriptions</label>
-                      <label className="file-upload-btn" style={{ display: "inline-block", marginTop: "0.25rem" }}>
+                      <label
+                        className="file-upload-btn"
+                        style={{
+                          display: "inline-block",
+                          marginTop: "0.25rem",
+                        }}
+                      >
                         Choose prescription files
                         <input
                           type="file"
                           multiple
                           accept={ACCEPTED_PRESCRIPTION_TYPES}
                           onChange={(e) =>
-                            handleMedicalHistoryFileChange(index, "prescriptions", e)
+                            handleMedicalHistoryFileChange(
+                              index,
+                              "prescriptions",
+                              e,
+                            )
                           }
                           style={{ display: "none" }}
                         />
                       </label>
-                      <span style={{ marginLeft: "0.75rem", color: "#666", fontSize: "0.85rem" }}>
+                      <span
+                        style={{
+                          marginLeft: "0.75rem",
+                          color: "#666",
+                          fontSize: "0.85rem",
+                        }}
+                      >
                         {history.prescriptions?.length > 0
                           ? `${history.prescriptions.length} file(s) selected`
                           : "PDF, JPG, JPEG, PNG"}
@@ -2066,7 +2199,7 @@ const UserForm = ({ mode = "add", user = null, onSuccess, onCancel }) => {
                                   handleRemoveMedicalHistoryFile(
                                     index,
                                     "prescriptions",
-                                    fileIndex
+                                    fileIndex,
                                   )
                                 }
                               >
@@ -2078,24 +2211,32 @@ const UserForm = ({ mode = "add", user = null, onSuccess, onCancel }) => {
                       )}
                       {history.existingPrescriptions?.length > 0 && (
                         <div className="existing-file-list">
-                          {history.existingPrescriptions.map((fileUrl, fileIndex) => (
-                            <a
-                              key={fileIndex}
-                              href={fileUrl}
-                              className="existing-file-link"
-                              target="_blank"
-                              rel="noopener noreferrer"
-                            >
-                              View prescription {fileIndex + 1}
-                            </a>
-                          ))}
+                          {history.existingPrescriptions.map(
+                            (fileUrl, fileIndex) => (
+                              <a
+                                key={fileIndex}
+                                href={fileUrl}
+                                className="existing-file-link"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                              >
+                                View prescription {fileIndex + 1}
+                              </a>
+                            ),
+                          )}
                         </div>
                       )}
                     </div>
 
                     <div className="form-group">
                       <label>Other Attachments</label>
-                      <label className="file-upload-btn" style={{ display: "inline-block", marginTop: "0.25rem" }}>
+                      <label
+                        className="file-upload-btn"
+                        style={{
+                          display: "inline-block",
+                          marginTop: "0.25rem",
+                        }}
+                      >
                         Choose attachment files
                         <input
                           type="file"
@@ -2105,13 +2246,19 @@ const UserForm = ({ mode = "add", user = null, onSuccess, onCancel }) => {
                             handleMedicalHistoryFileChange(
                               index,
                               "otherAttachments",
-                              e
+                              e,
                             )
                           }
                           style={{ display: "none" }}
                         />
                       </label>
-                      <span style={{ marginLeft: "0.75rem", color: "#666", fontSize: "0.85rem" }}>
+                      <span
+                        style={{
+                          marginLeft: "0.75rem",
+                          color: "#666",
+                          fontSize: "0.85rem",
+                        }}
+                      >
                         {history.otherAttachments?.length > 0
                           ? `${history.otherAttachments.length} file(s) selected`
                           : "PDF, DOC, DOCX, JPG, JPEG, PNG"}
@@ -2127,7 +2274,7 @@ const UserForm = ({ mode = "add", user = null, onSuccess, onCancel }) => {
                                   handleRemoveMedicalHistoryFile(
                                     index,
                                     "otherAttachments",
-                                    fileIndex
+                                    fileIndex,
                                   )
                                 }
                               >
@@ -2150,7 +2297,7 @@ const UserForm = ({ mode = "add", user = null, onSuccess, onCancel }) => {
                               >
                                 View attachment {fileIndex + 1}
                               </a>
-                            )
+                            ),
                           )}
                         </div>
                       )}
@@ -2161,7 +2308,9 @@ const UserForm = ({ mode = "add", user = null, onSuccess, onCancel }) => {
             )}
 
             {errors.medicalHistory && (
-              <span className="form-error-message">{errors.medicalHistory}</span>
+              <span className="form-error-message">
+                {errors.medicalHistory}
+              </span>
             )}
           </div>
         )}
@@ -2206,7 +2355,13 @@ const UserForm = ({ mode = "add", user = null, onSuccess, onCancel }) => {
                     Loading check-ins...
                   </div>
                 ) : checkIns.length === 0 ? (
-                  <div style={{ padding: "20px", textAlign: "center", color: "#666" }}>
+                  <div
+                    style={{
+                      padding: "20px",
+                      textAlign: "center",
+                      color: "#666",
+                    }}
+                  >
                     No medical check-ins found for this student.
                   </div>
                 ) : (
@@ -2218,7 +2373,9 @@ const UserForm = ({ mode = "add", user = null, onSuccess, onCancel }) => {
                             {formatCheckInDate(checkIn.date)}
                           </span>
                           <div className="checkin-header-actions">
-                            <span className={`health-status ${checkIn.healthStatus}`}>
+                            <span
+                              className={`health-status ${checkIn.healthStatus}`}
+                            >
                               {checkIn.healthStatus}
                             </span>
                             <button
@@ -2233,22 +2390,38 @@ const UserForm = ({ mode = "add", user = null, onSuccess, onCancel }) => {
                         </div>
                         <div className="checkin-details">
                           {checkIn.temperature && (
-                            <p><strong>Temperature:</strong> {checkIn.temperature}°F</p>
+                            <p>
+                              <strong>Temperature:</strong>{" "}
+                              {checkIn.temperature}°F
+                            </p>
                           )}
                           {checkIn.symptoms && checkIn.symptoms.length > 0 && (
-                            <p><strong>Symptoms:</strong> {checkIn.symptoms.join(', ')}</p>
+                            <p>
+                              <strong>Symptoms:</strong>{" "}
+                              {checkIn.symptoms.join(", ")}
+                            </p>
                           )}
                           {checkIn.notes && (
-                            <p><strong>Notes:</strong> {checkIn.notes}</p>
+                            <p>
+                              <strong>Notes:</strong> {checkIn.notes}
+                            </p>
                           )}
                           {/* Sprint6-Story-02-Phase4-DEBUG: Log check-in data */}
 
-                          {checkIn.doctorVisits && checkIn.doctorVisits.length > 0 && (
-                            <p><strong>Doctor Visits:</strong> {checkIn.doctorVisits.length}</p>
-                          )}
-                          {checkIn.followUps && checkIn.followUps.length > 0 && (
-                            <p><strong>Follow-ups:</strong> {checkIn.followUps.length}</p>
-                          )}
+                          {checkIn.doctorVisits &&
+                            checkIn.doctorVisits.length > 0 && (
+                              <p>
+                                <strong>Doctor Visits:</strong>{" "}
+                                {checkIn.doctorVisits.length}
+                              </p>
+                            )}
+                          {checkIn.followUps &&
+                            checkIn.followUps.length > 0 && (
+                              <p>
+                                <strong>Follow-ups:</strong>{" "}
+                                {checkIn.followUps.length}
+                              </p>
+                            )}
                         </div>
                       </div>
                     ))}

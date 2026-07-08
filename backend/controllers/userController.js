@@ -119,11 +119,30 @@ exports.getUserById = async (req, res) => {
 
 exports.createUser = async (req, res) => {
   const { name, email, password, role } = req.body;
+  const normalizedRole = (role || "").toString().toLowerCase();
+  const normalizedEmail =
+    typeof email === "string" ? email.trim().toLowerCase() : "";
 
   try {
+    if (normalizedRole !== UserTypes.STUDENT && !normalizedEmail) {
+      return res
+        .status(400)
+        .json({ message: "Email is required for non-student users" });
+    }
+
+    if (normalizedEmail) {
+      const existingUser = await User.findOne({ email: normalizedEmail })
+        .select("_id")
+        .lean();
+
+      if (existingUser) {
+        return res.status(400).json({ message: "Email already exists" });
+      }
+    }
+
     const newUser = new User({
       name,
-      email,
+      email: normalizedEmail || undefined,
       password,
       role,
     });
@@ -632,6 +651,21 @@ exports.getUsersByRoleAndBalagruhaId = async (req, res) => {
   try {
     const { role } = req.params;
     const { balagruhaId } = req.query;
+    const scopedBalagruhaFilter = req.scopeFilter?.balagruhaId;
+
+    if (scopedBalagruhaFilter && balagruhaId) {
+      const allowedBalagruhaIds = scopedBalagruhaFilter.$in
+        ? scopedBalagruhaFilter.$in.map((id) => id.toString())
+        : [scopedBalagruhaFilter.toString()];
+
+      if (!allowedBalagruhaIds.includes(balagruhaId.toString())) {
+        return res.status(403).json({
+          success: false,
+          data: { users: [] },
+          message: "Access denied. You do not have permission to access this Balagruha.",
+        });
+      }
+    }
 
     logger.info(
       {

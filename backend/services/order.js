@@ -61,8 +61,11 @@ async function createOrder(userId) {
         );
       }
 
-      // Calculate price (use discount price if available)
-      const price = product.discountPrice !== null ? product.discountPrice : product.price;
+      // Calculate price (use a positive discount price if available, otherwise the selling price).
+      const price =
+        product.discountPrice && product.discountPrice > 0
+          ? product.discountPrice
+          : product.sellingPrice ?? product.price;
       const itemSubtotal = price * cartItem.quantity;
       subtotal += itemSubtotal;
 

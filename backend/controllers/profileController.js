@@ -4,6 +4,7 @@
 const User = require('../models/user');
 const Coin = require('../models/coin');
 const Order = require('../models/order');
+const StudentMoodTracker = require('../models/studentMoodTracker');
 const { errorLogger, logger } = require('../config/pino-config');
 const { HTTP_STATUS_CODE } = require('../constants/general');
 const mongoose = require('mongoose');
@@ -316,7 +317,6 @@ const fetchLearningData = async (userId) => {
  */
 const fetchWellnessData = async (userId) => {
   try {
-    const StudentMoodTracker = mongoose.model('StudentMoodTracker');
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 

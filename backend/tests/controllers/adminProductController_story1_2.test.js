@@ -239,5 +239,44 @@ describe('Admin Product Controller - Story 1.2', () => {
         message: 'One or more Vendor IDs are invalid'
       }));
     });
+
+    it('should mark a pending product complete when admin saves required catalog fields', async () => {
+      const product = await ShopItem.create({
+        sku: 'UPDATE-PENDING-001',
+        name: 'Pending Bottle',
+        description: 'Pending product - details to be added',
+        category: 'ISF Shop',
+        price: 80,
+        sellingPrice: 80,
+        maxPrice: 100,
+        stock: 0,
+        isActive: true,
+        isPendingProduct: true,
+        approvedVendors: [{ vendorId: vendor._id, rank: 1 }]
+      });
+
+      const req = mockRequest({
+        params: { productId: product._id },
+        body: {
+          name: 'Bottle',
+          description: 'Pending product - details to be added',
+          category: 'ISF Shop',
+          price: 80,
+          sellingPrice: 80,
+          maxPrice: 100,
+          stock: 45,
+          isActive: true,
+          approvedVendors: [{ vendorId: vendor._id, rank: 1 }]
+        }
+      });
+      const res = mockResponse();
+
+      await adminProductController.updateProduct(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(200);
+
+      const updated = await ShopItem.findById(product._id);
+      expect(updated.isPendingProduct).toBe(false);
+    });
   });
 });

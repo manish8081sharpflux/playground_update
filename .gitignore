@@ -1,9 +1,8 @@
-echo node_modules/ >> .gitignore
-echo .cache/ >> .gitignore
-echo dist/ >> .gitignore
-echo build/ >> .gitignore
-echo .env >> .gitignore
-
+backend/logs/*.log
+backend/node_modules
+frontend/node_modules
+frontend/.env
+backend/.env
 
 # Dependencies
 node_modules/

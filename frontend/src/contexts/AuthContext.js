@@ -5,6 +5,22 @@ import { api } from "../api";
 
 const AuthContext = createContext(null);
 
+const parseStoredBalagruhaIds = (storedBalagruhaIds) => {
+  if (!storedBalagruhaIds) {
+    return [];
+  }
+
+  try {
+    const parsed = JSON.parse(storedBalagruhaIds);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (error) {
+    return storedBalagruhaIds
+      .split(",")
+      .map((id) => id.trim())
+      .filter(Boolean);
+  }
+};
+
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(null);
@@ -21,7 +37,7 @@ export const AuthProvider = ({ children }) => {
         name: localStorage.getItem("name"),
         role: localStorage.getItem("role"),
         id: localStorage.getItem("userId"),
-        balagruhaIds: storedBalagruhaIds ? JSON.parse(storedBalagruhaIds) : [],
+        balagruhaIds: parseStoredBalagruhaIds(storedBalagruhaIds),
       };
 
       if (storedToken && storedUser.name && storedUser.role) {

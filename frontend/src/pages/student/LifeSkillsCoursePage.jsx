@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../../api';
 import toast from 'react-hot-toast';
+import { CheckCircle } from 'lucide-react';
 // import StudentLayout from '../../components/student/StudentLayout';
 
 /**
@@ -120,23 +121,26 @@ export default function LifeSkillsCoursePage() {
                 {module.title}
               </h2>
 
-              <div className="space-y-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-start">
                 {module.chapters.map((chapter) => (
-                  <div key={chapter.id} className="chapter-section pl-4">
+                  <div
+                    key={chapter.id}
+                    className={`chapter-section ${chapter.contentItems.length > 1 ? 'md:col-span-2 lg:col-span-3' : ''}`}
+                  >
                     <h3 className="text-2xl font-semibold text-gray-700 mb-4 flex items-center">
                       <span className="mr-2">📖</span> {chapter.title}
                     </h3>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div className={chapter.contentItems.length > 1 ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6' : 'flex flex-wrap gap-4'}>
                       {chapter.contentItems.map((item) => {
                         // Render based on Type
                         if (item.type === 'video') {
                           return (
-                            <div key={item.id} className="bg-white border-2 border-indigo-200 rounded-xl overflow-hidden hover:shadow-lg transition-shadow">
+                            <div key={item.id} className="bg-white border-2 border-indigo-200 rounded-xl overflow-hidden hover:shadow-lg transition-shadow flex flex-col h-full" style={{ width: '100%', flexShrink: 0 }}>
                               <div className="bg-indigo-50 p-4 flex justify-center items-center h-48">
                                 <span className="text-6xl">🎬</span>
                               </div>
-                              <div className="p-4">
+                              <div className="p-4 flex flex-col flex-1">
                                 <span className="px-3 py-1 bg-indigo-100 text-indigo-700 text-sm rounded-full font-medium mb-2 inline-block">
                                   Video
                                 </span>
@@ -146,7 +150,7 @@ export default function LifeSkillsCoursePage() {
                                     setActiveVideo(item);
                                     markContentComplete(item, course.courseId);
                                   }}
-                                  className="w-full mt-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 flex items-center justify-center gap-2"
+                                  className="w-full mt-auto px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 flex items-center justify-center gap-2"
                                 >
                                   <span>▶️</span> Watch
                                 </button>
@@ -155,11 +159,11 @@ export default function LifeSkillsCoursePage() {
                           );
                         } else if (item.type === 'pdf') {
                           return (
-                            <div key={item.id} className="bg-white border-2 border-red-200 rounded-xl overflow-hidden hover:shadow-lg transition-shadow">
+                            <div key={item.id} className="bg-white border-2 border-red-200 rounded-xl overflow-hidden hover:shadow-lg transition-shadow flex flex-col h-full" style={{ width: '100%', flexShrink: 0 }}>
                               <div className="bg-red-50 p-4 flex justify-center items-center h-48">
                                 <span className="text-6xl">📄</span>
                               </div>
-                              <div className="p-4">
+                              <div className="p-4 flex flex-col flex-1">
                                 <span className="px-3 py-1 bg-red-100 text-red-700 text-sm rounded-full font-medium mb-2 inline-block">
                                   PDF
                                 </span>
@@ -169,7 +173,7 @@ export default function LifeSkillsCoursePage() {
                                     setActivePdf(item);
                                     markContentComplete(item, course.courseId);
                                   }}
-                                  className="w-full mt-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 flex items-center justify-center gap-2 block text-center"
+                                  className="w-full mt-auto px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 flex items-center justify-center gap-2 block text-center"
                                 >
                                   <span>👁️</span> View PDF
                                 </button>
@@ -180,11 +184,17 @@ export default function LifeSkillsCoursePage() {
                           return (
                             <div
                               key={item.id}
-                              className="bg-white border-2 border-purple-300 rounded-xl p-6 hover:shadow-lg transition-shadow relative overflow-hidden"
+                              className="bg-white border-2 border-purple-300 rounded-xl p-6 hover:shadow-lg transition-shadow relative overflow-hidden flex flex-col h-full"
+                              style={{ width: '100%', flexShrink: 0 }}
                             >
                               <div className="absolute top-0 right-0 p-2 opacity-10">
                                 <span className="text-8xl">📝</span>
                               </div>
+                              {item.isCompleted && (
+                                <div className="absolute top-3 right-3 bg-green-500 text-white p-1 rounded-full shadow-sm">
+                                  <CheckCircle size={16} />
+                                </div>
+                              )}
                               <span className="px-3 py-1 bg-purple-100 text-purple-700 text-sm rounded-full font-medium mb-3 inline-block">
                                 Quiz
                               </span>
@@ -195,7 +205,7 @@ export default function LifeSkillsCoursePage() {
                               </div>
                               <button
                                 onClick={() => handleQuizClick(item.id)}
-                                className="w-full px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 flex items-center justify-center gap-2"
+                                className="w-full mt-auto px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 flex items-center justify-center gap-2"
                               >
                                 <span>🚀</span> Start Quiz
                               </button>
@@ -206,7 +216,8 @@ export default function LifeSkillsCoursePage() {
                           return (
                             <div
                               key={item.id}
-                              className="bg-white border-2 border-green-300 rounded-xl p-6 hover:shadow-lg transition-shadow cursor-pointer"
+                              className="bg-white border-2 border-green-300 rounded-xl p-6 hover:shadow-lg transition-shadow cursor-pointer flex flex-col h-full"
+                              style={{ width: '100%', flexShrink: 0 }}
                               onClick={() => handleVoiceTaskClick(item.id)}
                             >
                               <div className="flex items-center justify-between mb-3">
@@ -219,7 +230,7 @@ export default function LifeSkillsCoursePage() {
                               <p className="text-gray-600 mb-4 text-sm line-clamp-2">
                                 {item.instructions || item.description}
                               </p>
-                              <div className="flex items-center justify-between text-sm text-gray-500">
+                              <div className="mt-auto flex items-center justify-between text-sm text-gray-500">
                                 <span className="text-yellow-600 font-medium">+{item.coinsForSubmission} coins</span>
                               </div>
                             </div>
@@ -281,7 +292,7 @@ export default function LifeSkillsCoursePage() {
         )}
 
         {/* Instructions */}
-        <div className="bg-yellow-50 border-2 border-yellow-300 rounded-xl p-6">
+        <div className="mt-8 bg-yellow-50 border-2 border-yellow-300 rounded-xl p-6">
           <h3 className="text-lg font-bold text-yellow-900 mb-3" style={{ fontFamily: 'Patrick Hand, cursive' }}>
             💡 How it Works
           </h3>

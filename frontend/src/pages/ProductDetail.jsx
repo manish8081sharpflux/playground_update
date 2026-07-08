@@ -37,6 +37,8 @@ const ProductDetail = () => {
   const isPurchaseManager = user?.role?.toLowerCase() === "purchase-manager";
   const isMedical = user?.role?.toLowerCase() === "medical-incharge";
   const isStaff = isAdmin || isCoach || isPurchaseManager || isMedical;
+  const canPurchase =
+    product?.inStock && product.isActive !== false && !product.isPendingProduct;
 
   // Fetch product by ID
   const fetchProduct = useCallback(async () => {
@@ -146,7 +148,7 @@ const ProductDetail = () => {
       return;
     }
 
-    if (!product.inStock || isAdding) return;
+    if (!canPurchase || isAdding) return;
 
     setIsAdding(true);
     try {
@@ -161,9 +163,9 @@ const ProductDetail = () => {
   // Determine stock status display
   const getStockStatus = () => {
     if (!product) return null;
-    if (!product.inStock) {
+    if (!canPurchase) {
       return {
-        label: "Out of Stock",
+        label: product.inStock ? "Unavailable" : "Out of Stock",
         className: "bg-red-100 text-red-800",
       };
     }
@@ -222,8 +224,10 @@ const ProductDetail = () => {
   }
 
   const stockStatus = getStockStatus();
-  const displayPrice = product.discountPrice ?? product.currentPrice ?? product.price;
-  const hasDiscount = product.discountPrice != null && product.discountPrice < product.price;
+  const hasDiscount = Number(product.discountPrice) > 0;
+  const displayPrice = hasDiscount
+    ? product.discountPrice
+    : (product.currentPrice ?? product.price);
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -303,10 +307,10 @@ const ProductDetail = () => {
                   )}
 
                   {/* Out of Stock Overlay */}
-                  {!product.inStock && (
+                  {!canPurchase && (
                     <div className="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center">
                       <span className="bg-red-500 text-white px-6 py-3 rounded-full text-lg font-bold">
-                        Out of Stock
+                        {product.inStock ? "Unavailable" : "Out of Stock"}
                       </span>
                     </div>
                   )}
@@ -437,7 +441,7 @@ const ProductDetail = () => {
                 </div>
 
                 {/* Quantity Selector (students only, when in stock) */}
-                {!isStaff && product.inStock && (
+                {!isStaff && canPurchase && (
                   <div className="mb-6">
                     <h2 className="text-sm font-semibold text-slate-700 uppercase tracking-wide mb-2">
                       Quantity
@@ -483,9 +487,9 @@ const ProductDetail = () => {
                 {/* Add to Cart / Request button */}
                 <button
                   onClick={handleAction}
-                  disabled={(!product.inStock && !isStaff) || isAdding}
+                  disabled={(!canPurchase && !isStaff) || isAdding}
                   className={`w-full px-6 py-3 rounded-lg font-semibold text-lg flex items-center justify-center gap-3 transition-colors ${
-                    product.inStock || isStaff
+                    canPurchase || isStaff
                       ? "bg-purple-600 text-white hover:bg-purple-700 active:bg-purple-800"
                       : "bg-slate-300 text-slate-500 cursor-not-allowed"
                   }`}
@@ -509,8 +513,10 @@ const ProductDetail = () => {
                       )}
                       {isStaff
                         ? "Request Item"
-                        : product.inStock
+                        : canPurchase
                         ? "Add to Cart"
+                        : product.inStock
+                        ? "Unavailable"
                         : "Out of Stock"}
                     </>
                   )}

@@ -231,7 +231,7 @@ cartSchema.statics.getPopulated = async function(userId) {
   return this.findOne({ userId })
     .populate({
       path: 'items.shopItemId',
-      select: 'name description price discountPrice stock imageUrl category lowStockThreshold'
+      select: 'name description price sellingPrice discountPrice stock imageUrl category lowStockThreshold'
     });
 };
 

@@ -523,6 +523,52 @@
   justify-content: center;
 }
 
+.order-all-confirm-modal {
+  max-width: 520px;
+  overflow: hidden;
+}
+
+.order-all-confirm-modal .modal-body {
+  padding: 56px 32px;
+}
+
+.order-all-confirm-modal .modal-body p {
+  margin: 0;
+  color: #5b3f8f;
+  font-size: 18px;
+  line-height: 1.5;
+}
+
+.order-all-confirm-actions {
+  gap: 14px;
+  padding: 18px 24px;
+  background: #f8fafc;
+}
+
+.order-all-confirm-actions .btn {
+  min-width: 132px;
+  justify-content: center;
+  border-radius: 8px;
+  box-shadow: none;
+}
+
+.order-all-confirm-actions .order-all-cancel-btn {
+  background: #ffffff;
+}
+
+.order-all-confirm-actions .order-all-confirm-btn {
+  background: #16a34a;
+}
+
+.order-all-confirm-actions .order-all-confirm-btn:hover:not(:disabled) {
+  background: #15803d;
+}
+
+.order-all-confirm-actions .btn:focus-visible {
+  outline: 3px solid rgba(79, 70, 229, 0.28);
+  outline-offset: 2px;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
   .purchase-section-header {
@@ -544,6 +590,15 @@
   .modal-container {
     width: 95%;
     margin: 10px;
+  }
+
+  .modal-container.large.purchase-request-modal {
+    width: calc(100% - 24px);
+    max-height: 92vh;
+  }
+
+  .purchase-request-modal .modal-body {
+    padding: 18px;
   }
 }
 
@@ -824,6 +879,10 @@
   margin-bottom: 20px;
 }
 
+.purchase-requests-list-container {
+  overflow-x: hidden;
+}
+
 .requests-table {
   width: 100%;
   border-collapse: collapse;
@@ -844,9 +903,141 @@
   text-transform: uppercase;
 }
 
+.requests-table th.sortable-header {
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.requests-table th.sortable-header:hover {
+  background-color: #eef2ff;
+  color: #2563eb;
+}
+
+.requests-table th.sortable-header::after {
+  content: "Sort";
+  display: inline-flex;
+  align-items: center;
+  margin-left: 8px;
+  padding: 2px 7px;
+  border: 1px solid #cbd5e1;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #64748b;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1.2;
+  text-transform: none;
+  vertical-align: middle;
+}
+
+.requests-table th.sortable-header::before {
+  content: "↕";
+  display: inline-block;
+  margin-right: 6px;
+  color: #94a3b8;
+  font-size: 12px;
+}
+
+.requests-table th.sortable-header.active {
+  color: #1d4ed8;
+  background-color: #eff6ff;
+}
+
+.requests-table th.sortable-header.active::before {
+  color: #2563eb;
+}
+
+.requests-table th.sortable-header.active.desc::before {
+  content: "▼";
+}
+
+.requests-table th.sortable-header.active.asc::before {
+  content: "▲";
+}
+
+.requests-table th.sort-created.active.desc::after {
+  content: "Newest first";
+}
+
+.requests-table th.sort-created.active.asc::after {
+  content: "Oldest first";
+}
+
+.requests-table th.sort-deadline.active.desc::after {
+  content: "Latest first";
+}
+
+.requests-table th.sort-deadline.active.asc::after {
+  content: "Earliest first";
+}
+
 .requests-table td {
   padding: 12px;
   border-bottom: 1px solid #e5e7eb;
+}
+
+.purchase-requests-list-table {
+  table-layout: fixed;
+}
+
+.purchase-requests-list-table th,
+.purchase-requests-list-table td {
+  padding: 10px 8px;
+  overflow-wrap: anywhere;
+  word-break: normal;
+}
+
+/* Column widths now set via <colgroup> in JSX to handle the
+   Requester column being Admin-only without breaking layout
+   for other roles. */
+
+.purchase-requests-list-table .sortable-header::after {
+  margin-left: 4px;
+  padding: 1px 5px;
+  font-size: 9px;
+}
+
+.purchase-requests-list-table th.sortable-header {
+  white-space: normal;
+}
+
+.purchase-requests-list-table .sortable-header::before {
+  margin-right: 3px;
+}
+
+.purchase-requests-list-table .requester-email,
+.purchase-requests-list-table .product-sku,
+.purchase-requests-list-table .time-ago {
+  overflow-wrap: anywhere;
+}
+
+.purchase-requests-list-table .status-badge {
+  max-width: 100%;
+  white-space: normal;
+}
+
+.purchase-requests-list-table .btn-action {
+  max-width: 100%;
+  white-space: normal;
+  line-height: 1.15;
+}
+
+.purchase-requests-list-table .actions-cell {
+  display: table-cell;
+  text-align: center;
+  vertical-align: middle;
+}
+
+.purchase-requests-list-table th.actions-header {
+  text-align: center;
+}
+
+.purchase-requests-list-table .actions-cell > * {
+  margin: 3px;
 }
 
 .request-row:hover {
@@ -1120,6 +1311,51 @@
   background: white;
   border-radius: 12px;
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+}
+
+.modal-container.large.purchase-request-modal {
+  display: flex;
+  flex-direction: column;
+  max-width: 980px;
+  max-height: 88vh;
+  overflow: hidden;
+}
+
+.purchase-request-modal form {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  flex-direction: column;
+}
+
+.purchase-request-modal .modal-header {
+  flex-shrink: 0;
+}
+
+.purchase-request-modal .modal-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 24px 30px;
+}
+
+.purchase-request-modal .modal-footer {
+  flex-shrink: 0;
+  background: #ffffff;
+}
+
+.purchase-request-modal .table-responsive {
+  overflow-x: visible;
+}
+
+.purchase-request-modal .selected-items-table {
+  width: 100%;
+  min-width: 0;
+  table-layout: fixed;
+}
+
+.purchase-request-modal .file-upload-container {
+  padding: 16px;
 }
 
 .modal-container.extra-large {

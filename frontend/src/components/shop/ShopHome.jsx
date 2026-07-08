@@ -65,14 +65,31 @@ const ShopHome = () => {
           : filters.category;
       }
       if (filters.search) params.search = filters.search;
-      if (filters.minPrice) params.minPrice = filters.minPrice;
+      if (filters.minPrice !== null && filters.minPrice !== undefined)
+        params.minPrice = filters.minPrice;
       if (filters.maxPrice !== null && filters.maxPrice !== undefined)
         params.maxPrice = filters.maxPrice;
       if (filters.inStock !== undefined) params.inStock = filters.inStock;
 
       const response = await api.get(`/api/v2/shop/products`, { params });
 
-      setProducts(response.data.products);
+      let fetchedProducts = response.data.products || [];
+
+      // FIX: Backend/DB sort on "name" is case-sensitive (uppercase sorts
+      // before lowercase), so A-Z / Z-A filters could show inconsistent
+      // ordering when product names mix cases. Re-sort case-insensitively
+      // on the client for name-based sorts only.
+      if (filters.sort === "name" || filters.sort === "-name") {
+        fetchedProducts = [...fetchedProducts].sort((a, b) => {
+          const nameA = (a.name || "").toLowerCase();
+          const nameB = (b.name || "").toLowerCase();
+          if (nameA < nameB) return filters.sort === "name" ? -1 : 1;
+          if (nameA > nameB) return filters.sort === "name" ? 1 : -1;
+          return 0;
+        });
+      }
+
+      setProducts(fetchedProducts);
       setPagination(response.data.pagination);
     } catch (err) {
       console.error("Error fetching products:", err);
@@ -137,7 +154,7 @@ const ShopHome = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 main-content main-content-full-page">
+    <div className="min-h-screen bg-slate-50 main-content-full-page">
       {/* Admin Controls - Draggable floating panel for admins only */}
       {canManageShop && <ShopAdminControls />}
 

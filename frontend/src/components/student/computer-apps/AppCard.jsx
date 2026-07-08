@@ -9,7 +9,9 @@ export default function AppCard({ app, isSelected, onClick }) {
   const { id, name, icon, totalTasks, completedTasks, status } = app;
 
   // Calculate progress
-  const progressPercentage = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+  const progressPercentage = totalTasks > 0
+    ? Math.min(100, Math.max(0, Math.round((completedTasks / totalTasks) * 100)))
+    : 0;
 
   // Determine status indicator
   const getStatusIndicator = () => {

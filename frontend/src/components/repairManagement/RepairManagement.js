@@ -19,7 +19,10 @@ dayjs.extend(isSameOrAfter);
 dayjs.extend(isSameOrBefore);
 
 export default function RepairManagement() {
-  const [loading, setLoading] = useState(true);
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
+const [isRefreshing, setIsRefreshing] = useState(false);
+const [mutatingId, setMutatingId] = useState(null);
+const [fetchError, setFetchError] = useState(null);
   const [showRepairModal, setShowRepairModal] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
   const [repairRequests, setRepairRequests] = useState([]);
@@ -85,38 +88,40 @@ export default function RepairManagement() {
     setShowRepairModal(true);
   };
 
-  const fetchRepairRequests = async () => {
+  const fetchRepairRequests = async (isBackground = false) => {
     try {
-      setLoading(true);
+      if (isBackground) setIsRefreshing(true);
+      else setIsInitialLoading(true);
+      setFetchError(null);
+
       const response = await getAllRepairs();
       if (response.success) {
         setRepairRequests(response.data.repairRequests || []);
       } else {
-        showToast(
-          "Error fetching repairs: " + (response.message || "Unknown error"),
-          "error"
-        );
+        const msg = "Error fetching repairs: " + (response.message || "Unknown error");
+        showToast(msg, "error");
+        setFetchError(msg);
       }
     } catch (error) {
       console.error("Error fetching repairs:", error);
-      showToast(
-        "Error fetching repairs: " + (error.message || "Unknown error"),
-        "error"
-      );
+      const msg = "Error fetching repairs: " + (error.message || "Unknown error");
+      showToast(msg, "error");
+      setFetchError(msg);
     } finally {
-      setLoading(false);
+      if (isBackground) setIsRefreshing(false);
+      else setIsInitialLoading(false);
     }
   };
 
   const confirmDelete = async () => {
     if (!deleteId) return;
 
+    setMutatingId(deleteId);
     try {
-      setLoading(true);
       const response = await deleteRepair(deleteId);
       if (response.success) {
         showToast("Repair request deleted successfully", "success");
-        await fetchRepairRequests();
+        await fetchRepairRequests(true);
       } else {
         showToast(
           "Error deleting repair request: " +
@@ -133,7 +138,7 @@ export default function RepairManagement() {
         "error"
       );
     } finally {
-      setLoading(false);
+      setMutatingId(null);
     }
   };
 
@@ -159,23 +164,23 @@ export default function RepairManagement() {
 
   const handleRepairSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
+    setIsRefreshing(true);
 
     try {
       // Validate required fields
       if (!repairForm.balagruhaId) {
         showToast("Please select a Balagruha", "error");
-        setLoading(false);
+        setIsRefreshing(false);
         return;
       }
       if (!repairForm.issueName) {
         showToast("Please enter an issue name", "error");
-        setLoading(false);
+        setIsRefreshing(false);
         return;
       }
       if (!repairForm.description) {
         showToast("Please enter a description", "error");
-        setLoading(false);
+        setIsRefreshing(false);
         return;
       }
       if (!repairForm.estimatedCost || Number(repairForm.estimatedCost) <= 0) {
@@ -231,7 +236,7 @@ export default function RepairManagement() {
           "success"
         );
         setShowRepairModal(false);
-        fetchRepairRequests();
+        fetchRepairRequests(true);
       } else {
         showToast("Error: " + (response.message || "Unknown error"), "error");
       }
@@ -239,7 +244,7 @@ export default function RepairManagement() {
       console.error("Error submitting repair:", error);
       showToast("Error: " + (error.message || "Unknown error"), "error");
     } finally {
-      setLoading(false);
+      setIsRefreshing(false);
     }
   };
 
@@ -641,7 +646,7 @@ export default function RepairManagement() {
             <button
               className="purchase-action-button"
               onClick={() => openRepairModal()}
-              disabled={loading}
+              disabled={isRefreshing}
             >
               + New Repair Request
             </button>
@@ -655,9 +660,44 @@ export default function RepairManagement() {
           </div>
         </div>
 
-        <div className="purchase-data-table">
-          {loading ? (
-            <div className="loading-spinner">Loading...</div>
+        {fetchError && (
+          <div className="error-banner">
+            {fetchError}
+            <button
+              className="retry-button"
+              onClick={() => fetchRepairRequests()}
+            >
+              Retry
+            </button>
+          </div>
+        )}
+        <div
+          className="purchase-data-table"
+          style={{ position: "relative", minHeight: "200px" }}
+        >
+          {isRefreshing && !isInitialLoading && (
+            <div className="table-refresh-overlay">
+              <span className="spinner-small" /> Updating…
+            </div>
+          )}
+          {isInitialLoading ? (
+            <table>
+              <thead>
+                <tr>
+                  <th>Issue Name</th>
+                  <th>Description</th>
+                  <th>Date</th>
+                  <th>Urgency</th>
+                  <th>Balagruha</th>
+                  <th>Status</th>
+                  <th>Est. Cost</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              {renderSkeletonRows(5, 8)}
+            </table>
+          ) : filteredRepairRequests.length === 0 ? (
+            <div className="empty-state">No repair requests found.</div>
           ) : (
             <table>
               <thead>
@@ -704,7 +744,7 @@ export default function RepairManagement() {
                       <button
                         className="purchase-icon-button edit"
                         onClick={() => openRepairModal(request)}
-                        disabled={loading}
+                        disabled={mutatingId === request._id}
                         title="Edit"
                       >
                         ✏️
@@ -712,10 +752,10 @@ export default function RepairManagement() {
                       <button
                         className="purchase-icon-button delete"
                         onClick={() => handleDeleteRepair(request._id)}
-                        disabled={loading}
+                        disabled={mutatingId === request._id}
                         title="Delete"
                       >
-                        🗑️
+                        {mutatingId === request._id ? "…" : "🗑️"}
                       </button>
                     </td>
                   </tr>
@@ -746,16 +786,16 @@ export default function RepairManagement() {
                 <button
                   className="cancel-button"
                   onClick={() => setShowDeleteConfirmation(false)}
-                  disabled={loading}
+                  disabled={mutatingId === deleteId}
                 >
                   Cancel
                 </button>
                 <button
                   className="delete-button"
                   onClick={confirmDelete}
-                  disabled={loading}
+                  disabled={mutatingId === deleteId}
                 >
-                  {loading ? "Deleting..." : "Delete"}
+                  {mutatingId === deleteId ? "Deleting..." : "Delete"}
                 </button>
               </div>
             </div>
@@ -989,16 +1029,16 @@ export default function RepairManagement() {
                   type="button"
                   className="cancel-button"
                   onClick={() => setShowRepairModal(false)}
-                  disabled={loading}
+                  disabled={isRefreshing}
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   className="submit-button"
-                  disabled={loading}
+                  disabled={isRefreshing}
                 >
-                  {loading
+                  {isRefreshing
                     ? "Processing..."
                     : editingItem
                       ? "Update Request"

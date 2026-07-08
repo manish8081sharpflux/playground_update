@@ -11,6 +11,15 @@ import showToast from '../utils/toast';
  * Purchase Manager view for low stock items in their assigned Balagruhas.
  */
 
+const PRODUCT_CATEGORIES = [
+    'ISF Shop',
+    'Medicines',
+    'Consumables',
+    'Repairs',
+    'Infra',
+    'Others',
+];
+
 export default function PMLowStock() {
     const navigate = useNavigate();
     const { user } = useAuth();
@@ -27,6 +36,7 @@ export default function PMLowStock() {
     const [showPurchaseModal, setShowPurchaseModal] = useState(false);
     const [selectedReorderItem, setSelectedReorderItem] = useState(null);
     const [balagruhas, setBalagruhas] = useState([]);
+    const [availableCategories, setAvailableCategories] = useState([]);
 
     // Stats (calc from fetched data or just show what we have)
     const [stats, setStats] = useState({
@@ -51,6 +61,35 @@ export default function PMLowStock() {
         loadBalagruhas();
     }, []);
 
+    // Fetch the full set of categories present across all products for this PM's
+    // Balagruhas, independent of the current category/stock filters, so the
+    // dropdown always reflects real data rather than a hardcoded guess.
+    const fetchCategories = useCallback(async () => {
+        try {
+            const balagruhaIds = user?.balagruhaIds || [];
+            const response = await api.get('/api/v2/shop/products', {
+                params: {
+                    limit: 1000,
+                    balagruhaIds: balagruhaIds.join(','),
+                }
+            });
+            const products = response.data.products || response.data || [];
+            const categories = [...new Set([
+                ...PRODUCT_CATEGORIES,
+                ...products
+                    .map((p) => p.purchaseCategory || p.category)
+                    .filter(Boolean)
+            ])].sort((a, b) => a.localeCompare(b));
+            setAvailableCategories(categories);
+        } catch (err) {
+            console.error('Failed to load categories', err);
+        }
+    }, [user]);
+
+    useEffect(() => {
+        fetchCategories();
+    }, [fetchCategories]);
+
     const fetchInventory = useCallback(async () => {
         try {
             setLoading(true);
@@ -67,7 +106,7 @@ export default function PMLowStock() {
             };
 
             if (searchTerm) params.search = searchTerm;
-            if (categoryFilter !== 'all') params.category = categoryFilter;
+            if (categoryFilter !== 'all') params.purchaseCategory = categoryFilter;
 
             const response = await api.get('/api/v2/shop/products', { params });
 
@@ -160,13 +199,11 @@ export default function PMLowStock() {
                             className="px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                         >
                             <option value="all">All Categories</option>
-                            {/* Add dynamic categories later if needed, or hardcode common ones */}
-                            <option value="stationery">Stationery</option>
-                            <option value="sports">Sports</option>
-                            <option value="books">Books</option>
-                            <option value="uniforms">Uniforms</option>
-                            <option value="digital">Digital</option>
-                            <option value="other">Other</option>
+                            {availableCategories.map((cat) => (
+                                <option key={cat} value={cat}>
+                                    {cat.charAt(0).toUpperCase() + cat.slice(1)}
+                                </option>
+                            ))}
                         </select>
 
                         {/* Stock Status Filter - Simplified for this view */}
@@ -302,7 +339,7 @@ export default function PMLowStock() {
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap">
                                                     <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-800 capitalize">
-                                                        {item.category}
+                                                        {item.purchaseCategory || item.category}
                                                     </span>
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">

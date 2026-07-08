@@ -119,6 +119,32 @@ exports.createUser = async (payload) => {
 exports.registerUser = async (payload) => {
   try {
     const { name, email, password, role, balagruhaIds } = payload;
+    const normalizedRole = (role || "").toString().toLowerCase();
+    const normalizedEmail =
+      typeof email === "string" ? email.trim().toLowerCase() : "";
+
+    if (normalizedRole !== UserTypes.STUDENT && !normalizedEmail) {
+      return {
+        success: false,
+        data: { user: null },
+        message: "Email is required for non-student users",
+      };
+    }
+
+    if (normalizedEmail) {
+      const existingUser = await User.findOne({ email: normalizedEmail })
+        .select("_id")
+        .lean();
+
+      if (existingUser) {
+        return {
+          success: false,
+          data: { user: null },
+          message: "Email already exists",
+        };
+      }
+    }
+
     // separate the comma separated balagruhaIds
     let balagruhaId = [];
     if (balagruhaIds) {
@@ -126,7 +152,7 @@ exports.registerUser = async (payload) => {
     }
     const newUser = new User({
       name,
-      email,
+      email: normalizedEmail || undefined,
       password,
       role,
       balagruhaIds: balagruhaId || [],
