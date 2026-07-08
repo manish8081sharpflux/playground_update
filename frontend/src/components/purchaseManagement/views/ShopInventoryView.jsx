@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import {
   getMyPurchaseRequests,
   getAllPurchaseRequests,
@@ -63,6 +63,37 @@ const STATUS_BUCKET_OPTIONS = [
   { label: "Supplier List", value: "supplier_list", type: "inventory" },
   { label: "Most Consumed", value: "most_consumed", type: "analytics" },
 ];
+
+const PURCHASE_REQUEST_PAGE_SIZE = 100;
+
+const fetchAllPurchaseRequestPages = async (requestFetcher, params) => {
+  const allRequests = [];
+  let page = 1;
+  let totalPages = 1;
+
+  do {
+    const response = await requestFetcher({
+      ...params,
+      page,
+      limit: PURCHASE_REQUEST_PAGE_SIZE,
+    });
+
+    if (!response.success) {
+      return response;
+    }
+
+    allRequests.push(...(response.data?.requests || []));
+    totalPages = response.data?.pagination?.pages || 1;
+    page += 1;
+  } while (page <= totalPages);
+
+  return {
+    success: true,
+    data: {
+      requests: allRequests,
+    },
+  };
+};
 
 dayjs.extend(relativeTime);
 dayjs.extend(isSameOrAfter);
@@ -238,6 +269,48 @@ const ConfirmDialog = ({ message, onYes, onNo }) => (
   </div>
 );
 
+const OrderAllConfirmDialog = ({ itemName, requestCount, onConfirm, onCancel }) => (
+  <div
+    className="modal-overlay"
+    onClick={onCancel}
+    role="presentation"
+  >
+    <div
+      className="modal-container confirmation-modal order-all-confirm-modal"
+      onClick={(e) => e.stopPropagation()}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="order-all-confirm-title"
+    >
+      <div className="modal-header">
+        <h3 id="order-all-confirm-title">Confirm Order All</h3>
+        <button className="modal-close" onClick={onCancel}>
+          ×
+        </button>
+      </div>
+      <div className="modal-body">
+        <p>
+          Mark all {requestCount} request(s) for "{itemName}" as ordered?
+        </p>
+      </div>
+      <div className="modal-footer order-all-confirm-actions">
+        <button
+          className="btn btn-secondary order-all-cancel-btn"
+          onClick={onCancel}
+        >
+          Cancel
+        </button>
+        <button
+          className="btn btn-primary order-all-confirm-btn"
+          onClick={onConfirm}
+        >
+          Mark as Ordered
+        </button>
+      </div>
+    </div>
+  </div>
+);
+
 /**
  * Shop Inventory View - Sprint5-Story-17
  * Displays purchase requests for shop inventory with frontend filtering
@@ -257,6 +330,7 @@ export default function ShopInventoryView({
   const [loading, setLoading] = useState(true);
   const [statusUpdating, setStatusUpdating] = useState({});
   const [deleteConfirmRequest, setDeleteConfirmRequest] = useState(null);
+  const [orderAllConfirm, setOrderAllConfirm] = useState(null);
 
   // FIX-037: Server-side requester list for filter dropdown
   const [availableRequesters, setAvailableRequesters] = useState([]);
@@ -411,13 +485,20 @@ export default function ShopInventoryView({
         }
       }
 
-      // Admin and Purchase Manager use getAllPurchaseRequests (backend filters by balagruha for PM)
-      // Other roles use getMyPurchaseRequests (shows only their own requests)
-      const response =
+      // Admin and Purchase Manager use getAllPurchaseRequests
+      // (backend scopes results to the assigned balagruha for PM)
+      // Medical In-Charge and other roles (e.g. Coach) use getMyPurchaseRequests
+      // — only requests they personally created, not everyone's
+      const requestFetcher =
         normalizedRole === UserTypes.ADMIN ||
         normalizedRole === UserTypes.PURCHASE_MANAGER
-          ? await getAllPurchaseRequests(params)
-          : await getMyPurchaseRequests(params);
+          ? getAllPurchaseRequests
+          : getMyPurchaseRequests;
+
+      const response = await fetchAllPurchaseRequestPages(
+        requestFetcher,
+        params,
+      );
 
       if (response.success) {
         setRequests(response.data.requests || []);
@@ -547,6 +628,14 @@ export default function ShopInventoryView({
           PurchaseRequestStatuses.DELIVERED_STORE,
         ].includes(request.status),
       );
+    } else if (filters.status === PurchaseRequestStatuses.COMPLETED) {
+      // Delivered to Balagruha is the strict workflow's completed end state.
+      filtered = filtered.filter((request) =>
+        [
+          PurchaseRequestStatuses.COMPLETED,
+          PurchaseRequestStatuses.DELIVERED_BALAGRUHA,
+        ].includes(request.status),
+      );
     } else if (filters.status !== "all") {
       filtered = filtered.filter(
         (request) => request.status === filters.status,
@@ -581,33 +670,41 @@ export default function ShopInventoryView({
       });
     }
 
-    // Story 3.1: Priority sorting runs before date sorting
+    // Sprint5-Story-23-FIX: When Date/Deadline sorting is active, sort the
+    // whole list purely by that field, ignoring priority entirely. Priority
+    // grouping (Story 3.1) is only used as a fallback when no explicit
+    // sort direction is active.
     filtered.sort((a, b) => {
-      const aPriority = getPriority(a);
-      const bPriority = getPriority(b);
-
-      if (aPriority !== bPriority) {
+      if (!sortConfig.direction) {
+        const aPriority = getPriority(a);
+        const bPriority = getPriority(b);
         const order = { High: 0, Medium: 1, Low: 2 };
         return (order[aPriority] ?? 9) - (order[bPriority] ?? 9);
       }
 
-      // Sprint5-Story-23: Date sorting (within the same priority)
-      if (!sortConfig.direction) {
+      const isDateField =
+        sortConfig.key === "createdAt" || sortConfig.key === "deadline";
+
+      if (!isDateField) {
         return 0;
       }
 
-      const aValue =
-        sortConfig.key === "createdAt" || sortConfig.key === "deadline"
-          ? a[sortConfig.key]
-            ? new Date(a[sortConfig.key]).getTime()
-            : 0
-          : a[sortConfig.key];
-      const bValue =
-        sortConfig.key === "createdAt" || sortConfig.key === "deadline"
-          ? b[sortConfig.key]
-            ? new Date(b[sortConfig.key]).getTime()
-            : 0
-          : b[sortConfig.key];
+      const aRaw = a[sortConfig.key];
+      const bRaw = b[sortConfig.key];
+
+      // Rows with no date/deadline always sort to the end, regardless of direction
+      if (!aRaw && !bRaw) {
+        return 0;
+      }
+      if (!aRaw) {
+        return 1;
+      }
+      if (!bRaw) {
+        return -1;
+      }
+
+      const aValue = new Date(aRaw).getTime();
+      const bValue = new Date(bRaw).getTime();
 
       if (aValue === bValue) {
         return 0;
@@ -621,6 +718,26 @@ export default function ShopInventoryView({
 
     setFilteredRequests(filtered);
   };
+
+  const getBalagruhaDisplayName = useCallback((balagruhaValue) => {
+    if (!balagruhaValue) {
+      return "";
+    }
+
+    if (balagruhaValue === "STOCK") {
+      return "STOCK";
+    }
+
+    if (typeof balagruhaValue === "object") {
+      return balagruhaValue.name || balagruhaValue._id || "";
+    }
+
+    const matchedBalagruha = balagruhas.find(
+      (bg) => String(bg._id) === String(balagruhaValue),
+    );
+
+    return matchedBalagruha?.name || String(balagruhaValue);
+  }, [balagruhas]);
 
   // C3 + Story 3.5: PM needs grouping by item, per status bucket with expandable details
   const groupedByStatus = useMemo(() => {
@@ -654,7 +771,7 @@ export default function ShopInventoryView({
           balagruhaName:
             request.balagruhaId === "STOCK"
               ? "STOCK"
-              : request.balagruhaId?.name || "Unknown",
+              : getBalagruhaDisplayName(request.balagruhaId) || "Unknown",
           quantity: Number(item?.requestedQuantity || 0),
           priority: requestPriority,
           deadline: request.deadline,
@@ -714,7 +831,7 @@ export default function ShopInventoryView({
       (a, b) => statusOrder.indexOf(a.status) - statusOrder.indexOf(b.status),
     );
     return result;
-  }, [filteredRequests]);
+  }, [filteredRequests, getBalagruhaDisplayName]);
 
   // Sprint5-Story-23: Handle sorting for date column
   const handleSort = (key) => {
@@ -734,6 +851,20 @@ export default function ShopInventoryView({
     }
 
     setSortConfig({ key, direction });
+  };
+
+  const getSortLabel = (key) => {
+    if (sortConfig.key !== key || !sortConfig.direction) {
+      return "Sort";
+    }
+
+    if (key === "deadline") {
+      return sortConfig.direction === "desc"
+        ? "Latest first"
+        : "Earliest first";
+    }
+
+    return sortConfig.direction === "desc" ? "Newest first" : "Oldest first";
   };
 
   const getStatusBadge = (status) => {
@@ -886,19 +1017,24 @@ export default function ShopInventoryView({
   };
 
   // FIX-038: Order All - Uses batch API endpoint instead of sequential calls
-  const handleOrderAll = async (bunchedItem, status) => {
+  const handleOrderAll = (bunchedItem, status) => {
     // Only allow "Order All" for pending items
     if (status !== PurchaseRequestStatuses.PENDING) {
       showToast("Order All is only available for pending requests", "warning");
       return;
     }
 
-    const requestIds = bunchedItem.requests.map((r) => r.requestId);
-    const confirmMsg = `Mark all ${requestIds.length} request(s) for "${bunchedItem.productName}" as Ordered?`;
+    setOrderAllConfirm(bunchedItem);
+  };
 
-    if (!window.confirm(confirmMsg)) {
+  const confirmOrderAll = async () => {
+    if (!orderAllConfirm) {
       return;
     }
+
+    const bunchedItem = orderAllConfirm;
+    const requestIds = bunchedItem.requests.map((r) => r.requestId);
+    setOrderAllConfirm(null);
 
     try {
       const response = await batchOrderPurchaseRequests(
@@ -1009,14 +1145,14 @@ export default function ShopInventoryView({
   };
 
   // Get balagruha options based on role
+  // FIX: getUserBalagruhas() (called in fetchBalagruhas) is already scoped
+  // server-side to this user's currently-assigned Balagruhas + STOCK, so
+  // `balagruhas` is already correct. Re-filtering it against the separate
+  // `userBalagruhas` prop was dropping newly-assigned Balagruhas whenever
+  // that prop was stale (e.g. not refreshed after an admin added a second
+  // Balagruha assignment).
   const getFilteredBalagruhas = () => {
-    if (normalizedRole === UserTypes.ADMIN) {
-      return balagruhas;
-    }
-    // Sprint5-Story-21 (S21-BUG-002 FIX): Always include STOCK + user's assigned Balagruhas
-    return balagruhas.filter(
-      (bg) => bg._id === "STOCK" || userBalagruhas.includes(bg._id),
-    );
+    return balagruhas;
   };
 
   // Get unique purchase managers from requests, optionally filtered by balagruha
@@ -1308,7 +1444,7 @@ export default function ShopInventoryView({
 
           {/* Purchase Manager Filter (Admin only) */}
           {normalizedRole === UserTypes.ADMIN && (
-            <div className="filter-group">
+            <div className="filter-group" style={{ minWidth: "300px" }}>
               <label>Purchase Manager:</label>
               <select
                 value={filters.purchaseManager}
@@ -1316,6 +1452,7 @@ export default function ShopInventoryView({
                   setFilters({ ...filters, purchaseManager: e.target.value })
                 }
                 className="filter-select"
+                style={{ width: "100%", minWidth: "240px" }}
               >
                 <option value="all">All Purchase Managers</option>
                 {getAvailablePurchaseManagers().map((pm) => (
@@ -1370,7 +1507,10 @@ export default function ShopInventoryView({
           )}
 
           {/* Search Filter */}
-          <div className="filter-group search-group">
+          <div
+            className="filter-group search-group"
+            style={{ flexShrink: 0, minWidth: "220px" }}
+          >
             <label>Search:</label>
             <input
               type="text"
@@ -1380,6 +1520,12 @@ export default function ShopInventoryView({
               }
               placeholder="Product, SKU, Reason..."
               className="filter-input search-input"
+              style={{
+                width: "100%",
+                minWidth: "220px",
+                boxSizing: "border-box",
+                flexShrink: 0,
+              }}
             />
           </div>
         </div>
@@ -2137,51 +2283,58 @@ export default function ShopInventoryView({
       {/* Requests Table - Only show for workflow tabs (list view) or non-PM users */}
       {(normalizedRole !== UserTypes.PURCHASE_MANAGER ||
         (isWorkflowTab() && viewMode === "list")) && (
-        <div className="requests-table-container">
+        <div className="requests-table-container purchase-requests-list-container">
           <table
-            className="requests-table"
+            className="requests-table purchase-requests-list-table"
             aria-label="Shop Inventory Purchase Requests Table"
           >
+            <colgroup>
+              <col style={{ width: "8%" }} />
+              <col style={{ width: "9%" }} />
+              <col style={{ width: "14%" }} />
+              <col style={{ width: "5%" }} />
+              <col style={{ width: "7%" }} />
+              <col style={{ width: "10%" }} />
+              <col style={{ width: "10%" }} />
+              {normalizedRole === UserTypes.ADMIN && (
+                <col style={{ width: "13%" }} />
+              )}
+              <col
+                style={{
+                  width: normalizedRole === UserTypes.ADMIN ? "13%" : "20%",
+                }}
+              />
+              <col
+                style={{
+                  width: normalizedRole === UserTypes.ADMIN ? "11%" : "17%",
+                }}
+              />
+            </colgroup>
             <thead>
               <tr>
                 <th>Request ID</th>
                 {/* Story 3.10: Date moved to position 2 (after ID) per client feedback */}
                 <th
+                  className={`sortable-header sort-created ${sortConfig.key === "createdAt" && sortConfig.direction ? `active ${sortConfig.direction}` : ""}`}
                   onClick={() => handleSort("createdAt")}
-                  style={{ cursor: "pointer", userSelect: "none" }}
-                  title="Click to sort by date"
+                  title={`Click to sort by date (${getSortLabel("createdAt")})`}
                 >
-                  Date{" "}
-                  {sortConfig.key === "createdAt" &&
-                    (sortConfig.direction === "desc"
-                      ? "▼"
-                      : sortConfig.direction === "asc"
-                        ? "▲"
-                        : "")}
+                  Date
                 </th>
                 <th>Products</th>
                 <th>Qty</th>
                 <th>Priority</th>
                 <th
+                  className={`sortable-header sort-deadline ${sortConfig.key === "deadline" && sortConfig.direction ? `active ${sortConfig.direction}` : ""}`}
                   onClick={() => handleSort("deadline")}
-                  style={{ cursor: "pointer", userSelect: "none" }}
-                  title="Click to sort by deadline"
+                  title={`Click to sort by deadline (${getSortLabel("deadline")})`}
                 >
-                  Deadline{" "}
-                  {sortConfig.key === "deadline" &&
-                    (sortConfig.direction === "desc"
-                      ? "▼"
-                      : sortConfig.direction === "asc"
-                        ? "▲"
-                        : "")}
+                  Deadline
                 </th>
                 <th>Balagruha</th>
                 {normalizedRole === UserTypes.ADMIN && <th>Requester</th>}
                 <th>Status</th>
-                {(hasPermission("Purchase Management", "Update") ||
-                  hasPermission("Purchase Management", "Delete")) && (
-                  <th>Actions</th>
-                )}
+                <th className="actions-header">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -2317,7 +2470,7 @@ export default function ShopInventoryView({
                       </span>
                     ) : request.balagruhaId ? (
                       <span className="balagruha-tag">
-                        📍 {request.balagruhaId.name}
+                        📍 {getBalagruhaDisplayName(request.balagruhaId)}
                       </span>
                     ) : (
                       <span style={{ color: "#9ca3af" }}>—</span>
@@ -2597,7 +2750,11 @@ export default function ShopInventoryView({
             <span className="stats-value completed">
               {
                 filteredRequests.filter(
-                  (r) => r.status === PurchaseRequestStatuses.COMPLETED,
+                  (r) =>
+                    [
+                      PurchaseRequestStatuses.COMPLETED,
+                      PurchaseRequestStatuses.DELIVERED_BALAGRUHA,
+                    ].includes(r.status),
                 ).length
               }
             </span>
@@ -2690,6 +2847,14 @@ export default function ShopInventoryView({
             setDeleteConfirmRequest(null);
           }}
           onNo={() => setDeleteConfirmRequest(null)}
+        />
+      )}
+      {orderAllConfirm !== null && !showCreateModal && (
+        <OrderAllConfirmDialog
+          itemName={orderAllConfirm.productName}
+          requestCount={orderAllConfirm.requests.length}
+          onConfirm={confirmOrderAll}
+          onCancel={() => setOrderAllConfirm(null)}
         />
       )}
     </div>

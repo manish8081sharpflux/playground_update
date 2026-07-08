@@ -7,6 +7,12 @@ import { X } from 'lucide-react';
  * Design System: WTF Module filter pattern
  */
 const FilterPanel = ({ filters, onFilterChange, onClearFilters, hideCategoryFilter = false }) => {
+  const hasActiveFilters =
+    Boolean(filters.search) ||
+    Boolean(filters.category && (!Array.isArray(filters.category) || filters.category.length > 0)) ||
+    filters.maxPrice < 500 ||
+    filters.inStock === false;
+
   const categories = [
     { value: 'ISF Shop', label: 'ISF Shop' },
     { value: 'Medicines', label: 'Medicines' },
@@ -46,7 +52,7 @@ const FilterPanel = ({ filters, onFilterChange, onClearFilters, hideCategoryFilt
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-lg font-semibold text-slate-900">Filters</h3>
-        {(filters.search || (filters.category && (!Array.isArray(filters.category) || filters.category.length > 0)) || filters.maxPrice < 500) && (
+        {hasActiveFilters && (
           <button
             onClick={onClearFilters}
             className="text-xs text-indigo-600 hover:underline flex items-center gap-1"
@@ -129,14 +135,14 @@ const FilterPanel = ({ filters, onFilterChange, onClearFilters, hideCategoryFilt
       {/* Price Range */}
       <div className="mb-6">
         <h4 className="text-sm font-medium text-slate-700 mb-2">
-          Price Range (up to {filters.maxPrice || 500} coins)
+          Price Range (up to {filters.maxPrice ?? 500} coins)
         </h4>
         <input
           type="range"
           min="0"
           max="500"
           step="10"
-          value={filters.maxPrice || 500}
+          value={filters.maxPrice ?? 500}
           onChange={handlePriceChange}
           className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-purple-600"
         />

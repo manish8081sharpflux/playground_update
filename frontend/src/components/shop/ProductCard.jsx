@@ -23,6 +23,10 @@ const ProductCard = ({ product, onRequestItem }) => {
   
   // Staff Roles (Story 2.2)
   const isStaff = isAdmin || isCoach || isPurchaseManager || isMedical;
+  const canPurchase =
+    product.inStock && product.isActive !== false && !product.isPendingProduct;
+  const hasDiscountPrice =
+    Number(product.discountPrice) > 0;
 
   // Navigate to product detail page on card click
   const handleCardClick = () => {
@@ -44,7 +48,7 @@ const ProductCard = ({ product, onRequestItem }) => {
     }
 
     // If student, add to cart
-    if (!product.inStock || isAdding) return;
+    if (!canPurchase || isAdding) return;
 
     setIsAdding(true);
     try {
@@ -75,16 +79,16 @@ const ProductCard = ({ product, onRequestItem }) => {
         />
 
         {/* Out of Stock Overlay */}
-        {!product.inStock && (
+        {!canPurchase && (
           <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
             <span className="bg-red-500 text-white px-4 py-2 rounded-full text-sm font-bold">
-              Out of Stock
+              {product.inStock ? "Unavailable" : "Out of Stock"}
             </span>
           </div>
         )}
 
         {/* Low Stock Badge */}
-        {product.lowStock && product.inStock && (
+        {product.lowStock && canPurchase && (
           <div className="absolute top-2 right-2">
             <span className="bg-orange-500 text-white px-2 py-1 rounded-full text-xs font-bold">
               Only {product.stock} left!
@@ -115,7 +119,7 @@ const ProductCard = ({ product, onRequestItem }) => {
 
         {/* Price */}
         <div className="flex items-center justify-between mb-3">
-          {product.discountPrice ? (
+          {hasDiscountPrice ? (
             <div className="flex items-center gap-2">
               <span className="text-lg font-bold text-emerald-600">
                 {product.discountPrice} coins
@@ -134,9 +138,9 @@ const ProductCard = ({ product, onRequestItem }) => {
         {/* Add to Cart / Request Button */}
         <button
           onClick={(e) => { e.stopPropagation(); handleAction(); }}
-          disabled={(!product.inStock && !isStaff) || isAdding}
+          disabled={(!canPurchase && !isStaff) || isAdding}
           className={`w-full px-4 py-2 rounded-md font-medium flex items-center justify-center gap-2 transition-colors ${
-            product.inStock || isStaff
+            canPurchase || isStaff
               ? "bg-purple-600 text-white hover:bg-purple-700 active:bg-purple-800"
               : "bg-slate-300 text-slate-500 cursor-not-allowed"
           }`}
@@ -150,7 +154,13 @@ const ProductCard = ({ product, onRequestItem }) => {
           ) : (
             <>
               {isStaff ? <Package className="w-5 h-5" /> : <ShoppingCart className="w-5 h-5" />}
-              {isStaff ? "Request Item" : product.inStock ? "Add to Cart" : "Out of Stock"}
+              {isStaff
+                ? "Request Item"
+                : canPurchase
+                ? "Add to Cart"
+                : product.inStock
+                ? "Unavailable"
+                : "Out of Stock"}
             </>
           )}
         </button>

@@ -139,21 +139,24 @@ export default function CoachAssignmentsView({ coachId, coachName, balagruhaName
       {/* Filters */}
       <div className="bg-white shadow-sm border-b w-full">
         <div className="w-full px-6 py-4">
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-6 w-full">
             {/* Search */}
+            <div className="w-1/2">
             <input
               type="text"
               placeholder="🔍 Search assignments..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="flex-1 border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
+            </div>
 
             {/* Status Filter */}
+            <div className="w-1/2">
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
               <option value="all">All Status</option>
               <option value="active">Active</option>
@@ -161,6 +164,7 @@ export default function CoachAssignmentsView({ coachId, coachName, balagruhaName
               <option value="expired">Expired</option>
               <option value="cancelled">Cancelled</option>
             </select>
+            </div>
           </div>
         </div>
       </div>

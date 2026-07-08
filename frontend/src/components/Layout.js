@@ -51,6 +51,7 @@ const Layout = () => {
 
   // Check if current route is WTF
   const isWTFRoute = location.pathname === "/wtf";
+  const isShopRoute = location.pathname.startsWith("/shop");
   const isLowStockReportRoute = location.pathname === "/shop/admin/inventory/low-stock";
 
   const topMenus = [
@@ -589,7 +590,7 @@ const Layout = () => {
       )}
 
       <div className="app-container">
-        <main className={`main-content ${isLowStockReportRoute ? "main-content-full-page" : ""}`}>
+        <main className={`main-content ${isShopRoute ? "main-content-shop" : ""} ${isLowStockReportRoute ? "main-content-full-page" : ""}`}>
           <SidebarContext.Provider
             value={{
               isSidebarCollapsed,

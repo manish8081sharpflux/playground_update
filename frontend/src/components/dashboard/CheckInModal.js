@@ -26,6 +26,8 @@ const CheckInModal = ({ isOpen, onClose, onSubmit, studentData, balagruhas, edit
   const [selectedStudent, setSelectedStudent] = useState("");
   const [students, setStudents] = useState([]);
   const [removedAttachmentIds, setRemovedAttachmentIds] = useState([]);
+  const [studentSearch, setStudentSearch] = useState("");
+  const [isStudentDropdownOpen, setIsStudentDropdownOpen] = useState(false);
 
   useEffect(() => {
     if (studentData) {
@@ -142,6 +144,7 @@ const CheckInModal = ({ isOpen, onClose, onSubmit, studentData, balagruhas, edit
       setSelectedStudent("");
       setStudents([]);
       setRemovedAttachmentIds([]);
+      setStudentSearch("");
     }
 
 
@@ -254,17 +257,21 @@ const CheckInModal = ({ isOpen, onClose, onSubmit, studentData, balagruhas, edit
     }
 
     setSelectedBalagruha(balId);
+    setSelectedStudent("");
+    setStudentSearch("");
 
-    const response = await getAnyUserBasedonRoleandBalagruha("student", balId);
+    try {
+      const response = await getAnyUserBasedonRoleandBalagruha("student", balId);
 
+      if (response.success) {
+        // Backend already filters by balagruhaId, no need to filter again
+        const students = response?.data?.users || [];
 
-    if (response.success) {
-      // Backend already filters by balagruhaId, no need to filter again
-      const students = response?.data?.users || [];
-
-      setStudents(students);
-    } else {
-
+        setStudents(students);
+      } else {
+        setStudents([]);
+      }
+    } catch (error) {
       setStudents([]);
     }
   };
@@ -296,18 +303,79 @@ const CheckInModal = ({ isOpen, onClose, onSubmit, studentData, balagruhas, edit
           </div>
           <div className="form-group">
             <label>Student</label>
-            <select
-              value={selectedStudent}
-              onChange={handleStudentChange}
-              required
-            >
-              <option value="">Select Student</option>
-              {students.map((student) => (
-                <option key={student._id} value={student._id}>
-                  {student.name}
-                </option>
-              ))}
-            </select>
+            <div className="student-search-wrapper">
+              <input
+                type="text"
+                className="student-search-input"
+                placeholder={
+                  students.length === 0
+                    ? "Select a Balagruha first"
+                    : "Search student by name..."
+                }
+                value={
+                  isStudentDropdownOpen
+                    ? studentSearch
+                    : students.find((s) => s._id === selectedStudent)?.name || studentSearch
+                }
+                onChange={(e) => {
+                  setStudentSearch(e.target.value);
+                  setIsStudentDropdownOpen(true);
+                  if (selectedStudent) {
+                    setSelectedStudent("");
+                    setFormData((prev) => ({ ...prev, studentId: "", studentName: "" }));
+                  }
+                }}
+                onFocus={() => {
+                  setStudentSearch("");
+                  setIsStudentDropdownOpen(true);
+                }}
+                onBlur={() => {
+                  // Delay so the mousedown on a list item registers first
+                  setTimeout(() => setIsStudentDropdownOpen(false), 150);
+                }}
+                disabled={students.length === 0}
+                autoComplete="off"
+              />
+              {/* Keeps native `required` validation tied to an actual selection */}
+              <input
+                type="text"
+                value={selectedStudent}
+                onChange={() => {}}
+                required
+                style={{ display: "none" }}
+                tabIndex={-1}
+              />
+
+              {isStudentDropdownOpen && students.length > 0 && (
+                <div className="student-dropdown-list">
+                  {students
+                    .filter((student) =>
+                      student.name.toLowerCase().includes(studentSearch.toLowerCase()),
+                    )
+                    .map((student) => (
+                      <div
+                        key={student._id}
+                        className={`student-dropdown-item ${
+                          selectedStudent === student._id ? "selected" : ""
+                        }`}
+                        onMouseDown={() => {
+                          // onMouseDown fires before onBlur, so selection registers
+                          handleStudentChange({ target: { value: student._id } });
+                          setStudentSearch("");
+                          setIsStudentDropdownOpen(false);
+                        }}
+                      >
+                        {student.name}
+                      </div>
+                    ))}
+                  {students.filter((student) =>
+                    student.name.toLowerCase().includes(studentSearch.toLowerCase()),
+                  ).length === 0 && (
+                    <div className="student-dropdown-empty">No students found</div>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
           <div className="form-group">
             <label>Temperature (°C)</label>

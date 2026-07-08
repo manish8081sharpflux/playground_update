@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { X } from 'lucide-react';
+import React, { useEffect, useState } from "react";
+import { X } from "lucide-react";
 
 const INDIAN_PHONE_REGEX = /^(\+91[\-\s]?)?[6789]\d{9}$/;
 
@@ -7,10 +7,10 @@ export default function VendorFormModal({ vendor, onClose, onSubmit }) {
   const isEditing = Boolean(vendor?._id);
 
   const [formData, setFormData] = useState({
-    name: '',
-    phone: '',
-    address: '',
-    active: true
+    name: "",
+    phone: "",
+    address: "",
+    active: true,
   });
 
   const [errors, setErrors] = useState({});
@@ -19,22 +19,26 @@ export default function VendorFormModal({ vendor, onClose, onSubmit }) {
   useEffect(() => {
     if (!vendor) return;
     setFormData({
-      name: vendor.name || '',
-      phone: vendor.phone || '',
-      address: vendor.address || '',
-      active: vendor.active !== false
+      name: vendor.name || "",
+      phone: vendor.phone || "",
+      address: vendor.address || "",
+      active: vendor.active !== false,
     });
   }, [vendor]);
 
   const validate = () => {
     const nextErrors = {};
 
-    if (!formData.name.trim()) nextErrors.name = 'Vendor name is required';
-    if (!formData.phone.trim()) nextErrors.phone = 'Phone number is required';
-    if (formData.phone.trim() && !INDIAN_PHONE_REGEX.test(formData.phone.trim())) {
-      nextErrors.phone = 'Please enter a valid Indian phone number (e.g., 9876543210 or +91-9876543210)';
+    if (!formData.name.trim()) nextErrors.name = "Vendor name is required";
+    if (!formData.phone.trim()) nextErrors.phone = "Phone number is required";
+    if (
+      formData.phone.trim() &&
+      !INDIAN_PHONE_REGEX.test(formData.phone.trim())
+    ) {
+      nextErrors.phone =
+        "Please enter a valid Indian phone number (e.g., 9876543210 or +91-9876543210)";
     }
-    if (!formData.address.trim()) nextErrors.address = 'Address is required';
+    if (!formData.address.trim()) nextErrors.address = "Address is required";
 
     setErrors(nextErrors);
     return Object.keys(nextErrors).length === 0;
@@ -44,7 +48,7 @@ export default function VendorFormModal({ vendor, onClose, onSubmit }) {
     const { name, value, type, checked } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]: type === 'checkbox' ? checked : value
+      [name]: type === "checkbox" ? checked : value,
     }));
 
     if (errors[name]) {
@@ -67,7 +71,7 @@ export default function VendorFormModal({ vendor, onClose, onSubmit }) {
         name: formData.name.trim(),
         phone: formData.phone.trim(),
         address: formData.address.trim(),
-        active: Boolean(formData.active)
+        active: Boolean(formData.active),
       });
     } finally {
       setSubmitting(false);
@@ -75,11 +79,17 @@ export default function VendorFormModal({ vendor, onClose, onSubmit }) {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg max-w-lg w-full">
+    <div
+      className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+      onClick={onClose}
+    >
+      <div
+        className="bg-white rounded-lg max-w-lg w-full"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="flex items-center justify-between p-6 border-b border-slate-200">
           <h2 className="text-xl font-bold text-slate-900">
-            {isEditing ? 'Edit Vendor' : 'Create Vendor'}
+            {isEditing ? "Edit Vendor" : "Create Vendor"}
           </h2>
           <button
             onClick={onClose}
@@ -100,12 +110,14 @@ export default function VendorFormModal({ vendor, onClose, onSubmit }) {
               value={formData.name}
               onChange={handleChange}
               className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent ${
-                errors.name ? 'border-red-500' : 'border-slate-300'
+                errors.name ? "border-red-500" : "border-slate-300"
               }`}
               placeholder="e.g., ABC Stationers"
               disabled={submitting}
             />
-            {errors.name && <p className="mt-1 text-sm text-red-600">{errors.name}</p>}
+            {errors.name && (
+              <p className="mt-1 text-sm text-red-600">{errors.name}</p>
+            )}
           </div>
 
           <div>
@@ -117,12 +129,14 @@ export default function VendorFormModal({ vendor, onClose, onSubmit }) {
               value={formData.phone}
               onChange={handleChange}
               className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent ${
-                errors.phone ? 'border-red-500' : 'border-slate-300'
+                errors.phone ? "border-red-500" : "border-slate-300"
               }`}
               placeholder="9876543210"
               disabled={submitting}
             />
-            {errors.phone && <p className="mt-1 text-sm text-red-600">{errors.phone}</p>}
+            {errors.phone && (
+              <p className="mt-1 text-sm text-red-600">{errors.phone}</p>
+            )}
           </div>
 
           <div>
@@ -135,12 +149,14 @@ export default function VendorFormModal({ vendor, onClose, onSubmit }) {
               onChange={handleChange}
               rows={3}
               className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent ${
-                errors.address ? 'border-red-500' : 'border-slate-300'
+                errors.address ? "border-red-500" : "border-slate-300"
               }`}
               placeholder="Full address"
               disabled={submitting}
             />
-            {errors.address && <p className="mt-1 text-sm text-red-600">{errors.address}</p>}
+            {errors.address && (
+              <p className="mt-1 text-sm text-red-600">{errors.address}</p>
+            )}
           </div>
 
           <div className="flex items-center gap-2">
@@ -172,7 +188,11 @@ export default function VendorFormModal({ vendor, onClose, onSubmit }) {
               disabled={submitting}
               className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50"
             >
-              {submitting ? 'Saving...' : isEditing ? 'Save Changes' : 'Create Vendor'}
+              {submitting
+                ? "Saving..."
+                : isEditing
+                  ? "Save Changes"
+                  : "Create Vendor"}
             </button>
           </div>
         </form>

@@ -42,7 +42,10 @@ const Checkout = () => {
   const totalAmount = cart.reduce((total, item) => {
     const product = item.shopItemId;
     if (product) {
-      const price = product.discountPrice !== null ? product.discountPrice : product.price;
+      const price =
+        product.discountPrice && product.discountPrice > 0
+          ? product.discountPrice
+          : product.sellingPrice || 0;
       return total + price * item.quantity;
     }
     return total;

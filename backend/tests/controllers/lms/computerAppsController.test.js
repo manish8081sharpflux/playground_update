@@ -77,6 +77,58 @@ describe('ComputerAppsController', () => {
       );
     });
 
+    it('should not count duplicate completion records above total tasks', async () => {
+      const studentId = new mongoose.Types.ObjectId().toString();
+      const courseId = new mongoose.Types.ObjectId();
+      const itemId = new mongoose.Types.ObjectId();
+
+      Course.find.mockReturnValue({
+        sort: jest.fn().mockReturnValue({
+          lean: jest.fn().mockResolvedValue([
+            {
+              _id: courseId,
+              title: 'Test Automation Course',
+              modules: [
+                {
+                  chapters: [
+                    { contentItems: [{ _id: itemId }] },
+                  ],
+                },
+              ],
+            },
+          ]),
+        }),
+      });
+
+      StudentProgress.find.mockReturnValue({
+        lean: jest.fn().mockResolvedValue([
+          {
+            course: courseId,
+            completedItems: [{ itemId }, { itemId }],
+          },
+        ]),
+      });
+
+      const req = mockRequest({ params: { studentId } });
+      const res = mockResponse();
+      await computerAppsController.getComputerApps(req, res);
+
+      expect(res.json).toHaveBeenCalledWith(
+        expect.objectContaining({
+          success: true,
+          apps: expect.arrayContaining([
+            expect.objectContaining({
+              name: 'Test Automation Course',
+              totalTasks: 1,
+              completedTasks: 1,
+              status: 'completed',
+              progressPercentage: 100,
+            }),
+          ]),
+        })
+      );
+    });
+
     it('should return empty apps when no courses', async () => {
       Course.find.mockReturnValue({
         sort: jest.fn().mockReturnValue({
@@ -191,6 +243,56 @@ describe('ComputerAppsController', () => {
           modules: expect.any(Array),
         })
       );
+    });
+
+    it('should mark populated quizRef content items as completed', async () => {
+      const courseId = new mongoose.Types.ObjectId().toString();
+      const itemId = new mongoose.Types.ObjectId();
+      const quizId = new mongoose.Types.ObjectId();
+
+      Course.findOne.mockReturnValue({
+        populate: jest.fn().mockReturnValue({
+          lean: jest.fn().mockResolvedValue({
+            _id: courseId,
+            title: 'Sample Course',
+            modules: [
+              {
+                _id: new mongoose.Types.ObjectId(),
+                title: 'Module 1',
+                chapters: [
+                  {
+                    _id: new mongoose.Types.ObjectId(),
+                    title: 'Ch 1',
+                    contentItems: [
+                      {
+                        _id: itemId,
+                        title: 'Completed Quiz',
+                        type: 'quiz',
+                        quizRef: { _id: quizId },
+                        metadata: {},
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+          }),
+        }),
+      });
+
+      StudentProgress.findOne.mockReturnValue({
+        lean: jest.fn().mockResolvedValue({
+          completedItems: [{ itemId: quizId }],
+        }),
+      });
+
+      const req = mockRequest({
+        params: { studentId: 'sid', courseId },
+      });
+      const res = mockResponse();
+      await computerAppsController.getCourseHierarchy(req, res);
+
+      expect(res.json.mock.calls[0][0].modules[0].chapters[0].contentItems[0].isCompleted).toBe(true);
     });
   });
 

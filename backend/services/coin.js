@@ -403,11 +403,21 @@ class CoinService {
   // Get user transaction history (Sprint5-Story-09: Enhanced with filtering)
   static async getUserTransactionHistory(userId, filters = {}) {
     try {
-      const { type, source, startDate, endDate, page = 1, limit = 50 } = filters;
+      const {
+        type,
+        source,
+        startDate,
+        endDate,
+        page = 1,
+        limit = 50,
+        sortBy = "newest_first",
+      } = filters;
       const skip = (page - 1) * limit;
 
       const coinRecord = await Coin.findOrCreateForUser(userId);
       let transactions = [...coinRecord.transactions];
+      const getTransactionDate = (transaction) =>
+        new Date(transaction.createdAt || transaction.timestamp);
 
       // Apply filters
       if (type) {
@@ -420,17 +430,22 @@ class CoinService {
 
       if (startDate) {
         const start = new Date(startDate);
-        transactions = transactions.filter(t => new Date(t.createdAt) >= start);
+        transactions = transactions.filter(t => getTransactionDate(t) >= start);
       }
 
       if (endDate) {
         const end = new Date(endDate);
         end.setHours(23, 59, 59, 999); // End of day
-        transactions = transactions.filter(t => new Date(t.createdAt) <= end);
+        transactions = transactions.filter(t => getTransactionDate(t) <= end);
       }
 
-      // Sort by date (newest first)
-      transactions.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+      if (sortBy === "oldest_first") {
+        transactions.sort((a, b) => getTransactionDate(a) - getTransactionDate(b));
+      } else if (sortBy === "highest_amount") {
+        transactions.sort((a, b) => Math.abs(b.amount) - Math.abs(a.amount));
+      } else {
+        transactions.sort((a, b) => getTransactionDate(b) - getTransactionDate(a));
+      }
 
       const totalTransactions = transactions.length;
 

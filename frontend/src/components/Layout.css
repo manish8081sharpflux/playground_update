@@ -157,6 +157,10 @@
   overflow-y: auto;
 }
 
+.main-content.main-content-shop {
+  margin-top: 60px !important;
+}
+
 .main-content-full-page {
   display: block !important;
   flex: 1 1 100% !important;

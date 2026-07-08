@@ -9,11 +9,37 @@ const { errorLogger } = require('../config/pino-config');
 exports.getAllMachines = async (req, res) => {
   try {
     const { status, assignedBalagruha, search } = req.query; // Optional filters
+    const normalizedRole = (req.user?.role || "")
+      .toString()
+      .trim()
+      .toLowerCase()
+      .replace(/[\s_]+/g, "-");
+    const isMedicalIncharge =
+      normalizedRole === "medical-incharge" ||
+      normalizedRole === "medical-in-charge";
 
     // Build the query object
     const query = {};
     if (status) query.status = status; // Filter by status
-    if (assignedBalagruha) query.assignedBalagruha = assignedBalagruha; // Filter by assigned Balagruha
+
+    if (isMedicalIncharge) {
+      const allowedBalagruhas = (req.user?.balagruhaIds || [])
+        .map((id) => id?.toString())
+        .filter(Boolean);
+
+      if (assignedBalagruha) {
+        query.assignedBalagruha = allowedBalagruhas.includes(
+          assignedBalagruha.toString()
+        )
+          ? assignedBalagruha
+          : { $in: [] };
+      } else {
+        query.assignedBalagruha = { $in: allowedBalagruhas };
+      }
+    } else if (assignedBalagruha) {
+      query.assignedBalagruha = assignedBalagruha; // Filter by assigned Balagruha
+    }
+
     if (search) {
       query.$or = [
         { machineId: { $regex: search, $options: "i" } },

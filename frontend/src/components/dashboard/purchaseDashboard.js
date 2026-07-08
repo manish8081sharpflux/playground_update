@@ -10,7 +10,6 @@ import {
   getAllPurchases,
   getAllRepairs,
   getBalagruha,
-  getPurchaseOverView,
   updatePurchaseOrder,
   updateRepairRequest,
   getAllPurchaseRequests,
@@ -202,7 +201,11 @@ const PurchaseDashboard = () => {
       });
 
       if (response?.success) {
-        setPmPurchaseRequests(response.data?.requests || []);
+        const requests = response.data?.requests || [];
+        const sortedRequests = [...requests].sort(
+          (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+        );
+        setPmPurchaseRequests(sortedRequests);
       }
     } catch (err) {
       console.error('Error fetching PM purchase requests:', err);
@@ -326,47 +329,115 @@ const PurchaseDashboard = () => {
     setShowPurchaseModal(true);
   };
 
-  const calculateDashboardStats = (repairs, purchases, overviewData = {}) => {
+  const calculateDashboardStats = (repairs, purchases, purchaseRequests = []) => {
     const now = new Date();
     const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
 
+    // Scope to balagruhas this user actually has access to - matches the
+    // filtering already applied to the tables below, so cards match what's visible
+    const canAccessBalagruha = (balagruhaId) => {
+      const id = balagruhaId?.toString?.() || balagruhaId;
+      return (
+        balagruhaIdsFromStorage.length === 0 ||
+        id === "STOCK" ||
+        balagruhaIdsFromStorage.includes(id)
+      );
+    };
+
+    const scopedRepairs = repairs.filter((r) => canAccessBalagruha(r.balagruhaId));
+    const scopedPurchases = purchases.filter((p) => canAccessBalagruha(p.balagruhaId));
+    // Purchase requests are already the exact set shown in the table (no balagruha
+    // scoping there), so use them as-is to keep cards and table in sync.
+    const scopedPurchaseRequests = purchaseRequests;
+
+    const pendingPurchaseRequestStatuses = ["pending", "pending_approval", "approved"];
+    const completedPurchaseRequestStatuses = [
+      "completed",
+      "delivered_store",
+      "delivered_balagruha",
+    ];
+
+    const getPurchaseRequestSpend = (req) => {
+      if (!completedPurchaseRequestStatuses.includes(req.status)) return 0;
+
+      const itemSpend = Array.isArray(req.items)
+        ? req.items.reduce((sum, item) => (
+            sum +
+            Number(
+              item.actualTotalCost ||
+              item.estimatedTotalCost ||
+              (Number(item.requestedQuantity || 0) * Number(item.estimatedUnitCost || 0)) ||
+              0
+            )
+          ), 0)
+        : 0;
+
+      return itemSpend || Number(req.actualTotalCost || req.totalEstimatedCost || 0);
+    };
+
+    const completedRequestSpend = scopedPurchaseRequests.reduce(
+      (sum, req) => sum + getPurchaseRequestSpend(req),
+      0
+    );
+    const tableLowStockItems = scopedPurchaseRequests.reduce((count, req) => {
+      if (!Array.isArray(req.items)) return count;
+
+      return count + req.items.filter((item) => (
+        Number(item.currentStock || 0) === 0 ||
+        Number(item.currentStock || 0) <= Number(item.lowStockThreshold || 0)
+      )).length;
+    }, 0);
+
     const stats = {
-      activeRepairs: repairs.filter((r) => r.status !== "completed").length,
-      pendingOrders: purchases.filter((p) => p.status === "pending").length,
-      completedThisWeek: repairs.filter(
-        (r) => r.status === "completed" && new Date(r.dateReported) > weekAgo
+      activeRepairs: scopedRepairs.filter((r) => r.status !== "completed").length,
+      pendingOrders: scopedPurchaseRequests.filter((req) =>
+        pendingPurchaseRequestStatuses.includes(req.status)
       ).length,
-      lowStockItems: overviewData.lowStockItems || 0,
-      budgetUsed: purchases.reduce((sum, p) => sum + Number(p.costEstimate), 0),
+      // Completed purchase request rows updated this week.
+      completedThisWeek: scopedPurchaseRequests.filter(
+        (req) =>
+          completedPurchaseRequestStatuses.includes(req.status) &&
+          new Date(req.updatedAt || req.createdAt) > weekAgo
+      ).length,
+      lowStockItems: tableLowStockItems,
+      // Spend is based on completed/delivered purchase request rows.
+      budgetUsed: completedRequestSpend,
 
       repairStats: {
-        pending: repairs.filter((r) => r.status === "pending").length,
-        inProgress: repairs.filter((r) => r.status === "in-progress").length,
-        completed: repairs.filter((r) => r.status === "completed").length,
+        pending: scopedRepairs.filter((r) => r.status === "pending").length,
+        inProgress: scopedRepairs.filter((r) => r.status === "in-progress").length,
+        completed: scopedRepairs.filter((r) => r.status === "completed").length,
       },
       purchaseStats: {
-        total: purchases.length,
-        totalCost: purchases.reduce(
-          (sum, p) => sum + Number(p.costEstimate),
-          0
-        ),
-        recentPurchases: purchases.slice(0, 5), // Get 5 most recent purchases
+        total: scopedPurchaseRequests.length,
+        totalCost: completedRequestSpend,
+        recentPurchases: scopedPurchases.slice(0, 5),
       },
       recentActivities: [
-        ...repairs.map((r) => ({
+        ...scopedRepairs.map((r) => ({
           type: "repair",
           title: r.issueName,
           status: r.status,
           date: new Date(r.dateReported),
           cost: r.estimatedCost,
         })),
-        ...purchases.map((p) => ({
+        ...scopedPurchases.map((p) => ({
           type: "purchase",
           title: p.machineDetails,
           status: p.status,
           date: new Date(p.createdAt),
           cost: p.costEstimate,
         })),
+        ...scopedPurchaseRequests.map((req) => {
+          const firstItem = Array.isArray(req.items) && req.items.length > 0 ? req.items[0] : null;
+          return {
+            type: "purchase",
+            title: firstItem?.productName || req.requestId || "Purchase Request",
+            status: req.status,
+            date: new Date(req.createdAt),
+            cost: req.totalEstimatedCost,
+          };
+        }),
       ]
         .sort((a, b) => b.date - a.date)
         .slice(0, 10),
@@ -426,53 +497,27 @@ const PurchaseDashboard = () => {
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
-      const [repairsResponse, purchasesResponse] = await Promise.all([
+      const [repairsResponse, purchasesResponse, purchaseRequestsResponse] = await Promise.all([
         getAllRepairs(),
         getAllPurchases(),
-        getPurchaseOverView(),
+        getAllPurchaseRequests({
+          limit: 25,
+          sortBy: 'createdAt',
+          sortOrder: 'desc'
+        }),
       ]);
 
       const repairs = repairsResponse.data.repairRequests || [];
       const purchases = purchasesResponse.data.purchaseOrders || [];
+      const purchaseRequests = purchaseRequestsResponse?.success
+        ? [...(purchaseRequestsResponse.data?.requests || [])].sort(
+            (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+          )
+        : [];
 
-      const response = await getPurchaseOverView();
-      const data = response.data;
+      setPmPurchaseRequests(purchaseRequests);
 
-      // Calculate repair statistics from recent activities
-      const repairStats = {
-        pending: data.recentActivities.filter((r) => r.status === "pending")
-          .length,
-        inProgress: data.recentActivities.filter(
-          (r) => r.status === "in-progress"
-        ).length,
-        completed: data.recentActivities.filter((r) => r.status === "completed")
-          .length,
-      };
-
-      // Format recent activities
-      const formattedActivities = data.recentActivities.map((activity) => ({
-        type: "repair",
-        title: activity.issueName,
-        status: activity.status,
-        date: new Date(activity.dateReported),
-        cost: activity.estimatedCost,
-        urgency: activity.urgency,
-        description: activity.description,
-        attachments: activity.attachments,
-        createdBy: activity.createdBy,
-      }));
-
-      setDashboardData({
-        activeRepairs: data.activeRepairs,
-        pendingOrders: data.pendingOrders,
-        completedThisWeek: data.completedThisWeek,
-        budgetUsed: data.budgetUsed,
-        recentActivities: formattedActivities,
-        repairStats,
-      });
-      setError(null);
-
-      const dashboardStats = calculateDashboardStats(repairs, purchases, data);
+      const dashboardStats = calculateDashboardStats(repairs, purchases, purchaseRequests);
       setDashboardData(dashboardStats);
 
       setError(null);

@@ -147,12 +147,12 @@ export default function StockReconciliationView() {
               className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
             >
               <option value="all">All Categories</option>
-              <option value="stationery">Stationery</option>
-              <option value="sports">Sports</option>
-              <option value="books">Books</option>
-              <option value="uniforms">Uniforms</option>
-              <option value="digital">Digital</option>
-              <option value="other">Other</option>
+              <option value="ISF Shop">ISF Shop</option>
+              <option value="Medicines">Medicines</option>
+              <option value="Consumables">Consumables</option>
+              <option value="Repairs">Repairs</option>
+              <option value="Infra">Infra</option>
+              <option value="Others">Others</option>
             </select>
           </div>
         </div>

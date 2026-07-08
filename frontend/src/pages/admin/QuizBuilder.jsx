@@ -9,6 +9,22 @@ import FillBlankEditor from '../../components/admin/FillBlankEditor';
 import QuestionBankModal from '../../components/admin/QuestionBankModal';
 import QuizPreview from '../../components/admin/QuizPreview';
 
+const QUIZ_ENABLED_COURSE_CATEGORIES = ['Computer Apps', 'Life Skills'];
+
+const getCourseType = (course) => course?.category || course?.title;
+
+const getUnsupportedQuizCourseMessage = (course) => {
+  if (!course) {
+    return '';
+  }
+
+  if (QUIZ_ENABLED_COURSE_CATEGORIES.includes(getCourseType(course))) {
+    return '';
+  }
+
+  return `Quizzes can be published only for ${QUIZ_ENABLED_COURSE_CATEGORIES.join(' or ')} courses.`;
+};
+
 /**
  * QuizBuilder - Sprint 2 Epic 02 Story 03
  * Main quiz creation/editing interface with question editors
@@ -149,6 +165,9 @@ export default function QuizBuilder() {
     }
   }, [quiz.module, loadChapters]);
 
+  const selectedCourse = courses.find((course) => course._id === quiz.course);
+  const unsupportedCourseMessage = getUnsupportedQuizCourseMessage(selectedCourse);
+
   // Save quiz
   const handleSave = async (publish = false) => {
     // Validation
@@ -165,6 +184,13 @@ export default function QuizBuilder() {
     if (publish && !quiz.chapter) {
       toast.error('Cannot publish quiz without associating to a chapter');
       return;
+    }
+
+    if (publish) {
+      if (unsupportedCourseMessage) {
+        toast.error(unsupportedCourseMessage);
+        return;
+      }
     }
 
     try {
@@ -405,6 +431,11 @@ export default function QuizBuilder() {
                         <option key={course._id} value={course._id}>{course.title}</option>
                       ))}
                     </select>
+                    {unsupportedCourseMessage && (
+                      <p className="mt-2 text-sm font-medium text-red-600">
+                        {unsupportedCourseMessage}
+                      </p>
+                    )}
                   </div>
 
                   <div>

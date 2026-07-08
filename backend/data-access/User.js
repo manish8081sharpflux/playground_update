@@ -1149,7 +1149,7 @@ exports.getStudentMoodTrackerDetailsByBalagruhaIds = async ({
       },
       {
         $lookup: {
-          from: "student_mood_tracker",
+          from: "student_mood_trackers",
           let: { userId: "$_id" },
           pipeline: [
             { $match: { $expr: { $eq: ["$userId", "$$userId"] } } },

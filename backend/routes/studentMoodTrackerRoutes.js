@@ -11,10 +11,12 @@ const {
 // router.use(authenticateToken);
 
 // Create or update mood entry
+// Any authenticated user (student, coach, admin, etc.) can log their own mood —
+// this does not require User Management permissions, since it only ever
+// writes an entry tied to the requester's own userId.
 router.post(
   "/",
   authenticate, // Ensure the user is authenticated
-  authorize("User Management", "Update"), // Ensure the user has permission to update tasks
   studentMoodTrackerController.createOrUpdateMoodEntry
 );
 

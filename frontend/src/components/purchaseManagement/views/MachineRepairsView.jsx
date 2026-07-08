@@ -60,7 +60,7 @@ export default function MachineRepairsView() {
   const openPurchaseModal = (purchase = null) => {
     if (purchase) {
       setPurchaseForm({
-        balagruhaId: purchase.balagruhaId,
+        balagruhaId: purchase.balagruhaId?._id || purchase.balagruhaId || "",
         status: purchase.status,
         machineDetails: purchase.machineDetails,
         vendorDetails: purchase.vendorDetails,
@@ -229,6 +229,17 @@ export default function MachineRepairsView() {
       }
       if (!purchaseForm.costEstimate) {
         showToast("Please enter a cost estimate", "error");
+        setLoading(false);
+        return;
+      }
+      const costEstimateValue = Number(purchaseForm.costEstimate);
+      if (Number.isNaN(costEstimateValue) || costEstimateValue <= 0) {
+        showToast("Cost estimate must be a positive number", "error");
+        setLoading(false);
+        return;
+      }
+      if (costEstimateValue > 100000) {
+        showToast("Cost estimate cannot exceed ₹100,000", "error");
         setLoading(false);
         return;
       }
@@ -835,8 +846,13 @@ export default function MachineRepairsView() {
                         costEstimate: e.target.value,
                       }))
                     }
+                    min="1"
+                    max="100000"
                     required
                   />
+                  <small className="form-hint">
+                    Must be between ₹1 and ₹100,000
+                  </small>
                 </div>
                 <div className="form-group">
                   <label>Required Materials:</label>

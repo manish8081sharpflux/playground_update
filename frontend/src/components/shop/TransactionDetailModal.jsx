@@ -27,93 +27,289 @@ const TransactionDetailModal = ({ transaction, onClose }) => {
   // Check if this is a shop transaction with order details
   const isShopTransaction = transaction.source === 'shop' && transaction.metadata?.orderNumber;
 
+  const isEarned = transaction.type === 'earned';
+
+  const DetailRow = ({ label, value, mono }) => (
+    <div
+      style={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        padding: '12px 0',
+        borderBottom: '1px solid #f1f5f9',
+        gap: '16px',
+      }}
+    >
+      <span
+        style={{
+          fontSize: '13px',
+          fontWeight: 600,
+          color: '#64748b',
+          textTransform: 'uppercase',
+          letterSpacing: '0.03em',
+          whiteSpace: 'nowrap',
+        }}
+      >
+        {label}
+      </span>
+      <span
+        style={{
+          fontSize: '14px',
+          fontWeight: mono ? 500 : 600,
+          color: '#1e293b',
+          textAlign: 'right',
+          fontFamily: mono ? 'monospace' : 'inherit',
+          wordBreak: 'break-word',
+        }}
+      >
+        {value}
+      </span>
+    </div>
+  );
+
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content transaction-detail-modal" onClick={(e) => e.stopPropagation()}>
-        <div className="modal-header">
-          <h2>Transaction Details</h2>
-          <button className="modal-close-btn" onClick={onClose}>
+    <div
+      className="modal-overlay"
+      onClick={onClose}
+      style={{
+        position: 'fixed',
+        inset: 0,
+        backgroundColor: 'rgba(15, 23, 42, 0.55)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 9999,
+        padding: '16px',
+      }}
+    >
+      <div
+        className="modal-content transaction-detail-modal"
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          backgroundColor: '#ffffff',
+          borderRadius: '16px',
+          width: '100%',
+          maxWidth: '460px',
+          boxShadow: '0 20px 40px rgba(0,0,0,0.2)',
+          overflow: 'hidden',
+        }}
+      >
+        {/* Header */}
+        <div
+          className="modal-header"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: '20px 24px',
+            background: isEarned
+              ? 'linear-gradient(135deg, #ede9fe 0%, #f5f3ff 100%)'
+              : 'linear-gradient(135deg, #fee2e2 0%, #fef2f2 100%)',
+            borderBottom: '1px solid #e2e8f0',
+          }}
+        >
+          <h2
+            style={{
+              margin: 0,
+              fontSize: '18px',
+              fontWeight: 700,
+              color: '#1e293b',
+              userSelect: 'none',
+            }}
+          >
+            Transaction Details
+          </h2>
+          <button
+            className="modal-close-btn"
+            onClick={onClose}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: '32px',
+              height: '32px',
+              borderRadius: '8px',
+              border: 'none',
+              backgroundColor: 'rgba(255,255,255,0.7)',
+              color: '#475569',
+              fontSize: '18px',
+              lineHeight: 1,
+              cursor: 'pointer',
+              transition: 'background-color 0.15s ease',
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#ffffff')}
+            onMouseLeave={(e) =>
+              (e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.7)')
+            }
+          >
             ×
           </button>
         </div>
 
-        <div className="modal-body">
-          <div className={`transaction-detail-card ${transaction.type}`}>
-            <div className="detail-row">
-              <span className="detail-label">Type</span>
-              <span className={`detail-value type-badge ${transaction.type}`}>
+        {/* Body */}
+        <div className="modal-body" style={{ padding: '20px 24px' }}>
+          {/* Amount highlight card */}
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              padding: '16px 18px',
+              borderRadius: '12px',
+              backgroundColor: isEarned ? '#f0fdf4' : '#fef2f2',
+              border: `1px solid ${isEarned ? '#bbf7d0' : '#fecaca'}`,
+              marginBottom: '16px',
+            }}
+          >
+            <div>
+              <div
+                style={{
+                  fontSize: '12px',
+                  fontWeight: 700,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.04em',
+                  color: isEarned ? '#16a34a' : '#dc2626',
+                  marginBottom: '4px',
+                }}
+              >
                 {transaction.type.charAt(0).toUpperCase() + transaction.type.slice(1)}
-              </span>
+              </div>
+              <div style={{ fontSize: '13px', color: '#64748b' }}>
+                {transaction.description}
+              </div>
             </div>
-
-            <div className="detail-row">
-              <span className="detail-label">Amount</span>
-              <span className={`detail-value amount ${transaction.type}`}>
-                {transaction.type === 'earned' ? '+' : '-'}{transaction.amount} coins
-              </span>
+            <div
+              style={{
+                fontSize: '22px',
+                fontWeight: 800,
+                color: isEarned ? '#16a34a' : '#dc2626',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {isEarned ? '+' : '-'}
+              {transaction.amount} coins
             </div>
+          </div>
 
-            <div className="detail-row">
-              <span className="detail-label">Source</span>
-              <span className="detail-value source-badge">
-                {transaction.source.toUpperCase()}
-              </span>
-            </div>
+          {/* Detail rows card */}
+          <div
+            style={{
+              backgroundColor: '#f8fafc',
+              border: '1px solid #e2e8f0',
+              borderRadius: '12px',
+              padding: '4px 18px',
+            }}
+          >
+            <DetailRow
+              label="Source"
+              value={
+                <span
+                  style={{
+                    display: 'inline-block',
+                    padding: '2px 10px',
+                    borderRadius: '999px',
+                    backgroundColor: '#e0e7ff',
+                    color: '#4338ca',
+                    fontSize: '12px',
+                    fontWeight: 700,
+                    letterSpacing: '0.03em',
+                  }}
+                >
+                  {transaction.source.toUpperCase()}
+                </span>
+              }
+            />
+            <DetailRow label="Date & Time" value={formatDate(transaction.createdAt)} />
 
-            <div className="detail-row">
-              <span className="detail-label">Description</span>
-              <span className="detail-value">{transaction.description}</span>
-            </div>
+            {transaction.metadata?.orderId && (
+              <DetailRow label="Order ID" value={transaction.metadata.orderId} mono />
+            )}
 
-            <div className="detail-row">
-              <span className="detail-label">Date & Time</span>
-              <span className="detail-value">{formatDate(transaction.createdAt)}</span>
-            </div>
+            {transaction.metadata?.orderNumber && (
+              <DetailRow
+                label="Order Number"
+                value={transaction.metadata.orderNumber}
+                mono
+              />
+            )}
 
-            {transaction.metadata && Object.keys(transaction.metadata).length > 0 && (
-              <>
-                <div className="detail-section-divider"></div>
-                <h3 className="detail-section-title">Additional Information</h3>
+            {transaction.metadata?.itemCount !== undefined && (
+              <DetailRow label="Items Purchased" value={transaction.metadata.itemCount} />
+            )}
 
-                {transaction.metadata.orderId && (
-                  <div className="detail-row">
-                    <span className="detail-label">Order ID</span>
-                    <span className="detail-value monospace">{transaction.metadata.orderId}</span>
-                  </div>
-                )}
-
-                {transaction.metadata.orderNumber && (
-                  <div className="detail-row">
-                    <span className="detail-label">Order Number</span>
-                    <span className="detail-value monospace">{transaction.metadata.orderNumber}</span>
-                  </div>
-                )}
-
-                {transaction.metadata.itemCount !== undefined && (
-                  <div className="detail-row">
-                    <span className="detail-label">Items Purchased</span>
-                    <span className="detail-value">{transaction.metadata.itemCount}</span>
-                  </div>
-                )}
-
-                {transaction.metadata.refundReason && (
-                  <div className="detail-row">
-                    <span className="detail-label">Refund Reason</span>
-                    <span className="detail-value">{transaction.metadata.refundReason}</span>
-                  </div>
-                )}
-              </>
+            {transaction.metadata?.refundReason && (
+              <div style={{ padding: '12px 0' }}>
+                <span
+                  style={{
+                    fontSize: '13px',
+                    fontWeight: 600,
+                    color: '#64748b',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.03em',
+                    display: 'block',
+                    marginBottom: '6px',
+                  }}
+                >
+                  Refund Reason
+                </span>
+                <span style={{ fontSize: '14px', color: '#1e293b', lineHeight: 1.5 }}>
+                  {transaction.metadata.refundReason}
+                </span>
+              </div>
             )}
           </div>
         </div>
 
-        <div className="modal-footer">
+        {/* Footer */}
+        <div
+          className="modal-footer"
+          style={{
+            display: 'flex',
+            justifyContent: 'flex-end',
+            gap: '10px',
+            padding: '16px 24px',
+            borderTop: '1px solid #e2e8f0',
+            backgroundColor: '#f8fafc',
+          }}
+        >
           {isShopTransaction && (
-            <button className="btn-primary" onClick={handleViewOrder}>
+            <button
+              className="btn-primary"
+              onClick={handleViewOrder}
+              style={{
+                padding: '9px 18px',
+                fontSize: '14px',
+                fontWeight: 600,
+                borderRadius: '8px',
+                border: 'none',
+                backgroundColor: '#7c3aed',
+                color: '#ffffff',
+                cursor: 'pointer',
+                transition: 'background-color 0.15s ease',
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#6d28d9')}
+              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#7c3aed')}
+            >
               View Order
             </button>
           )}
-          <button className="btn-secondary" onClick={onClose}>
+          <button
+            className="btn-secondary"
+            onClick={onClose}
+            style={{
+              padding: '9px 18px',
+              fontSize: '14px',
+              fontWeight: 600,
+              borderRadius: '8px',
+              border: '1px solid #d1d5db',
+              backgroundColor: '#ffffff',
+              color: '#374151',
+              cursor: 'pointer',
+              transition: 'background-color 0.15s ease',
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#f3f4f6')}
+            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#ffffff')}
+          >
             Close
           </button>
         </div>

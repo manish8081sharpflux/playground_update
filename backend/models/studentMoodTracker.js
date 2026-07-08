@@ -9,7 +9,16 @@ const StudentMoodTrackerSchema = new mongoose.Schema(
     },
     mood: {
       type: String,
-      enum: ["happy", "excited", "neutral", "sad", "very_sad"], // Adjust based on your UI
+      enum: [
+        "happy",
+        "excited",
+        "neutral",
+        "sad",
+        "very_sad",
+        "afraid",
+        "angry",
+        "unwell",
+      ], // Includes legacy student dashboard values
       required: true,
     },
     dateString: {
@@ -40,9 +49,10 @@ StudentMoodTrackerSchema.pre("save", function (next) {
   next();
 });
 
-const StudentMoodTracker = mongoose.models.student_mood_tracker || mongoose.model(
-  "student_mood_tracker",
-  StudentMoodTrackerSchema
+const StudentMoodTracker = mongoose.models.StudentMoodTracker || mongoose.model(
+  "StudentMoodTracker",
+  StudentMoodTrackerSchema,
+  "student_mood_trackers"
 );
 
 module.exports = StudentMoodTracker;

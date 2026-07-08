@@ -11,6 +11,7 @@ import MedicInchargeDashboard from './medicalIncharge';
 import PurchaseDashboard from './purchaseDashboard';
 import SportCoachDashboard from './Sportscoach';
 import MusicCoachDashboard from './MusicCoach';
+import { UserTypes, normalizeUserRole } from '../../constants/userTypes';
 // const Dashboard = () => {
 //     const { user } = useAuth();
 //     const { canRead } = usePermission();
@@ -85,8 +86,10 @@ import MusicCoachDashboard from './MusicCoach';
 // };
 
 const Dashboard = () => {
+    const role = normalizeUserRole(localStorage.getItem('role'));
+
     // Redirect students to the new layout/dashboard
-    if (localStorage.getItem('role') === 'student') {
+    if (role === UserTypes.STUDENT) {
         return <Navigate to="/student/dashboard" replace />;
     }
 
@@ -96,7 +99,7 @@ const Dashboard = () => {
             {/* ['admin', 'coach', 'balagruha in-charge', 'student', 'purchase-manager',
     'medical-incharge', 'sports-coach', 'music-coach', 'amma'] */}
             {
-                localStorage.getItem('role') === 'admin' ? <AdminDashboard /> : localStorage.getItem('role') === 'coach' ? <CoachDashboard /> : localStorage?.getItem('role') === 'balagruha-incharge' ? < PurchaseDashboard /> : localStorage?.getItem('role') === 'medical-incharge' ? <MedicInchargeDashboard /> : localStorage.getItem('role') === 'purchase-manager' ? <PurchaseDashboard /> : localStorage.getItem('role') === 'sports-coach' ? <MusicCoachDashboard /> : <MusicCoachDashboard />
+                role === UserTypes.ADMIN ? <AdminDashboard /> : role === UserTypes.COACH ? <CoachDashboard /> : role === UserTypes.IN_CHARGE ? < PurchaseDashboard /> : role === UserTypes.MEDICAL_IN_CHARGE ? <MedicInchargeDashboard /> : role === UserTypes.PURCHASE_MANAGER ? <PurchaseDashboard /> : role === UserTypes.SPORTS_COACH ? <MusicCoachDashboard /> : <MusicCoachDashboard />
             }
         </>
     )

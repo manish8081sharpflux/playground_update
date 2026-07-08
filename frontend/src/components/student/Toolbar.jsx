@@ -61,10 +61,9 @@ export default function Toolbar() {
 
     // Save emotion to API (only when online)
     try {
-      const studentId = localStorage.getItem('userId') || 'student123';
-      await api.post(`/api/v2/lms/student/${studentId}/emotion`, {
-        emotion,
-        timestamp: new Date().toISOString()
+      await api.post(`/api/v1/mood-tracker`, {
+        mood: emotion,
+        date: new Date().toISOString()
       });
 
       // Show feedback
@@ -104,18 +103,21 @@ export default function Toolbar() {
   const syncOfflineEmotions = async () => {
     const offlineEmotions = JSON.parse(localStorage.getItem('offlineEmotions') || '[]');
 
-    if (offlineEmotions.length > 0) {
-      try {
-        const studentId = localStorage.getItem('userId') || 'student123';
-        await api.post(`/api/v2/lms/student/${studentId}/emotions/batch`, {
-          emotions: offlineEmotions
-        });
+    if (offlineEmotions.length === 0) return;
 
-        localStorage.removeItem('offlineEmotions');
-        toast.success(`Synced ${offlineEmotions.length} emotions`);
-      } catch (error) {
-        console.error('Failed to sync offline emotions:', error);
+    try {
+      // Backend has no batch endpoint yet — sync one at a time to the real mood-tracker route
+      for (const entry of offlineEmotions) {
+        await api.post(`/api/v1/mood-tracker`, {
+          mood: entry.emotion,
+          date: entry.timestamp
+        });
       }
+
+      localStorage.removeItem('offlineEmotions');
+      toast.success(`Synced ${offlineEmotions.length} emotions`);
+    } catch (error) {
+      console.error('Failed to sync offline emotions:', error);
     }
   };
 

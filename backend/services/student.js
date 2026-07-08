@@ -31,6 +31,7 @@ const User = require("../models/user");
 
 class Student {
   constructor(obj) {
+    this.userId = obj.userId || null;
     this.name = obj.name || "";
     this.email = obj.email || "";
     this.password = obj.password || "";
@@ -58,6 +59,7 @@ class Student {
 
   toJSON() {
     return {
+      userId: this.userId,
       name: this.name,
       email: this.email,
       password: this.password,
@@ -86,6 +88,7 @@ class Student {
 
   parseStudentInfo() {
     return {
+      userId: this.userId,
       name: this.name,
       email: this.email,
       role: this.role,

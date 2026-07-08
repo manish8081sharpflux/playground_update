@@ -51,6 +51,7 @@ export default function TransactionItem({ transaction }) {
           border: 'border-purple-500',
           text: 'text-purple-600'
         };
+      case 'spent':
       case 'spend':
       case 'purchase':
         return {
@@ -68,7 +69,9 @@ export default function TransactionItem({ transaction }) {
   };
 
   const colors = getColorScheme(transaction.type);
-  const isPositive = transaction.amount > 0;
+  const isSpent = transaction.type === 'spent' || transaction.type === 'spend';
+  const isPositive = !isSpent && transaction.amount > 0;
+  const displayAmount = Math.abs(transaction.amount);
 
   return (
     <div
@@ -95,7 +98,7 @@ export default function TransactionItem({ transaction }) {
           <span
             className={`font-bold text-xl ${isPositive ? 'text-green-600' : 'text-red-600'}`}
           >
-            {isPositive ? '+' : ''}{transaction.amount} 💰
+            {isSpent ? '-' : isPositive ? '+' : ''}{displayAmount} 💰
           </span>
         </div>
       </div>

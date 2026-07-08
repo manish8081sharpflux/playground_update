@@ -3,6 +3,7 @@ import { getCoachDeliveryStats, getCoachDeliveries, markOrderDelivered, getUserB
 import ShopNavigation from '../components/shop/ShopNavigation';
 import Breadcrumbs from '../components/shop/Breadcrumbs';
 import { useAuth } from '../contexts/AuthContext';
+import toast from 'react-hot-toast';
 
 /**
  * CoachDeliveries Page - Sprint5-Story-13
@@ -225,12 +226,12 @@ export default function CoachDeliveries() {
         await fetchStats();
         await fetchDeliveries();
 
-        // Show success message briefly
-        alert(`Order ${response.order.orderNumber} marked as delivered!`);
+        // Show success toast
+        toast.success(`Order ${response.order.orderNumber} marked as delivered!`);
       }
     } catch (err) {
       console.error('Error marking order as delivered:', err);
-      alert(err.response?.data?.error || 'Failed to mark order as delivered');
+      toast.error(err.response?.data?.error || 'Failed to mark order as delivered');
     } finally {
       setDelivering(null);
       setShowNotesModal(false);
@@ -241,7 +242,7 @@ export default function CoachDeliveries() {
 
   const handleConfirmWithNotes = () => {
     if (selectedOrder && deliveryNotes.trim().length > 500) {
-      alert('Delivery notes must be 500 characters or less');
+      toast.error('Delivery notes must be 500 characters or less');
       return;
     }
     confirmDelivery(selectedOrder._id, deliveryNotes.trim());

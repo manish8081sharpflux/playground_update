@@ -719,6 +719,24 @@ export default function ProductFormModal({
               />
             )}
 
+            {/* Pending Status */}
+            {isEditing && (
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium text-slate-700">
+                  Product setup status:
+                </span>
+                {product.isPendingProduct ? (
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
+                    Pending
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                    Completed
+                  </span>
+                )}
+              </div>
+            )}
+
             {/* Active Status */}
             <div className="flex items-center gap-2">
               <input
