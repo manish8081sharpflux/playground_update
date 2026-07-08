@@ -201,7 +201,16 @@ const UserForm = ({ mode = "add", user = null, onSuccess, onCancel }) => {
         status: user.status || "active",
         age: user.age || "",
         gender: user.gender || "",
-        balagruhaIds: user.balagruhaIds || [],
+        balagruhaIds: (user.balagruhaIds || []).map((bg) => {
+          if (typeof bg === "object" && bg.name) return bg;
+
+          const bgId = bg?._id || bg;
+          const matchedBalagruha = balagruhaOptions.find(
+            (option) => String(option._id) === String(bgId)
+          );
+
+          return matchedBalagruha || { _id: bgId };
+        }),
         parentalStatus: user.parentalStatus || "",
         nextActionDate: user.nextActionDate || "",
         guardianName1: user.guardianName1 || "",
@@ -839,13 +848,20 @@ const UserForm = ({ mode = "add", user = null, onSuccess, onCancel }) => {
 
   const getBalagruhaName = (balagruha) => {
     if (!balagruha) return "";
+
+    const balagruhaId = getBalagruhaIdValue(balagruha);
+
+    const match = balagruhaOptions.find(
+      (option) => String(option._id) === String(balagruhaId)
+    );
+
+    if (match?.name) return match.name;
+
     if (typeof balagruha === "object" && balagruha.name) {
       return balagruha.name;
     }
-    const match = balagruhaOptions.find(
-      (option) => option._id === getBalagruhaIdValue(balagruha)
-    );
-    return match?.name || "";
+
+    return "";
   };
 
   const normalizedMachines = useMemo(() => {
@@ -905,6 +921,10 @@ const UserForm = ({ mode = "add", user = null, onSuccess, onCancel }) => {
     e.preventDefault();
 
     if (!validateForm()) {
+      setErrors((prev) => ({
+        ...prev,
+        submit: "Please fill all required fields before submitting.",
+      }));
       return;
     }
 
@@ -1135,6 +1155,13 @@ const UserForm = ({ mode = "add", user = null, onSuccess, onCancel }) => {
             onCapture={(file, previewUrl) => {
               setFiles((prev) => ({ ...prev, facialData: file }));
               setPreviews((prev) => ({ ...prev, facialData: previewUrl }));
+
+              setErrors((prev) => {
+                const newErrors = { ...prev };
+                delete newErrors.facialData;
+                return newErrors;
+              });
+
               handleCloseModal();
             }}
           />
@@ -1153,7 +1180,7 @@ const UserForm = ({ mode = "add", user = null, onSuccess, onCancel }) => {
         {mode === "edit" && (
           <div className="user-info">
             {/* <span>User ID: {user?._id}</span> */}
-            <span>
+            <span className="text-sm">
               Last Updated: {new Date(user?.updatedAt).toLocaleDateString()}
             </span>
           </div>
@@ -1303,7 +1330,7 @@ const UserForm = ({ mode = "add", user = null, onSuccess, onCancel }) => {
                       <span>
                         {formData.balagruhaIds.length
                           ? `${formData.balagruhaIds
-                            .map((bg) => bg.name)
+                            .map((bg) => getBalagruhaName(bg))
                             .join(", ")}`
                           : "Select Balagruha"}
                       </span>

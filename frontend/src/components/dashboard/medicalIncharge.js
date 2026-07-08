@@ -110,7 +110,7 @@ const MedicInchargeDashboard = () => {
   const getVerticalPosition = (rect) => {
     const spaceBelow = window.innerHeight - rect.bottom;
     const neededSpace = 550; // Estimated max height of tooltip
-    
+
     if (spaceBelow < neededSpace) {
       return { y: window.innerHeight - rect.bottom, alignY: 'bottom' };
     }
@@ -131,6 +131,8 @@ const MedicInchargeDashboard = () => {
   const [selectedBalagruha, setSelectedBalagruha] = useState('all');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
+  const [checkInsPage, setCheckInsPage] = useState(1);
+  const CHECKINS_PER_PAGE = 10;
   const [editData, setEditData] = useState();
   const [editMode, setEditMode] = useState(false);
   // New state for dashboard filters
@@ -431,7 +433,7 @@ const MedicInchargeDashboard = () => {
     // Doctors Data Bank — shared doctor directory managed by medical incharge
     { id: 8, name: "Doctors", activeTab: "doctors", link: "/medical/doctors" },
     //     { id: 5, name: "Performance", activeTab: "" },
-        // { id: 6, name: "Reports", activeTab: "reports" },
+    // { id: 6, name: "Reports", activeTab: "reports" },
   ];
   const handleOpenModal = (checkin = null, edit = null) => {
 
@@ -462,7 +464,7 @@ const MedicInchargeDashboard = () => {
     handleOpenModal(checkin, true);
   };
 
-  const handleSubmitCheckIn = async(formData, checkInId = null, removedAttachmentIds = []) => {
+  const handleSubmitCheckIn = async (formData, checkInId = null, removedAttachmentIds = []) => {
     try {
       if (editMode && checkInId) {
         // Update existing check-in
@@ -521,7 +523,7 @@ const MedicInchargeDashboard = () => {
         }
 
         const response = await updateMedicalCheckin(checkInId, updateData);
-        if(response.success) {
+        if (response.success) {
           // Delete removed attachments first
           if (removedAttachmentIds && removedAttachmentIds.length > 0) {
             for (const attachmentId of removedAttachmentIds) {
@@ -679,7 +681,7 @@ const MedicInchargeDashboard = () => {
         });
 
         const response = await createMedicalCheckin(formDataToSend);
-        if(response.success) {
+        if (response.success) {
           showToast("Medical Check-in created successfully", "success");
           await fetchMedicalData();
         } else {
@@ -785,13 +787,13 @@ const MedicInchargeDashboard = () => {
     // getUserBalagruhas returns the current user's assigned balagruhas
     try {
       const response = await getUserBalagruhas();
-      
+
       // Backend returns { success: true, data: [balagruhas] }
       // where data is the array directly
-      if(response.success && Array.isArray(response.data)) {
+      if (response.success && Array.isArray(response.data)) {
         // Filter out the STOCK option, only keep actual balagruhas
         const actualBalagruhas = response.data.filter(b => b._id !== 'STOCK');
-        
+
         setBalagruhaData(actualBalagruhas);
       } else {
         console.error("Invalid response structure:", response);
@@ -805,11 +807,11 @@ const MedicInchargeDashboard = () => {
     }
   }
 
-  const fetchMedicalData = async() => {
+  const fetchMedicalData = async () => {
     // Parse the JSON stringified array from localStorage
     const balagruhaIdsFromStorage = JSON.parse(localStorage.getItem('balagruhaIds') || '[]');
     const response = await getMedicalConditionBasedOnBalagruha(balagruhaIdsFromStorage);
-    if(response.success) {
+    if (response.success) {
       // Show all check-ins for students in assigned balagruhas (not just ones created by this user)
       setRecentHealthCheckins(response?.data?.medicalCheckIns || []);
     } else {
@@ -819,22 +821,40 @@ const MedicInchargeDashboard = () => {
   }
 
   const handleDateRangeChange = (start, end) => {
+    const today = new Date();
+    today.setHours(23, 59, 59, 999);
+
+    if (start && new Date(start) > today) {
+      showToast("Start date cannot be a future date", "error");
+      return;
+    }
+
+    if (end && new Date(end) > today) {
+      showToast("End date cannot be a future date", "error");
+      return;
+    }
+
+    if (start && end && new Date(start) > new Date(end)) {
+      showToast("Start date cannot be greater than end date", "error");
+      return;
+    }
+
     setStartDate(start);
     setEndDate(end);
   };
 
   const filterMedicalCheckInData = recentHealthCheckins.filter((user) => {
-    if(search &&
+    if (search &&
       !user?.userName?.toLowerCase().includes(search.toLowerCase())
     ) {
       return false;
     }
 
-    if(medicalStatus !== "all" && user?.healthStatus !== medicalStatus) {
+    if (medicalStatus !== "all" && user?.healthStatus !== medicalStatus) {
       return false;
     }
 
-    if(selectedBalagruha !== 'all' && user?.balagruhaIds[0] !== selectedBalagruha) {
+    if (selectedBalagruha !== 'all' && user?.balagruhaIds[0] !== selectedBalagruha) {
       return false;
     }
 
@@ -860,8 +880,30 @@ const MedicInchargeDashboard = () => {
       }
     }
 
+
+
     return true;
   })
+
+  const totalCheckInsPages = Math.max(
+    1,
+    Math.ceil(filterMedicalCheckInData.length / CHECKINS_PER_PAGE)
+  );
+
+  const paginatedCheckIns = filterMedicalCheckInData.slice(
+    (checkInsPage - 1) * CHECKINS_PER_PAGE,
+    checkInsPage * CHECKINS_PER_PAGE
+  );
+
+  useEffect(() => {
+    setCheckInsPage(1);
+  }, [search, medicalStatus, selectedBalagruha, startDate, endDate]);
+
+  useEffect(() => {
+    if (checkInsPage > totalCheckInsPages) {
+      setCheckInsPage(totalCheckInsPages);
+    }
+  }, [checkInsPage, totalCheckInsPages]);
 
   return (
     <div className="medic-incharge-dashboard">
@@ -878,9 +920,8 @@ const MedicInchargeDashboard = () => {
           {sportCoachMenu.map((menu) => (
             <div
               key={menu.id}
-              className={`menu-item ${
-                activeTab === menu.activeTab ? "active" : ""
-              }`}
+              className={`menu-item ${activeTab === menu.activeTab ? "active" : ""
+                }`}
               onClick={() => {
                 if (menu.link) {
                   navigate(menu.link);
@@ -1145,72 +1186,72 @@ const MedicInchargeDashboard = () => {
               </div> */}
 
               <div className="medic-filters-row">
-              {/* Balagruha Filter Navigation */}
-              <div className="balagruha-filter-section">
-                <button className="bg-scroll-arrow" onClick={() => document.getElementById('bg-filter-container').scrollBy({left: -200, behavior: 'smooth'})}>
-                  ←
-                </button>
-                <div id="bg-filter-container" className="bg-filter-container">
-                  <button
-                    className={`bg-filter-btn ${selectedBalagruha === 'all' ? 'active' : ''}`}
-                    onClick={() => setSelectedBalagruha('all')}
-                  >
-                    All BGs
+                {/* Balagruha Filter Navigation */}
+                <div className="balagruha-filter-section">
+                  <button className="bg-scroll-arrow" onClick={() => document.getElementById('bg-filter-container').scrollBy({ left: -200, behavior: 'smooth' })}>
+                    ←
                   </button>
-                  {balagruhaData.map((bal) => (
+                  <div id="bg-filter-container" className="bg-filter-container">
                     <button
-                      key={bal._id}
-                      className={`bg-filter-btn ${selectedBalagruha === bal._id ? 'active' : ''}`}
-                      onClick={() => setSelectedBalagruha(bal._id)}
+                      className={`bg-filter-btn ${selectedBalagruha === 'all' ? 'active' : ''}`}
+                      onClick={() => setSelectedBalagruha('all')}
                     >
-                      {bal.name}
+                      All BGs
                     </button>
-                  ))}
+                    {balagruhaData.map((bal) => (
+                      <button
+                        key={bal._id}
+                        className={`bg-filter-btn ${selectedBalagruha === bal._id ? 'active' : ''}`}
+                        onClick={() => setSelectedBalagruha(bal._id)}
+                      >
+                        {bal.name}
+                      </button>
+                    ))}
+                  </div>
+                  <button className="bg-scroll-arrow" onClick={() => document.getElementById('bg-filter-container').scrollBy({ left: 200, behavior: 'smooth' })}>
+                    →
+                  </button>
                 </div>
-                <button className="bg-scroll-arrow" onClick={() => document.getElementById('bg-filter-container').scrollBy({left: 200, behavior: 'smooth'})}>
-                  →
-                </button>
-              </div>
 
-              {/* Status Filter Badges */}
-              <div className="status-filter-badges">
-                <button
-                  className={`status-badge normal ${selectedStatusFilters.includes('normal') ? 'active' : ''}`}
-                  onClick={() => {
-                    setSelectedStatusFilters(prev =>
-                      prev.includes('normal')
-                        ? prev.filter(s => s !== 'normal')
-                        : [...prev, 'normal']
-                    );
-                  }}
-                >
-                  Normal
-                </button>
-                <button
-                  className={`status-badge important ${selectedStatusFilters.includes('important') ? 'active' : ''}`}
-                  onClick={() => {
-                    setSelectedStatusFilters(prev =>
-                      prev.includes('important')
-                        ? prev.filter(s => s !== 'important')
-                        : [...prev, 'important']
-                    );
-                  }}
-                >
-                  Important
-                </button>
-                <button
-                  className={`status-badge critical ${selectedStatusFilters.includes('critical') ? 'active' : ''}`}
-                  onClick={() => {
-                    setSelectedStatusFilters(prev =>
-                      prev.includes('critical')
-                        ? prev.filter(s => s !== 'critical')
-                        : [...prev, 'critical']
-                    );
-                  }}
-                >
-                  Critical
-                </button>
-              </div>
+                {/* Status Filter Badges */}
+                <div className="status-filter-badges">
+                  <button
+                    className={`status-badge normal ${selectedStatusFilters.includes('normal') ? 'active' : ''}`}
+                    onClick={() => {
+                      setSelectedStatusFilters(prev =>
+                        prev.includes('normal')
+                          ? prev.filter(s => s !== 'normal')
+                          : [...prev, 'normal']
+                      );
+                    }}
+                  >
+                    Normal
+                  </button>
+                  <button
+                    className={`status-badge important ${selectedStatusFilters.includes('important') ? 'active' : ''}`}
+                    onClick={() => {
+                      setSelectedStatusFilters(prev =>
+                        prev.includes('important')
+                          ? prev.filter(s => s !== 'important')
+                          : [...prev, 'important']
+                      );
+                    }}
+                  >
+                    Important
+                  </button>
+                  <button
+                    className={`status-badge critical ${selectedStatusFilters.includes('critical') ? 'active' : ''}`}
+                    onClick={() => {
+                      setSelectedStatusFilters(prev =>
+                        prev.includes('critical')
+                          ? prev.filter(s => s !== 'critical')
+                          : [...prev, 'critical']
+                      );
+                    }}
+                  >
+                    Critical
+                  </button>
+                </div>
               </div>
 
               <div className="medic-dashboard-card medic-recent-checkins">
@@ -1235,7 +1276,7 @@ const MedicInchargeDashboard = () => {
                         <th>Follow-ups</th>
                       </tr>
                     </thead>
-                    <tbody style={{textAlign: "center"}}>
+                    <tbody style={{ textAlign: "center" }}>
                       {recentHealthCheckins
                         .filter(c => {
                           // Filter by health status
@@ -1256,18 +1297,18 @@ const MedicInchargeDashboard = () => {
                           const handleStudentClick = (e) => {
                             e.stopPropagation();
                             if (hoveredStudent && hoveredStudent._id === checkin._id) {
-                                setHoveredStudent(null);
+                              setHoveredStudent(null);
                             } else {
-                                const rect = e.currentTarget.getBoundingClientRect();
-                                const verticalPos = getVerticalPosition(rect);
-                                // Smart positioning: if too close to right edge, show on left
-                                const spaceOnRight = window.innerWidth - rect.right;
-                                const tooltipWidth = 450;
-                                const x = spaceOnRight > tooltipWidth ? rect.right + 10 : rect.left - tooltipWidth - 10;
-                                setTooltipPosition({ x, y: verticalPos.y, alignY: verticalPos.alignY });
-                                setHoveredStudent(checkin);
-                                setHoveredDoctorVisits(null);
-                                setHoveredFollowUps(null);
+                              const rect = e.currentTarget.getBoundingClientRect();
+                              const verticalPos = getVerticalPosition(rect);
+                              // Smart positioning: if too close to right edge, show on left
+                              const spaceOnRight = window.innerWidth - rect.right;
+                              const tooltipWidth = 450;
+                              const x = spaceOnRight > tooltipWidth ? rect.right + 10 : rect.left - tooltipWidth - 10;
+                              setTooltipPosition({ x, y: verticalPos.y, alignY: verticalPos.alignY });
+                              setHoveredStudent(checkin);
+                              setHoveredDoctorVisits(null);
+                              setHoveredFollowUps(null);
                             }
                           };
 
@@ -1275,15 +1316,15 @@ const MedicInchargeDashboard = () => {
                           const handleDoctorVisitsClick = (e) => {
                             e.stopPropagation();
                             if (hoveredDoctorVisits && hoveredDoctorVisits.id === checkin._id) {
-                                setHoveredDoctorVisits(null);
+                              setHoveredDoctorVisits(null);
                             } else {
-                                const rect = e.currentTarget.getBoundingClientRect();
-                                // Position tooltip to the RIGHT of the column
-                                setDoctorVisitsTooltipPosition({ x: rect.right + 10, y: rect.top });
-                                const allDoctorVisits = getDoctorVisitsList(checkin);
-                                setHoveredDoctorVisits({ id: checkin._id, data: allDoctorVisits });
-                                setHoveredStudent(null);
-                                setHoveredFollowUps(null);
+                              const rect = e.currentTarget.getBoundingClientRect();
+                              // Position tooltip to the RIGHT of the column
+                              setDoctorVisitsTooltipPosition({ x: rect.right + 10, y: rect.top });
+                              const allDoctorVisits = getDoctorVisitsList(checkin);
+                              setHoveredDoctorVisits({ id: checkin._id, data: allDoctorVisits });
+                              setHoveredStudent(null);
+                              setHoveredFollowUps(null);
                             }
                           };
 
@@ -1291,15 +1332,15 @@ const MedicInchargeDashboard = () => {
                           const handleFollowUpsClick = (e) => {
                             e.stopPropagation();
                             if (hoveredFollowUps && hoveredFollowUps.id === checkin._id) {
-                                setHoveredFollowUps(null);
+                              setHoveredFollowUps(null);
                             } else {
-                                const rect = e.currentTarget.getBoundingClientRect();
-                                // Position tooltip to the LEFT
-                                setFollowUpsTooltipPosition({ x: rect.left - 380, y: rect.top });
-                                const allFollowUps = getFollowUpsList(checkin);
-                                setHoveredFollowUps({ id: checkin._id, data: allFollowUps });
-                                setHoveredStudent(null);
-                                setHoveredDoctorVisits(null);
+                              const rect = e.currentTarget.getBoundingClientRect();
+                              // Position tooltip to the LEFT
+                              setFollowUpsTooltipPosition({ x: rect.left - 380, y: rect.top });
+                              const allFollowUps = getFollowUpsList(checkin);
+                              setHoveredFollowUps({ id: checkin._id, data: allFollowUps });
+                              setHoveredStudent(null);
+                              setHoveredDoctorVisits(null);
                             }
                           };
 
@@ -1316,9 +1357,9 @@ const MedicInchargeDashboard = () => {
                                 {checkin.userName}
                               </td>
                               <td>{new Date(checkin.date).toLocaleDateString('en-IN', {
-                                  day: '2-digit',
-                                  month: 'short',
-                                  year: 'numeric'
+                                day: '2-digit',
+                                month: 'short',
+                                year: 'numeric'
                               })}</td>
                               <td>{symptomSummary}</td>
                               <td
@@ -1374,19 +1415,38 @@ const MedicInchargeDashboard = () => {
                   onDateRangeChange={handleDateRangeChange}
                 />
                 <div className="medic-search-filter">
-                  <input type="text" placeholder="Search student..." onChange={(e) => setSearch(e.target.value)} aria-label="Search students by name" />
-                  <select onChange={(e) => setMedicalStatus(e.target.value)} aria-label="Filter by medical status">
-                    <option value={'all'}>All Statuses</option>
-                    <option value={'normal'}>Normal</option>
-                    <option value={'important'}>Important</option>
-                    <option value={'critical'}>Critical</option>
+                  <input
+                    type="text"
+                    placeholder="Search student..."
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    aria-label="Search students by name"
+                  />
+
+                  <select
+                    value={medicalStatus}
+                    onChange={(e) => setMedicalStatus(e.target.value)}
+                    aria-label="Filter by medical status"
+                  >
+                    <option value="all">All Statuses</option>
+                    <option value="normal">Normal</option>
+                    <option value="important">Important</option>
+                    <option value="critical">Critical</option>
                   </select>
-                  <select onChange={(e) => setSelectedBalagruha(e.target.value)} aria-label="Filter by balagruha">
-                    <option value={'all'}>All Balagruhas</option>
+
+                  <select
+                    value={selectedBalagruha}
+                    onChange={(e) => setSelectedBalagruha(e.target.value)}
+                    aria-label="Filter by balagruha"
+                  >
+                    <option value="all">All Balagruhas</option>
                     {balagruhaData.map((bal) => (
-                      <option key={bal._id} value={bal._id}>{bal.name}</option>
+                      <option key={bal._id} value={bal._id}>
+                        {bal.name}
+                      </option>
                     ))}
                   </select>
+
                   <button
                     className="medic-action-button"
                     onClick={() => handleOpenModal()}
@@ -1409,7 +1469,7 @@ const MedicInchargeDashboard = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {filterMedicalCheckInData.map((checkin, index) => {
+                    {paginatedCheckIns.map((checkin, index) => {
                       // Format symptoms
                       const formatSymptoms = () => {
                         if (!checkin.symptoms || checkin.symptoms.length === 0) return '-';
@@ -1462,17 +1522,17 @@ const MedicInchargeDashboard = () => {
                       const handleStudentClick = (e) => {
                         e.stopPropagation();
                         if (hoveredStudent && hoveredStudent._id === checkin._id) {
-                            setHoveredStudent(null);
+                          setHoveredStudent(null);
                         } else {
-                            const rect = e.currentTarget.getBoundingClientRect();
-                            const verticalPos = getVerticalPosition(rect);
-                            const spaceOnRight = window.innerWidth - rect.right;
-                            const tooltipWidth = 450;
-                            const x = spaceOnRight > tooltipWidth ? rect.right + 10 : rect.left - tooltipWidth - 10;
-                            setTooltipPosition({ x, y: verticalPos.y, alignY: verticalPos.alignY });
-                            setHoveredStudent(checkin);
-                            setHoveredDoctorVisits(null);
-                            setHoveredFollowUps(null);
+                          const rect = e.currentTarget.getBoundingClientRect();
+                          const verticalPos = getVerticalPosition(rect);
+                          const spaceOnRight = window.innerWidth - rect.right;
+                          const tooltipWidth = 450;
+                          const x = spaceOnRight > tooltipWidth ? rect.right + 10 : rect.left - tooltipWidth - 10;
+                          setTooltipPosition({ x, y: verticalPos.y, alignY: verticalPos.alignY });
+                          setHoveredStudent(checkin);
+                          setHoveredDoctorVisits(null);
+                          setHoveredFollowUps(null);
                         }
                       };
 
@@ -1480,20 +1540,20 @@ const MedicInchargeDashboard = () => {
                       const handleDoctorVisitsClick = (e) => {
                         e.stopPropagation();
                         if (hoveredDoctorVisits && hoveredDoctorVisits.id === checkin._id) {
-                            setHoveredDoctorVisits(null);
+                          setHoveredDoctorVisits(null);
                         } else {
-                            const rect = e.currentTarget.getBoundingClientRect();
-                            const verticalPos = getVerticalPosition(rect);
-                            setDoctorVisitsTooltipPosition({ x: rect.right + 10, y: verticalPos.y, alignY: verticalPos.alignY });
-                            // Get all doctor visits (NEW array or OLD single format)
-                            const allDoctorVisits = checkin.doctorVisits && checkin.doctorVisits.length > 0
-                              ? checkin.doctorVisits
-                              : checkin.doctorVisit && checkin.doctorVisit.doctorName
-                                ? [checkin.doctorVisit]
-                                : [];
-                            setHoveredDoctorVisits({ id: checkin._id, data: allDoctorVisits });
-                            setHoveredStudent(null);
-                            setHoveredFollowUps(null);
+                          const rect = e.currentTarget.getBoundingClientRect();
+                          const verticalPos = getVerticalPosition(rect);
+                          setDoctorVisitsTooltipPosition({ x: rect.right + 10, y: verticalPos.y, alignY: verticalPos.alignY });
+                          // Get all doctor visits (NEW array or OLD single format)
+                          const allDoctorVisits = checkin.doctorVisits && checkin.doctorVisits.length > 0
+                            ? checkin.doctorVisits
+                            : checkin.doctorVisit && checkin.doctorVisit.doctorName
+                              ? [checkin.doctorVisit]
+                              : [];
+                          setHoveredDoctorVisits({ id: checkin._id, data: allDoctorVisits });
+                          setHoveredStudent(null);
+                          setHoveredFollowUps(null);
                         }
                       };
 
@@ -1501,27 +1561,29 @@ const MedicInchargeDashboard = () => {
                       const handleFollowUpsClick = (e) => {
                         e.stopPropagation();
                         if (hoveredFollowUps && hoveredFollowUps.id === checkin._id) {
-                            setHoveredFollowUps(null);
+                          setHoveredFollowUps(null);
                         } else {
-                            const rect = e.currentTarget.getBoundingClientRect();
-                            const verticalPos = getVerticalPosition(rect);
-                            // Position tooltip to the LEFT of the column
-                            setFollowUpsTooltipPosition({ x: rect.left - 380, y: verticalPos.y, alignY: verticalPos.alignY });
-                            // Get all follow-ups (NEW array or OLD single format)
-                            const allFollowUps = checkin.followUps && checkin.followUps.length > 0
-                              ? checkin.followUps
-                              : checkin.followUp && checkin.followUp.followUpDate
-                                ? [checkin.followUp]
-                                : [];
-                            setHoveredFollowUps({ id: checkin._id, data: allFollowUps });
-                            setHoveredStudent(null);
-                            setHoveredDoctorVisits(null);
+                          const rect = e.currentTarget.getBoundingClientRect();
+                          const verticalPos = getVerticalPosition(rect);
+                          // Position tooltip to the LEFT of the column
+                          setFollowUpsTooltipPosition({ x: rect.left - 380, y: verticalPos.y, alignY: verticalPos.alignY });
+                          // Get all follow-ups (NEW array or OLD single format)
+                          const allFollowUps = checkin.followUps && checkin.followUps.length > 0
+                            ? checkin.followUps
+                            : checkin.followUp && checkin.followUp.followUpDate
+                              ? [checkin.followUp]
+                              : [];
+                          setHoveredFollowUps({ id: checkin._id, data: allFollowUps });
+                          setHoveredStudent(null);
+                          setHoveredDoctorVisits(null);
                         }
                       };
 
                       return (
                         <tr key={checkin._id}>
-                          <td style={{ textAlign: 'center' }}>{index + 1}</td>
+                          <td style={{ textAlign: 'center' }}>
+                            {(checkInsPage - 1) * CHECKINS_PER_PAGE + index + 1}
+                          </td>
                           <td
                             className="student-name"
                             onClick={handleStudentClick}
@@ -1582,6 +1644,33 @@ const MedicInchargeDashboard = () => {
                     })}
                   </tbody>
                 </table>
+                {filterMedicalCheckInData.length > CHECKINS_PER_PAGE && (
+                  <div className="medic-history-pagination">
+                    <button
+                      type="button"
+                      className="medic-pagination-button"
+                      onClick={() => setCheckInsPage((prev) => Math.max(1, prev - 1))}
+                      disabled={checkInsPage === 1}
+                    >
+                      Previous
+                    </button>
+
+                    <span className="medic-pagination-info">
+                      Page {checkInsPage} of {totalCheckInsPages}
+                    </span>
+
+                    <button
+                      type="button"
+                      className="medic-pagination-button"
+                      onClick={() =>
+                        setCheckInsPage((prev) => Math.min(totalCheckInsPages, prev + 1))
+                      }
+                      disabled={checkInsPage === totalCheckInsPages}
+                    >
+                      Next
+                    </button>
+                  </div>
+                )}
                 {hoveredStudent && (
                   <StudentDetailsTooltip checkIn={hoveredStudent} position={tooltipPosition} />
                 )}

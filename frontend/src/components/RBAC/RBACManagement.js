@@ -117,19 +117,19 @@ const RBACManagement = () => {
             };
           });
 
-          return {
-            id: role._id,
-            name: capitalizeFirstLetter(role.roleName),
-            description: `${capitalizeFirstLetter(
-              role.roleName,
-            )} role with specific permissions`,
-            color: getRoleColor(index),
-            icon: getRoleIcon(role.roleName),
-            permissions: permissionsObj,
-            createdAt: role.createdAt,
-            updatedAt: role.updatedAt,
-          };
-        });
+        //   return {
+        //     id: role._id,
+        //     name: capitalizeFirstLetter(role.roleName),
+        //     description: `${capitalizeFirstLetter(
+        //       role.roleName,
+        //     )} role with specific permissions`,
+        //     color: getRoleColor(index),
+        //     icon: getRoleIcon(role.roleName),
+        //     permissions: permissionsObj,
+        //     createdAt: role.createdAt,
+        //     updatedAt: role.updatedAt,
+        //   };
+        // });
 
         setRoles(transformedRoles);
         setModules(modulesList);
@@ -482,7 +482,7 @@ const RBACManagement = () => {
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="search-input"
                 />
-                <span className="search-icon">🔍</span>
+                {/* <span className="search-icon">🔍</span> */}
               </div>
             </div>
 
@@ -698,7 +698,7 @@ const RBACManagement = () => {
                                     handlePermissionToggle(module.id, action.id)
                                   }
                                 >
-                                  <label className="checkbox-container">
+                                  <label className="checkbox-container" onClick={(e) => e.stopPropagation()}>
                                     <input
                                       type="checkbox"
                                       checked={isEnabled || false}
@@ -724,7 +724,7 @@ const RBACManagement = () => {
                                 isEditing && handleModuleToggle(module.id)
                               }
                             >
-                              <label className="checkbox-container">
+                              <label className="checkbox-container" onClick={(e) => e.stopPropagation()}>
                                 <input
                                   type="checkbox"
                                   checked={allEnabled || false}

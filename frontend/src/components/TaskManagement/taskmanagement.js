@@ -789,10 +789,12 @@ const CreateTaskForm = ({
   users,
   staffUsers = [],
   studentUsers = [],
+  balagruhas = [],
   onSubmit,
   onCancel,
   balagruhaId,
 }) => {
+
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -842,33 +844,56 @@ const CreateTaskForm = ({
   );
 
   const normalizedAssignSearch = assignSearchQuery.trim().toLowerCase();
-  const filteredStaffUsers = useMemo(() => {
-    if (!normalizedAssignSearch) {
-      return assignableStaff;
+
+
+  const selectedBalagruhaId = formData.balagruhaId;
+
+  const isUserInSelectedBalagruha = (user) => {
+    if (!selectedBalagruhaId) return true;
+
+    const ids = user.balagruhaIds || user.balagruhaId || [];
+
+    if (Array.isArray(ids)) {
+      return ids.some((id) => id?.toString() === selectedBalagruhaId?.toString());
     }
-    return assignableStaff.filter((user) => {
+
+    return ids?.toString() === selectedBalagruhaId?.toString();
+  };
+  const filteredStaffUsers = useMemo(() => {
+    const usersInBalagruha = assignableStaff.filter(isUserInSelectedBalagruha);
+
+    if (!normalizedAssignSearch) {
+      return usersInBalagruha;
+    }
+
+    return usersInBalagruha.filter((user) => {
       const name = user.name?.toLowerCase() || "";
       const roleLabel = user.role?.toLowerCase() || "";
+
       return (
         name.includes(normalizedAssignSearch) ||
         roleLabel.includes(normalizedAssignSearch)
       );
     });
-  }, [assignableStaff, normalizedAssignSearch]);
+  }, [assignableStaff, normalizedAssignSearch, selectedBalagruhaId]);
 
   const filteredStudentUsers = useMemo(() => {
+    const usersInBalagruha = assignableStudents.filter(isUserInSelectedBalagruha);
+
     if (!normalizedAssignSearch) {
-      return assignableStudents;
+      return usersInBalagruha;
     }
-    return assignableStudents.filter((user) => {
+
+    return usersInBalagruha.filter((user) => {
       const name = user.name?.toLowerCase() || "";
       const roleLabel = user.role?.toLowerCase() || "";
+
       return (
         name.includes(normalizedAssignSearch) ||
         roleLabel.includes(normalizedAssignSearch)
       );
     });
-  }, [assignableStudents, normalizedAssignSearch]);
+  }, [assignableStudents, normalizedAssignSearch, selectedBalagruhaId]);
 
   const initialType =
     role === "sports-coach"
@@ -946,7 +971,18 @@ const CreateTaskForm = ({
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+      ...(name === "balagruhaId" ? { assignedUser: [] } : {}),
+    }));
+
+    if (name === "balagruhaId") {
+      setAssignSearchQuery("");
+      setIsDropdownOpen(false);
+    }
+
     if (formErrors[name]) {
       setFormErrors((prev) => ({ ...prev, [name]: null }));
     }
@@ -1105,6 +1141,7 @@ const CreateTaskForm = ({
       errors.title = "Title cannot exceed 100 characters";
     }
 
+
     if (!formData.description.trim()) {
       errors.description = "Description is required";
     } else if (formData.description.trim().length < 10) {
@@ -1129,6 +1166,10 @@ const CreateTaskForm = ({
       }
     }
 
+    if (type !== "medical" && !formData.balagruhaId) {
+      errors.balagruhaId = "Please select a balagruha";
+    }
+
     if (
       (type === "purchase" || type === "order") &&
       formData.costEstimate
@@ -1147,6 +1188,10 @@ const CreateTaskForm = ({
     e.preventDefault();
 
     if (!validateForm()) {
+      setFormErrors((prev) => ({
+        ...prev,
+        submit: "Please fill all required fields before submitting.",
+      }));
       return;
     }
 
@@ -1298,12 +1343,40 @@ const CreateTaskForm = ({
           </div>
         </div>
 
+        {type !== "medical" && (
+          <div className="form-group">
+            <label htmlFor="balagruhaId">
+              Balagruha <span className="required">*</span>
+            </label>
+
+            <select
+              id="balagruhaId"
+              name="balagruhaId"
+              value={formData.balagruhaId}
+              onChange={handleInputChange}
+              className={formErrors.balagruhaId ? "error" : ""}
+            >
+              <option value="">Select Balagruha</option>
+              {balagruhas.map((balagruha) => (
+                <option key={balagruha._id} value={balagruha._id}>
+                  {balagruha.name}
+                </option>
+              ))}
+            </select>
+
+            {formErrors.balagruhaId && (
+              <div className="error-message">{formErrors.balagruhaId}</div>
+            )}
+          </div>
+        )}
+
         {/* General Assign To field - exclude medical tasks as they have their own assign logic */}
         {type !== "medical" && (
           <div className="form-group dropdown-container" ref={dropdownRef}>
             <label>Assign To</label>
             <div className="dropdown">
               <button
+                key={formData.balagruhaId}
                 type="button"
                 className="dropdown-toggle"
                 onClick={toggleDropdown}
@@ -1662,6 +1735,20 @@ const CreateTaskForm = ({
             </div>
           )}
         </div>
+
+        {formErrors.submit && (
+          <div
+            className="error-message"
+            style={{
+              marginBottom: "12px",
+              textAlign: "center",
+              color: "red",
+              fontWeight: "500",
+            }}
+          >
+            {formErrors.submit}
+          </div>
+        )}
 
         <div className="form-actions">
           <button type="button" className="cancel-button" onClick={onCancel}>
@@ -3769,6 +3856,11 @@ const TaskManagement = () => {
       formData.append("deadline", taskData.deadline);
       formData.append("priority", taskData.priority);
       formData.append("status", taskData.status);
+
+      if (taskData.balagruhaId) {
+        formData.append("balagruhaId", taskData.balagruhaId);
+      }
+
       if (
         localStorage.getItem("role") === "sports-coach" ||
         localStorage.getItem("role") === "music-coach"
@@ -3823,7 +3915,10 @@ const TaskManagement = () => {
       setShowCreateTask(false);
       getAllTasks(filters);
     } catch (error) {
-      console.error("Error creating task:", error);
+      console.log("Status:", error.response?.status);
+      console.log("Backend Response:", error.response?.data);
+      console.log("Payload Sent:", taskData);
+
       addToast("Failed to create task", "error");
     }
   };
@@ -3915,6 +4010,7 @@ const TaskManagement = () => {
         addToast("Students cannot update tasks", "error");
         return;
       }
+
       if (role === "sports-coach") {
         await updateSportsTask(id, JSON.stringify({ status }));
       } else if (role === "music-coach") {
@@ -3922,14 +4018,25 @@ const TaskManagement = () => {
       } else {
         await updateTask(id, JSON.stringify({ status }));
       }
+
+      // ✅ immediately move card in UI
+      setTasks((prevTasks) =>
+        prevTasks.map((task) =>
+          task._id === id ? { ...task, status } : task
+        )
+      );
+
+      // ✅ also update opened modal task
+      setSelectedTask((prev) =>
+        prev && prev._id === id ? { ...prev, status } : prev
+      );
+
       addToast(statusMessages[status], "success");
-      getTaskDetailsByTaskId(id);
 
-      getAllTasks(filters);
+      await getAllTasks(filters);
 
-      if (selectedTask && selectedTask._id === id) {
-        setSelectedTask((prev) => ({ ...prev, status }));
-      }
+      // optional: sync fresh data from backend
+      await getTaskDetailsByTaskId(id);
     } catch (error) {
       console.error("Error updating task status:", error);
       addToast("Failed to update task status", "error");
@@ -4014,8 +4121,9 @@ const TaskManagement = () => {
       {showTaskDetails && (
         <TaskDetailsModal
           task={selectedTask}
-          onClose={() => {
+          onClose={async () => {
             setShowTaskDetails(false);
+            await getAllTasks(filters);
           }}
           users={users}
           onStatusChange={updateTaskStatus}
@@ -4029,9 +4137,10 @@ const TaskManagement = () => {
             users={users}
             staffUsers={assignableStaff}
             studentUsers={assignableStudents}
+            balagruhas={balagruhas}
             onSubmit={handleAddTask}
             onCancel={() => setShowCreateTask(false)}
-            balagruhaId={filters.balagruhaId}
+            balagruhaId={filters.balagruhaId?.[0] || ""}
           />
         </div>
       )}

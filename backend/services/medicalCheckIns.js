@@ -739,6 +739,7 @@ class MedicalCheckIns {
       }
       const result = await getStudentMedicalCheckInsByBalagruhaIds({
         balagruhaIds,
+        coachId: options.coachId || null,
       });
       if (result.success) {
         // Data structure changed - now returns flat array of medical check-ins with student info

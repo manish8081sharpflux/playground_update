@@ -139,6 +139,7 @@ exports.getPendingSubmissions = async ({
   type = null,
   isCoachSuggestion = null,
   status = null,
+  coachId = null,
 }) => {
   try {
     const skip = (page - 1) * limit;
@@ -152,6 +153,7 @@ exports.getPendingSubmissions = async ({
     };
 
     if (type) query.type = type;
+    if (coachId) query["metadata.coachId"] = coachId;
 
     // Filter by coach suggestion status if specified
     if (isCoachSuggestion !== null) {

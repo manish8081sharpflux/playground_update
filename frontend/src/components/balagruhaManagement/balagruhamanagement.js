@@ -124,16 +124,34 @@ const BalagruhaManagement = () => {
   };
 
   const handleMachineSelection = (selectedMachine) => {
+    const selectedMachineId =
+      typeof selectedMachine === "object" ? selectedMachine._id : selectedMachine;
+
+    const machineObj =
+      machines.find((m) => m._id === selectedMachineId) ||
+      unassigned.find((m) => m._id === selectedMachineId);
+
     setFormData((prevState) => {
       const isAlreadySelected = prevState.assignedMachines.some(
-        (m) => m._id === selectedMachine._id
+        (m) => (typeof m === "object" ? m._id : m) === selectedMachineId
       );
 
       const updatedMachines = isAlreadySelected
         ? prevState.assignedMachines.filter(
-          (m) => m._id !== selectedMachine._id
+          (m) => (typeof m === "object" ? m._id : m) !== selectedMachineId
         )
-        : [...prevState.assignedMachines, selectedMachine._id];
+        : [...prevState.assignedMachines, selectedMachineId];
+
+      if (isAlreadySelected && machineObj) {
+        setUnassigned((prev) => {
+          const alreadyExists = prev.some((m) => m._id === selectedMachineId);
+          return alreadyExists ? prev : [...prev, machineObj];
+        });
+      } else {
+        setUnassigned((prev) =>
+          prev.filter((m) => m._id !== selectedMachineId)
+        );
+      }
 
       return {
         ...prevState,
@@ -277,9 +295,9 @@ const BalagruhaManagement = () => {
         <h2>Balagruha Management</h2>
         <div className="header-actions">
           <div className="search-box relative">
-            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-lg pointer-events-none">
+            {/* <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-lg pointer-events-none">
               🔍
-            </span>
+            </span> */}
 
             <input
               type="text"
@@ -478,69 +496,84 @@ const BalagruhaManagement = () => {
                 )}
               </div>
 
-              <div className="form-group" role="group" aria-labelledby="assigned-machines-label">
-                <label id="assigned-machines-label">Assigned Machines</label>
-                <div className="machine-selection">
-                  {machines.filter((machine) =>
-                    formData.assignedMachines.some((m) => m._id === machine._id)
-                  ).length > 0 ? (
-                    machines.map((machine) => {
-                      const isChecked = formData.assignedMachines.some(
-                        (m) => m._id === machine._id
-                      );
+              {modalMode === "update" && (
+                <>
+                  <div className="form-group" role="group" aria-labelledby="assigned-machines-label">
+                    <label id="assigned-machines-label">Assigned Machines</label>
 
-                      return (
-                        isChecked && (
-                          <div key={machine._id} className="machine-option">
-                            <input
-                              type="checkbox"
-                              id={`machine-${machine._id}`}
-                              checked={isChecked}
-                              onChange={() => handleMachineSelection(machine)}
-                            />
-                            <label htmlFor={`machine-${machine._id}`}>
-                              {machine.machineId}
-                            </label>
-                          </div>
-                        )
-                      );
-                    })
-                  ) : (
-                    <div className="no-machines-message">
-                      No machines assigned
+                    <div className="machine-selection">
+                      {formData.assignedMachines.length > 0 ? (
+                        formData.assignedMachines.map((machineId) => {
+                          const id = typeof machineId === "object" ? machineId._id : machineId;
+
+                          const machine =
+                            machines.find((m) => m._id === id) ||
+                            unassigned.find((m) => m._id === id);
+
+                          return (
+                            <div key={id} className="machine-option">
+                              <input
+                                type="checkbox"
+                                id={`assigned-machine-${id}`}
+                                checked={true}
+                                onChange={() => handleMachineSelection(id)}
+                              />
+                              <label htmlFor={`assigned-machine-${id}`}>
+                                {machine?.machineId || machine?.serialNumber || "Machine"}
+                              </label>
+                            </div>
+                          );
+                        })
+                      ) : (
+                        <div className="no-machines-message">No machines assigned</div>
+                      )}
                     </div>
-                  )}
-                </div>
-              </div>
+                  </div>
 
-              <div className="form-group" role="group" aria-labelledby="unassigned-machines-label">
-                <label id="unassigned-machines-label">Unassigned Machines</label>
-                <div className="machine-selection">
-                  {unassigned.length > 0 ? (
-                    unassigned.map((machine) => {
-                      // const isChecked = formData.assignedMachines.some(m => m._id === machine._id);
+                  <div className="form-group" role="group" aria-labelledby="unassigned-machines-label">
+                    <label id="unassigned-machines-label">Unassigned Machines</label>
 
-                      return (
-                        <div key={machine._id} className="machine-option">
-                          <input
-                            type="checkbox"
-                            id={`machine-${machine._id}`}
-                            // checked={ }
-                            onChange={() => handleMachineSelection(machine)}
-                          />
-                          <label htmlFor={`machine-${machine._id}`}>
-                            {machine.machineId}
-                          </label>
-                        </div>
-                      );
-                    })
-                  ) : (
-                    <div className="no-machines-message">
-                      No machines available
+                    <div className="machine-selection">
+                      {machines.filter((machine) => {
+                        const machineId = machine._id;
+
+                        const isSelected = formData.assignedMachines.some(
+                          (m) => (typeof m === "object" ? m._id : m) === machineId
+                        );
+
+                        return !isSelected;
+                      }).length > 0 ? (
+                        machines
+                          .filter((machine) => {
+                            const machineId = machine._id;
+
+                            const isSelected = formData.assignedMachines.some(
+                              (m) => (typeof m === "object" ? m._id : m) === machineId
+                            );
+
+                            return !isSelected;
+                          })
+                          .map((machine) => (
+                            <div key={machine._id} className="machine-option">
+                              <input
+                                type="checkbox"
+                                id={`unassigned-machine-${machine._id}`}
+                                checked={false}
+                                onChange={() => handleMachineSelection(machine._id)}
+                              />
+                              <label htmlFor={`unassigned-machine-${machine._id}`}>
+                                {machine.machineId || machine.serialNumber}
+                              </label>
+                            </div>
+                          ))
+                      ) : (
+                        <div className="no-machines-message">No machines available</div>
+                      )}
                     </div>
-                  )}
-                </div>
-              </div>
+                  </div>
+                </>
+              )}
+
 
               <div className="modal-actions">
                 <button type="submit" className="submit-button">

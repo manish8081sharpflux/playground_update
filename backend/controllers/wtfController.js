@@ -2201,7 +2201,7 @@ exports.getCoachSuggestionsCount = async (req, res) => {
 // Get coach suggestions
 exports.getCoachSuggestions = async (req, res) => {
   try {
-    const { page = 1, limit = 20, status } = req.query;
+    const { page = 1, limit = 20, status, coachId } = req.query;
 
     logger.info(
       {
@@ -2218,6 +2218,7 @@ exports.getCoachSuggestions = async (req, res) => {
       page: parseInt(page),
       limit: parseInt(limit),
       status: status || null,
+      coachId: coachId || null,
     });
 
     if (result.success) {

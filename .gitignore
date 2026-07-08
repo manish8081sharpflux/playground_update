@@ -3,3 +3,19 @@ echo .cache/ >> .gitignore
 echo dist/ >> .gitignore
 echo build/ >> .gitignore
 echo .env >> .gitignore
+
+
+# Dependencies
+node_modules/
+
+# Environment files
+.env
+*.env
+
+# Logs
+logs/
+*.log
+
+# Build folders
+dist/
+build/

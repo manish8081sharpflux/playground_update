@@ -48,7 +48,7 @@ exports.getComputerApps = async (req, res) => {
       return {
         id: course._id, // This is the "App ID"
         name: course.title,
-        icon: course.icon || '💻',
+        icon: course.icon || 'Ã°Å¸â€™Â»',
         totalTasks,
         completedTasks,
         status,
@@ -260,23 +260,69 @@ exports.submitQuiz = async (req, res) => {
 
         // True/False
         if (q.type === 'true_false') {
-          const userValStr = ans?.selectedOptionId; // "True"
+          const userValStr = ans?.selectedOptionId;
           const dbValBool = q.correctAnswer;
+
           let userBool = null;
           if (typeof userValStr === 'string') {
             if (userValStr.toLowerCase() === 'true') userBool = true;
             if (userValStr.toLowerCase() === 'false') userBool = false;
           }
-          isCorrect = (userBool !== null) && (userBool === dbValBool);
+
+          isCorrect = userBool !== null && userBool === dbValBool;
           studentAnsText = userValStr || 'No Answer';
-          correctAnsText = (dbValBool === true) ? 'True' : 'False';
+          correctAnsText = dbValBool ? 'True' : 'False';
+
+        } else if (q.type === 'fill_blank') {
+
+          const normalize = (value) => {
+            let text = (value || '').toString();
+
+            if (q.ignoreExtraSpaces !== false) {
+              text = text.trim().replace(/\s+/g, ' ');
+            } else {
+              text = text.trim();
+            }
+
+            if (q.caseInsensitive !== false) {
+              text = text.toLowerCase();
+            }
+
+            return text;
+          };
+
+          const studentText = ans?.answerText || '';
+
+          const acceptedAnswers = q.acceptedAnswers || [];
+
+          isCorrect = acceptedAnswers
+            .map(normalize)
+            .includes(normalize(studentText));
+
+          studentAnsText = studentText || 'No Answer';
+
+          correctAnsText =
+            acceptedAnswers.length > 0
+              ? acceptedAnswers.join(', ')
+              : 'Unknown';
+
         } else {
-          // MCQ
-          const selectedOpt = q.options?.find(o => o._id.toString() === ans?.selectedOptionId);
+
+          const selectedOpt = q.options?.find(
+            o => o._id.toString() === ans?.selectedOptionId
+          );
+
           const correctOpt = q.options?.find(o => o.isCorrect);
-          isCorrect = selectedOpt && selectedOpt.isCorrect;
-          studentAnsText = selectedOpt ? selectedOpt.text : 'No Answer';
-          correctAnsText = correctOpt ? correctOpt.text : 'Unknown';
+
+          isCorrect = !!selectedOpt?.isCorrect;
+
+          studentAnsText = selectedOpt
+            ? selectedOpt.text
+            : 'No Answer';
+
+          correctAnsText = correctOpt
+            ? correctOpt.text
+            : 'Unknown';
         }
 
         if (isCorrect) {
@@ -303,7 +349,7 @@ exports.submitQuiz = async (req, res) => {
 
     // Save Submission, award coins, and update progress atomically.
     // The "already rewarded" check is performed INSIDE the transaction
-    // against the Coin document's own transactions[] array — this is the
+    // against the Coin document's own transactions[] array Ã¢â‚¬â€ this is the
     // authoritative anti-duplicate check and is race-safe because concurrent
     // submissions serialize on the Coin document write.
     const session = await mongoose.startSession();
@@ -312,7 +358,7 @@ exports.submitQuiz = async (req, res) => {
 
     try {
       await session.withTransaction(async () => {
-        // Fresh read inside the txn — load the coin record and scan for a
+        // Fresh read inside the txn Ã¢â‚¬â€ load the coin record and scan for a
         // prior quiz_pass reward for THIS quiz.
         const coinRecord = await Coin.findOrCreateForUser(studentId, { session });
         const quizIdStr = quiz._id.toString();
@@ -333,7 +379,7 @@ exports.submitQuiz = async (req, res) => {
           fileUrl: 'quiz-submission',
           status: 'graded',
           grade: { score, points: (passed && !alreadyPassed) ? baseCoins : 0 },
-          metadata: { breakdown },
+          metadata: { breakdown, answers: breakdown },
           submittedAt: new Date()
         });
         if (courseId) await submission.save({ session });

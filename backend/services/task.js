@@ -308,37 +308,43 @@ class Task {
         let fileType = getFileContentType(fileName);
         let fileFullPath = getUploadedFilesFullPath(fileName);
 
-        if (!isOfflineReq) {
+        const useLocalFallback =
+          !process.env.AWS_S3_ACCESS_KEY_ID ||
+          !process.env.AWS_S3_SECRET_KEY ||
+          process.env.AWS_S3_ACCESS_KEY_ID.includes("YOUR_") ||
+          process.env.AWS_S3_SECRET_KEY.includes("YOUR_");
+
+        if (!isOfflineReq && !useLocalFallback) {
           let result = await uploadFileToS3(
             file,
             process.env.AWS_S3_BUCKET_NAME_TASK_ATTACHMENTS,
             fileName
           );
+
           if (result.success) {
-            // replace the /upload from the file name to empty string
-            let attachmentObj = {
-              fileName: fileName,
+            attachments[i] = {
+              fileName,
               fileUrl: result.url,
               fileType: result.contentType,
               uploadedBy: createdBy,
             };
-            attachments[i] = attachmentObj;
           } else {
-            return {
-              success: false,
-              data: {},
-              message: "Failed to upload attachments.",
+            console.error("S3 upload failed. Falling back to local storage.");
+
+            attachments[i] = {
+              fileName,
+              fileUrl: `/uploads/${fileName}`,
+              fileType,
+              uploadedBy: createdBy,
             };
           }
         } else {
-          // if the request is offline, then set the file name to the attachments
-          let attachmentObj = {
-            fileName: fileName,
-            fileUrl: fileFullPath,
-            fileType: fileType,
+          attachments[i] = {
+            fileName,
+            fileUrl: `/uploads/${fileName}`,
+            fileType,
             uploadedBy: createdBy,
           };
-          attachments[i] = attachmentObj;
         }
       }
       let taskList = [];

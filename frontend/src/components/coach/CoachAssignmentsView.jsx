@@ -3,7 +3,7 @@ import toast from 'react-hot-toast';
 import { api } from '../../api';
 import CourseAssignmentModal from './CourseAssignmentModal';
 import AssignmentProgressModal from './AssignmentProgressModal';
-import AdminAssignmentEditModal from '../admin/AdminAssignmentEditModal';
+import CoachAssignmentEditModal from './CoachAssignmentEditModal';
 import { useAuth } from '../../contexts/AuthContext';
 
 export default function CoachAssignmentsView({ coachId, coachName, balagruhaName }) {
@@ -228,7 +228,7 @@ export default function CoachAssignmentsView({ coachId, coachName, balagruhaName
               {isAdmin ? 'All Course Assignments (Admin)' : 'My Course Assignments'}
             </h1>
             <div className="text-sm mt-1">
-              {balagruhaName && <span>Balagruha: {balagruhaName} • </span>}
+              {balagruhaName && <span>Balagruha: {balagruhaName} - </span>}
               {isAdmin ? 'Admin' : 'Coach'}: {coachName}
             </div>
           </div>
@@ -249,7 +249,7 @@ export default function CoachAssignmentsView({ coachId, coachName, balagruhaName
             {/* Search */}
             <input
               type="text"
-              placeholder="🔍 Search assignments..."
+              placeholder="Search assignments..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full md:flex-1 border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -275,7 +275,7 @@ export default function CoachAssignmentsView({ coachId, coachName, balagruhaName
       <div className="w-full px-6 py-8">
         {filteredAssignments.length === 0 ? (
           <div className="text-center py-12">
-            <div className="text-6xl mb-4">📚</div>
+            <div className="text-6xl mb-4">Courses</div>
             <h3 className="text-xl font-medium text-gray-900 mb-2">
               {searchQuery || statusFilter !== 'all'
                 ? 'No assignments found'
@@ -321,28 +321,28 @@ export default function CoachAssignmentsView({ coachId, coachName, balagruhaName
                     {/* Assignment Details */}
                     <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600 mb-3">
                       <span>
-                        📊 Category: {assignment.courseId?.category || 'N/A'}
+                        Category: {assignment.courseId?.category || 'N/A'}
                       </span>
                       <span>
-                        👥 Assigned to:{' '}
+                        Assigned to:{' '}
                         {assignment.assignedTo.type === 'balagruha'
                           ? `Entire Balagruha (${assignment.progress.totalStudents} students)`
                           : `${assignment.progress.totalStudents} specific students`}
                       </span>
-                      <span>📅 Due: {formatDate(assignment.dueDate)}</span>
+                      <span>Due: {formatDate(assignment.dueDate)}</span>
                       <span>
-                        📆 Assigned:{' '}
+                        Assigned:{' '}
                         {formatDate(assignment.assignedAt || assignment.createdAt)}
                       </span>
                     </div>
 
-                    {/* Progress Bar — with friendly empty state when no students have started */}
+                    {/* Progress bar with friendly empty state when no students have started */}
                     <div className="mb-3">
                       {assignment.progress.studentsStarted === 0 ? (
                         <div className="flex items-start gap-2 text-sm text-gray-600 bg-gray-50 border border-gray-200 rounded px-3 py-2">
-                          <span className="text-base leading-5">⏳</span>
+                          <span className="text-base leading-5"></span>
                           <span>
-                            No students have started yet — progress will update as students view course content.
+                            No students have started yet - progress will update as students view course content.
                             {assignment.progress.totalStudents > 0 && (
                               <span className="text-gray-500">
                                 {' '}({assignment.progress.totalStudents} {assignment.progress.totalStudents === 1 ? 'student' : 'students'} assigned)
@@ -395,7 +395,7 @@ export default function CoachAssignmentsView({ coachId, coachName, balagruhaName
                         handleMenuToggle(assignment._id);
                       }}
                     >
-                      ⋮
+                      ...
                     </button>
                     {openMenuAssignmentId === assignment._id && (
                       <div className="absolute right-0 top-10 z-10 w-48 bg-white border border-gray-200 rounded-lg shadow-lg">
@@ -449,11 +449,12 @@ export default function CoachAssignmentsView({ coachId, coachName, balagruhaName
         onAssignmentCreated={handleAssignmentCreated}
       />
 
-      <AdminAssignmentEditModal
+      <CoachAssignmentEditModal
         isOpen={!!editAssignment}
         onClose={() => setEditAssignment(null)}
         assignment={editAssignment}
         onSaved={() => fetchAssignments()}
+        coachId={coachId}
       />
 
       

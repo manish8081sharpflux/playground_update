@@ -2,6 +2,7 @@ const MedicalCheckIns = require("../services/medicalCheckIns");
 const { HTTP_STATUS_CODE } = require("../constants/general");
 const { logger } = require("../config/pino-config");
 const mongoose = require("mongoose");
+const User = require("../models/user");
 
 exports.createMedicalCheckIn = async (req, res) => {
   try {
@@ -691,17 +692,38 @@ exports.deleteAttachment = async (req, res) => {
 
 exports.getMedicalCheckInsByBalagruhaIds = async (req, res) => {
   try {
-    let { balagruhaIds } = req.body;
+    let { balagruhaIds, coachId } = req.body;
+    balagruhaIds = Array.isArray(balagruhaIds) ? balagruhaIds : [];
+
+    // Medical check-ins do not belong directly to a coach. Scope them through
+    // the selected coach's assigned Balagruhas, then the students in those homes.
+    if (coachId) {
+      let coachBalagruhaIds = [];
+
+      if (mongoose.Types.ObjectId.isValid(coachId)) {
+        const selectedCoach = await User.findById(coachId)
+          .select("balagruhaIds")
+          .lean();
+        coachBalagruhaIds = (selectedCoach?.balagruhaIds || []).map((id) =>
+          id.toString()
+        );
+      }
+
+      balagruhaIds = balagruhaIds.length > 0
+        ? balagruhaIds.filter((id) => coachBalagruhaIds.includes(id.toString()))
+        : coachBalagruhaIds;
+    }
+
     // RBAC: Restrict balagruhaIds to user's assigned scope.
-    // When a scope is enforced, an empty result MUST stay empty — do not let the
+    // When a scope is enforced, an empty result MUST stay empty - do not let the
     // service-layer fallback expand to "all balagruhas in the database".
-    let scopeApplied = false;
+    let scopeApplied = Boolean(coachId);
     if (req.scopeFilter && req.scopeFilter.balagruhaId) {
       const allowedIds = req.scopeFilter.balagruhaId.$in
         ? req.scopeFilter.balagruhaId.$in.map(id => id.toString())
         : [req.scopeFilter.balagruhaId.toString()];
-      // No IDs from caller → default to their full allowed scope.
-      // Specific IDs from caller → intersect with allowed scope.
+      // No IDs from caller -> default to their full allowed scope.
+      // Specific IDs from caller -> intersect with allowed scope.
       balagruhaIds = (balagruhaIds && balagruhaIds.length > 0)
         ? balagruhaIds.filter(id => allowedIds.includes(id.toString()))
         : allowedIds;
@@ -709,7 +731,7 @@ exports.getMedicalCheckInsByBalagruhaIds = async (req, res) => {
     }
     const result = await MedicalCheckIns.getMedicalCheckInsByBalagruhaIds(
       balagruhaIds,
-      { scopeApplied }
+      { scopeApplied, coachId: coachId || null }
     );
     if (result.success) {
       res

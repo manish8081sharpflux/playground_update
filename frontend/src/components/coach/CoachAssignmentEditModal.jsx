@@ -2,8 +2,11 @@ import React, { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import { api } from '../../api';
 import { X, Users } from 'lucide-react';
+import { useAuth } from '../../contexts/AuthContext';
 
-export default function CoachAssignmentEditModal({ isOpen, onClose, assignment, onSaved }) {
+export default function CoachAssignmentEditModal({ isOpen, onClose, assignment, onSaved, coachId }) {
+  const { user } = useAuth();
+  const effectiveCoachId = coachId || user?.id || user?._id;
   const [courses, setCourses] = useState([]);
   const [balagruhas, setBalagruhas] = useState([]);
   const [students, setStudents] = useState([]);
@@ -19,9 +22,9 @@ export default function CoachAssignmentEditModal({ isOpen, onClose, assignment, 
   const [dataLoading, setDataLoading] = useState(true);
   const [dataLoaded, setDataLoaded] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [balagruhaFilter, setBalagruhaFilter] = useState('all');
 
   const normalizeList = (value) => (Array.isArray(value) ? value : []);
+
 
   const resolveBalagruhaById = (id) => normalizeList(balagruhas).find((bg) => (bg._id || bg.id)?.toString() === id?.toString());
   const resolveStudentById = (id) => normalizeList(students).find((student) => (student._id || student.id)?.toString() === id?.toString());
@@ -29,6 +32,62 @@ export default function CoachAssignmentEditModal({ isOpen, onClose, assignment, 
     if (!item) return '';
     const id = item._id || item.id || item;
     return id?.toString?.() || '';
+  };
+  const getEntityId = (value) => {
+    if (!value) return '';
+    if (typeof value === 'string' || typeof value === 'number') return value.toString();
+    const nestedId = value._id || value.id || value.value || value.$oid;
+    if (nestedId) return nestedId.toString();
+    if (typeof value.toString === 'function' && value.toString !== Object.prototype.toString) {
+      return value.toString();
+    }
+    return '';
+  };
+
+  const getStudentBalagruhaIds = (student) => {
+    const values = [];
+
+    if (Array.isArray(student.balagruhaIds)) {
+      values.push(...student.balagruhaIds);
+    }
+
+    if (student.balagruhaId) {
+      values.push(student.balagruhaId);
+    }
+
+    if (student.balagruha) {
+      values.push(student.balagruha);
+    }
+
+    return Array.from(new Set(values.map(getEntityId).filter(Boolean)));
+  };
+
+  const getStudentBalagruhaNames = (student, balagruhaSource = balagruhas) => {
+    const names = [];
+
+    if (Array.isArray(student.balagruhaNames)) {
+      names.push(...student.balagruhaNames.filter(Boolean));
+    }
+
+    const possibleBalagruhas = [
+      ...(Array.isArray(student.balagruhaIds) ? student.balagruhaIds : []),
+      student.balagruhaId,
+      student.balagruha,
+    ].filter(Boolean);
+
+    possibleBalagruhas.forEach((item) => {
+      if (typeof item === 'object' && item.name) {
+        names.push(item.name);
+      }
+    });
+
+    const source = normalizeList(balagruhaSource);
+    getStudentBalagruhaIds(student).forEach((bgId) => {
+      const bg = source.find((item) => getEntityId(item) === bgId);
+      if (bg?.name) names.push(bg.name);
+    });
+
+    return Array.from(new Set(names));
   };
 
   const resetSelections = () => {
@@ -41,7 +100,6 @@ export default function CoachAssignmentEditModal({ isOpen, onClose, assignment, 
     setSendInAppNotification(true);
     setSendEmailNotification(false);
     setSearchQuery('');
-    setBalagruhaFilter('all');
   };
 
   useEffect(() => {
@@ -49,13 +107,13 @@ export default function CoachAssignmentEditModal({ isOpen, onClose, assignment, 
       resetSelections();
       setDataLoaded(false);
     }
-  }, [isOpen]);
+  }, [isOpen, effectiveCoachId]);
 
   useEffect(() => {
     if (isOpen) {
       fetchData();
     }
-  }, [isOpen]);
+  }, [isOpen, effectiveCoachId]);
 
   useEffect(() => {
     if (!isOpen || !assignment || !dataLoaded || normalizeList(balagruhas).length === 0) return;
@@ -98,26 +156,21 @@ export default function CoachAssignmentEditModal({ isOpen, onClose, assignment, 
   const fetchData = async () => {
     setDataLoading(true);
     try {
-      const [coursesResponse, balagruhasResponse, studentsResponse] = await Promise.all([
-        api.get('/api/v2/lms/admin/courses', { params: { status: 'published' } }),
-        api.get('/api/v1/balagruha'),
-        api.get('/api/users', { params: { role: 'student' } }),
+      const [coursesResponse, studentsResponse] = await Promise.all([
+        api.get('/api/v2/lms/coach/courses/published'),
+        api.get(`/api/v2/lms/coach/${effectiveCoachId}/students`),
       ]);
 
       const courseList = normalizeList(coursesResponse.data.data);
       setCourses(courseList);
 
-      const balagruhaList = normalizeList(
-        balagruhasResponse.data.data?.balagruhas || balagruhasResponse.data.data
-      );
+      const balagruhaList = normalizeList(studentsResponse.data.balagruhas);
       setBalagruhas(balagruhaList);
 
       const studentsList = normalizeList(studentsResponse.data.data).map((student) => ({
         ...student,
-        balagruhaNames: student.balagruhaIds?.map((bgId) => {
-          const bg = balagruhaList.find((b) => (b._id || b.id)?.toString() === bgId?.toString());
-          return bg?.name;
-        }).filter(Boolean) || [],
+        balagruhaIds: getStudentBalagruhaIds(student),
+        balagruhaNames: getStudentBalagruhaNames(student, balagruhaList),
       }));
       setStudents(studentsList);
     } catch (error) {
@@ -128,23 +181,18 @@ export default function CoachAssignmentEditModal({ isOpen, onClose, assignment, 
       setDataLoaded(true);
     }
   };
-
   const filteredStudents = normalizeList(students).filter((student) => {
-    if (balagruhaFilter !== 'all') {
-      const isInSelectedBalagruha = student.balagruhaIds?.some(
-        (bgId) => bgId?.toString() === balagruhaFilter
-      );
-      if (!isInSelectedBalagruha) return false;
-    }
+    const studentBalagruhaNames = getStudentBalagruhaNames(student);
 
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase();
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase().trim();
       const matchesName = student.name?.toLowerCase().includes(query);
       const matchesId = student.userId?.toString().toLowerCase().includes(query);
-      const matchesBalagruha = student.balagruhaNames?.some((name) =>
-        name.toLowerCase().includes(query)
+      const matchesEmail = student.email?.toLowerCase().includes(query);
+      const matchesBalagruha = studentBalagruhaNames.some((name) =>
+        name?.toLowerCase().includes(query)
       );
-      if (!matchesName && !matchesId && !matchesBalagruha) return false;
+      if (!matchesName && !matchesId && !matchesEmail && !matchesBalagruha) return false;
     }
 
     return true;
@@ -251,7 +299,7 @@ export default function CoachAssignmentEditModal({ isOpen, onClose, assignment, 
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+      <div className="bg-white mt-16 rounded-lg shadow-xl max-w-3xl w-full max-h-[85vh] overflow-y-auto">
         <div className="bg-purple-600 text-white px-6 py-4 flex items-center justify-between rounded-t-lg">
           <div>
             <h2 className="text-2xl font-bold">Edit Course Assignment</h2>
@@ -277,8 +325,8 @@ export default function CoachAssignmentEditModal({ isOpen, onClose, assignment, 
             </select>
             {selectedCourse && (
               <div className="mt-2 text-sm text-gray-600">
-                <span className="font-medium">Category:</span> {selectedCourse.category || 'N/A'} •{' '}
-                <span className="font-medium">Difficulty:</span> {selectedCourse.difficultyLevel || 'N/A'} •{' '}
+                <span className="font-medium">Category:</span> {selectedCourse.category || 'N/A'} -{' '}
+                <span className="font-medium">Difficulty:</span> {selectedCourse.difficultyLevel || 'N/A'} -{' '}
                 <span className="font-medium">Content Items:</span> {selectedCourse.contentItemCount || 0}
               </div>
             )}
@@ -405,25 +453,13 @@ export default function CoachAssignmentEditModal({ isOpen, onClose, assignment, 
                     className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                   />
                 </div>
-                <div>
-                  <select
-                    value={balagruhaFilter}
-                    onChange={(e) => setBalagruhaFilter(e.target.value)}
-                    className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                  >
-                    <option value="all">All Balagruhas</option>
-                    {normalizeList(balagruhas).map((bg) => (
-                      <option key={bg._id || bg.id} value={bg._id || bg.id}>{bg.name}</option>
-                    ))}
-                  </select>
-                </div>
               </div>
 
               <div className="max-h-64 overflow-y-auto border border-gray-200 rounded-lg">
                 {dataLoading ? (
                   <div className="p-4 text-center text-gray-500">Loading students...</div>
                 ) : filteredStudents.length === 0 ? (
-                  <div className="p-4 text-center text-gray-500">{searchQuery || balagruhaFilter !== 'all' ? 'No students match your filters' : 'No students available'}</div>
+                  <div className="p-4 text-center text-gray-500">{searchQuery ? 'No students match your search' : 'No students available'}</div>
                 ) : (
                   <div className="divide-y divide-gray-200">
                     {filteredStudents.map((student) => (
@@ -466,10 +502,10 @@ export default function CoachAssignmentEditModal({ isOpen, onClose, assignment, 
                 style={{ fontSize: "12px" }}
                 className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
               >
-                <option value="active">🟢 Active</option>
-                <option value="completed">🔵 Completed</option>
-                <option value="expired">🟠 Expired</option>
-                <option value="cancelled" >🔴 Cancelled</option>
+                <option value="active">Active</option>
+                <option value="completed">Completed</option>
+                <option value="expired">Expired</option>
+                <option value="cancelled" >Cancelled</option>
               </select>
             </div>
 

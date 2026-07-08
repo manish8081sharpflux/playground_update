@@ -13,10 +13,10 @@ import {
     getAssignableUsersForSchedule,
     getMedicalConditionBasedOnBalagruha,
     getMyPurchaseRequests,
-    getAllShopItems,
-    debugUserPermissions
+    getAllShopItems
 } from '../../api';
 import { TaskDetailsModal } from '../TaskManagement/taskmanagement';
+import { useRBAC } from '../../contexts/RBACContext';
 
 function CoachDashboard() {
     // State variables remain the same
@@ -40,7 +40,7 @@ function CoachDashboard() {
     const [machines, setMachines] = useState([]);
     const [selectedBalagruha, setSelectedBalagruha] = useState();
     const [schedules, setSchedules] = useState([]);
-    const [userPermissions, setUserPermissions] = useState([]);
+    const { hasPermission, isLoading: rbacLoading, permissions } = useRBAC();
     const [chatMessages, setChatMessages] = useState({
         child: [
             { sender: "child", message: "Hello Coach! How are you today?", time: "10:30 AM" },
@@ -71,7 +71,7 @@ function CoachDashboard() {
         setSearchText("");
         setStatusFilter("all");
         setCurrentPage(1);
-    }, [coachMenuSelected, selectedBalagruha]);
+    }, [coachMenuSelected, selectedBalagruha, permissions, rbacLoading]);
 
     const getCurrentData = () => {
         if (coachMenuSelected === 2) return tasks;
@@ -180,7 +180,7 @@ function CoachDashboard() {
     };
 
     useEffect(() => {
-        if (!selectedBalagruha) return;
+        if (!selectedBalagruha || !can("Schedule Management", "Read")) return;
 
         const today = new Date();
         const dayOfWeek = today.getDay();
@@ -198,7 +198,7 @@ function CoachDashboard() {
             monday.toISOString().slice(0, 10),
             sunday.toISOString().slice(0, 10)
         );
-    }, [selectedBalagruha]);
+    }, [selectedBalagruha, permissions, rbacLoading]);
 
     const getTasksList = async () => {
         try {
@@ -388,12 +388,11 @@ function CoachDashboard() {
         if (can("Shop Management", "Read") || can("ISF Shop", "Read")) {
             getIsfShopList();
         }
-    }, [selectedBalagruha, userPermissions]);
+    }, [selectedBalagruha, permissions, rbacLoading]);
     // Load data when component mounts
     useEffect(() => {
         getBalagruhaList();
         getUsersList();
-        getUserPermissions();
     }, []);
 
     useEffect(() => {
@@ -404,25 +403,25 @@ function CoachDashboard() {
 
     // Load tasks when selected balagruha changes
     useEffect(() => {
-        if (selectedBalagruha) {
+        if (selectedBalagruha && can("Task Management", "Read")) {
             getTasksList();
         }
-    }, [selectedBalagruha, users]); // Also refresh when users are loaded for proper name display
+    }, [selectedBalagruha, users, permissions, rbacLoading]); // Also refresh when users are loaded for proper name display
 
 
     useEffect(() => {
-        if (coachMenuSelected === 3) {
+        if (coachMenuSelected === 3 && can("Medical Management", "Read")) {
             getMedicalList();
         }
 
-        if (coachMenuSelected === 7) {
+        if (coachMenuSelected === 7 && can("Purchase Management", "Read")) {
             getPurchaseList();
         }
 
-        if (coachMenuSelected === 8) {
+        if (coachMenuSelected === 8 && (can("Shop Management", "Read") || can("ISF Shop", "Read"))) {
             getIsfShopList();
         }
-    }, [coachMenuSelected, selectedBalagruha]);
+    }, [coachMenuSelected, selectedBalagruha, permissions, rbacLoading]);
 
     // Event handlers
     const handleEventClick = (event) => {
@@ -449,46 +448,19 @@ function CoachDashboard() {
         }));
     };
 
-    const getUserPermissions = async () => {
-        try {
-            const response = await debugUserPermissions();
-
-            console.log("FULL RESPONSE:", response);
-
-            const permissions =
-                response?.permissions ||
-                response?.data?.permissions ||
-                response?.user?.permissions ||
-                response?.user?.role?.permissions ||
-                response?.user?.roleId?.permissions ||
-                response?.user?.roleData?.permissions ||
-                response?.data?.user?.permissions ||
-                response?.data?.user?.role?.permissions ||
-                response?.data?.user?.roleId?.permissions ||
-                [];
-
-            console.log("FINAL PERMISSIONS:", permissions);
-
-            setUserPermissions(Array.isArray(permissions) ? permissions : []);
-        } catch (error) {
-            console.error("Error fetching user permissions:", error);
-            setUserPermissions([]);
-        }
-    };
+    const permissionsLoaded = Object.keys(permissions || {}).length > 0;
 
     const can = (moduleName, actionName = "Read") => {
-        if (!userPermissions || userPermissions.length === 0) {
-            return true;
+        if (rbacLoading || !permissionsLoaded) {
+            return false;
         }
 
-        return userPermissions.some((permission) =>
-            permission.module === moduleName &&
-            permission.actions?.some(
-                (action) => action.toLowerCase() === actionName.toLowerCase()
-            )
-        );
-    };
+        if (actionName.toLowerCase() === "read") {
+            return hasPermission(moduleName, "Read") || hasPermission(moduleName, "Manage");
+        }
 
+        return hasPermission(moduleName, actionName);
+    };
     // Coach menus - Sprint6-Story-1-AC3: Removed 6 unused cards, kept 5 active ones
     const coachMenus = [
         {
@@ -541,7 +513,7 @@ function CoachDashboard() {
         if (coachMenus.length > 0 && !coachMenus.some(menu => menu.id === coachMenuSelected)) {
             setCoachMenuSelected(coachMenus[0].id);
         }
-    }, [userPermissions, coachMenus.length]);
+    }, [permissions, rbacLoading, coachMenus.length, coachMenuSelected]);
 
     // Generate dummy data for menu items
     // const getDummyData = (menuName) => {
@@ -649,7 +621,7 @@ function CoachDashboard() {
                         onClick={onClose}
                         className="chat-close-btn"
                     >
-                        ✖
+                        &times;
                     </button>
                 </div>
 
@@ -691,7 +663,7 @@ function CoachDashboard() {
                         }}
                         className="send-btn"
                     >
-                        ➤
+                        &#10148;
                     </button>
                 </div>
             </div>
@@ -1023,7 +995,7 @@ function CoachDashboard() {
                         )}
 
                         {/* Weekly Calendar (shown when Daily Schedule is selected) */}
-                        {coachMenuSelected === 1 && (
+                        {coachMenuSelected === 1 && can("Schedule Management", "Read") && (
                             <div className='full-calendar'>
                                 <WeeklyCalendar
                                     currentWeekOffset={currentWeekOffset}

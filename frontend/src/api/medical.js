@@ -1,10 +1,19 @@
 import { api, headers } from './client';
 
-export const getMedicalConditionBasedOnBalagruha = async (balagruhaIds) => {
+export const getMedicalConditionBasedOnBalagruha = async (payload) => {
   try {
+    const body = Array.isArray(payload)
+      ? { balagruhaIds: payload }
+      : {
+          ...(payload || {}),
+          balagruhaIds: Array.isArray(payload?.balagruhaIds)
+            ? payload.balagruhaIds
+            : [],
+        };
+
     const response = await api.post(
       "/api/medical-check-ins/students/list",
-      { balagruhaIds: Array.isArray(balagruhaIds) ? balagruhaIds : [] }
+      body
     );
 
     return response.data;

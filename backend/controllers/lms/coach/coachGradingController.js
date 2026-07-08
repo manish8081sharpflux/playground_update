@@ -18,6 +18,50 @@ const QUALITY_COIN_MAP = {
   needs_improvement: 25,
 };
 
+const normalizeAnswerPayload = (payload) => {
+  if (Array.isArray(payload)) return payload;
+  if (payload && typeof payload === "object") return Object.values(payload);
+  return [];
+};
+
+const getSubmissionAnswers = (submission) => {
+  const metadata = submission?.metadata || {};
+  const answerPayload =
+    metadata.breakdown ||
+    metadata.answers ||
+    metadata.quizAnswers ||
+    metadata.studentAnswers ||
+    metadata.responses ||
+    metadata.result?.breakdown ||
+    metadata.results?.breakdown ||
+    [];
+
+  return normalizeAnswerPayload(answerPayload);
+};
+
+const formatSubmissionForGrading = (submission) => ({
+  id: submission._id,
+  studentId: submission.studentId?._id || null,
+  studentName: submission.studentId?.name || "Unknown",
+  studentEmail: submission.studentId?.email || "",
+  balagruhaIds: submission.studentId?.balagruhaIds || [],
+  balagruhaName: submission.studentId?.balagruhaIds?.[0]?.name || "N/A",
+  courseId: submission.courseId?._id || null,
+  courseTitle: submission.courseId?.title || "Unknown Course",
+  courseCategory: submission.courseId?.category || "",
+  taskId: submission.taskId,
+  taskTitle: submission.taskTitle,
+  submissionType: submission.submissionType,
+  fileUrl: submission.fileUrl,
+  thumbnailUrl: submission.thumbnailUrl,
+  metadata: submission.metadata,
+  answers: getSubmissionAnswers(submission),
+  submittedAt: submission.submittedAt,
+  timeSpent: submission.timeSpent,
+  status: submission.status,
+  grade: submission.grade || null,
+  draft: submission.draft || null,
+});
 /**
  * @route GET /api/v2/lms/coach/:coachId/submissions
  * @desc Get all submissions for grading with filters
@@ -52,28 +96,7 @@ exports.getSubmissions = async (req, res) => {
     const stats = await Submission.getCoachStats(coachId);
 
     // Format submissions for response
-    const formattedSubmissions = submissions.map((submission) => ({
-      id: submission._id,
-      studentId: submission.studentId?._id || null,
-      studentName: submission.studentId?.name || "Unknown",
-      studentEmail: submission.studentId?.email || "",
-      balagruhaIds: submission.studentId?.balagruhaIds || [],
-      balagruhaName: submission.studentId?.balagruhaIds?.[0]?.name || "N/A",
-      courseId: submission.courseId?._id || null,
-      courseTitle: submission.courseId?.title || "Unknown Course",
-      courseCategory: submission.courseId?.category || "",
-      taskId: submission.taskId,
-      taskTitle: submission.taskTitle,
-      submissionType: submission.submissionType,
-      fileUrl: submission.fileUrl,
-      thumbnailUrl: submission.thumbnailUrl,
-      metadata: submission.metadata,
-      submittedAt: submission.submittedAt,
-      timeSpent: submission.timeSpent,
-      status: submission.status,
-      grade: submission.grade || null,
-      draft: submission.draft || null,
-    }));
+    const formattedSubmissions = submissions.map(formatSubmissionForGrading);
 
     res.status(200).json({
       success: true,
@@ -113,7 +136,7 @@ exports.getSubmissionById = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      submission,
+      submission: formatSubmissionForGrading(submission),
     });
   } catch (error) {
     errorLogger.error({ err: error }, "Error fetching submission:");

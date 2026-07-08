@@ -102,9 +102,32 @@ class ShopService {
         });
       }
 
-      // Balagruha Scoping (for filtered views like PM Low Stock)
-      // supports passing array of IDs. Includes shop-wide items (null/undefined balagruhaId)
-      if (filters.balagruhaIds && Array.isArray(filters.balagruhaIds) && filters.balagruhaIds.length > 0) {
+      // Balagruha Scoping (for filtered views like PM Low Stock).
+      // Coach-scoped admin views use actual ownership paths: Balagruha-specific
+      // products, products created by the selected coach, and products requested
+      // by that coach through purchase requests.
+      if (filters.coachScoped) {
+        const coachProductScope = [];
+
+        if (filters.balagruhaIds && Array.isArray(filters.balagruhaIds) && filters.balagruhaIds.length > 0) {
+          coachProductScope.push({ balagruhaId: { $in: filters.balagruhaIds } });
+        }
+
+        if (filters.coachId) {
+          coachProductScope.push({ createdBy: filters.coachId });
+        }
+
+        if (filters.requestedProductIds && Array.isArray(filters.requestedProductIds) && filters.requestedProductIds.length > 0) {
+          coachProductScope.push({ _id: { $in: filters.requestedProductIds } });
+        }
+
+        query.$and = query.$and || [];
+        query.$and.push(
+          coachProductScope.length > 0
+            ? { $or: coachProductScope }
+            : { _id: { $in: [] } }
+        );
+      } else if (filters.balagruhaIds && Array.isArray(filters.balagruhaIds) && filters.balagruhaIds.length > 0) {
         query.$and = query.$and || [];
         query.$and.push({
           $or: [

@@ -1513,3 +1513,58 @@
     padding: inherit !important;
     margin: inherit !important;
 }
+
+.coach-item {
+  width: 190px;
+  min-width: 190px;
+  height: 55px;
+  padding: 0 18px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  overflow: hidden;
+}
+
+.coach-name-wrapper {
+  width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+  display: block;
+  text-align: center;
+}
+
+.coach-name-text {
+  display: inline-block;
+  white-space: nowrap;
+  transform: translateX(0);
+}
+
+/* Applied ONLY when the name overflows */
+.coach-name-text.coach-name-marquee {
+  animation: coachNameMove 7s linear infinite;
+}
+
+@keyframes coachNameMove {
+  /* First 2 seconds: STOP */
+  0%,
+  28.57% {
+    transform: translateX(0);
+  }
+
+  /* Move left */
+  70% {
+    transform: translateX(-45%);
+  }
+
+  /* Stop at end */
+  85% {
+    transform: translateX(-45%);
+  }
+
+  /* Return to start */
+  100% {
+    transform: translateX(0);
+  }
+}

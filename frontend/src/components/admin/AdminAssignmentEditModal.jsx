@@ -2,8 +2,12 @@ import React, { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import { api } from '../../api';
 import { X, Users } from 'lucide-react';
+import { useAuth } from '../../contexts/AuthContext';
 
-export default function AdminAssignmentEditModal({ isOpen, onClose, assignment, onSaved }) {
+export default function AdminAssignmentEditModal({ isOpen, onClose, assignment, onSaved, coachId }) {
+  const { user } = useAuth();
+  const isAdmin = user?.role?.toLowerCase() === 'admin';
+  const effectiveCoachId = coachId || user?.id || user?._id;
   const [courses, setCourses] = useState([]);
   const [balagruhas, setBalagruhas] = useState([]);
   const [students, setStudents] = useState([]);
@@ -23,12 +27,73 @@ export default function AdminAssignmentEditModal({ isOpen, onClose, assignment, 
 
   const normalizeList = (value) => (Array.isArray(value) ? value : []);
 
+  const getResponseList = (response, key) => {
+    const data = response?.data?.data;
+    return normalizeList(data?.[key] || data || response?.data?.[key]);
+  };
+
   const resolveBalagruhaById = (id) => normalizeList(balagruhas).find((bg) => (bg._id || bg.id)?.toString() === id?.toString());
   const resolveStudentById = (id) => normalizeList(students).find((student) => (student._id || student.id)?.toString() === id?.toString());
   const getIdString = (item) => {
     if (!item) return '';
     const id = item._id || item.id || item;
     return id?.toString?.() || '';
+  };
+  const getEntityId = (value) => {
+    if (!value) return '';
+    if (typeof value === 'string' || typeof value === 'number') return value.toString();
+    const nestedId = value._id || value.id || value.value || value.$oid;
+    if (nestedId) return nestedId.toString();
+    if (typeof value.toString === 'function' && value.toString !== Object.prototype.toString) {
+      return value.toString();
+    }
+    return '';
+  };
+
+  const getStudentBalagruhaIds = (student) => {
+    const values = [];
+
+    if (Array.isArray(student.balagruhaIds)) {
+      values.push(...student.balagruhaIds);
+    }
+
+    if (student.balagruhaId) {
+      values.push(student.balagruhaId);
+    }
+
+    if (student.balagruha) {
+      values.push(student.balagruha);
+    }
+
+    return Array.from(new Set(values.map(getEntityId).filter(Boolean)));
+  };
+
+  const getStudentBalagruhaNames = (student, balagruhaSource = balagruhas) => {
+    const names = [];
+
+    if (Array.isArray(student.balagruhaNames)) {
+      names.push(...student.balagruhaNames.filter(Boolean));
+    }
+
+    const possibleBalagruhas = [
+      ...(Array.isArray(student.balagruhaIds) ? student.balagruhaIds : []),
+      student.balagruhaId,
+      student.balagruha,
+    ].filter(Boolean);
+
+    possibleBalagruhas.forEach((item) => {
+      if (typeof item === 'object' && item.name) {
+        names.push(item.name);
+      }
+    });
+
+    const source = normalizeList(balagruhaSource);
+    getStudentBalagruhaIds(student).forEach((bgId) => {
+      const bg = source.find((item) => getEntityId(item) === bgId);
+      if (bg?.name) names.push(bg.name);
+    });
+
+    return Array.from(new Set(names));
   };
 
   const resetSelections = () => {
@@ -49,13 +114,13 @@ export default function AdminAssignmentEditModal({ isOpen, onClose, assignment, 
       resetSelections();
       setDataLoaded(false);
     }
-  }, [isOpen]);
+  }, [isOpen, isAdmin, effectiveCoachId]);
 
   useEffect(() => {
     if (isOpen) {
       fetchData();
     }
-  }, [isOpen]);
+  }, [isOpen, isAdmin, effectiveCoachId]);
 
   useEffect(() => {
     if (!isOpen || !assignment || !dataLoaded || normalizeList(balagruhas).length === 0) return;
@@ -98,26 +163,35 @@ export default function AdminAssignmentEditModal({ isOpen, onClose, assignment, 
   const fetchData = async () => {
     setDataLoading(true);
     try {
-      const [coursesResponse, balagruhasResponse, studentsResponse] = await Promise.all([
-        api.get('/api/v2/lms/admin/courses', { params: { status: 'published' } }),
-        api.get('/api/v1/balagruha'),
-        api.get('/api/users', { params: { role: 'student' } }),
+      const courseRequest = isAdmin
+        ? api.get('/api/v2/lms/admin/courses', { params: { status: 'published' } })
+        : api.get('/api/v2/lms/coach/courses/published');
+
+      const dataRequests = isAdmin
+        ? [api.get('/api/v1/balagruha'), api.get('/api/users', { params: { role: 'student', limit: 1000 } })]
+        : [api.get(`/api/v2/lms/coach/${effectiveCoachId}/students`)];
+
+      const [coursesResponse, ...dataResponses] = await Promise.all([
+        courseRequest,
+        ...dataRequests,
       ]);
 
       const courseList = normalizeList(coursesResponse.data.data);
       setCourses(courseList);
 
-      const balagruhaList = normalizeList(
-        balagruhasResponse.data.data?.balagruhas || balagruhasResponse.data.data
-      );
+      const balagruhaList = isAdmin
+        ? normalizeList(dataResponses[0].data.data?.balagruhas || dataResponses[0].data.data)
+        : normalizeList(dataResponses[0].data.balagruhas);
       setBalagruhas(balagruhaList);
 
-      const studentsList = normalizeList(studentsResponse.data.data).map((student) => ({
+      const rawStudents = isAdmin
+        ? getResponseList(dataResponses[1], 'users').filter((student) => student?.role === 'student')
+        : normalizeList(dataResponses[0].data.data);
+
+      const studentsList = rawStudents.map((student) => ({
         ...student,
-        balagruhaNames: student.balagruhaIds?.map((bgId) => {
-          const bg = balagruhaList.find((b) => (b._id || b.id)?.toString() === bgId?.toString());
-          return bg?.name;
-        }).filter(Boolean) || [],
+        balagruhaIds: getStudentBalagruhaIds(student),
+        balagruhaNames: getStudentBalagruhaNames(student, balagruhaList),
       }));
       setStudents(studentsList);
     } catch (error) {
@@ -128,23 +202,24 @@ export default function AdminAssignmentEditModal({ isOpen, onClose, assignment, 
       setDataLoaded(true);
     }
   };
-
   const filteredStudents = normalizeList(students).filter((student) => {
+    const studentBalagruhaIds = getStudentBalagruhaIds(student);
+    const studentBalagruhaNames = getStudentBalagruhaNames(student);
+
     if (balagruhaFilter !== 'all') {
-      const isInSelectedBalagruha = student.balagruhaIds?.some(
-        (bgId) => bgId?.toString() === balagruhaFilter
-      );
+      const isInSelectedBalagruha = studentBalagruhaIds.includes(balagruhaFilter.toString());
       if (!isInSelectedBalagruha) return false;
     }
 
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase();
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase().trim();
       const matchesName = student.name?.toLowerCase().includes(query);
       const matchesId = student.userId?.toString().toLowerCase().includes(query);
-      const matchesBalagruha = student.balagruhaNames?.some((name) =>
-        name.toLowerCase().includes(query)
+      const matchesEmail = student.email?.toLowerCase().includes(query);
+      const matchesBalagruha = studentBalagruhaNames.some((name) =>
+        name?.toLowerCase().includes(query)
       );
-      if (!matchesName && !matchesId && !matchesBalagruha) return false;
+      if (!matchesName && !matchesId && !matchesEmail && !matchesBalagruha) return false;
     }
 
     return true;
@@ -203,7 +278,11 @@ export default function AdminAssignmentEditModal({ isOpen, onClose, assignment, 
         },
       };
 
-      await api.put(`/api/v2/lms/admin/courses/assignments/${assignment._id}`, payload);
+      const url = isAdmin
+        ? `/api/v2/lms/admin/courses/assignments/${assignment._id}`
+        : `/api/v2/lms/coach/assignments/${assignment._id}`;
+
+      await api.put(url, payload);
 
       toast.success('Assignment updated successfully');
       if (onSaved) onSaved();
@@ -277,8 +356,8 @@ export default function AdminAssignmentEditModal({ isOpen, onClose, assignment, 
             </select>
             {selectedCourse && (
               <div className="mt-2 text-sm text-gray-600">
-                <span className="font-medium">Category:</span> {selectedCourse.category || 'N/A'} •{' '}
-                <span className="font-medium">Difficulty:</span> {selectedCourse.difficultyLevel || 'N/A'} •{' '}
+                <span className="font-medium">Category:</span> {selectedCourse.category || 'N/A'} -{' '}
+                <span className="font-medium">Difficulty:</span> {selectedCourse.difficultyLevel || 'N/A'} -{' '}
                 <span className="font-medium">Content Items:</span> {selectedCourse.contentItemCount || 0}
               </div>
             )}
@@ -466,10 +545,10 @@ export default function AdminAssignmentEditModal({ isOpen, onClose, assignment, 
                 style={{ fontSize: "12px" }}
                 className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
               >
-                <option value="active">🟢 Active</option>
-                <option value="completed">🔵 Completed</option>
-                <option value="expired">🟠 Expired</option>
-                <option value="cancelled" >🔴 Cancelled</option>
+                <option value="active">Active</option>
+                <option value="completed">Completed</option>
+                <option value="expired">Expired</option>
+                <option value="cancelled" >Cancelled</option>
               </select>
             </div>
 

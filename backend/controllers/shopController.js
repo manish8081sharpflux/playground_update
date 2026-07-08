@@ -1,5 +1,8 @@
 const ShopService = require('../services/shop');
 const { logger, errorLogger } = require('../config/pino-config');
+const mongoose = require('mongoose');
+const User = require('../models/user');
+const PurchaseRequest = require('../models/purchaseRequest');
 
 /**
  * Get all products with filtering and pagination
@@ -19,7 +22,8 @@ exports.getProducts = async (req, res, next) => {
       limit,
       sort,
       stockStatus,
-      balagruhaIds
+      balagruhaIds,
+      coachId
     } = req.query;
 
     const filters = {
@@ -39,6 +43,37 @@ exports.getProducts = async (req, res, next) => {
       } else if (typeof balagruhaIds === 'string' && balagruhaIds.trim() !== '') {
         filters.balagruhaIds = balagruhaIds.split(',').map(id => id.trim()).filter(id => id);
       }
+    }
+
+    // Shop items do not belong directly to a coach. Scope coach-option data
+    // through the selected coach's assigned Balagruhas, created products, and
+    // products included in purchase requests raised by that coach.
+    if (coachId) {
+      filters.coachScoped = true;
+      filters.coachId = coachId;
+      let coachBalagruhaIds = [];
+      let requestedProductIds = [];
+
+      if (mongoose.Types.ObjectId.isValid(coachId)) {
+        const selectedCoach = await User.findById(coachId)
+          .select('balagruhaIds')
+          .lean();
+        coachBalagruhaIds = (selectedCoach?.balagruhaIds || []).map(id => id.toString());
+
+        const coachRequests = await PurchaseRequest.find({ requestedBy: coachId })
+          .select('items.productId')
+          .lean();
+        requestedProductIds = coachRequests
+          .flatMap(request => request.items || [])
+          .map(item => item.productId)
+          .filter(Boolean)
+          .map(id => id.toString());
+      }
+
+      filters.balagruhaIds = filters.balagruhaIds?.length
+        ? filters.balagruhaIds.filter(id => coachBalagruhaIds.includes(id.toString()))
+        : coachBalagruhaIds;
+      filters.requestedProductIds = Array.from(new Set(requestedProductIds));
     }
 
     const pagination = {

@@ -1060,7 +1060,7 @@ exports.getSportsTasksCountByBalagruhaId = async ({ balagruhaIds }) => {
 
 // Fetch students' medical check-ins by balagruha Ids
 // Returns one document per student with an array field `medicalCheckIns`
-exports.getStudentMedicalCheckInsByBalagruhaIds = async ({ balagruhaIds }) => {
+exports.getStudentMedicalCheckInsByBalagruhaIds = async ({ balagruhaIds, coachId = null }) => {
   try {
     if (!Array.isArray(balagruhaIds)) {
       balagruhaIds = [balagruhaIds].filter(Boolean);
@@ -1069,6 +1069,29 @@ exports.getStudentMedicalCheckInsByBalagruhaIds = async ({ balagruhaIds }) => {
     const balagruhaObjectIds = balagruhaIds.map((id) =>
       mongoose.Types.ObjectId.createFromHexString(String(id))
     );
+    const coachObjectId = coachId && mongoose.Types.ObjectId.isValid(coachId)
+      ? mongoose.Types.ObjectId.createFromHexString(String(coachId))
+      : null;
+
+    const medicalLookupPipeline = [
+      {
+        $match: {
+          $expr: { $eq: ["$studentId", "$$studentId"] },
+        },
+      },
+    ];
+
+    if (coachObjectId) {
+      medicalLookupPipeline.push({
+        $match: {
+          $or: [
+            { createdBy: coachObjectId },
+            { "followUps.assignedCoaches": coachObjectId },
+            { "followUp.assignedCoaches": coachObjectId },
+          ],
+        },
+      });
+    }
 
     const result = await User.aggregate([
       {
@@ -1080,8 +1103,8 @@ exports.getStudentMedicalCheckInsByBalagruhaIds = async ({ balagruhaIds }) => {
       {
         $lookup: {
           from: "medical_check_ins",
-          localField: "_id",
-          foreignField: "studentId",
+          let: { studentId: "$_id" },
+          pipeline: medicalLookupPipeline,
           as: "medicalCheckIns",
         },
       },
