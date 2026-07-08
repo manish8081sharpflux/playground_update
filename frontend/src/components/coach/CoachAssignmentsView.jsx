@@ -1,20 +1,27 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import toast from 'react-hot-toast';
 import { api } from '../../api';
 import CourseAssignmentModal from './CourseAssignmentModal';
 import AssignmentProgressModal from './AssignmentProgressModal';
+import CoachAssignmentEditModal from './CoachAssignmentEditModal';
 import { useAuth } from '../../contexts/AuthContext';
 
 export default function CoachAssignmentsView({ coachId, coachName, balagruhaName }) {
   const { user } = useAuth();
-  const isAdmin = user?.role === 'admin';
+  const isAdmin = user?.role?.toLowerCase() === 'admin';
 
   const [assignments, setAssignments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [progressAssignmentId, setProgressAssignmentId] = useState(null); // null = closed
+  const [openMenuAssignmentId, setOpenMenuAssignmentId] = useState(null);
+  const [editAssignment, setEditAssignment] = useState(null);
+  const [editDueDate, setEditDueDate] = useState('');
+  const [editStatus, setEditStatus] = useState('active');
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all'); // 'all', 'active', 'completed', 'expired'
+  const [savingEdit, setSavingEdit] = useState(false);
+  const menuRef = useRef(null);
 
   useEffect(() => {
     fetchAssignments();
@@ -44,22 +51,120 @@ export default function CoachAssignmentsView({ coachId, coachName, balagruhaName
     fetchAssignments();
   };
 
-  const handleUnassign = async (assignmentId) => {
-    if (!window.confirm('Are you sure you want to cancel this assignment?')) {
+  const handleDeleteAssignment = async (assignmentId) => {
+    if (!window.confirm('Are you sure you want to permanently delete this assignment?')) {
       return;
     }
 
     try {
-      await api.delete(
-        `/api/v2/lms/coach/assignments/${assignmentId}`
-      );
-      toast.success('Assignment cancelled successfully');
+      const url = isAdmin
+        ? `/api/v2/lms/admin/courses/assignments/${assignmentId}`
+        : `/api/v2/lms/coach/assignments/${assignmentId}`;
+
+      await api.delete(url);
+      toast.success('Assignment deleted successfully');
+      setOpenMenuAssignmentId(null);
       fetchAssignments();
     } catch (error) {
-      console.error('Error cancelling assignment:', error);
-      toast.error('Failed to cancel assignment');
+      console.error('Error deleting assignment:', error);
+      toast.error(error.response?.data?.error || 'Failed to delete assignment');
     }
   };
+
+  const handleToggleAssignmentStatus = async (assignment) => {
+    if (!assignment) return;
+
+    const nextStatus = assignment.status === 'cancelled' ? 'active' : 'cancelled';
+    const confirmMessage = assignment.status === 'cancelled'
+      ? 'Are you sure you want to reassign this course?'
+      : 'Are you sure you want to unassign this course?';
+
+    if (!window.confirm(confirmMessage)) {
+      return;
+    }
+
+    try {
+      const url = isAdmin
+        ? `/api/v2/lms/admin/courses/assignments/${assignment._id}`
+        : `/api/v2/lms/coach/assignments/${assignment._id}`;
+
+      await api.put(url, { status: nextStatus });
+      toast.success(
+        nextStatus === 'active'
+          ? 'Assignment reassigned successfully'
+          : 'Assignment unassigned successfully'
+      );
+      setEditAssignment(null);
+      fetchAssignments();
+    } catch (error) {
+      console.error('Error updating assignment status:', error);
+      toast.error(error.response?.data?.error || 'Failed to update assignment status');
+    }
+  };
+
+  const handleMenuToggle = (assignmentId) => {
+    setOpenMenuAssignmentId((prev) =>
+      prev === assignmentId ? null : assignmentId
+    );
+  };
+
+  const handleEditAssignment = (assignment) => {
+    setEditAssignment(assignment);
+    setEditDueDate(
+      assignment.dueDate ? assignment.dueDate.slice(0, 10) : ''
+    );
+    setEditStatus(assignment.status || 'active');
+    setOpenMenuAssignmentId(null);
+  };
+
+  const handleSaveAssignmentEdit = async (e) => {
+    e?.preventDefault();
+    if (!editAssignment) return;
+
+    if (editDueDate) {
+      const dueDateObj = new Date(editDueDate);
+      const todayStart = new Date();
+      todayStart.setHours(0, 0, 0, 0);
+      if (dueDateObj < todayStart) {
+        toast.error('Due date must be today or in the future');
+        return;
+      }
+    }
+
+    setSavingEdit(true);
+
+    try {
+      const payload = {
+        dueDate: editDueDate || null,
+        status: editStatus,
+      };
+
+      const url = isAdmin
+        ? `/api/v2/lms/admin/courses/assignments/${editAssignment._id}`
+        : `/api/v2/lms/coach/assignments/${editAssignment._id}`;
+
+      await api.put(url, payload);
+      toast.success('Assignment updated successfully');
+      setEditAssignment(null);
+      fetchAssignments();
+    } catch (error) {
+      console.error('Error updating assignment:', error);
+      toast.error('Failed to update assignment');
+    } finally {
+      setSavingEdit(false);
+    }
+  };
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setOpenMenuAssignmentId(null);
+      }
+    };
+
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, []);
 
   const formatDate = (dateString) => {
     if (!dateString) return 'No due date';
@@ -123,7 +228,7 @@ export default function CoachAssignmentsView({ coachId, coachName, balagruhaName
               {isAdmin ? 'All Course Assignments (Admin)' : 'My Course Assignments'}
             </h1>
             <div className="text-sm mt-1">
-              {balagruhaName && <span>Balagruha: {balagruhaName} • </span>}
+              {balagruhaName && <span>Balagruha: {balagruhaName} - </span>}
               {isAdmin ? 'Admin' : 'Coach'}: {coachName}
             </div>
           </div>
@@ -139,15 +244,16 @@ export default function CoachAssignmentsView({ coachId, coachName, balagruhaName
       {/* Filters */}
       <div className="bg-white shadow-sm border-b w-full">
         <div className="w-full px-6 py-4">
-          <div className="flex items-center gap-6 w-full">
+          <div className="flex flex-col md:flex-row gap-4 w-full">
+
             {/* Search */}
             <div className="w-1/2">
             <input
               type="text"
-              placeholder="🔍 Search assignments..."
+              placeholder="Search assignments..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full md:flex-1 border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
             </div>
 
@@ -156,7 +262,7 @@ export default function CoachAssignmentsView({ coachId, coachName, balagruhaName
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full md:w-64 border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
               <option value="all">All Status</option>
               <option value="active">Active</option>
@@ -164,16 +270,15 @@ export default function CoachAssignmentsView({ coachId, coachName, balagruhaName
               <option value="expired">Expired</option>
               <option value="cancelled">Cancelled</option>
             </select>
-            </div>
+
           </div>
         </div>
       </div>
-
       {/* Assignment Cards */}
       <div className="w-full px-6 py-8">
         {filteredAssignments.length === 0 ? (
           <div className="text-center py-12">
-            <div className="text-6xl mb-4">📚</div>
+            <div className="text-6xl mb-4">Courses</div>
             <h3 className="text-xl font-medium text-gray-900 mb-2">
               {searchQuery || statusFilter !== 'all'
                 ? 'No assignments found'
@@ -219,28 +324,28 @@ export default function CoachAssignmentsView({ coachId, coachName, balagruhaName
                     {/* Assignment Details */}
                     <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600 mb-3">
                       <span>
-                        📊 Category: {assignment.courseId?.category || 'N/A'}
+                        Category: {assignment.courseId?.category || 'N/A'}
                       </span>
                       <span>
-                        👥 Assigned to:{' '}
+                        Assigned to:{' '}
                         {assignment.assignedTo.type === 'balagruha'
                           ? `Entire Balagruha (${assignment.progress.totalStudents} students)`
                           : `${assignment.progress.totalStudents} specific students`}
                       </span>
-                      <span>📅 Due: {formatDate(assignment.dueDate)}</span>
+                      <span>Due: {formatDate(assignment.dueDate)}</span>
                       <span>
-                        📆 Assigned:{' '}
+                        Assigned:{' '}
                         {formatDate(assignment.assignedAt || assignment.createdAt)}
                       </span>
                     </div>
 
-                    {/* Progress Bar — with friendly empty state when no students have started */}
+                    {/* Progress bar with friendly empty state when no students have started */}
                     <div className="mb-3">
                       {assignment.progress.studentsStarted === 0 ? (
                         <div className="flex items-start gap-2 text-sm text-gray-600 bg-gray-50 border border-gray-200 rounded px-3 py-2">
-                          <span className="text-base leading-5">⏳</span>
+                          <span className="text-base leading-5"></span>
                           <span>
-                            No students have started yet — progress will update as students view course content.
+                            No students have started yet - progress will update as students view course content.
                             {assignment.progress.totalStudents > 0 && (
                               <span className="text-gray-500">
                                 {' '}({assignment.progress.totalStudents} {assignment.progress.totalStudents === 1 ? 'student' : 'students'} assigned)
@@ -281,34 +386,57 @@ export default function CoachAssignmentsView({ coachId, coachName, balagruhaName
                   </div>
 
                   {/* Actions Menu */}
-                  <div className="ml-4">
+                  <div
+                    className="ml-4 relative"
+                    ref={openMenuAssignmentId === assignment._id ? menuRef : null}
+                  >
                     <button
+                      type="button"
                       className="text-gray-500 hover:text-gray-700 text-2xl"
-                      onClick={() => {
-                        /* Context menu not yet implemented */
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleMenuToggle(assignment._id);
                       }}
                     >
-                      ⋮
+                      ...
                     </button>
+                    {openMenuAssignmentId === assignment._id && (
+                      <div className="absolute right-0 top-10 z-10 w-48 bg-white border border-gray-200 rounded-lg shadow-lg">
+                        <button
+                          type="button"
+                          onClick={() => handleEditAssignment(assignment)}
+                          className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        >
+                          Edit Assignment
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteAssignment(assignment._id)}
+                          className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
+                        >
+                          Delete Assignment
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
 
                 {/* Action Buttons */}
                 <div className="flex gap-3 mt-4 pt-4 border-t">
                   <button
+                    type="button"
                     onClick={() => setProgressAssignmentId(assignment._id)}
                     className="px-4 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 font-medium"
                   >
                     View Progress Report
                   </button>
-                  {assignment.status === 'active' && (
-                    <button
-                      onClick={() => handleUnassign(assignment._id)}
-                      className="px-4 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 font-medium"
-                    >
-                      Unassign Course
-                    </button>
-                  )}
+                  <button
+                    type="button"
+                    onClick={() => handleToggleAssignmentStatus(assignment)}
+                    className="px-4 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 font-medium"
+                  >
+                    {assignment.status === 'cancelled' ? 'Assign Assignment' : 'Unassign Assignment'}
+                  </button>
                 </div>
               </div>
             ))}
@@ -323,6 +451,16 @@ export default function CoachAssignmentsView({ coachId, coachName, balagruhaName
         coachId={coachId}
         onAssignmentCreated={handleAssignmentCreated}
       />
+
+      <CoachAssignmentEditModal
+        isOpen={!!editAssignment}
+        onClose={() => setEditAssignment(null)}
+        assignment={editAssignment}
+        onSaved={() => fetchAssignments()}
+        coachId={coachId}
+      />
+
+      
 
       {/* Progress Report Modal */}
       {progressAssignmentId && (

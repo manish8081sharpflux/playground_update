@@ -185,52 +185,48 @@ exports.login = async (req, res) => {
  */
 exports.studentLogin = async (req, res) => {
   try {
-    const { userId } = req.body;
-    if (!userId) {
-      return res
-        .status(400)
-        .json({ success: false, message: "userId is required" });
+    const userIdValue = String(req.body.userId || "").trim();
+
+    if (!userIdValue) {
+      return res.status(400).json({
+        success: false,
+        message: "userId is required",
+      });
     }
-    // Find user by _id, userId field, or email
-    const isValid = mongoose.Types.ObjectId.isValid(userId) && String(userId).length === 24;
+
     let user = null;
 
-    if (isValid) {
-      // Try to find by MongoDB ObjectId first
-      try {
-        user = await User.findById(userId);
-      } catch (e) {
-        // CastError — not a valid ObjectId, continue to other lookups
-      }
+    // MongoDB _id login
+    if (
+      mongoose.Types.ObjectId.isValid(userIdValue) &&
+      userIdValue.length === 24
+    ) {
+      user = await User.findById(userIdValue);
+    }
+
+    // Student custom User ID login
+    if (!user) {
+      user = await User.findOne({
+        role: UserTypes.STUDENT,
+        userId: userIdValue,
+      });
+    }
+
+    // Optional email login fallback
+    if (!user) {
+      user = await User.findOne({
+        role: UserTypes.STUDENT,
+        email: userIdValue.toLowerCase(),
+      });
     }
 
     if (!user) {
-      // Try to find by custom userId field (for simple numeric IDs like "123")
-      // Try both string and number formats since the input could be either
-      const numericUserId = parseInt(userId);
-      if (!isNaN(numericUserId)) {
-        user = await User.findOne({ userId: numericUserId });
-      }
-      if (!user) {
-        try {
-          user = await User.findOne({ userId: userId });
-        } catch (e) {
-          // CastError — userId field is numeric, input is non-numeric string; skip
-        }
-      }
+      return res.status(400).json({
+        success: false,
+        message: "Invalid User ID",
+      });
     }
 
-    if (!user) {
-      // Finally try to find by email
-      user = await User.findOne({ email: userId });
-    }
-    if (!user || user.role !== UserTypes.STUDENT) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Invalid credentials" });
-    }
-
-    // Check if user is active
     if (user.status === "inactive") {
       return res.status(403).json({
         success: false,
@@ -238,11 +234,9 @@ exports.studentLogin = async (req, res) => {
       });
     }
 
-    // Update last login
     user.lastLogin = new Date();
     await user.save();
 
-    // Create token
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
       expiresIn: "1d",
     });
@@ -263,9 +257,11 @@ exports.studentLogin = async (req, res) => {
       },
     });
   } catch (err) {
-    res
-      .status(500)
-      .json({ success: false, message: "Error in login", error: err.message });
+    return res.status(500).json({
+      success: false,
+      message: "Error in login",
+      error: err.message,
+    });
   }
 };
 

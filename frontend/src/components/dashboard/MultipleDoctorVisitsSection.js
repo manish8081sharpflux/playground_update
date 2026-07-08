@@ -7,6 +7,16 @@ import "./DoctorVisitsSection.css";
 const MultipleDoctorVisitsSection = ({ doctorVisits, onChange }) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
+  const today = new Date().toISOString().split("T")[0];
+
+  const getMinAllowedDate = () => {
+    const date = new Date();
+    date.setFullYear(date.getFullYear() - 10);
+    return date.toISOString().split("T")[0];
+  };
+
+  const minAllowedDate = getMinAllowedDate();
+
   const addDoctorVisit = () => {
     const newVisit = {
       doctorName: "",
@@ -129,6 +139,8 @@ const MultipleDoctorVisitsSection = ({ doctorVisits, onChange }) => {
                 <input
                   type="date"
                   value={visit.visitDate || ""}
+                  min={minAllowedDate}
+                  max={today}
                   onChange={(e) =>
                     updateDoctorVisit(visitIndex, "visitDate", e.target.value)
                   }

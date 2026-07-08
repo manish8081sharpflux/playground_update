@@ -50,7 +50,7 @@ function StudentDashboard() {
         const mins = Math.floor(seconds / 60);
         const secs = seconds % 60;
         return `${mins.toString().padStart(2, '0')} : ${secs.toString().padStart(2, '0')}`;
-      };
+    };
 
     // Timer effect - modified to count up instead of down
     // useEffect(() => {
@@ -59,23 +59,23 @@ function StudentDashboard() {
     //     const interval = setInterval(() => {
     //       setSessionTime((prev) => prev - 1);
     //     }, 1000);
-    
+
     //     return () => clearInterval(interval);
     // }, [sessionTime]);
 
     useEffect(() => {
         const interval = setInterval(() => {
-          setSessionTime((prev) => {
-            if (prev <= 1) {
-              clearInterval(interval);
-              return 0;
-            }
-            return prev - 1;
-          });
+            setSessionTime((prev) => {
+                if (prev <= 1) {
+                    clearInterval(interval);
+                    return 0;
+                }
+                return prev - 1;
+            });
         }, 1000);
-      
+
         return () => clearInterval(interval); // Clean up on unmount
-      }, []);
+    }, []);
 
     // Categories
     const categories = [
@@ -123,37 +123,45 @@ function StudentDashboard() {
     ];
 
     // Handle mood selection
-    const handleMoodSelect = async(moodId) => {
+    const handleMoodSelect = async (moodId) => {
 
-        const payload = {
-            mood: moodId,
-            date: Date.now(),
-            notes: ""
+        alert("Mood clicked: " + moodId);
+        const user =
+            JSON.parse(localStorage.getItem("user")) ||
+            JSON.parse(localStorage.getItem("currentUser")) ||
+            JSON.parse(localStorage.getItem("authUser"));
+
+        console.log("Logged user:", user);
+
+        const userId = user?._id || user?.id;
+
+        if (!userId) {
+            showToast("User ID not found. Please login again.", "error");
+            return;
         }
 
+        const payload = {
+            userId: userId,
+            mood: moodId,
+            date: new Date().toISOString(),
+            notes: ""
+        };
+
+        console.log("Mood Payload:", payload);
+
         const response = await createMood(payload);
-        if(response.success) {
-            showToast("Today's mood updated successfully", "success")
+        console.log("Mood Save Response:", response);
+
+        if (response?.success) {
+            showToast("Today's mood updated successfully", "success");
+        } else {
+            showToast(response?.message || "Mood not saved", "error");
         }
 
         setMood(moodId);
         const selectedMood = moodOptions.find(m => m.id === moodId);
         setMoodMessage(selectedMood.message);
-
-        // Animate the mood message
-        const moodMessageElement = document.getElementById('mood-message');
-        if (moodMessageElement) {
-            moodMessageElement.style.transform = 'scale(1.2)';
-            moodMessageElement.style.opacity = '1';
-
-            setTimeout(() => {
-                if (moodMessageElement) {
-                    moodMessageElement.style.transform = 'scale(1)';
-                }
-            }, 300);
-        }
     };
-
     // Handle chat contact click
     const handleChatClick = (contactType) => {
         setShowChatWindow(contactType);
@@ -335,17 +343,21 @@ function StudentDashboard() {
                         <span className="timer-label">Session timer</span>
                     </div>
                     <div className="mood-selector">
-                        <h2>How are you?</h2>
+                        <h2>How are you? test</h2>
                         <div className="mood-options">
                             {moodOptions.map(option => (
-                                <div
+                                <button
                                     key={option.id}
-                                    onClick={() => handleMoodSelect(option.id)}
+                                    type="button"
+                                    onClick={() => {
+                                        alert("Mood clicked: " + option.id);
+                                        handleMoodSelect(option.id);
+                                    }}
                                     className={`mood-emoji ${mood === option.id ? 'selected' : ''}`}
                                     title={option.alt}
                                 >
                                     {option.emoji}
-                                </div>
+                                </button>
                             ))}
                         </div>
                         <div

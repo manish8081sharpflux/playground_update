@@ -54,6 +54,14 @@ const SubmissionSchema = new mongoose.Schema(
         type: String,
         default: null,
       },
+      breakdown: {
+        type: [mongoose.Schema.Types.Mixed],
+        default: undefined,
+      },
+      answers: {
+        type: [mongoose.Schema.Types.Mixed],
+        default: undefined,
+      },
     },
     submittedAt: {
       type: Date,

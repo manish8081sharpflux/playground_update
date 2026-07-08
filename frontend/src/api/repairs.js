@@ -1,11 +1,10 @@
-import { api, headers } from './client';
+import { api, apiWithoutContentType } from './client';
 
 export const createRepair = async (data) => {
   try {
-    const response = await api.post(
+    const response = await apiWithoutContentType.post(
       `/api/v1/purchase-repair/repair-requests`,
-      data,
-      { headers }
+      data
     );
     return response.data;
   } catch (error) {
@@ -37,10 +36,9 @@ export const deleteRepair = async (id) => {
 
 export const updateRepairRequest = async (id, data) => {
   try {
-    const response = await api.put(
+    const response = await apiWithoutContentType.put(
       `/api/v1/purchase-repair/repair-requests/${id}`,
-      data,
-      { headers }
+      data
     );
     return response.data;
   } catch (error) {

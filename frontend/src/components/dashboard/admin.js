@@ -14,9 +14,49 @@ import {
   getBalagruhaListbyUserID,
   getBalagruhaListByAssignedID,
   getSchedules,
+  getCoachSuggestions,
+  api,
 } from "../../api";
 import { TaskDetailsModal } from "../TaskManagement/taskmanagement";
 import WeeklyCalendar from "./WeeklyCalendar";
+
+const CoachName = ({ name }) => {
+  const wrapperRef = useRef(null);
+  const textRef = useRef(null);
+  const [isLong, setIsLong] = useState(false);
+
+  useEffect(() => {
+    const checkOverflow = () => {
+      if (wrapperRef.current && textRef.current) {
+        setIsLong(
+          textRef.current.scrollWidth > wrapperRef.current.clientWidth
+        );
+      }
+    };
+
+    checkOverflow();
+
+    const resizeObserver = new ResizeObserver(checkOverflow);
+
+    if (wrapperRef.current) {
+      resizeObserver.observe(wrapperRef.current);
+    }
+
+    return () => resizeObserver.disconnect();
+  }, [name]);
+
+  return (
+    <span ref={wrapperRef} className="coach-name-wrapper">
+      <span
+        ref={textRef}
+        className={`coach-name-text ${isLong ? "coach-name-marquee" : ""
+          }`}
+      >
+        {name}
+      </span>
+    </span>
+  );
+};
 
 function AdminDashboard() {
   // Initialize with pre-selected values
@@ -43,8 +83,17 @@ function AdminDashboard() {
   const [students, setStudents] = useState([]);
   const [attendance, setAttendance] = useState([]);
   const [tasks, setTasks] = useState([]);
+  const [coachTasks, setCoachTasks] = useState([]);
+  const [coachMedicalData, setCoachMedicalData] = useState([]);
+  const [coachAssignments, setCoachAssignments] = useState([]);
+  const [coachSlowLearners, setCoachSlowLearners] = useState([]);
+  const [coachShopData, setCoachShopData] = useState([]);
+  const [coachSuggestions, setCoachSuggestions] = useState([]);
+  const [isLoadingCoachData, setIsLoadingCoachData] = useState(false);
   const [machines, setMachines] = useState([]);
   const [schedules, setSchedules] = useState([]);
+  const selectedCoachRef = useRef();
+  const isCurrentCoach = (coachId) => selectedCoachRef.current === coachId;
   // const [schedules, setSchedules] = useState({
   //     balagruhaId: '',
   //     assignedTo: '',
@@ -134,42 +183,412 @@ function AdminDashboard() {
     }
   };
 
+  const getCurrentWeekDateRange = () => {
+    const today = new Date();
+    const dayOfWeek = today.getDay();
+    const monday = new Date(today);
+    monday.setDate(today.getDate() - ((dayOfWeek + 6) % 7));
+    monday.setHours(0, 0, 0, 0);
+
+    const sunday = new Date(monday);
+    sunday.setDate(monday.getDate() + 6);
+    sunday.setHours(23, 59, 59, 999);
+
+    return {
+      startDate: monday.toISOString().slice(0, 10),
+      endDate: sunday.toISOString().slice(0, 10),
+    };
+  };
+
+  const getIdValue = (value) => {
+    if (!value) return null;
+    if (typeof value === "string") return value;
+    return value._id || value.id || null;
+  };
+
+  const getCoachBalagruhaIds = (coachId) => {
+    const coach = coaches.find((item) => item._id === coachId);
+    const ids = (coach?.balagruhaIds || [])
+      .map(getIdValue)
+      .filter(Boolean);
+
+    if (ids.length === 0 && selectedBalagruha) {
+      ids.push(selectedBalagruha);
+    }
+
+    return Array.from(new Set(ids));
+  };
+
+  const getBalagruhasFromIds = (ids) => {
+    return ids.map((id) => {
+      const matchedBalagruha = balagruhas.find((bal) => bal._id === id);
+      return matchedBalagruha || { _id: id, name: "Assigned Balagruha" };
+    });
+  };
+
   const fetchBalagruhaByCoach = async (id) => {
+    const fallbackBalagruhas = getBalagruhasFromIds(getCoachBalagruhaIds(id));
+
     try {
       const response = await getBalagruhaListByAssignedID(id);
-      setBalagruhaOfCoach(response?.data?.balagruhas);
+      const assignedBalagruhas = response?.data?.balagruhas || [];
+      const usableBalagruhas =
+        assignedBalagruhas.length > 0 ? assignedBalagruhas : fallbackBalagruhas;
+      if (isCurrentCoach(id)) {
+        setBalagruhaOfCoach(usableBalagruhas);
+      }
+      return usableBalagruhas;
     } catch (error) {
       console.error("Error in fetching balagruha based on user", error);
+      if (isCurrentCoach(id)) {
+        setBalagruhaOfCoach(fallbackBalagruhas);
+      }
+      return fallbackBalagruhas;
     }
   };
 
-  const fetchSchedules = async (balagruha, startDate, endDate) => {
-    try {
-      let dataToSend;
-      if (balagruha) {
-        dataToSend = {
-          balagruhaIds: [balagruha],
-          assignedTo: selectedCoach,
-          startDate: startDate,
-          endDate: endDate,
-          status: [],
-        };
-      } else {
-        dataToSend = {
-          balagruhaIds: [selectedBalagruhaOfCoach],
-          assignedTo: selectedCoach,
-          startDate: startDate,
-          endDate: endDate,
-          status: [],
-        };
-      }
+  const fetchSchedules = async (
+    balagruha,
+    startDate,
+    endDate,
+    coachId = selectedCoach
+  ) => {
+    const explicitIds = Array.isArray(balagruha)
+      ? balagruha
+      : balagruha
+        ? [balagruha]
+        : selectedBalagruhaOfCoach
+          ? [selectedBalagruhaOfCoach]
+          : [];
+    const fallbackIds = getCoachBalagruhaIds(coachId);
+    const balagruhaIds = explicitIds.length > 0 ? explicitIds : fallbackIds;
 
-      const response = await getSchedules(dataToSend);
-      setSchedules(response?.data?.schedules);
+    if (!coachId || balagruhaIds.length === 0) {
+      setSchedules([]);
+      return;
+    }
+
+    try {
+      const response = await getSchedules({
+        balagruhaIds,
+        assignedTo: coachId,
+        startDate,
+        endDate,
+        status: [],
+      });
+      if (isCurrentCoach(coachId)) {
+        setSchedules(response?.data?.schedules || []);
+      }
     } catch (error) {
       console.error("Error in fetching schedules", error);
+      setSchedules([]);
     }
   };
+
+  const fetchCoachTasks = async (coachId, balagruhaId) => {
+    if (!coachId || !balagruhaId) {
+      setCoachTasks([]);
+      return;
+    }
+
+    try {
+      const response = await getTasks({
+        balagruhaId,
+        assignedFor: [coachId],
+        limit: 50,
+      });
+      if (isCurrentCoach(coachId)) {
+        setCoachTasks(response?.data?.tasks || []);
+      }
+    } catch (error) {
+      console.error("Error fetching coach tasks", error);
+      setCoachTasks([]);
+    }
+  };
+  const getActiveCoachBalagruhaIds = (
+    coachId = selectedCoach,
+    explicitBalagruhaIds = []
+  ) => {
+    if (explicitBalagruhaIds.length > 0) {
+      return Array.from(new Set(explicitBalagruhaIds));
+    }
+
+    const selectedIds = selectedBalagruhaOfCoach
+      ? [selectedBalagruhaOfCoach]
+      : [];
+
+    const assignedIds = balagruhaOfCoach
+      .map((item) => item?._id)
+      .filter(Boolean);
+
+    const fallbackIds = getCoachBalagruhaIds(coachId);
+
+    const ids =
+      selectedIds.length > 0
+        ? selectedIds
+        : assignedIds.length > 0
+          ? assignedIds
+          : fallbackIds;
+
+    return Array.from(new Set(ids));
+  };
+
+  const fetchCoachMedicalData = async (
+    coachId = selectedCoach,
+    explicitBalagruhaIds = []
+  ) => {
+    const balagruhaIds = getActiveCoachBalagruhaIds(
+      coachId,
+      explicitBalagruhaIds
+    );
+
+    if (!coachId || balagruhaIds.length === 0) {
+      if (isCurrentCoach(coachId)) {
+        setCoachMedicalData([]);
+      }
+      return;
+    }
+
+    try {
+      const response = await getMedicalConditionBasedOnBalagruha({
+        balagruhaIds,
+        coachId,
+      });
+
+      const medicalCheckIns =
+        response?.data?.medicalCheckIns ||
+        response?.data?.data?.medicalCheckIns ||
+        response?.medicalCheckIns ||
+        [];
+
+      if (isCurrentCoach(coachId)) {
+        setCoachMedicalData(
+          Array.isArray(medicalCheckIns) ? medicalCheckIns : []
+        );
+      }
+    } catch (error) {
+      console.error("Error fetching selected coach medical data", error);
+      if (isCurrentCoach(coachId)) {
+        setCoachMedicalData([]);
+      }
+    }
+  };
+
+
+  const fetchCoachAssignments = async (coachId = selectedCoach) => {
+    if (!coachId) {
+      if (isCurrentCoach(coachId)) {
+        setCoachAssignments([]);
+      }
+      return;
+    }
+
+    try {
+      const response = await api.get(`/api/v2/lms/coach/${coachId}/assignments`);
+      const assignments = response?.data?.data?.assignments || response?.data?.assignments || [];
+      if (isCurrentCoach(coachId)) {
+        setCoachAssignments(Array.isArray(assignments) ? assignments : []);
+      }
+    } catch (error) {
+      console.error("Error fetching selected coach syllabus data", error);
+      if (isCurrentCoach(coachId)) {
+        setCoachAssignments([]);
+      }
+    }
+  };
+
+  const fetchCoachSlowLearners = async (coachId = selectedCoach) => {
+    if (!coachId) {
+      if (isCurrentCoach(coachId)) {
+        setCoachSlowLearners([]);
+      }
+      return;
+    }
+
+    try {
+      const response = await api.get(`/api/v2/lms/coach/reports/slow-learners?coachId=${coachId}`);
+      const slowLearners = response?.data?.slowLearners || response?.data?.data?.slowLearners || [];
+      if (isCurrentCoach(coachId)) {
+        setCoachSlowLearners(Array.isArray(slowLearners) ? slowLearners : []);
+      }
+    } catch (error) {
+      console.error("Error fetching selected coach slow learners", error);
+      if (isCurrentCoach(coachId)) {
+        setCoachSlowLearners([]);
+      }
+    }
+  };
+
+  const fetchCoachShopData = async (
+    coachId = selectedCoach,
+    explicitBalagruhaIds = []
+  ) => {
+    const balagruhaIds = getActiveCoachBalagruhaIds(
+      coachId,
+      explicitBalagruhaIds
+    );
+
+    if (!coachId || balagruhaIds.length === 0) {
+      if (isCurrentCoach(coachId)) {
+        setCoachShopData([]);
+      }
+      return;
+    }
+
+    try {
+      const queryParams = new URLSearchParams();
+
+      queryParams.set("limit", "1000");
+      queryParams.set("inStock", "false");
+      queryParams.set("balagruhaIds", balagruhaIds.join(","));
+      queryParams.set("coachId", coachId);
+
+      const response = await api.get(
+        `/api/v2/shop/products?${queryParams.toString()}`
+      );
+
+      const shopItems = response?.data?.products || [];
+
+      if (isCurrentCoach(coachId)) {
+        setCoachShopData(
+          Array.isArray(shopItems) ? shopItems : []
+        );
+      }
+    } catch (error) {
+      console.error("Error fetching selected coach shop data", error);
+      if (isCurrentCoach(coachId)) {
+        setCoachShopData([]);
+      }
+    }
+  };
+
+  const fetchCoachSuggestions = async (coachId = selectedCoach) => {
+    if (!coachId) {
+      if (isCurrentCoach(coachId)) {
+        setCoachSuggestions([]);
+      }
+      return;
+    }
+
+    try {
+      const response = await getCoachSuggestions({ coachId, page: 1, limit: 50 });
+      const suggestions = response?.data || [];
+      if (isCurrentCoach(coachId)) {
+        setCoachSuggestions(Array.isArray(suggestions) ? suggestions : []);
+      }
+    } catch (error) {
+      console.error("Error fetching selected coach suggestions", error);
+      if (isCurrentCoach(coachId)) {
+        setCoachSuggestions([]);
+      }
+    }
+  };
+
+  const fetchSelectedCoachSectionData = async (
+    menuId = coachMenuSelected,
+    coachId = selectedCoach
+  ) => {
+    if (!coachId) return;
+
+    const assignedBalagruhas = await fetchBalagruhaByCoach(coachId);
+
+    const balagruhaIds = assignedBalagruhas
+      .map((item) => item?._id)
+      .filter(Boolean);
+
+    const activeBalagruhaIds =
+      balagruhaIds.length > 0
+        ? balagruhaIds
+        : getCoachBalagruhaIds(coachId);
+
+    if (menuId === 3) {
+      await fetchCoachMedicalData(coachId, activeBalagruhaIds);
+    } else if (menuId === 4) {
+      await fetchCoachAssignments(coachId);
+    } else if (menuId === 5) {
+      await fetchCoachSlowLearners(coachId);
+    } else if (menuId === 8) {
+      await fetchCoachShopData(coachId, activeBalagruhaIds);
+    } else if (menuId === 9) {
+      await fetchCoachSuggestions(coachId);
+    }
+  };
+
+
+  const handleCoachSelect = async (coachId) => {
+    selectedCoachRef.current = coachId;
+    setSelectedCoach(coachId);
+    setCoachMenuSelected(1);
+    setCurrentWeekOffset(0);
+    setSelectedBalagruhaOfCoach(undefined);
+    setBalagruhaOfCoach([]);
+    setSchedules([]);
+    setCoachTasks([]);
+    setCoachMedicalData([]);
+    setCoachAssignments([]);
+    setCoachSlowLearners([]);
+    setCoachShopData([]);
+    setCoachSuggestions([]);
+    setIsLoadingCoachData(true);
+
+    try {
+      const assignedBalagruhas = await fetchBalagruhaByCoach(coachId);
+      const selectedBalagruhaIds = assignedBalagruhas
+        .map((item) => item?._id)
+        .filter(Boolean);
+      const queryBalagruhaIds =
+        selectedBalagruhaIds.length > 0
+          ? selectedBalagruhaIds
+          : getCoachBalagruhaIds(coachId);
+
+      if (!isCurrentCoach(coachId)) return;
+
+      if (queryBalagruhaIds.length > 0) {
+        const { startDate, endDate } = getCurrentWeekDateRange();
+        const selectedBalagruhaId = queryBalagruhaIds[0];
+        setSelectedBalagruhaOfCoach(selectedBalagruhaId);
+        await Promise.all([
+          fetchSchedules(
+            queryBalagruhaIds,
+            startDate,
+            endDate,
+            coachId
+          ),
+
+          fetchCoachTasks(
+            coachId,
+            selectedBalagruhaId
+          ),
+
+          fetchCoachMedicalData(
+            coachId,
+            queryBalagruhaIds
+          ),
+
+          fetchCoachAssignments(coachId),
+
+          fetchCoachSlowLearners(coachId),
+
+          fetchCoachShopData(
+            coachId,
+            queryBalagruhaIds
+          ),
+
+          fetchCoachSuggestions(coachId),
+        ]);
+      } else if (isCurrentCoach(coachId)) {
+        setCoachTasks([]);
+      }
+    } finally {
+      if (isCurrentCoach(coachId)) {
+        setIsLoadingCoachData(false);
+      }
+    }
+  };
+
+  useEffect(() => {
+    selectedCoachRef.current = selectedCoach;
+  }, [selectedCoach]);
 
   useEffect(() => {
     getBalagruhaList();
@@ -178,6 +597,12 @@ function AdminDashboard() {
     getMachinesData();
     getCoachNameBasedonBalagruha();
   }, [selectedBalagruha]);
+
+  useEffect(() => {
+    if (!selectedCoach || isLoadingCoachData) return;
+
+    fetchSelectedCoachSectionData(coachMenuSelected, selectedCoach);
+  }, [coachMenuSelected]);
 
   // Handle student checkbox change
   // const handleStudentCheckboxChange = async (studentId, userId) => {
@@ -230,37 +655,91 @@ function AdminDashboard() {
   //     
   // };
 
+  const getId = (value) => {
+    if (!value) return "";
+    if (typeof value === "string") return value;
+    if (typeof value === "number") return String(value);
+
+    if (value.userId) return getId(value.userId);
+    if (value._id) return getId(value._id);
+    if (value.id) return getId(value.id);
+    if (value.$oid) return value.$oid;
+
+    return "";
+  };
+
   const handleStudentCheckboxChange = async (studentId, userId) => {
-    // Calculate new selections
-    const newSelectedStudents = selectedStudents.includes(studentId)
-      ? selectedStudents.filter((id) => id !== studentId)
-      : [...selectedStudents, studentId];
+    const studentIdStr = getId(studentId);
+    const userIdStr = getId(userId) || studentIdStr;
 
-    const newStudentUserIds = studentUserId.includes(userId)
-      ? studentUserId.filter((id) => id !== userId)
-      : [...studentUserId, userId];
+    const isSelected = selectedStudents.includes(studentIdStr);
 
-    // Apply them to state
+    const newSelectedStudents = isSelected
+      ? selectedStudents.filter((id) => id !== studentIdStr)
+      : [...selectedStudents, studentIdStr];
+
+    const newStudentUserIds = isSelected
+      ? studentUserId.filter((id) => id !== userIdStr)
+      : [...studentUserId, userIdStr].filter(Boolean);
+
     setSelectedStudents(newSelectedStudents);
     setStudentUserId(newStudentUserIds);
 
-    const balagruhaIds = { balagruhaIds: [selectedBalagruha] };
-
-    const response = await getMedicalConditionBasedOnBalagruha(balagruhaIds);
-    if (response.success) {
-      const filteredCheckIns = response?.data?.medicalCheckIns?.filter(
-        (checkIn) => newSelectedStudents.includes(checkIn.studentId)
-      );
-      setMedicalIssuesData(filteredCheckIns);
+    if (!selectedBalagruha || newSelectedStudents.length === 0) {
+      setMedicalIssuesData([]);
+      setMoodData([]);
+      return;
     }
+
+    const balagruhaIds = {
+      balagruhaIds: [selectedBalagruha],
+      userIds: newStudentUserIds,
+    };
+
+    const medicalResponse = await getMedicalConditionBasedOnBalagruha(balagruhaIds);
+    const medicalList =
+      medicalResponse?.data?.medicalCheckIns ||
+      medicalResponse?.data?.data?.medicalCheckIns ||
+      medicalResponse?.medicalCheckIns ||
+      [];
+
+    const filteredMedical = medicalList.filter((item) =>
+      newSelectedStudents.includes(getId(item.studentId))
+    );
+
+    setMedicalIssuesData(filteredMedical);
 
     const moodResponse = await getMoodBasedOnBalagruha(balagruhaIds);
-    if (moodResponse.success) {
-      const filteredMood = moodResponse?.data?.moodInfo?.filter((mood) => {
-        return newStudentUserIds.includes(mood.userId);
-      });
-      setMoodData(filteredMood);
+    const moodList =
+      moodResponse?.data?.moodInfo ||
+      moodResponse?.data?.moodInfor ||
+      moodResponse?.data?.data?.moodInfo ||
+      moodResponse?.data?.data?.moodInfor ||
+      [];
+
+
+    console.log("Mood Response:", moodResponse);
+    console.log("Mood List:", moodList);
+
+    if (moodList.length > 0) {
+      console.log("First Mood Record:", moodList[0]);
     }
+
+    console.log("Selected Student IDs:", newSelectedStudents);
+    console.log("Selected User IDs:", newStudentUserIds);
+
+    const filteredMood = moodList.filter((mood) => {
+      const moodUserId = getId(mood.userId || mood.user);
+      const moodStudentId = getId(mood.studentId || mood.student);
+
+      return (
+        newStudentUserIds.includes(moodUserId) ||
+        newSelectedStudents.includes(moodStudentId) ||
+        newSelectedStudents.includes(moodUserId)
+      );
+    });
+
+    setMoodData(filteredMood);
 
 
   };
@@ -277,7 +756,7 @@ function AdminDashboard() {
   const getTaskDetailsByTaskId = async (id) => {
     try {
       const response = await getTaskBytaskId(id);
-      setSelectedTask(response.data?.task);
+      setSelectedTask(response);
     } catch (err) {
       console.error("Error updating task status:", err);
     }
@@ -318,16 +797,284 @@ function AdminDashboard() {
   ];
 
   const coachMenus = [
-    { id: 1, name: "Daily Schedule", count: tasks.length },
-    { id: 2, name: "Task Tracker" },
-    { id: 3, name: "Medical" },
-    { id: 4, name: "Syllabus Tracker" },
-    { id: 5, name: "Slow Learners" },
-    { id: 8, name: "ISF Shop" },
-    { id: 9, name: "Suggestion" },
+    { id: 1, name: "Daily Schedule", count: schedules.length },
+    { id: 2, name: "Task Tracker", count: coachTasks.length },
+    { id: 3, name: "Medical", count: coachMedicalData.length },
+    { id: 4, name: "Syllabus Tracker", count: coachAssignments.length },
+    { id: 5, name: "Slow Learners", count: coachSlowLearners.length },
+    { id: 8, name: "ISF Shop", count: coachShopData.length },
+    { id: 9, name: "Suggestion", count: coachSuggestions.length },
     { id: 10, name: "Activities" },
     { id: 11, name: "Events" },
   ];
+
+  const getDummyCoachData = (menuName) => {
+    return Array.from({ length: 5 }, (_, index) => ({
+      id: index + 1,
+      title: `${menuName} Item ${index + 1}`,
+      status:
+        index % 3 === 0 ? "New" : index % 3 === 1 ? "In Progress" : "Completed",
+      metric: `${40 + index * 10}%`,
+      date: new Date(Date.now() - index * 86400000).toLocaleDateString("en-GB"),
+    }));
+  };
+
+  const renderCoachMenuContent = () => {
+    const menu = coachMenus.find((m) => m.id === coachMenuSelected);
+    if (!menu) return null;
+
+    if (isLoadingCoachData) {
+      return (
+        <div className="data-display">
+          <h3>{menu.name}</h3>
+          <div style={{ padding: "20px", textAlign: "center" }}>
+            Loading coach data...
+          </div>
+        </div>
+      );
+    }
+
+    if (coachMenuSelected === 1) {
+      return null;
+    }
+
+    if (coachMenuSelected === 2) {
+      return (
+        <div className="data-display">
+          <h3>{menu.name}</h3>
+          <div className="table-container">
+            <table className="data-table coach-table">
+              <thead>
+                <tr>
+                  <th>Task</th>
+                  <th>Status</th>
+                  <th>Priority</th>
+                  <th>Deadline</th>
+                </tr>
+              </thead>
+              <tbody>
+                {coachTasks.length > 0 ? (
+                  coachTasks.map((task, index) => (
+                    <tr
+                      key={task._id || index}
+                      className={index % 2 === 0 ? "even-row" : ""}
+                    >
+                      <td>{task.title || "Untitled task"}</td>
+                      <td>{task.status || "Unknown"}</td>
+                      <td>{task.priority || "-"}</td>
+                      <td>
+                        {task.deadline
+                          ? new Date(task.deadline).toLocaleDateString()
+                          : "-"}
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan="4">No tasks found for this coach.</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      );
+    }
+
+    if (coachMenuSelected === 3) {
+      return (
+        <div className="data-display">
+          <h3>{menu.name}</h3>
+          <div className="table-container">
+            <table className="data-table coach-table">
+              <thead>
+                <tr>
+                  <th>Student</th>
+                  <th>Health Status</th>
+                  <th>Symptoms</th>
+                  <th>Check-in Date</th>
+                </tr>
+              </thead>
+              <tbody>
+                {coachMedicalData.length > 0 ? (
+                  coachMedicalData.map((item, index) => {
+                    const symptoms = Array.isArray(item.symptoms) && item.symptoms.length > 0
+                      ? item.symptoms.join(", ").replaceAll("_", " ")
+                      : item.customSymptom || "-";
+                    return (
+                      <tr key={item._id || index} className={index % 2 === 0 ? "even-row" : ""}>
+                        <td>{item.userName || item.studentName || item.name || "-"}</td>
+                        <td>{item.healthStatus || "-"}</td>
+                        <td>{symptoms}</td>
+                        <td>{item.date ? new Date(item.date).toLocaleDateString() : "-"}</td>
+                      </tr>
+                    );
+                  })
+                ) : (
+                  <tr>
+                    <td colSpan="4">No medical data found for this coach.</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      );
+    }
+
+    if (coachMenuSelected === 4) {
+      return (
+        <div className="data-display">
+          <h3>{menu.name}</h3>
+          <div className="table-container">
+            <table className="data-table coach-table">
+              <thead>
+                <tr>
+                  <th>Course</th>
+                  <th>Status</th>
+                  <th>Balagruha</th>
+                  <th>Due Date</th>
+                </tr>
+              </thead>
+              <tbody>
+                {coachAssignments.length > 0 ? (
+                  coachAssignments.map((assignment, index) => (
+                    <tr key={assignment._id || index} className={index % 2 === 0 ? "even-row" : ""}>
+                      <td>{assignment.courseId?.title || assignment.course?.title || "Untitled course"}</td>
+                      <td>{assignment.status || "-"}</td>
+                      <td>{assignment.assignedTo?.balagruhaId?.name || assignment.balagruhaName || "-"}</td>
+                      <td>{assignment.dueDate ? new Date(assignment.dueDate).toLocaleDateString() : "-"}</td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan="4">No syllabus data found for this coach.</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      );
+    }
+
+    if (coachMenuSelected === 5) {
+      return (
+        <div className="data-display">
+          <h3>{menu.name}</h3>
+          <div className="table-container">
+            <table className="data-table coach-table">
+              <thead>
+                <tr>
+                  <th>Student</th>
+                  <th>Average Completion</th>
+                  <th>Courses</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {coachSlowLearners.length > 0 ? (
+                  coachSlowLearners.map((student, index) => (
+                    <tr key={student.studentId || index} className={index % 2 === 0 ? "even-row" : ""}>
+                      <td>{student.name || `${student.firstName || ""} ${student.lastName || ""}`.trim() || "-"}</td>
+                      <td>{student.averageCompletion ?? 0}%</td>
+                      <td>{student.courses?.length || 0}</td>
+                      <td>Below threshold</td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan="4">No slow learners found for this coach.</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      );
+    }
+
+    if (coachMenuSelected === 8) {
+      return (
+        <div className="data-display">
+          <h3>{menu.name}</h3>
+          <div className="table-container">
+            <table className="data-table coach-table">
+              <thead>
+                <tr>
+                  <th>Product</th>
+                  <th>Stock</th>
+                  <th>Category</th>
+                  <th>Price</th>
+                </tr>
+              </thead>
+              <tbody>
+                {coachShopData.length > 0 ? (
+                  coachShopData.map((item, index) => (
+                    <tr key={item._id || index} className={index % 2 === 0 ? "even-row" : ""}>
+                      <td>{item.name || "-"}</td>
+                      <td>{item.stock ?? 0}</td>
+                      <td>{item.category || item.purchaseCategory || "-"}</td>
+                      <td>{item.discountPrice ?? item.price ?? "-"}</td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan="4">No ISF shop data found for this coach.</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      );
+    }
+
+    if (coachMenuSelected === 9) {
+      return (
+        <div className="data-display">
+          <h3>{menu.name}</h3>
+          <div className="table-container">
+            <table className="data-table coach-table">
+              <thead>
+                <tr>
+                  <th>Title</th>
+                  <th>Student</th>
+                  <th>Status</th>
+                  <th>Suggested Date</th>
+                </tr>
+              </thead>
+              <tbody>
+                {coachSuggestions.length > 0 ? (
+                  coachSuggestions.map((suggestion, index) => (
+                    <tr key={suggestion._id || index} className={index % 2 === 0 ? "even-row" : ""}>
+                      <td>{suggestion.title || "Untitled suggestion"}</td>
+                      <td>{suggestion.studentName || "-"}</td>
+                      <td>{suggestion.status || "-"}</td>
+                      <td>{suggestion.suggestedDate ? new Date(suggestion.suggestedDate).toLocaleDateString() : "-"}</td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan="4">No suggestions found for this coach.</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div className="data-display">
+        <h3>{menu.name}</h3>
+        <div style={{ padding: "20px" }}>
+          No data is available for this section yet.
+        </div>
+      </div>
+    );
+  };
 
   // Convert tasks to calendar events
   // const getCalendarEvents = () => {
@@ -652,9 +1399,9 @@ function AdminDashboard() {
 
       {/* Dashboard Overview */}
       <div className="dashboard-overview">
-        <div className="main-content">
+        <div className="admin-main-content">
           {/* Left Panel */}
-          <div className="left-panel">
+          <div className="admin-left-panel">
             {/* Balagruha Selection */}
             <div className="balagruha-selection">
               <h3>Balagruhas</h3>
@@ -692,9 +1439,8 @@ function AdminDashboard() {
                   {balagruhas?.map((bal) => (
                     <div
                       key={bal._id}
-                      className={`balagruha-item ${
-                        selectedBalagruha === bal._id ? "selected" : ""
-                      }`}
+                      className={`balagruha-item ${selectedBalagruha === bal._id ? "selected" : ""
+                        }`}
                       onClick={() => {
                         setSelectedStudents([]);
                         setStudentUserId([]);
@@ -755,11 +1501,11 @@ function AdminDashboard() {
                           <label className="checkbox-container">
                             <input
                               type="checkbox"
-                              checked={selectedStudents?.includes(student._id)}
+                              checked={selectedStudents?.includes(getId(student._id))}
                               onChange={() =>
                                 handleStudentCheckboxChange(
                                   student._id,
-                                  student.userId
+                                  student.userId || student.user?.userId || student.user?._id || student.user || student._id
                                 )
                               }
                             />
@@ -786,9 +1532,8 @@ function AdminDashboard() {
                   {adminMenus?.map((menu) => (
                     <div
                       key={menu.id}
-                      className={`menu-item ${
-                        adminMenuSelected === menu.id ? "selected" : ""
-                      }`}
+                      className={`menu-item ${adminMenuSelected === menu.id ? "selected" : ""
+                        }`}
                       onClick={() => setAdminMenuSelected(menu.id)}
                     >
                       {menu.name}
@@ -1010,15 +1755,17 @@ function AdminDashboard() {
                         <tbody>
                           {moodData?.map((item, index) => (
                             <tr
-                              key={item.id}
+                              key={item._id || item.id || index}
                               className={index % 2 === 0 ? "even-row" : ""}
                             >
                               <td>{index + 1}</td>
-                              <td>{item?.userName}</td>
-                              <td>{item.userId}</td>
+                              <td>{item.userName || item.studentName || "-"}</td>
+                              <td>{getId(item.userId)}</td>
                               <td>{item.mood}</td>
                               <td>
-                                {new Date(item.date).toLocaleString("en-IN", {
+                                {new Date(
+                                  item.date || item.createdAt || item.updatedAt
+                                ).toLocaleString("en-IN", {
                                   day: "2-digit",
                                   month: "short",
                                   year: "numeric",
@@ -1040,7 +1787,7 @@ function AdminDashboard() {
           </div>
 
           {/* Right Panel */}
-          <div className="right-panel">
+          <div className="admin-right-panel">
             {/* Coach Selection */}
             {/* <div className="coach-selection">
                             <h3>Coaches</h3>
@@ -1122,16 +1869,11 @@ function AdminDashboard() {
                     coaches.map((coach) => (
                       <div
                         key={coach._id}
-                        className={`coach-item ${
-                          selectedCoach === coach._id ? "selected" : ""
-                        }`}
-                        onClick={() => {
-                          setSelectedCoach(coach._id);
-                          setSelectedBalagruhaOfCoach();
-                          fetchBalagruhaByCoach(coach._id);
-                        }}
+                        className={`coach-item ${selectedCoach === coach._id ? "selected" : ""
+                          }`}
+                        onClick={() => handleCoachSelect(coach._id)}
                       >
-                        {coach.name}
+                        <CoachName name={coach.name} />
                       </div>
                     ))
                   ) : (
@@ -1209,7 +1951,7 @@ function AdminDashboard() {
               </div>
             )} */}
 
-            {balagruhaOfCoach.length > 0 && (
+            {/* {balagruhaOfCoach.length > 0 && (
               <div className="assigned-balagruha">
                 <h3>Assigned Balagruhas</h3>
                 <div
@@ -1240,22 +1982,13 @@ function AdminDashboard() {
                         onClick={() => {
                           setSelectedBalagruhaOfCoach(bal._id);
 
-                          const today = new Date();
-                          const dayOfWeek = today.getDay();
-                          const monday = new Date(today);
-                          monday.setDate(
-                            today.getDate() - ((dayOfWeek + 6) % 7)
+                          const { startDate, endDate } = getCurrentWeekDateRange();
+                          fetchSchedules(
+                            bal._id,
+                            startDate,
+                            endDate,
+                            selectedCoach
                           );
-                          monday.setHours(0, 0, 0, 0);
-
-                          const sunday = new Date(monday);
-                          sunday.setDate(monday.getDate() + 6);
-                          sunday.setHours(23, 59, 59, 999);
-
-                          const startDate = monday.toISOString().slice(0, 10);
-                          const endDate = sunday.toISOString().slice(0, 10);
-
-                          fetchSchedules(bal._id, startDate, endDate);
                         }}
                       >
                         <div>{bal.name}</div>
@@ -1275,7 +2008,7 @@ function AdminDashboard() {
                   </button>
                 </div>
               </div>
-            )}
+            )} */}
 
             {/* Coach Menus */}
             {selectedCoach && (
@@ -1333,9 +2066,8 @@ function AdminDashboard() {
                     {coachMenus?.map((menu) => (
                       <div key={menu.id} style={{ position: "relative" }}>
                         <div
-                          className={`menu-item ${
-                            coachMenuSelected === menu.id ? "selected" : ""
-                          }`}
+                          className={`menu-item ${coachMenuSelected === menu.id ? "selected" : ""
+                            }`}
                           onClick={() => setCoachMenuSelected(menu.id)}
                         >
                           {menu.name}
@@ -1357,76 +2089,22 @@ function AdminDashboard() {
                   </button>
                 </div>
 
-                {/* Display dummy data when coach menu is selected */}
-                {coachMenuSelected && coachMenuSelected !== 1 && (
-                  <div className="data-display">
-                    <h3>
-                      {coachMenus.find((m) => m.id === coachMenuSelected)?.name}
-                    </h3>
-                    <div className="table-container">
-                      <table className="data-table coach-table">
-                        <thead>
-                          <tr>
-                            <th>Name</th>
-                            <th>Status</th>
-                            <th>Date</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {Array(5)
-                            .fill()
-                            .map((_, index) => (
-                              <tr
-                                key={index}
-                                className={index % 2 === 0 ? "even-row" : ""}
-                              >
-                                <td>
-                                  {
-                                    coachMenus.find(
-                                      (m) => m.id === coachMenuSelected
-                                    )?.name
-                                  }{" "}
-                                  Item {index + 1}
-                                </td>
-                                <td>
-                                  <div className="progress-bar-bg">
-                                    <div
-                                      className="progress-bar-fill"
-                                      style={{
-                                        width: `${Math.floor(
-                                          Math.random() * 100
-                                        )}%`,
-                                        backgroundColor:
-                                          index > 3
-                                            ? "#4caf50"
-                                            : index > 1
-                                            ? "#ff9800"
-                                            : "#f44336",
-                                      }}
-                                    ></div>
-                                  </div>
-                                </td>
-                                <td>{new Date().toLocaleDateString()}</td>
-                              </tr>
-                            ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-                )}
+                {renderCoachMenuContent()}
 
                 {/* Weekly Calendar (shown when Daily Schedule is selected) */}
                 {coachMenuSelected === 1 && (
-                  <WeeklyCalendar
-                    currentWeekOffset={currentWeekOffset}
-                    setCurrentWeekOffset={setCurrentWeekOffset}
-                    calendarEvents={schedules}
-                    users={users}
-                    onEventClick={handleEventClick}
-                    fetchSchedules={fetchSchedules}
-                    selectedBalagruhaOfCoach={selectedBalagruhaOfCoach}
-                    // selectedCoach={selectedCoach}
-                  />
+                  <div className="admin-weekly-calendar-wrapper">
+                    <WeeklyCalendar
+                      currentWeekOffset={currentWeekOffset}
+                      setCurrentWeekOffset={setCurrentWeekOffset}
+                      calendarEvents={schedules}
+                      users={users}
+                      onEventClick={handleEventClick}
+                      fetchSchedules={fetchSchedules}
+                      selectedBalagruhaOfCoach={selectedBalagruhaOfCoach}
+                      selectedCoach={selectedCoach}
+                    />
+                  </div>
                 )}
               </div>
             )}

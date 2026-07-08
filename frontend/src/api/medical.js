@@ -1,12 +1,21 @@
 import { api, headers } from './client';
 
-export const getMedicalConditionBasedOnBalagruha = async (balagruhaIds) => {
+export const getMedicalConditionBasedOnBalagruha = async (payload) => {
   try {
-    // Backend destructures `{ balagruhaIds }` from req.body — must wrap, not send bare array.
+    const body = Array.isArray(payload)
+      ? { balagruhaIds: payload }
+      : {
+          ...(payload || {}),
+          balagruhaIds: Array.isArray(payload?.balagruhaIds)
+            ? payload.balagruhaIds
+            : [],
+        };
+
     const response = await api.post(
       "/api/medical-check-ins/students/list",
-      { balagruhaIds: Array.isArray(balagruhaIds) ? balagruhaIds : [] }
+      body
     );
+
     return response.data;
   } catch (error) {
     console.error("Error fetching medical conditions based on balagruha:", error);

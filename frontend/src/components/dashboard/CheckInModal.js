@@ -154,32 +154,73 @@ const CheckInModal = ({ isOpen, onClose, onSubmit, studentData, balagruhas, edit
 
   if (!isOpen) return null;
 
+  const today = new Date().toISOString().split("T")[0];
+
+  const validateForm = () => {
+    if (!selectedBalagruha) {
+      alert("Please select Balagruha.");
+      return false;
+    }
+
+    if (!selectedStudent) {
+      alert("Please select Student.");
+      return false;
+    }
+
+    if (!formData.symptoms || formData.symptoms.length === 0) {
+      alert("Please select at least one symptom.");
+      return false;
+    }
+
+    if (formData.symptoms.includes("other") && !formData.customSymptom.trim()) {
+      alert("Please enter the other symptom.");
+      return false;
+    }
+
+    if (!formData.date) {
+      alert("Please select check-in date.");
+      return false;
+    }
+
+    if (formData.date > today) {
+      alert("Check-in date cannot be a future date.");
+      return false;
+    }
+
+    if (!formData.time) {
+      alert("Please select check-in time.");
+      return false;
+    }
+
+    if (formData.date === today) {
+      const currentTime = new Date().toTimeString().slice(0, 5);
+
+      if (formData.time > currentTime) {
+        alert("Check-in time cannot be in the future.");
+        return false;
+      }
+    }
+
+    if (formData.temperature) {
+      const temp = Number(formData.temperature);
+
+      if (temp < 30 || temp > 45) {
+        alert("Temperature must be between 30°C and 45°C.");
+        return false;
+      }
+    }
+
+    return true;
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Pass the check-in ID if in edit mode
+
+    if (!validateForm()) return;
+
     const checkInId = studentData?._id || null;
     onSubmit(formData, checkInId, removedAttachmentIds);
     onClose();
-
-    // Reset form
-    setSelectedBalagruha();
-    setSelectedStudent();
-    setFormData({
-      studentId: "",
-      studentName: "",
-      temperature: "",
-      date: new Date().toISOString().split("T")[0],
-      time: new Date().toTimeString().slice(0, 5),
-      healthStatus: "normal",
-      notes: "",
-      uploadedImages: [],
-      uploadedPdfs: [],
-      symptoms: [],
-      customSymptom: "",
-      doctorVisits: [],
-      followUps: [],
-    });
-    setRemovedAttachmentIds([]);
   };
 
   const handleStudentChange = (e) => {
@@ -406,6 +447,7 @@ const CheckInModal = ({ isOpen, onClose, onSubmit, studentData, balagruhas, edit
               <input
                 type="date"
                 value={formData.date}
+                max={today}
                 onChange={(e) =>
                   setFormData({ ...formData, date: e.target.value })
                 }
@@ -586,17 +628,22 @@ const CheckInModal = ({ isOpen, onClose, onSubmit, studentData, balagruhas, edit
             </div>
           </div>
 
+
           <div className="modal-footer">
             <button type="button" className="cancel-button" onClick={onClose}>
               Cancel
             </button>
-            <button type="submit" className="submit-button">
+            <button
+              type="button"
+              className="submit-button"
+              onClick={handleSubmit}
+            >
               Submit
             </button>
           </div>
         </form>
       </div>
-    </div>
+    </div >
   );
 };
 

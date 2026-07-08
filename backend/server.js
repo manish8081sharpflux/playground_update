@@ -1,3 +1,14 @@
+const dns = require("dns");
+
+dns.setServers(["8.8.8.8", "1.1.1.1"]);
+
+console.log("🌐 DNS servers:", dns.getServers());
+
+// remove the top line if you working in the office this line is because dns problem to solve.
+
+
+
+
 const express = require("express");
 const mongoose = require("mongoose");
 const path = require("path");

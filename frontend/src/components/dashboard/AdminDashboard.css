@@ -46,10 +46,11 @@
 /* Dashboard Overview Styles */
 .dashboard-overview {
     flex: 1;
+    min-height: 0;
     overflow: hidden;
     display: flex;
     flex-direction: column;
-    padding: 15px;
+    /* padding: 15px; */
 }
 
 .stats-container {
@@ -369,15 +370,21 @@
 /* Scrollable Menu Styles */
 .scrollable-menu {
     display: flex;
+    padding-left: 15px;
     overflow-x: auto !important;
     gap: 10px;
-    padding: 5px 0;
+    margin: 15px;
     -ms-overflow-style: none;
     scrollbar-width: none;
     -webkit-overflow-scrolling: touch;
     scrollbar-color: transparent transparent;
     flex-wrap: nowrap !important;
 }
+
+#coach-scroll-container {
+    padding-left: 15px;
+}
+
 
 .scrollable-menu::-webkit-scrollbar {
     display: none;
@@ -387,6 +394,7 @@
 .main-content {
     display: flex;
     flex: 1;
+    min-height: 0;
     overflow: hidden;
 }
 
@@ -397,13 +405,17 @@
     padding: 10px;
     display: flex;
     flex-direction: column;
-    overflow: hidden;
+    min-height: 0;
+    height: 100%;
+    overflow-y: auto !important;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
 }
 
 .balagruha-selection,
 .coach-selection,
 .assigned-balagruha {
-    margin-bottom: 15px;
+    margin-bottom: 5px;
 }
 
 .balagruha-selection h3,
@@ -411,30 +423,57 @@
 .assigned-balagruha h3,
 .admin-menus h3,
 .coach-menus h3 {
+    margin-left: 15px;
     margin-bottom: 10px;
     color: #5f6caf;
     font-size: 1rem;
 }
 
 .balagruha-item {
-    min-width: 120px;
-    padding: 15px;
-    background-color: #c9daf8;
-    border-radius: 20px;
-    text-align: center;
+    flex: 0 0 120px;
+    width: 120px;
+    height: 45px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 0;
+    margin: 0;
+    box-sizing: border-box;
+
+    background: #ffffff;
+    color: #333;
+
+    border: 2px solid #dcdcdc;
+    border-radius: 12px;
+
+    font-size: 14px;
+    font-weight: 500;
+
     cursor: pointer;
-    position: relative;
-    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
-    transition: transform 0.2s;
-    transform: scale(1);
-    font-weight: bold;
+
+    transition: background-color 0.2s ease;
+
+    transform: none;
 }
 
-.balagruha-item.selected {
-    background-color: #a4c2f4;
-    transform: scale(1.05);
-}
+/* .balagruha-item.selected {
+    background: #22c55e;
+    color: white;
+    border-color: #22c55e;
 
+    /* Keep everything exactly the same */
+    /* width: 120px;
+    height: 45px;
+    padding: 0;
+    margin: 0;
+
+    font-size: 14px;
+    font-weight: 500;
+
+    transform: none; */
+/* }  */
 .add-button {
     margin-top: 10px;
     padding: 8px 15px;
@@ -449,7 +488,8 @@
 .admin-menus,
 .coach-menus {
     flex: 1;
-    overflow: hidden;
+    min-height: 0;
+    overflow: visible;
     display: flex;
     flex-direction: column;
 }
@@ -476,7 +516,7 @@
 .data-display {
     margin-top: 10px;
     flex: 1;
-    overflow: hidden;
+    overflow: visible;
     display: flex;
     flex-direction: column;
 }
@@ -552,6 +592,7 @@
     padding: 10px;
     display: flex;
     flex-direction: column;
+    min-height: 0;
     overflow: hidden;
 }
 
@@ -593,14 +634,7 @@
 }
 
 /* Calendar Styles - Sprint6-Story-1: Ensure full width usage */
-.full-calendar {
-    flex: 1;
-    width: 100%;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-    margin-top: 10px;
-}
+
 
 .full-calendar h3 {
     color: #5f6caf;
@@ -630,12 +664,19 @@
     font-weight: bold;
 }
 
-.calendar-grid {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    gap: 10px;
-    flex: 1;
-    overflow: auto;
+
+
+.calendar-grid::-webkit-scrollbar {
+    width: 10px;
+}
+
+.calendar-grid::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.calendar-grid::-webkit-scrollbar-thumb {
+    background-color: rgba(0, 0, 0, 0.3);
+    border-radius: 5px;
 }
 
 .calendar-day-header {
@@ -672,6 +713,7 @@
 .calendar-event {
     padding: 10px;
     border-radius: 8px;
+    max-height: 140px;
     cursor: pointer;
     position: relative;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
@@ -689,7 +731,7 @@
 }
 
 .event-time {
-    font-size: 0.8rem;
+    font-size: 0.4rem;
     margin-bottom: 5px;
 }
 
@@ -954,7 +996,7 @@
 
 /* Kid-friendly Student Dropdown Styles */
 .student-dropdown-container {
-    margin: 15px 0;
+    margin: 15px;
     background-color: #fff8e6;
     border-radius: 15px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
@@ -1154,42 +1196,44 @@
     width: 100%;
 }
 
-.scrollable-menu {
+/* .scrollable-menu {
     display: flex;
     overflow-x: auto;
     gap: 16px;
     padding: 10px 16px;
     -ms-overflow-style: none; /* IE/Edge */
-    scrollbar-width: none; /* Firefox */
-    flex-wrap: nowrap;
+    /* scrollbar-width: none; /* Firefox */
+    /* flex-wrap: nowrap;
     scroll-behavior: smooth;
     border-radius: 8px;
-}
+} */
 
-.scrollable-menu::-webkit-scrollbar {
+/* .scrollable-menu::-webkit-scrollbar {
     display: none;
+} */ 
+
+.balagruha-selection .balagruha-item {
+  background: white !important;
+  color: #333 !important;
+  transform: none !important;
+  font-weight: 500 !important;
+  width: 140px !important;
+  min-width: 140px !important;
+  max-width: 140px !important;
+  height: 52px !important;
+  padding: 0 !important;
 }
 
-.balagruha-item {
-    flex: 0 0 auto;
-    padding: 12px 20px;
-    background-color: #fff;
-    border-radius: 8px;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-    cursor: pointer;
-    white-space: nowrap;
-    transition: all 0.2s ease;
-    font-weight: 500;
-}
-
-.balagruha-item:hover {
-    background-color: #e6f7ff;
-}
-
-.balagruha-item.selected {
-    background-color: #1890ff;
-    color: white;
-    font-weight: 600;
+.balagruha-selection .balagruha-item.selected {
+  background: #22c55e !important;
+  color: white !important;
+  transform: none !important;
+  font-weight: 500 !important;
+  width: 140px !important;
+  min-width: 140px !important;
+  max-width: 140px !important;
+  height: 52px !important;
+  padding: 0 !important;
 }
 
 .scroll-wrapper {
@@ -1224,4 +1268,303 @@
   scroll-behavior: smooth;
   gap: 1rem;
   padding: 0.5rem;
+  padding-left: 15px;
+}
+
+/* Admin dashboard layout isolation
+   These selectors avoid collisions with the generic .main-content/.left-panel
+   rules imported by the student and coach dashboards. */
+.admin-dashboard {
+    min-height: 100vh;
+    height: 100vh;
+    /* max-height: 100vh; */
+}
+
+.admin-dashboard > .dashboard-overview {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: hidden;
+}
+
+.admin-dashboard .admin-main-content {
+    margin: 0;
+    display: flex;
+    flex: 1 1 auto;
+    /* min-height: 0; */
+    overflow: hidden;
+}
+
+.admin-dashboard .admin-left-panel {
+    width: 30%;
+    min-width: 0;
+    min-height: 0;
+    border-right: 2px solid #e0e0ff;
+    /* padding: 10px; */
+    display: flex;
+    flex-direction: column;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+}
+
+.admin-dashboard .admin-right-panel {
+    width: 70%;
+    min-width: 0;
+    min-height: 0;
+    height: 100%;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+@media (max-width: 1200px) {
+    .admin-dashboard .admin-main-content {
+        flex-direction: column;
+        overflow-y: auto;
+    }
+
+    /* .admin-dashboard .admin-left-panel,
+    .admin-dashboard .admin-right-panel {
+        width: 100%;
+        border-right: none;
+    } */
+
+    .admin-dashboard .admin-right-panel {
+        border-top: 2px solid #e0e0ff;
+        margin-top: 15px;
+    }
+}
+
+/* Left panel scroll fix: keep all lower content in the scroll height. */
+.admin-dashboard .admin-left-panel {
+    display: block;
+    height: 100%;
+    padding-bottom: 36px;
+}
+
+.admin-dashboard .admin-left-panel .balagruha-selection,
+.admin-dashboard .admin-left-panel .student-dropdown-container,
+.admin-dashboard .admin-left-panel .admin-menus,
+.admin-dashboard .admin-left-panel .data-display {
+    flex: none;
+    min-height: auto;
+    overflow: visible;
+}
+
+.admin-dashboard .admin-left-panel .admin-menus,
+.admin-dashboard .admin-left-panel .data-display {
+    display: block;
+}
+
+.admin-dashboard .admin-left-panel .menu-grid {
+    margin-bottom: 16px;
+}
+
+/* Full-width admin content area below the navbar. */
+.admin-dashboard,
+.admin-dashboard > .dashboard-overview,
+.admin-dashboard .admin-main-content {
+    width: 100%;
+    max-width: 100%;
+}
+
+.admin-dashboard .admin-main-content {
+    flex-direction: row;
+}
+
+.admin-dashboard .admin-left-panel {
+    flex: 0 0 40%;
+    width: 40%;
+    max-width: 40%;
+}
+
+.admin-dashboard .admin-right-panel {
+    flex: 0 0 60%;
+    width: 60%;
+    max-width: 60%;
+}
+
+@media (max-width: 1200px) {
+    /* .admin-dashboard .admin-left-panel,
+    .admin-dashboard .admin-right-panel {
+        flex: 0 0 100%;
+        width: 100%;
+        max-width: 100%;
+    } */
+}
+
+/* Fit left-panel controls inside the 30% column at normal desktop zoom. */
+.admin-dashboard .admin-left-panel .scroll-wrapper {
+    min-width: 0;
+}
+
+.admin-dashboard .admin-left-panel .scroll-container {
+    min-width: 0;
+    flex: 1 1 auto;
+}
+
+.admin-dashboard .admin-left-panel .balagruha-item {
+    flex: 0 0 140px !important;
+    width: 140px !important;
+    min-width: 140px !important;
+    max-width: 140px !important;
+    height: 52px !important;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 0 !important;
+    margin: 0 !important;
+
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.admin-dashboard .admin-left-panel .admin-menus .menu-grid {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    overflow: visible !important;
+    padding: 10px 4px 18px;
+}
+
+.admin-dashboard .admin-left-panel .admin-menus .menu-grid > div,
+.admin-dashboard .admin-left-panel .admin-menus .menu-item {
+    min-width: 0;
+    width: 100%;
+}
+
+.admin-dashboard .admin-left-panel .admin-menus .menu-item {
+    padding: 18px 10px;
+    white-space: normal;
+    overflow-wrap: anywhere;
+}
+
+.admin-dashboard .admin-left-panel .table-container {
+    max-width: 100%;
+    overflow-x: auto;
+}
+
+
+/* Fit all 7 week cells inside admin calendar */
+.admin-weekly-calendar-wrapper .calendar-row {
+    width: 100% !important;
+}
+
+.admin-weekly-calendar-wrapper .calendar-header-row,
+.admin-weekly-calendar-wrapper .calendar-body-row {
+    display: grid !important;
+    grid-template-columns: repeat(7, minmax(0, 1fr)) !important;
+    gap: 4px !important;
+}
+
+.admin-weekly-calendar-wrapper .calendar-day-header,
+.admin-weekly-calendar-wrapper .calendar-day-cell {
+    min-width: 0 !important;
+    width: 100% !important;
+}
+
+.admin-weekly-calendar-wrapper .time-column {
+    width: 65px !important;
+    min-width: 65px !important;
+    flex-shrink: 0 !important;
+}
+
+.admin-weekly-calendar-wrapper .calendar-grid {
+    flex: 1 !important;
+    width: calc(100% - 70px) !important;
+    min-width: 0 !important;
+}
+
+.admin-dashboard .admin-left-panel .scroll-wrapper .balagruha-item,
+.admin-dashboard .admin-left-panel .scroll-wrapper .balagruha-item.selected {
+  flex: 0 0 120px !important;
+  width: 120px !important;
+  min-width: 120px !important;
+  max-width: 120px !important;
+  height: 45px !important;
+
+  padding: 0 10px !important;
+  box-sizing: border-box !important;
+
+  transform: none !important;
+  scale: 1 !important;
+
+  font-size: 14px !important;
+  font-weight: 500 !important;
+}
+
+.balagruha-item.selected {
+    background: #22c55e !important;
+    color: #fff !important;
+    border-color: #22c55e !important;
+
+    transform: none !important;
+    scale: 1 !important;
+    translate: 0 0 !important;
+
+    width: inherit !important;
+    height: inherit !important;
+    padding: inherit !important;
+    margin: inherit !important;
+}
+
+.coach-item {
+  width: 190px;
+  min-width: 190px;
+  height: 55px;
+  padding: 0 18px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  overflow: hidden;
+}
+
+.coach-name-wrapper {
+  width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+  display: block;
+  text-align: center;
+}
+
+.coach-name-text {
+  display: inline-block;
+  white-space: nowrap;
+  transform: translateX(0);
+}
+
+/* Applied ONLY when the name overflows */
+.coach-name-text.coach-name-marquee {
+  animation: coachNameMove 7s linear infinite;
+}
+
+@keyframes coachNameMove {
+  /* First 2 seconds: STOP */
+  0%,
+  28.57% {
+    transform: translateX(0);
+  }
+
+  /* Move left */
+  70% {
+    transform: translateX(-45%);
+  }
+
+  /* Stop at end */
+  85% {
+    transform: translateX(-45%);
+  }
+
+  /* Return to start */
+  100% {
+    transform: translateX(0);
+  }
 }

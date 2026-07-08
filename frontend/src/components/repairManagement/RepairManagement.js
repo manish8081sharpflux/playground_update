@@ -1,3 +1,4 @@
+import config from "../../config";
 import React, { useEffect, useState } from "react";
 import {
   createRepair,
@@ -63,7 +64,8 @@ const [fetchError, setFetchError] = useState(null);
         urgency: repair.urgency || "medium",
         estimatedCost: repair.estimatedCost || "",
         attachments: [],
-        existingAttachments: repair.attachments || [],
+        existingAttachments:
+          repair.attachments || repair.attachment || repair.existingAttachments || [],
         repairDetails: repair.repairDetails || "",
         status: repair.status || "pending",
       });
@@ -123,7 +125,7 @@ const [fetchError, setFetchError] = useState(null);
       } else {
         showToast(
           "Error deleting repair request: " +
-            (response.message || "Unknown error"),
+          (response.message || "Unknown error"),
           "error"
         );
       }
@@ -181,9 +183,14 @@ const [fetchError, setFetchError] = useState(null);
         setIsRefreshing(false);
         return;
       }
-      if (!repairForm.estimatedCost) {
-        showToast("Please enter an estimated cost", "error");
-        setIsRefreshing(false);
+      if (!repairForm.estimatedCost || Number(repairForm.estimatedCost) <= 0) {
+        showToast(
+          !repairForm.estimatedCost
+            ? "Estimated cost is required"
+            : "Estimated cost must be greater than 0",
+          "error"
+        );
+        setLoading(false);
         return;
       }
 
@@ -207,12 +214,11 @@ const [fetchError, setFetchError] = useState(null);
         });
       }
 
-      // Debug: Log what's being sent
-
-
-      // Debug: Log FormData contents
-      for (let [key, value] of formData.entries()) {
-
+      if (editingItem) {
+        formData.append(
+          "existingAttachments",
+          JSON.stringify(repairForm.existingAttachments || [])
+        );
       }
 
       let response;
@@ -242,55 +248,76 @@ const [fetchError, setFetchError] = useState(null);
     }
   };
 
-  const renderSkeletonRows = (rows = 5, columns = 8) => (
-    <tbody>
-      {Array.from({ length: rows }).map((_, r) => (
-        <tr key={`skeleton-${r}`} className="skeleton-row">
-          {Array.from({ length: columns }).map((__, c) => (
-            <td key={`skeleton-${r}-${c}`}>
-              <div className="skeleton-cell" />
-            </td>
-          ))}
-        </tr>
-      ))}
-    </tbody>
-  );
+  const getAttachmentUrl = (file) => {
+    if (!file) return "";
+
+    const url =
+      typeof file === "string"
+        ? file
+        : file.fileUrl || file.url || file.filePath || file.path || "";
+
+    if (!url) return "";
+
+    if (url.startsWith("http")) return url;
+
+    return `${config.API_BASE_URL}${url.startsWith("/") ? url : `/${url}`}`;
+  };
+
+  const getAttachmentName = (file) => {
+    if (!file) return "Document";
+    if (typeof file === "string") {
+      const cleaned = file.split("?")[0].split("#")[0] || "";
+      return cleaned.split("/").pop() || "Document";
+    }
+    if (file.fileName) return file.fileName;
+    if (file.name) return file.name;
+    const url = getAttachmentUrl(file);
+    const cleaned = url.split("?")[0].split("#")[0] || "";
+    return cleaned.split("/").pop() || "Document";
+  };
+
+  const getAttachmentExtension = (file) => {
+    const name = getAttachmentName(file);
+    const url = getAttachmentUrl(file);
+    const source = name || url;
+    const cleaned = (source || "").split("?")[0].split("#")[0];
+    return cleaned.split(".").pop().toLowerCase();
+  };
 
   const FilePreview = ({ file }) => {
     const [preview, setPreview] = useState("");
 
     useEffect(() => {
-      if (file) {
-        if (file instanceof File) {
-          // For new files
-          const reader = new FileReader();
-          reader.onloadend = () => {
-            setPreview(reader.result);
-          };
-          reader.readAsDataURL(file);
-        } else {
-          // For existing files from server
-          setPreview(file.fileUrl || file.url);
-        }
+      if (!file) return;
+
+      if (file instanceof File) {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setPreview(reader.result);
+        };
+        reader.readAsDataURL(file);
+      } else {
+        setPreview(getAttachmentUrl(file));
       }
     }, [file]);
 
     const isImage = (file) => {
       const imageTypes = ["jpg", "jpeg", "png", "gif"];
-      const extension = file.name
-        ? file.name.split(".").pop().toLowerCase()
-        : (file.fileUrl || file.url)?.split(".").pop().toLowerCase();
-      return imageTypes.includes(extension);
+      return imageTypes.includes(getAttachmentExtension(file));
     };
 
     return (
       <div className="file-preview">
         {isImage(file) ? (
-          <img src={preview} alt="Repair request attachment preview" className="preview-image" />
+          <img
+            src={preview}
+            alt="Repair request attachment preview"
+            className="preview-image"
+          />
         ) : (
           <div className="preview-document">
-            <i className="fas fa-file-pdf"></i>
-            <span>{file.name || "Document"}</span>
+            <span>📄</span>
+            <p>{getAttachmentName(file)}</p>
           </div>
         )}
       </div>
@@ -318,52 +345,56 @@ const [fetchError, setFetchError] = useState(null);
       );
     }
   };
-
   const filteredRepairRequests = repairRequests.filter((bal) => {
     if (!bal) return false;
 
-    // Handle date filtering - check if dateReported exists
-    let passesDateFilter = true;
-    if (bal.dateReported) {
-      const reportedDate = dayjs(bal.dateReported);
+    const reportedDate = dayjs(bal.dateReported);
 
-      if (selectDate === "today") {
-        passesDateFilter = reportedDate.isSame(dayjs(), "day");
-      } else if (selectDate === "thisWeek") {
-        const startOfWeek = dayjs().startOf("week");
-        const endOfWeek = dayjs().endOf("week");
+    let passesDateFilter = true;
+
+    if (selectDate === "today") {
+      passesDateFilter = reportedDate.isSame(dayjs(), "day");
+    }
+
+    if (selectDate === "thisWeek") {
+      passesDateFilter = reportedDate.isSame(dayjs(), "week");
+    }
+
+    if (selectDate === "thisMonth") {
+      passesDateFilter = reportedDate.isSame(dayjs(), "month");
+    }
+
+    if (selectDate === "lastMonth") {
+      const lastMonth = dayjs().subtract(1, "month");
+      passesDateFilter =
+        reportedDate.month() === lastMonth.month() &&
+        reportedDate.year() === lastMonth.year();
+    }
+
+    else if (selectDate === "custom") {
+      if (!fromDate || !toDate) {
+        passesDateFilter = true;
+      } else if (dayjs(fromDate).isAfter(dayjs(toDate))) {
+        passesDateFilter = false;
+      } else {
         passesDateFilter =
-          reportedDate.isSameOrAfter(startOfWeek) &&
-          reportedDate.isSameOrBefore(endOfWeek);
-      } else if (selectDate === "thisMonth") {
-        passesDateFilter = reportedDate.isSame(dayjs(), "month");
-      } else if (selectDate === "lastMonth") {
-        const lastMonth = dayjs().subtract(1, "month");
-        passesDateFilter = reportedDate.isSame(lastMonth, "month");
-      } else if (selectDate === "custom" && fromDate && toDate) {
-        passesDateFilter =
-          reportedDate.isSameOrAfter(dayjs(fromDate)) &&
+          reportedDate.isSameOrAfter(dayjs(fromDate).startOf("day")) &&
           reportedDate.isSameOrBefore(dayjs(toDate).endOf("day"));
       }
     }
 
-    // Fix balagruha filtering - use the populated balagruha name
     const passesBalagruhaFilter =
       filterBalagruha === "all" ||
-      (bal.balagruhaId && bal.balagruhaId._id === filterBalagruha) ||
-      (typeof bal.balagruhaId === "string" &&
-        bal.balagruhaId === filterBalagruha);
+      bal.balagruhaId?._id === filterBalagruha ||
+      bal.balagruhaId === filterBalagruha;
 
     const searchFilter =
       !repairSearch ||
-      (repairSearch &&
-        bal?.issueName?.toLowerCase().includes(repairSearch.toLowerCase()));
+      bal?.issueName?.toLowerCase().includes(repairSearch.toLowerCase());
 
     const statusFilter = filterStatus === "all" || bal.status === filterStatus;
 
-    return (
-      passesDateFilter && passesBalagruhaFilter && searchFilter && statusFilter
-    );
+    return passesDateFilter && passesBalagruhaFilter && searchFilter && statusFilter;
   });
 
   const exportToPDF = () => {
@@ -462,9 +493,8 @@ const [fetchError, setFetchError] = useState(null);
             <div>
               <button
                 onClick={() => setSelectDate(null)}
-                className={`date-picker-button ${
-                  selectDate === null ? "selected" : ""
-                }`}
+                className={`date-picker-button ${selectDate === null ? "selected" : ""
+                  }`}
               >
                 All
               </button>
@@ -472,9 +502,8 @@ const [fetchError, setFetchError] = useState(null);
             <div>
               <button
                 onClick={() => setSelectDate("today")}
-                className={`date-picker-button ${
-                  selectDate === "today" ? "selected" : ""
-                }`}
+                className={`date-picker-button ${selectDate === "today" ? "selected" : ""
+                  }`}
               >
                 Today
               </button>
@@ -482,9 +511,8 @@ const [fetchError, setFetchError] = useState(null);
             <div>
               <button
                 onClick={() => setSelectDate("thisWeek")}
-                className={`date-picker-button ${
-                  selectDate === "thisWeek" ? "selected" : ""
-                }`}
+                className={`date-picker-button ${selectDate === "thisWeek" ? "selected" : ""
+                  }`}
               >
                 This week
               </button>
@@ -492,9 +520,8 @@ const [fetchError, setFetchError] = useState(null);
             <div>
               <button
                 onClick={() => setSelectDate("thisMonth")}
-                className={`date-picker-button ${
-                  selectDate === "thisMonth" ? "selected" : ""
-                }`}
+                className={`date-picker-button ${selectDate === "thisMonth" ? "selected" : ""
+                  }`}
               >
                 This month
               </button>
@@ -502,19 +529,17 @@ const [fetchError, setFetchError] = useState(null);
             <div>
               <button
                 onClick={() => setSelectDate("lastMonth")}
-                className={`date-picker-button ${
-                  selectDate === "lastMonth" ? "selected" : ""
-                }`}
+                className={`date-picker-button ${selectDate === "lastMonth" ? "selected" : ""
+                  }`}
               >
                 Last Month
               </button>
             </div>
             <div>
               <button
-                onClick={() => setSelectDate("custom")}
-                className={`date-picker-button ${
-                  selectDate === "custom" ? "selected" : ""
-                }`}
+                onClick={() => setSelectDate(selectDate === "custom" ? null : "custom")}
+                className={`date-picker-button ${selectDate === "custom" ? "selected" : ""
+                  }`}
               >
                 Custom
               </button>
@@ -527,20 +552,23 @@ const [fetchError, setFetchError] = useState(null);
                   <label htmlFor="repair-from-date">From date</label>
                   <input
                     type="date"
-                    id="repair-from-date"
+                    id="repair-to-date"
                     className="from-to-date-input"
-                    value={fromDate}
-                    onChange={(e) => setFromDate(e.target.value)}
+                    value={toDate}
+                    min={fromDate}
+                    max={dayjs().format("YYYY-MM-DD")}
+                    onChange={(e) => setToDate(e.target.value)}
                   />
                 </div>
                 <div>
                   <label htmlFor="repair-to-date">To date</label>
                   <input
                     type="date"
-                    id="repair-to-date"
+                    id="repair-from-date"
                     className="from-to-date-input"
-                    value={toDate}
-                    onChange={(e) => setToDate(e.target.value)}
+                    value={fromDate}
+                    max={toDate || dayjs().format("YYYY-MM-DD")}
+                    onChange={(e) => setFromDate(e.target.value)}
                   />
                 </div>
               </div>
@@ -548,7 +576,72 @@ const [fetchError, setFetchError] = useState(null);
           )}
         </div>
         <div className="purchase-section-header">
-          <h2>Repair Requests</h2>
+          <div style={{ marginTop: "10px" }}>
+            <div
+              style={{
+                maxWidth: "700px",
+                marginBottom: "10px",
+                display: "flex",
+                gap: "10px",
+              }}
+            >
+              <div style={{ position: "relative", width: "500px" }}>
+                <span
+                  style={{
+                    position: "absolute",
+                    left: "15px",
+                    top: "50%",
+                    transform: "translateY(-50%)",
+                    pointerEvents: "none",
+                  }}
+                >
+                  🔍
+                </span>
+
+                <input
+                  type="text"
+                  id="repair-search"
+                  placeholder="Search Issue Name"
+                  onChange={(e) => setRepairSearch(e.target.value)}
+                  aria-label="Search repair requests by issue name"
+                  style={{
+                    paddingLeft: "42px",
+                    borderRadius: "30px",
+                    border: "2px solid #7ed6df",
+                    fontWeight: "500",
+                    fontFamily: "'Patrick Hand', cursive",
+                    color: "black",
+                  }}
+                />
+              </div>
+              <select
+                id="repair-filter-balagruha"
+                value={filterBalagruha}
+                onChange={(e) => setFilterBalagruha(e.target.value)}
+                className="filter-select"
+                aria-label="Filter by balagruha"
+              >
+                <option value="all">All Balagruhas</option>
+                {balagruhas.map((bg, index) => (
+                  <option key={index} value={bg._id}>
+                    {bg.name}
+                  </option>
+                ))}
+              </select>
+              <select
+                id="repair-filter-status"
+                value={filterStatus}
+                onChange={(e) => setFilterStatus(e.target.value)}
+                className="filter-select"
+                aria-label="Filter by status"
+              >
+                <option value="all">All Status</option>
+                <option value="in-progress">In progress</option>
+                <option value="pending">Pending</option>
+                <option value="completed">Completed</option>
+              </select>
+            </div>
+          </div>
           <div>
             <button
               className="purchase-action-button"
@@ -565,55 +658,6 @@ const [fetchError, setFetchError] = useState(null);
               Export Data
             </button>
           </div>
-        </div>
-        <div
-          style={{
-            maxWidth: "700px",
-            marginBottom: "20px",
-            display: "flex",
-            gap: "10px",
-          }}
-        >
-          <input
-            type="text"
-            id="repair-search"
-            placeholder="Search Issue Name"
-            onChange={(e) => setRepairSearch(e.target.value)}
-            aria-label="Search repair requests by issue name"
-            style={{
-              borderRadius: "30px",
-              border: "2px solid #7ed6df",
-              fontWeight: "500",
-              fontFamily: "'Patrick Hand', cursive",
-              color: "black",
-            }}
-          />
-          <select
-            id="repair-filter-balagruha"
-            value={filterBalagruha}
-            onChange={(e) => setFilterBalagruha(e.target.value)}
-            className="filter-select"
-            aria-label="Filter by balagruha"
-          >
-            <option value="all">All Balagruhas</option>
-            {balagruhas.map((bg, index) => (
-              <option key={index} value={bg._id}>
-                {bg.name}
-              </option>
-            ))}
-          </select>
-          <select
-            id="repair-filter-status"
-            value={filterStatus}
-            onChange={(e) => setFilterStatus(e.target.value)}
-            className="filter-select"
-            aria-label="Filter by status"
-          >
-            <option value="all">All Status</option>
-            <option value="in-progress">In progress</option>
-            <option value="pending">Pending</option>
-            <option value="completed">Completed</option>
-          </select>
         </div>
 
         {fetchError && (
@@ -927,46 +971,57 @@ const [fetchError, setFetchError] = useState(null);
                     </div>
                   )}
 
-                  {editingItem && repairForm.existingAttachments.length > 0 && (
-                    <div className="existing-attachments">
-                      <h4>Existing Attachments:</h4>
-                      <div className="attachments-grid">
-                        {repairForm.existingAttachments.map((file, index) => (
-                          <div
-                            key={`existing-${index}`}
-                            className="attachment-item"
-                          >
-                            <FilePreview file={file} />
-                            <div className="attachment-actions">
-                              <a
-                                href={file.fileUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="view-button"
+                  {editingItem &&
+                    repairForm.existingAttachments?.filter((file) => {
+                      const url = getAttachmentUrl(file);
+                      const ext = getAttachmentExtension(file);
+                      return url && ["jpg", "jpeg", "png", "gif"].includes(ext);
+                    }).length > 0 && (
+                      <div className="existing-attachments">
+                        <h4>Existing Attachments:</h4>
+                        <div className="attachments-grid">
+                          {repairForm.existingAttachments
+                            .filter((file) => {
+                              const url = getAttachmentUrl(file);
+                              const ext = getAttachmentExtension(file);
+                              return url && ["jpg", "jpeg", "png", "gif"].includes(ext);
+                            })
+                            .map((file, index) => (
+                              <div
+                                key={`existing-${index}`}
+                                className="attachment-item"
                               >
-                                View
-                              </a>
-                              <button
-                                type="button"
-                                className="remove-file"
-                                onClick={() => {
-                                  setRepairForm((prev) => ({
-                                    ...prev,
-                                    existingAttachments:
-                                      prev.existingAttachments.filter(
-                                        (_, i) => i !== index
-                                      ),
-                                  }));
-                                }}
-                              >
-                                Remove
-                              </button>
-                            </div>
-                          </div>
-                        ))}
+                                <FilePreview file={file} />
+                                <div className="attachment-actions">
+                                  <a
+                                    href={getAttachmentUrl(file)}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="view-button"
+                                  >
+                                    View
+                                  </a>
+
+                                  <button
+                                    type="button"
+                                    className="remove-file"
+                                    onClick={() => {
+                                      setRepairForm((prev) => ({
+                                        ...prev,
+                                        existingAttachments: prev.existingAttachments.filter(
+                                          (_, i) => i !== index
+                                        ),
+                                      }));
+                                    }}
+                                  >
+                                    Remove
+                                  </button>
+                                </div>
+                              </div>
+                            ))}
+                        </div>
                       </div>
-                    </div>
-                  )}
+                    )}
                 </div>
               </div>
               <div className="modal-footer">
@@ -986,8 +1041,8 @@ const [fetchError, setFetchError] = useState(null);
                   {isRefreshing
                     ? "Processing..."
                     : editingItem
-                    ? "Update Request"
-                    : "Submit Request"}
+                      ? "Update Request"
+                      : "Submit Request"}
                 </button>
               </div>
             </form>

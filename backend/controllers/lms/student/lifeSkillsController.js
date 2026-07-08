@@ -17,7 +17,7 @@ const fs = require('fs');
  * - Offline sync support (queued submissions)
  */
 
-// Helper to find life skills course (legacy — returns first published)
+// Helper to find life skills course (legacy â€” returns first published)
 const getLifeSkillsCourse = async () => {
   return await Course.findOne({ category: 'Life Skills', status: 'published' })
     .populate('modules.chapters.contentItems.quizRef')
@@ -405,7 +405,12 @@ exports.getQuiz = async (req, res) => {
       title: q.questionText, // "title" in UI
       audioUrl: q.audioUrl,
       question: q.questionText,
-      options: q.options.map(o => ({ id: o._id, text: o.text })),
+      options: (q.options || []).map(o => ({
+        id: o._id || o.id || o.text,
+        text: o.text
+      })),
+      acceptedAnswers: [],
+      explanation: q.explanation || '',
       coinsForCorrect: q.points || 10
     }));
 
@@ -476,7 +481,7 @@ exports.submitQuiz = async (req, res) => {
 
     // Always compute breakdown + baseCoins. The duplicate-reward check is
     // performed inside the transaction below using the Coin document's
-    // transactions[] array — race-safe and authoritative.
+    // transactions[] array â€” race-safe and authoritative.
     const breakdown = quiz.questions.map((question, index) => {
       const userAnswer = answers.find(a => a.questionId === question._id.toString());
       let isCorrect = false;
@@ -488,19 +493,63 @@ exports.submitQuiz = async (req, res) => {
       if (question.type === 'true_false') {
         const userValStr = userAnswer?.selectedOptionId;
         const dbValBool = question.correctAnswer;
+
         let userBool = null;
         if (typeof userValStr === 'string') {
           if (userValStr.toLowerCase() === 'true') userBool = true;
           if (userValStr.toLowerCase() === 'false') userBool = false;
         }
-        isCorrect = (userBool !== null) && (userBool === dbValBool);
+
+        isCorrect = userBool !== null && userBool === dbValBool;
         studentAnswerText = userValStr || 'No Answer';
-        correctAnswerText = (dbValBool === true) ? 'True' : 'False';
+        correctAnswerText = dbValBool === true ? 'True' : 'False';
+
+      } else if (question.type === 'fill_blank') {
+        const normalizeAnswer = (value, q) => {
+          let text = (value || '').toString();
+
+          if (q.ignoreExtraSpaces !== false) {
+            text = text.trim().replace(/\s+/g, ' ');
+          } else {
+            text = text.trim();
+          }
+
+          if (q.caseInsensitive !== false) {
+            text = text.toLowerCase();
+          }
+
+          return text;
+        };
+
+        const studentText = userAnswer?.answerText || '';
+        const acceptedAnswers = question.acceptedAnswers || [];
+
+        const normalizedStudentAnswer = normalizeAnswer(studentText, question);
+        const normalizedAcceptedAnswers = acceptedAnswers.map(ans =>
+          normalizeAnswer(ans, question)
+        );
+
+        isCorrect =
+          normalizedStudentAnswer !== '' &&
+          normalizedAcceptedAnswers.includes(normalizedStudentAnswer);
+
+        studentAnswerText = studentText || 'No Answer';
+        correctAnswerText = acceptedAnswers.length > 0
+          ? acceptedAnswers.join(', ')
+          : 'No accepted answer added';
+
       } else {
-        // MCQ — defensive lookups so a malformed question can't crash submitQuiz
         const correctOpt = question.options?.find(o => o.isCorrect);
-        const selectedOption = question.options?.find(o => o._id.toString() === userAnswer?.selectedOptionId);
-        isCorrect = !!(userAnswer && correctOpt && userAnswer.selectedOptionId === correctOpt._id.toString());
+        const selectedOption = question.options?.find(
+          o => o._id.toString() === userAnswer?.selectedOptionId
+        );
+
+        isCorrect = !!(
+          userAnswer &&
+          correctOpt &&
+          userAnswer.selectedOptionId === correctOpt._id.toString()
+        );
+
         studentAnswerText = selectedOption ? selectedOption.text : 'No Answer';
         correctAnswerText = correctOpt ? correctOpt.text : 'Unknown';
         correctAnswerId = correctOpt?._id || null;
@@ -541,7 +590,7 @@ exports.submitQuiz = async (req, res) => {
         const Coin = require('../../../models/coin');
         const User = require('../../../models/user');
 
-        // Fresh read inside the txn — scan for a prior quiz_pass for THIS quiz.
+        // Fresh read inside the txn â€” scan for a prior quiz_pass for THIS quiz.
         const coinRecord = await Coin.findOrCreateForUser(studentId, { session });
         const quizIdStr = quiz._id.toString();
         alreadyPassed = coinRecord.transactions.some(t =>
@@ -564,7 +613,7 @@ exports.submitQuiz = async (req, res) => {
             score,
             points: (passed && !alreadyPassed) ? baseCoins : 0
           },
-          metadata: { breakdown },
+          metadata: { breakdown, answers: breakdown },
           submittedAt: new Date()
         });
         await submission.save({ session });

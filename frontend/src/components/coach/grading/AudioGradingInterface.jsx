@@ -30,7 +30,7 @@ export default function AudioGradingInterface({ submission, onClose, coachId, on
   };
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="mt-12 min-h-screen bg-white">
       {/* Header */}
       <div className="bg-blue-600 text-white px-6 py-4 flex items-center justify-between border-b border-blue-700">
         <h2 className="text-xl font-bold">

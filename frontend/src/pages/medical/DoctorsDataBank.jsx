@@ -101,14 +101,51 @@ export default function DoctorsDataBank() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!form.name.trim()) {
+    const name = form.name.trim();
+    const specialty = form.specialty.trim();
+    const hospital = form.hospital.trim();
+    const contactNumber = form.contactNumber.trim();
+
+    if (!name) {
       toast.error("Doctor name is required");
       return;
     }
+
+    if (name.length < 3) {
+      toast.error("Doctor name must be at least 3 characters");
+      return;
+    }
+
+    if (specialty && specialty.length < 2) {
+      toast.error("Specialty must be at least 2 characters");
+      return;
+    }
+
+    if (hospital && hospital.length < 2) {
+      toast.error("Hospital / Clinic must be at least 2 characters");
+      return;
+    }
+
+    if (!contactNumber) {
+      toast.error("Contact number is required");
+      return;
+    }
+
+    if (!/^[6-9]\d{9}$/.test(contactNumber)) {
+      toast.error("Please enter a valid 10-digit mobile number");
+      return;
+    }
+
+    const payload = {
+      name,
+      specialty,
+      hospital,
+      contactNumber,
+    };
     setSubmitting(true);
     try {
       if (editingId) {
-        const res = await updateDoctor(editingId, form);
+        const res = await updateDoctor(editingId, payload);
         if (res?.success) {
           toast.success("Doctor updated");
           closeModal();
@@ -117,7 +154,7 @@ export default function DoctorsDataBank() {
           toast.error(res?.message || "Update failed");
         }
       } else {
-        const res = await createDoctor(form);
+        const res = await createDoctor(payload);
         if (res?.success) {
           toast.success("Doctor added to data bank");
           closeModal();
@@ -172,7 +209,7 @@ export default function DoctorsDataBank() {
         </div>
 
         {/* Search */}
-        <div className="bg-white rounded-lg border border-slate-200 p-4 mb-4">
+        <div className="bg-white rounded-lg border border-slate-200 p-4 mb-4 ">
           <div className="flex items-center gap-3">
             <span className="text-slate-400">🔍</span>
             <input
@@ -298,6 +335,7 @@ export default function DoctorsDataBank() {
                 <input
                   type="text"
                   value={form.name}
+                  minLength={3}
                   onChange={(e) => setForm({ ...form, name: e.target.value })}
                   required
                   placeholder="Dr. Jane Smith"
@@ -309,6 +347,7 @@ export default function DoctorsDataBank() {
                 <input
                   type="text"
                   value={form.specialty}
+                  minLength={2}
                   onChange={(e) => setForm({ ...form, specialty: e.target.value })}
                   placeholder="e.g., Pediatrics, Cardiology"
                   className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent"
@@ -319,6 +358,7 @@ export default function DoctorsDataBank() {
                 <input
                   type="text"
                   value={form.hospital}
+                  minLength={2}
                   onChange={(e) => setForm({ ...form, hospital: e.target.value })}
                   placeholder="e.g., Apollo Hospitals"
                   className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent"
@@ -329,6 +369,7 @@ export default function DoctorsDataBank() {
                 <input
                   type="tel"
                   value={form.contactNumber}
+                  minLength={10}
                   onChange={(e) => setForm({ ...form, contactNumber: e.target.value })}
                   placeholder="e.g., +91 98765 43210"
                   className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent"

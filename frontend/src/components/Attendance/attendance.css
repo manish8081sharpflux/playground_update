@@ -28,10 +28,11 @@
     background-color: var(--white);
     border-radius: var(--border-radius);
     box-shadow: var(--box-shadow);
-    height: 100vh;
+    height: auto;
+    min-height: 100%;
     display: flex;
     flex-direction: column;
-    overflow: hidden;
+    overflow: visible;
 }
 
 .attendance-title {
@@ -74,43 +75,98 @@
 /* Balagruha Scroll Container */
 .balagruha-scroll-container {
     overflow-x: auto;
-    margin-bottom: 24px;
-    padding-bottom: 10px;
+    overflow-y: visible;
+    margin-bottom: 20px;
+    padding: 8px 4px 12px;
+    min-height: 105px;
+    flex-shrink: 0;
 }
 
 .balagruha-list {
     display: flex;
-    gap: 16px;
+    gap: 10px;
     padding: 4px;
     min-width: min-content;
 }
 
 .balagruha-card {
+    width: 70px;
+    height: 90px;
+    min-width: 120px;
+    flex-shrink: 0;
+
     display: flex;
     flex-direction: column;
-    align-items: center;
     justify-content: center;
-    min-width: 140px;
-    height: 100px;
-    padding: 16px;
-    background-color: var(--light);
-    border-radius: var(--border-radius);
+    align-items: center;
+
+    padding: 10px;
+    background: var(--light);
+    border: 2px solid transparent;
+    border-radius: 12px;
     cursor: pointer;
     transition: var(--transition);
-    border: 2px solid transparent;
+}
+
+.balagruha-icon {
+    font-size: 24px;
+    margin-bottom: 8px;
+}
+
+.balagruha-name {
+    width: 100%;
+    overflow: hidden;
+    white-space: nowrap;
+    text-align: center;
+    position: relative;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.2;
+}
+
+.balagruha-name span {
+    display: inline-block;
+}
+
+.balagruha-name.marquee span {
+    animation: marquee 12s linear infinite;
+    will-change: transform;
+}
+
+.balagruha-name.marquee span {
+    animation: marquee 10s linear infinite;
+    will-change: transform;
+}
+
+@keyframes marquee {
+    /* Show for 2 seconds */
+    0%,
+    20% {
+        transform: translateX(0);
+    }
+
+    /* Scroll from 2s to 8s */
+    80% {
+        transform: translateX(-100%);
+    }
+
+    /* Pause for 2 seconds */
+    100% {
+        transform: translateX(-100%);
+    }
 }
 
 .balagruha-card:hover {
-    transform: translateY(-5px);
     background-color: rgba(67, 97, 238, 0.1);
+    transform: none;
 }
 
 .balagruha-card.active {
     background-color: rgba(67, 97, 238, 0.2);
     border-color: var(--primary);
-    transform: translateY(-5px);
+    transform: none;
 }
-
+/* 
 .balagruha-icon {
     font-size: 28px;
     margin-bottom: 8px;
@@ -121,20 +177,21 @@
     text-align: center;
     color: var(--dark);
     font-size: 14px;
-}
+} */
 
 /* Metrics Cards */
 .metrics-cards {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     gap: 20px;
-    margin-bottom: 24px;
+    margin-bottom: 12px;
+    flex-shrink: 0;
 }
 
 .metric-card {
     background-color: var(--white);
     border-radius: var(--border-radius);
-    padding: 20px;
+    padding: 12px 20px;
     box-shadow: var(--box-shadow);
     position: relative;
     overflow: hidden;
@@ -195,8 +252,9 @@
 
 /* Attendance Table */
 .attendance-table-container {
-    flex: 1;
-    overflow: auto;
+    min-height: 620px;
+    overflow-y: auto;
+    overflow-x: auto;
     background-color: var(--white);
     border-radius: var(--border-radius);
     box-shadow: var(--box-shadow);
@@ -336,4 +394,52 @@
 
 ::-webkit-scrollbar-thumb:hover {
     background: var(--gray);
+}
+
+.attendance-page {
+    width: 100%;
+    min-height: calc(100vh - 80px);
+    background: #fff;
+    padding: 20px;
+}
+.pagination {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 14px;
+  border-top: 1px solid var(--gray-light);
+  background: #fff;
+  flex-wrap: wrap;
+}
+
+.pagination-left,
+.pagination-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pagination button {
+  padding: 8px 12px;
+  border: 1px solid var(--gray-light);
+  background: white;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.pagination button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.pagination button.active-page {
+  background: var(--primary);
+  color: white;
+}
+
+.pagination select {
+  padding: 8px 12px;
+  border: 1px solid var(--gray-light);
+  border-radius: 6px;
 }
