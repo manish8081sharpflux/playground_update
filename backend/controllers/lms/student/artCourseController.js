@@ -42,6 +42,23 @@ exports.getArtCourseData = async (req, res) => {
     }).lean();
 
     const progressMap = new Map(progressRecords.map(p => [p.course.toString(), p]));
+    const gradedSubmissions = await Submission.find({
+      studentId,
+      courseId: { $in: artCourses.map(c => c._id) },
+      submissionType: 'art',
+      status: 'graded'
+    }).select('courseId taskId').lean();
+
+    const gradedSubmissionMap = new Map();
+    gradedSubmissions.forEach(submission => {
+      const courseKey = submission.courseId?.toString();
+      const taskKey = submission.taskId?.toString();
+      if (!courseKey || !taskKey) return;
+      if (!gradedSubmissionMap.has(courseKey)) {
+        gradedSubmissionMap.set(courseKey, []);
+      }
+      gradedSubmissionMap.get(courseKey).push(taskKey);
+    });
 
     // 3. Separate courses into workshop vs story modes
     const workshops = [];
@@ -52,6 +69,7 @@ exports.getArtCourseData = async (req, res) => {
       const completedItemIds = new Set(
         (progress?.completedItems || []).map(item => item.itemId?.toString())
       );
+      const gradedTaskIds = gradedSubmissionMap.get(course._id.toString()) || [];
       const createdBy = course.createdBy;
       const instructorName = createdBy
         ? `${createdBy.firstName || ''} ${createdBy.lastName || ''}`.trim()
@@ -59,6 +77,7 @@ exports.getArtCourseData = async (req, res) => {
 
       const tasks = [];
       let firstVideoUrl = null;
+      const courseTaskIds = new Set();
 
       (course.modules || []).forEach(module => {
         (module.chapters || []).forEach(chapter => {
@@ -67,6 +86,7 @@ exports.getArtCourseData = async (req, res) => {
               firstVideoUrl = contentItem.fileUrl || null;
             }
             if (contentItem.type === 'task') {
+              courseTaskIds.add(contentItem._id.toString());
               tasks.push({
                 id: contentItem._id,
                 title: contentItem.title,
@@ -76,11 +96,22 @@ exports.getArtCourseData = async (req, res) => {
                 maxFileSize: contentItem.taskData?.maxFileSize || null,
                 moduleTitle: module.title,
                 chapterTitle: chapter.title,
-                completed: completedItemIds.has(contentItem._id.toString())
+                completed:
+                  completedItemIds.has(contentItem._id.toString()) ||
+                  gradedTaskIds.includes(contentItem._id.toString())
               });
             }
           });
         });
+      });
+
+      let unmatchedGradedArtCompletions = gradedTaskIds
+        .filter(taskId => !courseTaskIds.has(taskId)).length;
+      tasks.forEach(task => {
+        if (!task.completed && unmatchedGradedArtCompletions > 0) {
+          task.completed = true;
+          unmatchedGradedArtCompletions -= 1;
+        }
       });
 
       const completedTaskCount = tasks.filter(task => task.completed).length;

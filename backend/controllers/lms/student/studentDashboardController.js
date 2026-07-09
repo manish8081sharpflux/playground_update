@@ -47,7 +47,12 @@ const isContentItemCompleted = (
     uniqueLegacyQuizCompletion;
 };
 
-const calculateCourseProgress = (course, progress, submittedItems = new Set()) => {
+const calculateCourseProgress = (
+  course,
+  progress,
+  submittedItems = new Set(),
+  extraCompletedItems = 0
+) => {
   const completedItems = new Set(
     progress?.completedItems?.map(i => getIdString(i.itemId)).filter(Boolean) || []
   );
@@ -72,6 +77,10 @@ const calculateCourseProgress = (course, progress, submittedItems = new Set()) =
       });
     });
   });
+
+  if (extraCompletedItems > 0) {
+    completedTasks = Math.min(totalTasks, completedTasks + extraCompletedItems);
+  }
 
   return { totalTasks, completedTasks };
 };
@@ -113,11 +122,12 @@ exports.getDashboard = async (req, res) => {
       studentId,
       courseId: { $in: allCourses.map(c => c._id) },
       status: { $in: ['pending', 'graded'] }
-    }).select('courseId taskId').lean();
+    }).select('courseId taskId submissionType status').lean();
 
     // build course map for easy lookup
     const progressMap = new Map(progressRecords.map(p => [p.course.toString(), p]));
     const submittedItemsMap = new Map();
+    const gradedArtSubmissionsMap = new Map();
     submissionRecords.forEach(submission => {
       const courseKey = getIdString(submission.courseId);
       const taskId = submission.taskId?.toString();
@@ -126,6 +136,13 @@ exports.getDashboard = async (req, res) => {
         submittedItemsMap.set(courseKey, new Set());
       }
       submittedItemsMap.get(courseKey).add(taskId);
+
+      if (submission.submissionType === 'art' && submission.status === 'graded') {
+        if (!gradedArtSubmissionsMap.has(courseKey)) {
+          gradedArtSubmissionsMap.set(courseKey, []);
+        }
+        gradedArtSubmissionsMap.get(courseKey).push(taskId);
+      }
     });
 
     // aggregated courses data
@@ -133,7 +150,23 @@ exports.getDashboard = async (req, res) => {
       const courseId = course._id.toString();
       const progress = progressMap.get(courseId);
       const submittedItems = submittedItemsMap.get(courseId) || new Set();
-      const { totalTasks, completedTasks } = calculateCourseProgress(course, progress, submittedItems);
+      const courseItemIds = new Set();
+      course.modules?.forEach(module => module.chapters?.forEach(chapter =>
+        (chapter.contentItems || []).forEach(item => {
+          const itemId = getIdString(item?._id);
+          if (itemId) courseItemIds.add(itemId);
+        })
+      ));
+      const unmatchedGradedArtCount = course.category === 'Art'
+        ? (gradedArtSubmissionsMap.get(courseId) || [])
+          .filter(taskId => !courseItemIds.has(taskId)).length
+        : 0;
+      const { totalTasks, completedTasks } = calculateCourseProgress(
+        course,
+        progress,
+        submittedItems,
+        unmatchedGradedArtCount
+      );
       const progressPercentage = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
 
       return {
