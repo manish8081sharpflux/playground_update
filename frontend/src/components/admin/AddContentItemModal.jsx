@@ -16,7 +16,9 @@ export default function AddContentItemModal({ isOpen, onClose, onAdd }) {
     quizRef: '' // Store selected quiz ID
   });
 
-  const { uploadFile, isUploading } = useFileUpload();
+  const { uploads, uploadFile, isUploading } = useFileUpload();
+  const [uploadingFile, setUploadingFile] = useState(false);
+  const [currentUploadId, setCurrentUploadId] = useState(null);
   const fileInputRef = useRef(null);
   const [dragActive, setDragActive] = useState(false);
 
@@ -40,6 +42,16 @@ export default function AddContentItemModal({ isOpen, onClose, onAdd }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.title.trim()) return;
+
+    if (uploadingFile || isUploading) {
+      toast.error('Please wait for the file upload to finish');
+      return;
+    }
+
+    if (showUpload && !formData.fileUrl?.trim()) {
+      toast.error(`Please upload a ${formData.type} file or enter its URL`);
+      return;
+    }
 
     // Validate URL if manually entered
     if (formData.fileUrl && !formData.fileUrl.startsWith('data:') && !isValidUrl(formData.fileUrl)) {
@@ -138,10 +150,13 @@ export default function AddContentItemModal({ isOpen, onClose, onAdd }) {
     }
 
     try {
+      const uploadId = `upload-${Date.now()}`;
+      setCurrentUploadId(uploadId);
+      setUploadingFile(true);
       const result = await uploadFile({
         file,
         fileType: formData.type,
-        id: `upload-${Date.now()}`
+        id: uploadId
       });
 
       if (result.success) {
@@ -150,10 +165,15 @@ export default function AddContentItemModal({ isOpen, onClose, onAdd }) {
       }
     } catch (error) {
       console.error('Upload failed:', error);
+    } finally {
+      setUploadingFile(false);
+      setCurrentUploadId(null);
     }
   };
 
   const showUpload = ['video', 'pdf', 'image', 'audio'].includes(formData.type);
+  const uploadInProgress = uploadingFile || isUploading;
+  const currentUpload = currentUploadId ? uploads[currentUploadId] : null;
 
   if (!isOpen) return null;
 
@@ -315,7 +335,7 @@ export default function AddContentItemModal({ isOpen, onClose, onAdd }) {
                 onDragLeave={handleDrag}
                 onDragOver={handleDrag}
                 onDrop={handleDrop}
-                onClick={() => !isUploading && fileInputRef.current.click()}
+                onClick={() => !uploadInProgress && fileInputRef.current.click()}
               >
                 <input
                   ref={fileInputRef}
@@ -330,10 +350,20 @@ export default function AddContentItemModal({ isOpen, onClose, onAdd }) {
                   }
                 />
 
-                {isUploading ? (
+                {uploadInProgress ? (
                   <div className="flex flex-col items-center">
                     <Loader size={32} className="animate-spin text-blue-600 mb-2" />
-                    <p className="text-sm text-gray-600">Uploading...</p>
+                    <p className="text-sm text-gray-600">
+                      {currentUpload?.progress >= 100
+                        ? 'Finishing upload...'
+                        : `Uploading${currentUpload?.progress ? `... ${currentUpload.progress}%` : '...'}`}
+                    </p>
+                    <div className="mt-3 h-2 w-full max-w-xs rounded-full bg-gray-200 overflow-hidden">
+                      <div
+                        className="h-full bg-blue-600 transition-all"
+                        style={{ width: `${currentUpload?.progress || 0}%` }}
+                      />
+                    </div>
                   </div>
                 ) : (
                   <div className="flex flex-col items-center">
@@ -381,9 +411,9 @@ export default function AddContentItemModal({ isOpen, onClose, onAdd }) {
             <button
               type="submit"
               className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
-              disabled={isUploading}
+              disabled={uploadInProgress}
             >
-              {isUploading ? <Loader size={16} className="animate-spin" /> : null}
+              {uploadInProgress ? <Loader size={16} className="animate-spin" /> : null}
               Add Content
             </button>
           </div>

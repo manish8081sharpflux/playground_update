@@ -152,15 +152,14 @@ export default function StudentQuizPage() {
         {
           quizId: quizId,
           courseId: courseId, // Pass explicitly from URL/State
+          contentItemId: location.state?.contentItemId,
           answers: formattedAnswers
         }
       );
 
       if (response.data.success) {
         toast.success('Quiz submitted successfully!');
-        if (!isComputerApps) {
-          await refreshBalance(); // Only for Life Skills for now? Or both?
-        }
+        await refreshBalance();
 
         // Navigate to results page
         navigate(`${baseRoute}/quiz/results`, {

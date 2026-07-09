@@ -15,14 +15,23 @@ export default function ArtStoriesMode({ data, studentId, onRefresh }) {
   const [selectedStory, setSelectedStory] = useState(null);
   const [showSubmissionModal, setShowSubmissionModal] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
+  const [selectedTask, setSelectedTask] = useState(null);
 
   const stories = data?.stories || [];
 
   React.useEffect(() => {
-    if (stories.length > 0 && !selectedStory) {
-      setSelectedStory(stories[0]);
-    }
+    setSelectedStory(current =>
+      stories.find(story => String(story.id) === String(current?.id)) ||
+      stories[0] ||
+      null
+    );
   }, [stories]);
+
+  React.useEffect(() => {
+    const tasks = selectedStory?.tasks || [];
+    setSelectedTask(tasks.find(task => !task.completed) || tasks[0] || null);
+    setSelectedFile(null);
+  }, [selectedStory]);
 
   const handleSubmit = () => {
     if (!selectedFile) {
@@ -43,7 +52,13 @@ export default function ArtStoriesMode({ data, studentId, onRefresh }) {
       formData.append('type', 'art');
       formData.append('mode', 'art_story');
       formData.append('courseId', selectedStory?.id || '');
-      formData.append('taskTitle', metadata.title || selectedStory?.title || 'Art story artwork');
+      if (selectedTask?.id) {
+        formData.append('taskId', selectedTask.id);
+      }
+      formData.append(
+        'taskTitle',
+        selectedTask?.title || metadata.title || selectedStory?.title || 'Art story artwork'
+      );
 
       await api.post(
         `/api/v2/lms/student/${studentId}/courses/art/submissions`,
@@ -125,6 +140,45 @@ export default function ArtStoriesMode({ data, studentId, onRefresh }) {
             </div>
           )}
 
+          {selectedStory.tasks?.length > 0 && (
+            <div>
+              <h3 className="text-lg font-semibold text-gray-800 mb-3">Tasks</h3>
+              <div className="space-y-2">
+                {selectedStory.tasks.map((task, index) => (
+                  <button
+                    key={task.id}
+                    type="button"
+                    onClick={() => {
+                      setSelectedTask(task);
+                      setSelectedFile(null);
+                    }}
+                    className={`w-full rounded-lg border-2 p-4 text-left transition-colors ${
+                      selectedTask?.id === task.id
+                        ? 'border-pink-500 bg-pink-50'
+                        : 'border-gray-200 hover:border-pink-300'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="font-semibold text-gray-900">
+                        {index + 1}. {task.title}
+                      </span>
+                      {task.completed && (
+                        <span className="rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-700">
+                          Completed
+                        </span>
+                      )}
+                    </div>
+                    {(task.instructions || task.description) && (
+                      <p className="mt-2 text-sm text-gray-600">
+                        {task.instructions || task.description}
+                      </p>
+                    )}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Canvas Preview & File Upload */}
           <CanvasPreview
             onSubmit={handleSubmit}
@@ -138,7 +192,7 @@ export default function ArtStoriesMode({ data, studentId, onRefresh }) {
       {showSubmissionModal && (
         <SubmissionModal
           mode="art_story"
-          metadata={{ storyId: selectedStory?.id }}
+          metadata={{ storyId: selectedStory?.id, taskId: selectedTask?.id }}
           onClose={() => setShowSubmissionModal(false)}
           onSubmit={handleConfirmSubmission}
           file={selectedFile}

@@ -629,19 +629,20 @@ const CheckInModal = ({ isOpen, onClose, onSubmit, studentData, balagruhas, edit
           </div>
 
 
-          <div className="modal-footer">
-            <button type="button" className="cancel-button" onClick={onClose}>
-              Cancel
-            </button>
-            <button
-              type="button"
-              className="submit-button"
-              onClick={handleSubmit}
-            >
-              Submit
-            </button>
-          </div>
-        </form>
+          </form>
+
+        <div className="modal-footer">
+          <button type="button" className="cancel-button" onClick={onClose}>
+            Cancel
+          </button>
+          <button
+            type="button"
+            className="submit-button"
+            onClick={handleSubmit}
+          >
+            Submit
+          </button>
+        </div>
       </div>
     </div >
   );

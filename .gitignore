@@ -19,6 +19,7 @@ logs/
 dist/
 build/
 
+<<<<<<< HEAD
 # Logs
 *.log
 logs/
@@ -28,3 +29,13 @@ frontend/logs/
 # Package lock files
 package-lock.json
 **/package-lock.json
+=======
+backend/uploads/
+>>>>>>> b10b8c750 (Fix art task progress and ignore uploads)
+
+backend/uploads/
+backend/logs/
+frontend/build/
+backend/uploads/
+backend/logs/
+frontend/build/

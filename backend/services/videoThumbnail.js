@@ -124,7 +124,7 @@ class VideoThumbnailService {
 
   async generateThumbnailFromS3(
     s3Client,
-    bucketName,
+    _bucketName,
     videoKey,
     thumbnailKey,
     options = {}
@@ -149,7 +149,7 @@ class VideoThumbnailService {
         // Download video from S3
         const videoResponse = await s3Client.send(
           new GetObjectCommand({
-            Bucket: bucketName,
+            Bucket: process.env.AWS_S3_BUCKET_NAME,
             Key: videoKey,
           })
         );
@@ -170,7 +170,7 @@ class VideoThumbnailService {
 
           await s3Client.send(
             new PutObjectCommand({
-              Bucket: bucketName,
+              Bucket: process.env.AWS_S3_BUCKET_NAME,
               Key: thumbnailKey,
               Body: thumbnailBuffer,
               ContentType: "image/jpeg",

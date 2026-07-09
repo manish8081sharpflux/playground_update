@@ -9,11 +9,40 @@ const fs = require("fs");
 const path = require("path");
 const VideoThumbnailService = require("../videoThumbnail");
 
-// Configure the S3 client
-// IMPORTANT: Disable automatic checksum calculation for presigned URL compatibility
-// Browser uploads can't compute AWS checksums, so we disable them
+const folder = (envName, fallback) => process.env[envName] || fallback;
+const trimSlashes = (value = "") => value.replace(/^\/+|\/+$/g, "");
+const withFolder = (folderName, key) => {
+  const prefix = trimSlashes(folderName);
+  const cleanKey = trimSlashes(key);
+  if (!prefix) return cleanKey;
+  return cleanKey === prefix || cleanKey.startsWith(`${prefix}/`)
+    ? cleanKey
+    : `${prefix}/${cleanKey}`;
+};
+const publicUrl = (key) => {
+  const endpoint = process.env.AWS_S3_ENDPOINT?.replace(/\/+$/, "");
+  const encodedKey = trimSlashes(key)
+    .split("/")
+    .map(encodeURIComponent)
+    .join("/");
+  if (endpoint) return `${endpoint}/${process.env.AWS_S3_BUCKET_NAME}/${encodedKey}`;
+  return `https://${process.env.AWS_S3_BUCKET_NAME}.s3.${process.env.AWS_S3_REGION}.amazonaws.com/${encodedKey}`;
+};
+const decodeKey = (key = "") => {
+  try {
+    return key
+      .split("/")
+      .map(part => decodeURIComponent(part))
+      .join("/");
+  } catch (_error) {
+    return key;
+  }
+};
+
 const s3Client = new S3Client({
-  region: process.env.AWS_S3_REGION, // e.g., 'us-east-1'
+  endpoint: process.env.AWS_S3_ENDPOINT,
+  region: process.env.AWS_S3_REGION,
+  forcePathStyle: true,
   credentials: {
     accessKeyId: process.env.AWS_S3_ACCESS_KEY_ID,
     secretAccessKey: process.env.AWS_S3_SECRET_KEY,
@@ -21,15 +50,16 @@ const s3Client = new S3Client({
   requestChecksumCalculation: "WHEN_REQUIRED", // Only calculate checksums when S3 requires it (not for uploads)
 });
 
-exports.uploadFileToS3 = async (filePath, bucketName, keyName) => {
+exports.uploadFileToS3 = async (filePath, folderName, keyName) => {
   try {
     // Read the file from local filesystem
     const fileContent = fs.readFileSync(filePath);
     let contentType = getContentType(filePath);
     // Set up S3 upload parameters
+    const key = withFolder(folderName, keyName);
     const params = {
-      Bucket: bucketName,
-      Key: keyName, // File name you want to save as in S3
+      Bucket: process.env.AWS_S3_BUCKET_NAME,
+      Key: key,
       Body: fileContent,
       ContentType: contentType,
     };
@@ -38,16 +68,12 @@ exports.uploadFileToS3 = async (filePath, bucketName, keyName) => {
     const command = new PutObjectCommand(params);
     await s3Client.send(command);
 
-    let region = await s3Client.config.region();
-    // Construct the URL (note: v3 doesn't return the URL directly)
-    const url = `https://${bucketName}.s3.${region}.amazonaws.com/${keyName}`;
-
     // File uploaded successfully
     return {
       success: true,
       message: "Upload successful",
-      url: url,
-      key: keyName,
+      url: publicUrl(key),
+      key,
       contentType: contentType,
     };
   } catch (error) {
@@ -67,6 +93,7 @@ function getContentType(filePath) {
     jpg: "image/jpeg",
     jpeg: "image/jpeg",
     png: "image/png",
+    webp: "image/webp",
     pdf: "application/pdf",
     txt: "text/plain",
     doc: "application/msword",
@@ -97,10 +124,13 @@ exports.uploadWtfMedia = async (filePath, mediaType, pinId) => {
     const fileContent = fs.readFileSync(filePath);
     const contentType = getContentType(filePath);
     const fileExtension = path.extname(filePath);
-    const fileName = `wtf/${mediaType}/${pinId}_${Date.now()}${fileExtension}`;
+    const fileName = withFolder(
+      folder("AWS_S3_FOLDER_WTF", "wtfpins"),
+      `${mediaType}/${pinId}_${Date.now()}${fileExtension}`,
+    );
 
     const params = {
-      Bucket: process.env.AWS_S3_WTF_BUCKET_NAME,
+      Bucket: process.env.AWS_S3_BUCKET_NAME,
       Key: fileName,
       Body: fileContent,
       ContentType: contentType,
@@ -114,7 +144,7 @@ exports.uploadWtfMedia = async (filePath, mediaType, pinId) => {
     const command = new PutObjectCommand(params);
     await s3Client.send(command);
 
-    const url = `https://${process.env.AWS_S3_WTF_BUCKET_NAME}.s3.${process.env.AWS_S3_REGION}.amazonaws.com/${fileName}`;
+    const url = publicUrl(fileName);
     // WTF media uploaded successfully
 
     return {
@@ -137,9 +167,10 @@ exports.uploadWtfMedia = async (filePath, mediaType, pinId) => {
 // Upload WTF media from buffer (for direct uploads like background images)
 exports.uploadWtfMediaBuffer = async (buffer, fileName, contentType) => {
   try {
+    const key = withFolder(folder("AWS_S3_FOLDER_WTF", "wtfpins"), fileName);
     const params = {
-      Bucket: process.env.AWS_S3_WTF_BUCKET_NAME,
-      Key: fileName,
+      Bucket: process.env.AWS_S3_BUCKET_NAME,
+      Key: key,
       Body: buffer,
       ContentType: contentType,
       Metadata: {
@@ -151,7 +182,7 @@ exports.uploadWtfMediaBuffer = async (buffer, fileName, contentType) => {
     const command = new PutObjectCommand(params);
     await s3Client.send(command);
 
-    const url = `https://${process.env.AWS_S3_WTF_BUCKET_NAME}.s3.${process.env.AWS_S3_REGION}.amazonaws.com/${fileName}`;
+    const url = publicUrl(key);
     // WTF media uploaded successfully
     return url;
   } catch (error) {
@@ -176,10 +207,13 @@ exports.uploadWtfVoiceNote = async (filePath, submissionId) => {
     const fileContent = fs.readFileSync(filePath);
     const contentType = getContentType(filePath);
     const fileExtension = path.extname(filePath);
-    const fileName = `wtf/voice-notes/${submissionId}_${Date.now()}${fileExtension}`;
+    const fileName = withFolder(
+      folder("AWS_S3_FOLDER_WTF", "wtfpins"),
+      `voice-notes/${submissionId}_${Date.now()}${fileExtension}`,
+    );
 
     const params = {
-      Bucket: process.env.AWS_S3_WTF_BUCKET_NAME,
+      Bucket: process.env.AWS_S3_BUCKET_NAME,
       Key: fileName,
       Body: fileContent,
       ContentType: contentType,
@@ -193,8 +227,7 @@ exports.uploadWtfVoiceNote = async (filePath, submissionId) => {
     const command = new PutObjectCommand(params);
     await s3Client.send(command);
 
-    const region = await s3Client.config.region();
-    const url = `https://${process.env.AWS_S3_WTF_BUCKET_NAME}.s3.${region}.amazonaws.com/${fileName}`;
+    const url = publicUrl(fileName);
 
     return {
       success: true,
@@ -217,13 +250,14 @@ exports.uploadWtfVoiceNote = async (filePath, submissionId) => {
 // Generate thumbnail for WTF media
 exports.generateWtfThumbnail = async (originalKey, thumbnailKey) => {
   try {
+    originalKey = withFolder(folder("AWS_S3_FOLDER_WTF", "wtfpins"), originalKey);
+    thumbnailKey = withFolder(folder("AWS_S3_FOLDER_WTF", "wtfpins"), thumbnailKey);
     // Check if the original key is a video file
     const isVideo = /\.(mp4|webm|avi|mov|mkv)$/i.test(originalKey);
 
     if (!isVideo) {
       // For non-video files, return the original as thumbnail
-      const region = await s3Client.config.region();
-      const thumbnailUrl = `https://${process.env.AWS_S3_WTF_BUCKET_NAME}.s3.${region}.amazonaws.com/${thumbnailKey}`;
+      const thumbnailUrl = publicUrl(thumbnailKey);
 
       return {
         success: true,
@@ -239,7 +273,7 @@ exports.generateWtfThumbnail = async (originalKey, thumbnailKey) => {
 
       const result = await thumbnailService.generateThumbnailFromS3(
         s3Client,
-        process.env.AWS_S3_WTF_BUCKET_NAME,
+        process.env.AWS_S3_BUCKET_NAME,
         originalKey,
         thumbnailKey,
         {
@@ -251,8 +285,7 @@ exports.generateWtfThumbnail = async (originalKey, thumbnailKey) => {
       );
 
       if (result.success) {
-        const region = await s3Client.config.region();
-        const thumbnailUrl = `https://${process.env.AWS_S3_WTF_BUCKET_NAME}.s3.${region}.amazonaws.com/${thumbnailKey}`;
+        const thumbnailUrl = publicUrl(thumbnailKey);
 
         // Thumbnail service cleanup not needed
 
@@ -270,8 +303,7 @@ exports.generateWtfThumbnail = async (originalKey, thumbnailKey) => {
         );
 
         // Return a fallback response
-        const region = await s3Client.config.region();
-        const thumbnailUrl = `https://${process.env.AWS_S3_WTF_BUCKET_NAME}.s3.${region}.amazonaws.com/${thumbnailKey}`;
+        const thumbnailUrl = publicUrl(thumbnailKey);
 
         return {
           success: false,
@@ -287,8 +319,7 @@ exports.generateWtfThumbnail = async (originalKey, thumbnailKey) => {
       );
 
       // Return a fallback response
-      const region = await s3Client.config.region();
-      const thumbnailUrl = `https://${process.env.AWS_S3_WTF_BUCKET_NAME}.s3.${region}.amazonaws.com/${thumbnailKey}`;
+      const thumbnailUrl = publicUrl(thumbnailKey);
 
       return {
         success: false,
@@ -323,13 +354,18 @@ exports.extractS3KeyFromUrl = (s3Url) => {
 
     // For https://bucket-name.s3.region.amazonaws.com/key format
     if (url.hostname.includes(".s3.")) {
-      return pathname.startsWith("/") ? pathname.substring(1) : pathname;
+      const key = pathname.startsWith("/") ? pathname.substring(1) : pathname;
+      return decodeKey(key);
     }
 
-    // For https://s3.region.amazonaws.com/bucket-name/key format
+    // For path-style URLs:
+    // https://s3.region.amazonaws.com/bucket-name/key
+    // https://custom-s3-endpoint/bucket-name/key
     const pathParts = pathname.split("/").filter((part) => part);
     if (pathParts.length >= 2) {
-      return pathParts.slice(1).join("/"); // Remove bucket name, keep the rest as key
+      const bucketName = process.env.AWS_S3_BUCKET_NAME;
+      const keyParts = pathParts[0] === bucketName ? pathParts.slice(1) : pathParts;
+      return decodeKey(keyParts.join("/"));
     }
 
     return null;
@@ -340,11 +376,12 @@ exports.extractS3KeyFromUrl = (s3Url) => {
 };
 
 // Delete file from S3 by bucket and key
-exports.deleteFileFromS3 = async (bucketName, key) => {
+exports.deleteFileFromS3 = async (folderName, key) => {
   try {
+    const objectKey = withFolder(folderName, key);
     const params = {
-      Bucket: bucketName,
-      Key: key,
+      Bucket: process.env.AWS_S3_BUCKET_NAME,
+      Key: objectKey,
     };
 
     const command = new DeleteObjectCommand(params);
@@ -354,7 +391,7 @@ exports.deleteFileFromS3 = async (bucketName, key) => {
     return {
       success: true,
       message: "File deleted successfully",
-      key: key,
+      key: objectKey,
     };
   } catch (error) {
     console.error("Error deleting file from S3:", error);
@@ -390,9 +427,10 @@ exports.deleteWtfMedia = async (keyOrUrl) => {
         keyOrUrl: keyOrUrl,
       };
     }
+    key = withFolder(folder("AWS_S3_FOLDER_WTF", "wtfpins"), key);
 
     const params = {
-      Bucket: process.env.AWS_S3_WTF_BUCKET_NAME,
+      Bucket: process.env.AWS_S3_BUCKET_NAME,
       Key: key,
     };
 
@@ -420,8 +458,8 @@ exports.deleteWtfMedia = async (keyOrUrl) => {
 // Get WTF media URL
 exports.getWtfMediaUrl = async (key) => {
   try {
-    const region = await s3Client.config.region();
-    const url = `https://${process.env.AWS_S3_WTF_BUCKET_NAME}.s3.${region}.amazonaws.com/${key}`;
+    key = withFolder(folder("AWS_S3_FOLDER_WTF", "wtfpins"), key);
+    const url = publicUrl(key);
 
     return {
       success: true,
@@ -446,13 +484,17 @@ exports.uploadShopProductImage = async (filePath, productId) => {
     const fileContent = fs.readFileSync(filePath);
     const contentType = getContentType(filePath);
     const fileExtension = path.extname(filePath);
-    const fileName = `shop/products/${productId}_${Date.now()}${fileExtension}`;
+    const fileName = withFolder(
+      folder("AWS_S3_FOLDER_SHOP_PRODUCTS", "balagruha-shop-product-images"),
+      `${productId}_${Date.now()}${fileExtension}`,
+    );
 
     const params = {
-      Bucket: process.env.AWS_S3_BUCKET_NAME_SHOP_PRODUCTS,
+      Bucket: process.env.AWS_S3_BUCKET_NAME,
       Key: fileName,
       Body: fileContent,
       ContentType: contentType,
+      ACL: "public-read",
       Metadata: {
         "product-id": productId,
         "upload-timestamp": new Date().toISOString(),
@@ -462,7 +504,7 @@ exports.uploadShopProductImage = async (filePath, productId) => {
     const command = new PutObjectCommand(params);
     await s3Client.send(command);
 
-    const url = `https://${process.env.AWS_S3_BUCKET_NAME_SHOP_PRODUCTS}.s3.${process.env.AWS_S3_REGION}.amazonaws.com/${fileName}`;
+    const url = publicUrl(fileName);
     // Shop product image uploaded successfully
 
     return {
@@ -506,9 +548,13 @@ exports.deleteShopProductImage = async (keyOrUrl) => {
         keyOrUrl: keyOrUrl,
       };
     }
+    key = withFolder(
+      folder("AWS_S3_FOLDER_SHOP_PRODUCTS", "balagruha-shop-product-images"),
+      key,
+    );
 
     const params = {
-      Bucket: process.env.AWS_S3_BUCKET_NAME_SHOP_PRODUCTS,
+      Bucket: process.env.AWS_S3_BUCKET_NAME,
       Key: key,
     };
 
@@ -551,15 +597,19 @@ exports.generateLMSContentUploadUrl = async (fileName, fileType, mimeType, expir
     const randomStr = Math.random().toString(36).substring(7);
     const fileExtension = path.extname(fileName);
     const baseName = path.basename(fileName, fileExtension);
-    const s3Key = `lms/content/${fileType}/${baseName}_${timestamp}_${randomStr}${fileExtension}`;
+    const s3Key = withFolder(
+      folder("AWS_S3_FOLDER_LMS_CONTENT", "balagruha-lms-content"),
+      `${fileType}/${baseName}_${timestamp}_${randomStr}${fileExtension}`,
+    );
 
     // Create PutObjectCommand for presigning
     // Note: ChecksumAlgorithm must NOT be set for browser uploads
     // The AWS SDK will add checksums automatically which browsers can't compute
     const command = new PutObjectCommand({
-      Bucket: process.env.AWS_S3_BUCKET_NAME_LMS_CONTENT || process.env.AWS_S3_WTF_BUCKET_NAME, // Fallback to WTF bucket if LMS bucket not configured
+      Bucket: process.env.AWS_S3_BUCKET_NAME,
       Key: s3Key,
       ContentType: mimeType,
+      ACL: "public-read",
       Metadata: {
         'original-filename': fileName,
         'file-type': fileType,
@@ -575,9 +625,7 @@ exports.generateLMSContentUploadUrl = async (fileName, fileType, mimeType, expir
     });
 
     // Construct CDN URL (public URL after upload completes)
-    const region = await s3Client.config.region();
-    const bucketName = process.env.AWS_S3_BUCKET_NAME_LMS_CONTENT || process.env.AWS_S3_WTF_BUCKET_NAME;
-    const cdnUrl = `https://${bucketName}.s3.${region}.amazonaws.com/${s3Key}`;
+    const cdnUrl = publicUrl(s3Key);
 
     // Generated presigned upload URL
 
@@ -609,8 +657,12 @@ exports.generateLMSContentUploadUrl = async (fileName, fileType, mimeType, expir
  */
 exports.generateLMSContentDownloadUrl = async (s3Key, expiresIn = 3600) => {
   try {
+    s3Key = withFolder(
+      folder("AWS_S3_FOLDER_LMS_CONTENT", "balagruha-lms-content"),
+      s3Key,
+    );
     const command = new GetObjectCommand({
-      Bucket: process.env.AWS_S3_BUCKET_NAME_LMS_CONTENT || process.env.AWS_S3_WTF_BUCKET_NAME,
+      Bucket: process.env.AWS_S3_BUCKET_NAME,
       Key: s3Key,
     });
 
@@ -629,6 +681,67 @@ exports.generateLMSContentDownloadUrl = async (s3Key, expiresIn = 3600) => {
     return {
       success: false,
       message: 'Failed to generate download URL',
+      error: error.message,
+    };
+  }
+};
+
+/**
+ * Fetch LMS content as a stream for authenticated backend proxying.
+ * @param {string} keyOrUrl - S3 object key or stored public URL
+ * @returns {Promise<object>} - Stream and object metadata
+ */
+exports.getLMSContentObject = async (keyOrUrl) => {
+  try {
+    let s3Key = keyOrUrl;
+    if (keyOrUrl && keyOrUrl.startsWith('http')) {
+      s3Key = exports.extractS3KeyFromUrl(keyOrUrl);
+    }
+
+    if (!s3Key) {
+      return {
+        success: false,
+        message: 'No valid S3 key or URL provided',
+      };
+    }
+
+    const cleanKey = trimSlashes(s3Key);
+    const decodedKey = decodeKey(cleanKey);
+    const defaultKey = withFolder(
+      folder("AWS_S3_FOLDER_LMS_CONTENT", "balagruha-lms-content"),
+      decodedKey,
+    );
+
+    const candidateKeys = Array.from(new Set([cleanKey, decodedKey, defaultKey]));
+    let lastError = null;
+
+    for (const candidateKey of candidateKeys) {
+      try {
+        const command = new GetObjectCommand({
+          Bucket: process.env.AWS_S3_BUCKET_NAME,
+          Key: candidateKey,
+        });
+
+        const response = await s3Client.send(command);
+
+        return {
+          success: true,
+          stream: response.Body,
+          contentType: response.ContentType,
+          contentLength: response.ContentLength,
+          s3Key: candidateKey,
+        };
+      } catch (error) {
+        lastError = error;
+      }
+    }
+
+    throw lastError;
+  } catch (error) {
+    console.error('Error fetching LMS content object:', error);
+    return {
+      success: false,
+      message: 'Failed to fetch content object',
       error: error.message,
     };
   }
@@ -654,14 +767,18 @@ exports.uploadLMSContent = async (fileContent, fileName, fileType, mimeType) => 
     const randomStr = Math.random().toString(36).substring(7);
     const fileExtension = path.extname(fileName);
     const baseName = path.basename(fileName, fileExtension);
-    const s3Key = `lms/content/${fileType}/${baseName}_${timestamp}_${randomStr}${fileExtension}`;
+    const s3Key = withFolder(
+      folder("AWS_S3_FOLDER_LMS_CONTENT", "balagruha-lms-content"),
+      `${fileType}/${baseName}_${timestamp}_${randomStr}${fileExtension}`,
+    );
 
     // Upload to S3
     const command = new PutObjectCommand({
-      Bucket: process.env.AWS_S3_BUCKET_NAME_LMS_CONTENT || process.env.AWS_S3_WTF_BUCKET_NAME,
+      Bucket: process.env.AWS_S3_BUCKET_NAME,
       Key: s3Key,
       Body: content,
       ContentType: mimeType,
+      ACL: "public-read",
       Metadata: {
         'original-filename': fileName,
         'file-type': fileType,
@@ -669,15 +786,12 @@ exports.uploadLMSContent = async (fileContent, fileName, fileType, mimeType) => 
       },
     });
 
-    const bucketName = process.env.AWS_S3_BUCKET_NAME_LMS_CONTENT || process.env.AWS_S3_WTF_BUCKET_NAME;
     // Starting S3 upload
 
     await s3Client.send(command);
 
     // Construct CDN URL
-    const region = await s3Client.config.region();
-    // bucketName is already declared above
-    const cdnUrl = `https://${bucketName}.s3.${region}.amazonaws.com/${s3Key}`;
+    const cdnUrl = publicUrl(s3Key);
 
     // LMS content uploaded successfully
 
@@ -729,9 +843,13 @@ exports.deleteLMSContent = async (keyOrUrl) => {
         keyOrUrl,
       };
     }
+    key = withFolder(
+      folder("AWS_S3_FOLDER_LMS_CONTENT", "balagruha-lms-content"),
+      key,
+    );
 
     const command = new DeleteObjectCommand({
-      Bucket: process.env.AWS_S3_BUCKET_NAME_LMS_CONTENT || process.env.AWS_S3_WTF_BUCKET_NAME,
+      Bucket: process.env.AWS_S3_BUCKET_NAME,
       Key: key,
     });
 
@@ -764,9 +882,11 @@ exports.deleteLMSContent = async (keyOrUrl) => {
  */
 exports.getLMSContentUrl = async (s3Key) => {
   try {
-    const region = await s3Client.config.region();
-    const bucketName = process.env.AWS_S3_BUCKET_NAME_LMS_CONTENT || process.env.AWS_S3_WTF_BUCKET_NAME;
-    const url = `https://${bucketName}.s3.${region}.amazonaws.com/${s3Key}`;
+    s3Key = withFolder(
+      folder("AWS_S3_FOLDER_LMS_CONTENT", "balagruha-lms-content"),
+      s3Key,
+    );
+    const url = publicUrl(s3Key);
 
     return {
       success: true,

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Upload, Grid, List, Search, Filter, RefreshCw, Edit } from 'lucide-react';
 import { api } from '../../api';
 import toast from 'react-hot-toast';
+import { confirmDialog } from '../../utils/dialogs';
 import FileUploadModal from '../../components/admin/FileUploadModal';
 import FileDetailsModal from '../../components/admin/FileDetailsModal';
 import EditMetadataModal from '../../components/admin/EditMetadataModal';
@@ -105,7 +106,7 @@ export default function ContentLibrary() {
   };
 
   const handleDelete = async (fileId) => {
-    if (!window.confirm('Are you sure you want to delete this file? This action cannot be undone.')) {
+    if (!(await confirmDialog('Are you sure you want to delete this file? This action cannot be undone.', { danger: true, confirmText: 'Delete' }))) {
       return;
     }
 

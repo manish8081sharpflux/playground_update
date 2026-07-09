@@ -1,5 +1,5 @@
 // frontend/src/components/coach/grading/ArtGradingInterface.jsx
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import { api } from '../../../api';
 import GradingPanel from './GradingPanel';
@@ -7,6 +7,45 @@ import GradingPanel from './GradingPanel';
 export default function ArtGradingInterface({ submission, onClose, coachId, onNavigate, onSkip, onFlag, currentIndex, totalCount }) {
   const [zoom, setZoom] = useState(100);
   const [rotation, setRotation] = useState(0);
+  const [previewUrl, setPreviewUrl] = useState('');
+  const [previewError, setPreviewError] = useState('');
+
+  useEffect(() => {
+    let objectUrl = '';
+    let cancelled = false;
+
+    const fetchPreview = async () => {
+      try {
+        setPreviewError('');
+        setPreviewUrl('');
+        const response = await api.get(
+          `/api/v2/lms/coach/grading/submissions/${submission.id}/file`,
+          { responseType: 'blob' }
+        );
+
+        if (cancelled) return;
+        objectUrl = URL.createObjectURL(response.data);
+        setPreviewUrl(objectUrl);
+      } catch (error) {
+        console.error('Error loading artwork preview:', error);
+        if (!cancelled) {
+          setPreviewError('Unable to load artwork preview');
+          setPreviewUrl(submission.fileUrl);
+        }
+      }
+    };
+
+    if (submission?.id) {
+      fetchPreview();
+    }
+
+    return () => {
+      cancelled = true;
+      if (objectUrl) {
+        URL.revokeObjectURL(objectUrl);
+      }
+    };
+  }, [submission?.id, submission?.fileUrl]);
 
   const handleGrade = async (gradeData) => {
     try {
@@ -45,7 +84,7 @@ export default function ArtGradingInterface({ submission, onClose, coachId, onNa
   };
 
   const handleDownload = () => {
-    window.open(submission.fileUrl, '_blank');
+    window.open(previewUrl || submission.fileUrl, '_blank');
   };
 
   const handleRotate = () => {
@@ -113,10 +152,10 @@ export default function ArtGradingInterface({ submission, onClose, coachId, onNa
           </div>
 
           {/* Image Container */}
-          <div className="border border-gray-300 rounded-lg p-4 bg-gray-50 flex items-center justify-center overflow-auto"
+          <div className="relative border border-gray-300 rounded-lg p-4 bg-gray-50 flex items-center justify-center overflow-auto"
             style={{ height: '350px' }}>
             <img
-              src={submission.fileUrl}
+              src={previewUrl || submission.fileUrl}
               alt={submission.taskTitle}
               style={{
                 transform: `scale(${zoom / 100}) rotate(${rotation}deg)`,
@@ -124,6 +163,11 @@ export default function ArtGradingInterface({ submission, onClose, coachId, onNa
               }}
               className="max-w-full h-auto rounded"
             />
+            {previewError && (
+              <div className="absolute text-sm text-red-600 bg-white/90 px-3 py-2 rounded">
+                {previewError}
+              </div>
+            )}
           </div>
 
           {/* File Info */}

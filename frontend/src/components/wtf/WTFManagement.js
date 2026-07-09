@@ -23,6 +23,7 @@ import {
   RefreshCw,
 } from "lucide-react";
 import { Button } from "../ui/button.jsx";
+import { confirmDialog } from "../../utils/dialogs";
 import { Badge } from "../ui/badge.jsx";
 import CreateNewPinModal from "./CreateNewPinModal";
 import PinEditModal from "./PinEditModal";
@@ -540,7 +541,9 @@ const WTFManagementContent = ({ onToggleView }) => {
   };
 
   const handleUnpin = async (pinId) => {
-    if (window.confirm("Are you sure you want to unpin this content?")) {
+    if (await confirmDialog("Are you sure you want to unpin this content?", {
+      confirmText: "Unpin",
+    })) {
       try {
         const response = await changeWtfPinStatus(pinId, "unpinned");
         if (response.success) {
@@ -578,8 +581,9 @@ const WTFManagementContent = ({ onToggleView }) => {
 
   const handleDelete = async (pinId) => {
     if (
-      window.confirm(
-        "Are you sure you want to permanently delete this pin? This action cannot be undone."
+      await confirmDialog(
+        "Are you sure you want to permanently delete this pin? This action cannot be undone.",
+        { danger: true, confirmText: "Delete" },
       )
     ) {
       try {
@@ -699,6 +703,8 @@ const WTFManagementContent = ({ onToggleView }) => {
           setActivePins((prev) => [approvedPin, ...prev]);
         }
 
+        showToast("Pinned to Wall of Fame successfully!", "success");
+
         // Remove from submissions list and close modal
         setStudentSubmissions((prev) =>
           prev.filter((s) => s._id !== submission._id)
@@ -793,6 +799,7 @@ const WTFManagementContent = ({ onToggleView }) => {
     } catch (error) {
       console.error("Error pinning submission to WTF:", error);
       setError("Failed to pin submission to WTF. Please try again.");
+      showToast("Failed to pin submission to WTF", "error");
     }
   };
 
@@ -890,6 +897,8 @@ const WTFManagementContent = ({ onToggleView }) => {
       });
 
       if (response && response.success) {
+        showToast("Pinned to Wall of Fame successfully!", "success");
+
         // Remove the suggestion from the pending list
         setCoachSuggestions((prev) =>
           prev.filter(
@@ -1000,6 +1009,7 @@ const WTFManagementContent = ({ onToggleView }) => {
       }
     } catch (error) {
       console.error("Error pinning coach suggestion:", error);
+      showToast("Failed to pin coach suggestion", "error");
     } finally {
       setShowCoachSuggestionModal(false);
       setSelectedCoachSuggestion(null);

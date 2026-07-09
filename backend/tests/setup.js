@@ -19,6 +19,17 @@ process.env.NODE_ENV = "test";
 process.env.JWT_SECRET = "test-jwt-secret";
 process.env.MONGO_URI = "mongodb://localhost:27017/test";
 process.env.AWS_S3_BUCKET_NAME = "test-bucket";
+process.env.AWS_S3_ENDPOINT = "https://s3.test.local";
+process.env.AWS_S3_REGION = "test-region";
+process.env.AWS_S3_FOLDER_TASK_ATTACHMENTS = "balagruha-task-attachments";
+process.env.AWS_S3_FOLDER_MEDICAL_RECORDS = "student-medical-records";
+process.env.AWS_S3_FOLDER_MEDICAL_ATTACHMENTS = "student-medical-records";
+process.env.AWS_S3_FOLDER_SPORTS_TASK_ATTACHMENTS = "balagruha-sports-task-attachments";
+process.env.AWS_S3_FOLDER_REPAIR_REQUEST_ATTACHMENTS = "balagruha-repair-request-attachments";
+process.env.AWS_S3_FOLDER_PURCHASE_ORDER_ATTACHMENTS = "balagruha-purchase-order-attachments";
+process.env.AWS_S3_FOLDER_WTF = "wtfpins";
+process.env.AWS_S3_FOLDER_SHOP_PRODUCTS = "balagruha-shop-product-images";
+process.env.AWS_S3_FOLDER_LMS_CONTENT = "balagruha-lms-content";
 
 // Register User model for testing (since it's referenced in WTF models)
 const userSchema = new mongoose.Schema({

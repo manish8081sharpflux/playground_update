@@ -1,5 +1,5 @@
 // src/App.js
-import React from "react";
+import React, { useEffect } from "react";
 import {
   BrowserRouter as Router,
   Routes,
@@ -73,6 +73,7 @@ import CoachCoursesPage from "./pages/coach/CoachCoursesPage";
 import CoachCourseDetailPage from "./pages/coach/CoachCourseDetailPage";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { UserTypes, normalizeUserRole } from "./constants/userTypes";
+import { installAlertReplacement } from "./utils/dialogs";
 
 const CoachOrAdminRoute = ({ children }) => {
   const { user } = useAuth();
@@ -86,6 +87,8 @@ const CoachOrAdminRoute = ({ children }) => {
 };
 
 const App = () => {
+  useEffect(() => installAlertReplacement(), []);
+
   return (
     <>
       <Router>

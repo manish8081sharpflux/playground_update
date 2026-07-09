@@ -47,7 +47,7 @@ class PurchaseOrder {
         if (!isOfflineReq) {
           let result = await uploadFileToS3(
             file.path,
-            process.env.AWS_S3_BUCKET_NAME_PURCHASE_ORDER_ATTACHMENTS,
+            process.env.AWS_S3_FOLDER_PURCHASE_ORDER_ATTACHMENTS,
             fileName
           );
 
@@ -96,7 +96,7 @@ class PurchaseOrder {
         if (!isOfflineReq) {
           let result = await uploadFileToS3(
             file.path,
-            process.env.AWS_S3_BUCKET_NAME_PURCHASE_ORDER_ATTACHMENTS,
+            process.env.AWS_S3_FOLDER_PURCHASE_ORDER_ATTACHMENTS,
             fileName
           );
           if (result.success) {

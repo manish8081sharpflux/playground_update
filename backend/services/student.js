@@ -173,7 +173,7 @@ class Student {
               if (!isOfflineReq) {
                 let result = await uploadFileToS3(
                   fileItem,
-                  process.env.AWS_S3_BUCKET_NAME_MEDICAL_RECORDS,
+                  process.env.AWS_S3_FOLDER_MEDICAL_RECORDS,
                   fileName
                 );
                 if (result.success) {
@@ -206,7 +206,7 @@ class Student {
               if (!isOfflineReq) {
                 let result = await uploadFileToS3(
                   fileItem,
-                  process.env.AWS_S3_BUCKET_NAME_MEDICAL_RECORDS,
+                  process.env.AWS_S3_FOLDER_MEDICAL_RECORDS,
                   fileName
                 );
                 if (result.success) {
@@ -256,7 +256,7 @@ class Student {
           try {
             const s3Result = await uploadFileToS3(
               facialFile.path,
-              process.env.AWS_S3_BUCKET_NAME_USER_PHOTOS || process.env.AWS_S3_BUCKET_NAME_MEDICAL_RECORDS,
+              process.env.AWS_S3_FOLDER_MEDICAL_RECORDS,
               facialFile.filename
             );
             if (s3Result && s3Result.success) {
@@ -297,7 +297,7 @@ class Student {
           try {
             const s3Result = await uploadFileToS3(
               imagePath,
-              process.env.AWS_S3_BUCKET_NAME_USER_PHOTOS || process.env.AWS_S3_BUCKET_NAME_MEDICAL_RECORDS, // Fallback to medical bucket if user photos bucket not configured
+              process.env.AWS_S3_FOLDER_MEDICAL_RECORDS,
               fileName
             );
             if (s3Result.success) {
@@ -974,7 +974,7 @@ class Student {
               if (!isOfflineReq) {
                 let result = await uploadFileToS3(
                   fileItem,
-                  process.env.AWS_S3_BUCKET_NAME_MEDICAL_RECORDS,
+                  process.env.AWS_S3_FOLDER_MEDICAL_RECORDS,
                   fileName
                 );
                 if (result.success) {
@@ -1007,7 +1007,7 @@ class Student {
               if (!isOfflineReq) {
                 let result = await uploadFileToS3(
                   fileItem,
-                  process.env.AWS_S3_BUCKET_NAME_MEDICAL_RECORDS,
+                  process.env.AWS_S3_FOLDER_MEDICAL_RECORDS,
                   fileName
                 );
                 if (result.success) {

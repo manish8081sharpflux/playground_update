@@ -1,5 +1,6 @@
 import { useState, useCallback, useRef } from 'react';
-import { apiWithoutContentType as api, isCancel } from '../api';
+import axios from 'axios';
+import { api, apiWithoutContentType, isCancel } from '../api';
 import toast from 'react-hot-toast';
 
 /**
@@ -53,18 +54,6 @@ export default function useFileUpload() {
         }
       }));
 
-      // Create FormData to send file to backend
-      const formData = new FormData();
-      formData.append('files', file);
-
-      // Add metadata if provided
-      if (metadata.tags) {
-        formData.append('tags', JSON.stringify(metadata.tags));
-      }
-      if (metadata.description) {
-        formData.append('description', metadata.description);
-      }
-
       // Update status to uploading
       setUploads(prev => ({
         ...prev,
@@ -74,12 +63,116 @@ export default function useFileUpload() {
         }
       }));
 
-      // Upload file to backend with progress tracking and retry logic
+      try {
+        const uploadUrlResponse = await api.post('/api/v2/lms/admin/content/upload-url', {
+          fileName: file.name,
+          fileType,
+          mimeType: file.type,
+          fileSize: file.size
+        }, {
+          signal: controller.signal
+        });
+
+        if (!uploadUrlResponse.data.success) {
+          throw new Error(uploadUrlResponse.data.message || 'Could not prepare direct upload');
+        }
+
+        const { uploadUrl, cdnUrl, s3Key } = uploadUrlResponse.data;
+        let directUploadReachedStorage = false;
+
+        try {
+          await axios.put(uploadUrl, file, {
+            headers: {
+              'Content-Type': file.type,
+              'x-amz-acl': 'public-read',
+            },
+            signal: controller.signal,
+            timeout: 0,
+            transformRequest: [(data) => data],
+            onUploadProgress: (progressEvent) => {
+              const total = progressEvent.total || file.size;
+              const percentCompleted = Math.round((progressEvent.loaded * 100) / total);
+              if (percentCompleted >= 100) {
+                directUploadReachedStorage = true;
+              }
+              setUploads(prev => ({
+                ...prev,
+                [id]: {
+                  ...prev[id],
+                  progress: percentCompleted
+                }
+              }));
+            }
+          });
+          directUploadReachedStorage = true;
+        } catch (uploadError) {
+          if (!directUploadReachedStorage) {
+            throw uploadError;
+          }
+          console.warn('Direct upload reached 100% but confirmation failed; saving metadata without re-uploading.', uploadError);
+        }
+
+        const completeResponse = await api.post('/api/v2/lms/admin/content/complete-upload', {
+          fileName: file.name,
+          fileType,
+          fileUrl: cdnUrl,
+          s3Key,
+          fileSize: file.size,
+          mimeType: file.type,
+          tags: metadata.tags || [],
+          description: metadata.description || ''
+        }, {
+          signal: controller.signal
+        });
+
+        if (!completeResponse.data.success) {
+          throw new Error(completeResponse.data.message || 'Could not save uploaded file metadata');
+        }
+
+        const uploadedFile = completeResponse.data.file;
+
+        // Update status to completed
+        setUploads(prev => ({
+          ...prev,
+          [id]: {
+            ...prev[id],
+            status: 'completed',
+            progress: 100,
+            contentLibraryId: uploadedFile.id,
+            cdnUrl: uploadedFile.fileUrl,
+            s3Key: uploadedFile.s3Key
+          }
+        }));
+
+        return {
+          success: true,
+          contentLibraryId: uploadedFile.id,
+          cdnUrl: uploadedFile.fileUrl,
+          s3Key: uploadedFile.s3Key
+        };
+      } catch (directUploadError) {
+        if (isCancel(directUploadError)) throw directUploadError;
+        console.warn('Direct upload failed, falling back to backend upload:', directUploadError);
+      }
+
+      // Fallback: existing backend proxy upload path.
+      const formData = new FormData();
+      formData.append('files', file);
+
+      if (metadata.tags) {
+        formData.append('tags', JSON.stringify(metadata.tags));
+      }
+      if (metadata.description) {
+        formData.append('description', metadata.description);
+      }
+
       const uploadResponse = await retryWithBackoff(async () => {
-        return await api.post('/api/v2/lms/admin/content/upload', formData, {
-          signal: controller.signal, // Pass signal for cancellation
+        return await apiWithoutContentType.post('/api/v2/lms/admin/content/upload', formData, {
+          signal: controller.signal,
+          timeout: 0,
           onUploadProgress: (progressEvent) => {
-            const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+            const total = progressEvent.total || file.size;
+            const percentCompleted = Math.round((progressEvent.loaded * 100) / total);
             setUploads(prev => ({
               ...prev,
               [id]: {

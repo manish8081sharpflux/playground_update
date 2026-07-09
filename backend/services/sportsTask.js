@@ -155,7 +155,7 @@ class SportsTask {
             let fileName = file.replace("uploads/", "");
             let result = await uploadFileToS3(
               file,
-              process.env.AWS_S3_BUCKET_NAME_SPORTS_TASK_ATTACHMENTS,
+              process.env.AWS_S3_FOLDER_SPORTS_TASK_ATTACHMENTS,
               fileName
             );
             if (result.success) {
@@ -552,7 +552,7 @@ class SportsTask {
           if (!isOfflineReq) {
             let result = await uploadFileToS3(
               file.path,
-              process.env.AWS_S3_BUCKET_NAME_TASK_ATTACHMENTS,
+              process.env.AWS_S3_FOLDER_TASK_ATTACHMENTS,
               fileName
             );
             if (result.success) {
@@ -640,7 +640,7 @@ class SportsTask {
           if (!isOfflineReq) {
             let result = await uploadFileToS3(
               file.path,
-              process.env.AWS_S3_BUCKET_NAME_TASK_ATTACHMENTS,
+              process.env.AWS_S3_FOLDER_TASK_ATTACHMENTS,
               fileName
             );
             if (result.success) {

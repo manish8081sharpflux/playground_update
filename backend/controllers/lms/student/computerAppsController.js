@@ -5,14 +5,33 @@ const { errorLogger } = require('../../../config/pino-config');
 
 // ==================== GET APPS LIST ====================
 
-const isContentItemCompleted = (item, completedItems) => {
-  const itemId = item?._id?.toString();
-  const quizRef = item?.quizRef?._id?.toString() || item?.quizRef?.toString();
-  const metadataQuizId = item?.metadata?.quizId?._id?.toString() || item?.metadata?.quizId?.toString();
+const getQuizRefId = (item) =>
+  item?.quizRef?._id?.toString() ||
+  item?.quizRef?.toString() ||
+  item?.metadata?.quizId?._id?.toString() ||
+  item?.metadata?.quizId?.toString() ||
+  null;
 
-  return completedItems.has(itemId) ||
-    (quizRef && completedItems.has(quizRef)) ||
-    (metadataQuizId && completedItems.has(metadataQuizId));
+const getQuizRefCounts = (course) => {
+  const counts = new Map();
+  course.modules?.forEach(module => module.chapters?.forEach(chapter =>
+    (chapter.contentItems || []).forEach(item => {
+      const quizRefId = getQuizRefId(item);
+      if (quizRefId) counts.set(quizRefId, (counts.get(quizRefId) || 0) + 1);
+    })
+  ));
+  return counts;
+};
+
+const isContentItemCompleted = (item, completedItems, quizRefCounts = new Map()) => {
+  const itemId = item?._id?.toString();
+  const quizRefId = getQuizRefId(item);
+  const uniqueLegacyQuizCompletion =
+    quizRefId &&
+    quizRefCounts.get(quizRefId) === 1 &&
+    completedItems.has(quizRefId);
+
+  return completedItems.has(itemId) || uniqueLegacyQuizCompletion;
 };
 
 /**
@@ -39,6 +58,7 @@ exports.getComputerApps = async (req, res) => {
     const apps = appCourses.map(course => {
       const progress = progressMap.get(course._id.toString());
       const completedItems = new Set(progress?.completedItems?.map(i => i.itemId?.toString()).filter(Boolean) || []);
+      const quizRefCounts = getQuizRefCounts(course);
 
       // Calculate tasks count recursively
       let totalTasks = 0;
@@ -47,7 +67,7 @@ exports.getComputerApps = async (req, res) => {
         m.chapters?.forEach(c => {
           (c.contentItems || []).forEach(item => {
             totalTasks += 1;
-            if (isContentItemCompleted(item, completedItems)) {
+            if (isContentItemCompleted(item, completedItems, quizRefCounts)) {
               completedTasks += 1;
             }
           });
@@ -111,6 +131,7 @@ exports.getCourseHierarchy = async (req, res) => {
 
     const progress = await StudentProgress.findOne({ student: studentId, course: courseId }).lean();
     const completedItems = new Set(progress?.completedItems?.map(i => i.itemId?.toString()).filter(Boolean) || []);
+    const quizRefCounts = getQuizRefCounts(course);
 
     // Map Hierarchy
     const modules = course.modules.map(module => ({
@@ -120,7 +141,7 @@ exports.getCourseHierarchy = async (req, res) => {
         id: chapter._id,
         title: chapter.title,
         contentItems: chapter.contentItems.map(item => {
-          const isCompleted = isContentItemCompleted(item, completedItems);
+          const isCompleted = isContentItemCompleted(item, completedItems, quizRefCounts);
 
           return {
             id: item._id,
@@ -175,9 +196,7 @@ exports.getContentDetails = async (req, res) => {
     const progress = await StudentProgress.findOne({ student: studentId, course: courseId }).lean();
     const completedSet = new Set(progress?.completedItems?.map(i => i.itemId.toString()) || []);
 
-    const isCompleted = completedSet.has(contentId) ||
-      (content.quizRef && completedSet.has(content.quizRef.toString())) ||
-      (content.metadata?.quizId && completedSet.has(content.metadata.quizId.toString()));
+    const isCompleted = completedSet.has(contentId);
 
     let details = { ...content, isCompleted };
 
@@ -231,7 +250,7 @@ exports.getQuiz = async (req, res) => {
 exports.submitQuiz = async (req, res) => {
   try {
     const { studentId } = req.params;
-    const { quizId, answers, courseId: bodyCourseId } = req.body;
+    const { quizId, answers, courseId: bodyCourseId, contentItemId } = req.body;
 
     const Quiz = require('../../../models/Quiz');
     const Course = require('../../../models/course');
@@ -367,55 +386,67 @@ exports.submitQuiz = async (req, res) => {
     // submissions serialize on the Coin document write.
     const session = await mongoose.startSession();
     let coinsAwarded = 0;
-    let alreadyPassed = false;
+    let alreadyAttempted = false;
+    let alreadyRewarded = false;
+    const taskIdentity = contentItemId || quiz._id.toString();
 
     try {
       await session.withTransaction(async () => {
         // Fresh read inside the txn Ã¢â‚¬â€ load the coin record and scan for a
         // prior quiz_pass reward for THIS quiz.
+        alreadyAttempted = Boolean(await Submission.exists({
+          studentId,
+          courseId,
+          taskId: taskIdentity,
+          submissionType: 'quiz'
+        }).session(session));
+
         const coinRecord = await Coin.findOrCreateForUser(studentId, { session });
         const quizIdStr = quiz._id.toString();
-        alreadyPassed = coinRecord.transactions.some(t =>
-          t.source === 'quiz_pass' &&
-          t.metadata &&
-          t.metadata.quizId &&
-          t.metadata.quizId.toString() === quizIdStr
-        );
+        alreadyRewarded = coinRecord.transactions.some(t => {
+          if (t.source !== 'quiz_pass' || !t.metadata) return false;
+          if (contentItemId) {
+            return t.metadata.contentItemId?.toString() === contentItemId.toString() &&
+              t.metadata.courseId?.toString() === courseId?.toString();
+          }
+          return t.metadata.quizId?.toString() === quizIdStr;
+        });
 
         // Save Submission
         const submission = new Submission({
           studentId,
           courseId: courseId || quizId,
-          taskId: quizId,
+          taskId: taskIdentity,
           taskTitle: quiz.title,
           submissionType: 'quiz',
           fileUrl: 'quiz-submission',
           status: 'graded',
-          grade: { score, points: (passed && !alreadyPassed) ? baseCoins : 0 },
+          grade: { score, points: (!alreadyAttempted && !alreadyRewarded) ? baseCoins : 0 },
           metadata: { breakdown, answers: breakdown },
+          isFirstAttempt: !alreadyAttempted,
           submittedAt: new Date()
         });
         if (courseId) await submission.save({ session });
 
         // Award coins
-        if (passed && !alreadyPassed && baseCoins > 0) {
-          const meta = { quizId: quiz._id, courseId: courseId };
+        if (!alreadyAttempted && !alreadyRewarded && baseCoins > 0) {
+          const meta = { quizId: quiz._id, courseId: courseId, contentItemId };
           await coinRecord.addCoins(baseCoins, 'earned', `Quiz Completed: ${quiz.title}`, 'quiz_pass', meta, { session });
           await User.findByIdAndUpdate(studentId, { $inc: { coins: baseCoins } }, { session });
           coinsAwarded = baseCoins;
         }
 
         // Update Progress
-        if (passed && courseId && !alreadyPassed) {
+        if (courseId && !alreadyAttempted) {
           await StudentProgress.findOneAndUpdate(
             { student: studentId, course: courseId },
             {
               $push: {
                 completedItems: {
-                  itemId: quizId,
+                  itemId: taskIdentity,
                   itemType: 'quiz',
                   completedAt: new Date(),
-                  quizId: quizId,
+                  quizId: quiz._id,
                   score: score
                 }
               },
@@ -437,7 +468,8 @@ exports.submitQuiz = async (req, res) => {
         totalQuestions,
         passed,
         coinsEarned: coinsAwarded,
-        alreadyEarned: alreadyPassed,
+        alreadyEarned: alreadyAttempted || alreadyRewarded,
+        alreadySubmitted: alreadyAttempted,
         baseCoinsAvailable: baseCoins,
         breakdown
       }

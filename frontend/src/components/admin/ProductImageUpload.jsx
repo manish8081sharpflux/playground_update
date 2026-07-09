@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { api } from '../../api';
 import toast from 'react-hot-toast';
+import { confirmDialog } from '../../utils/dialogs';
 
 /**
  * ProductImageUpload Component - Story-14
@@ -119,7 +120,7 @@ const ProductImageUpload = ({ productId, existingImages = [], onUploadSuccess })
    * Delete an image from S3 and product
    */
   const handleDelete = async (imageId, imageUrl) => {
-    if (!window.confirm('Are you sure you want to delete this image?')) {
+    if (!(await confirmDialog('Are you sure you want to delete this image?', { danger: true, confirmText: 'Delete' }))) {
       return;
     }
 

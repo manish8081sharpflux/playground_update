@@ -16,6 +16,7 @@ import {
   X
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { confirmDialog } from '../../utils/dialogs';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { api } from '../../api';
@@ -165,7 +166,7 @@ export default function ContentItemCard({
   };
 
   const handleDelete = async () => {
-    if (!window.confirm(`Are you sure you want to delete "${contentItem.title}"?`)) {
+    if (!(await confirmDialog(`Are you sure you want to delete "${contentItem.title}"?`, { danger: true, confirmText: 'Delete' }))) {
       setShowMenu(false);
       return;
     }

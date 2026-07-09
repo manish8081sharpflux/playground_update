@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { Save, Eye, ArrowLeft, Plus, GripVertical } from 'lucide-react';
 import { api } from '../../api';
 import toast from 'react-hot-toast';
+import { confirmDialog } from '../../utils/dialogs';
 import MCQEditor from '../../components/admin/MCQEditor';
 import TrueFalseEditor from '../../components/admin/TrueFalseEditor';
 import FillBlankEditor from '../../components/admin/FillBlankEditor';
@@ -275,8 +276,8 @@ export default function QuizBuilder() {
   };
 
   // Delete question
-  const handleDeleteQuestion = (index) => {
-    if (!window.confirm('Delete this question?')) return;
+  const handleDeleteQuestion = async (index) => {
+    if (!(await confirmDialog('Delete this question?', { danger: true, confirmText: 'Delete' }))) return;
 
     const updatedQuestions = quiz.questions.filter((_, i) => i !== index);
     setQuiz({ ...quiz, questions: updatedQuestions });
