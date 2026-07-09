@@ -16,6 +16,7 @@ jest.mock('../../../models/EmotionTracking');
 jest.mock('../../../models/course');
 jest.mock('../../../models/StudentProgress');
 jest.mock('../../../models/CourseAssignment');
+jest.mock('../../../models/Submission');
 
 const User = require('../../../models/user');
 const Coin = require('../../../models/coin');
@@ -24,6 +25,7 @@ const EmotionTracking = require('../../../models/EmotionTracking');
 const Course = require('../../../models/course');
 const StudentProgress = require('../../../models/StudentProgress');
 const CourseAssignment = require('../../../models/CourseAssignment');
+const Submission = require('../../../models/Submission');
 
 const dashboardController = require('../../../controllers/lms/student/studentDashboardController');
 const { mockRequest, mockResponse } = global.testUtils;
@@ -31,6 +33,11 @@ const { mockRequest, mockResponse } = global.testUtils;
 describe('StudentDashboardController', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    Submission.find.mockReturnValue({
+      select: jest.fn().mockReturnValue({
+        lean: jest.fn().mockResolvedValue([]),
+      }),
+    });
   });
 
   // ==================== getDashboard ====================
@@ -104,6 +111,185 @@ describe('StudentDashboardController', () => {
           }),
         })
       );
+    });
+
+    it('should ignore stale completed items that are not in the course content', async () => {
+      const studentId = new mongoose.Types.ObjectId().toString();
+      const courseId = new mongoose.Types.ObjectId();
+      const contentItems = Array.from({ length: 15 }, () => ({
+        _id: new mongoose.Types.ObjectId(),
+      }));
+
+      User.findById.mockResolvedValue({
+        _id: studentId,
+        name: 'Test Student',
+        streak: 0,
+      });
+
+      Course.find.mockReturnValue({
+        lean: jest.fn().mockResolvedValue([
+          {
+            _id: courseId,
+            title: 'Computer Apps',
+            category: 'Computer Apps',
+            modules: [
+              {
+                chapters: [
+                  { contentItems },
+                ],
+              },
+            ],
+          },
+        ]),
+      });
+
+      StudentProgress.find.mockReturnValue({
+        lean: jest.fn().mockResolvedValue([
+          {
+            course: courseId,
+            status: 'in_progress',
+            completedItems: [
+              ...contentItems.slice(0, 10).map(item => ({ itemId: item._id })),
+              ...Array.from({ length: 5 }, () => ({ itemId: new mongoose.Types.ObjectId() })),
+            ],
+            lastAccessedAt: new Date(),
+            completionPercentage: 100,
+          },
+        ]),
+      });
+
+      const req = mockRequest({ params: { studentId } });
+      const res = mockResponse();
+      await dashboardController.getDashboard(req, res);
+
+      expect(res.json.mock.calls[0][0].data.courses[0]).toEqual(
+        expect.objectContaining({
+          totalTasks: 15,
+          completedTasks: 10,
+          progressPercentage: 67,
+        })
+      );
+    });
+
+    it('should count completed quiz refs against their visible content item', async () => {
+      const studentId = new mongoose.Types.ObjectId().toString();
+      const courseId = new mongoose.Types.ObjectId();
+      const contentItemId = new mongoose.Types.ObjectId();
+      const quizId = new mongoose.Types.ObjectId();
+
+      User.findById.mockResolvedValue({
+        _id: studentId,
+        name: 'Test Student',
+        streak: 0,
+      });
+
+      Course.find.mockReturnValue({
+        lean: jest.fn().mockResolvedValue([
+          {
+            _id: courseId,
+            title: 'Computer Apps',
+            category: 'Computer Apps',
+            modules: [
+              {
+                chapters: [
+                  {
+                    contentItems: [
+                      { _id: contentItemId, quizRef: { _id: quizId } },
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
+        ]),
+      });
+
+      StudentProgress.find.mockReturnValue({
+        lean: jest.fn().mockResolvedValue([
+          {
+            course: courseId,
+            status: 'in_progress',
+            completedItems: [{ itemId: quizId }],
+            lastAccessedAt: new Date(),
+            completionPercentage: 100,
+          },
+        ]),
+      });
+
+      const req = mockRequest({ params: { studentId } });
+      const res = mockResponse();
+      await dashboardController.getDashboard(req, res);
+
+      expect(res.json.mock.calls[0][0].data.courses[0]).toEqual(
+        expect.objectContaining({
+          totalTasks: 1,
+          completedTasks: 1,
+          progressPercentage: 100,
+        })
+      );
+    });
+
+    it('should count graded submissions against their visible content item', async () => {
+      const studentId = new mongoose.Types.ObjectId().toString();
+      const courseId = new mongoose.Types.ObjectId();
+      const taskId = new mongoose.Types.ObjectId();
+
+      User.findById.mockResolvedValue({
+        _id: studentId,
+        name: 'Test Student',
+        streak: 0,
+      });
+
+      Course.find.mockReturnValue({
+        lean: jest.fn().mockResolvedValue([
+          {
+            _id: courseId,
+            title: 'Spoken English',
+            category: 'Spoken English',
+            modules: [
+              {
+                chapters: [
+                  {
+                    contentItems: [
+                      { _id: taskId },
+                      { _id: new mongoose.Types.ObjectId() },
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
+        ]),
+      });
+
+      StudentProgress.find.mockReturnValue({
+        lean: jest.fn().mockResolvedValue([]),
+      });
+
+      Submission.find.mockReturnValue({
+        select: jest.fn().mockReturnValue({
+          lean: jest.fn().mockResolvedValue([
+            {
+              courseId,
+              taskId: taskId.toString(),
+            },
+          ]),
+        }),
+      });
+
+      const req = mockRequest({ params: { studentId } });
+      const res = mockResponse();
+      await dashboardController.getDashboard(req, res);
+
+      expect(res.json.mock.calls[0][0].data.courses[0]).toEqual(
+        expect.objectContaining({
+          totalTasks: 2,
+          completedTasks: 1,
+          progressPercentage: 50,
+          status: 'in_progress',
+        })
+      );
+      expect(res.json.mock.calls[0][0].data.stats.totalTasksCompleted).toBe(1);
     });
 
     it('should handle errors with 500', async () => {

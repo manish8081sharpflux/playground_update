@@ -1,4 +1,5 @@
 import React from 'react';
+import { CheckCircle } from 'lucide-react';
 
 /**
  * AppCard Component - Epic 01 Story 02
@@ -6,7 +7,8 @@ import React from 'react';
  * Shows app name, icon, progress, and status indicator
  */
 export default function AppCard({ app, isSelected, onClick }) {
-  const { id, name, icon, totalTasks, completedTasks, status } = app;
+  const { name, icon, totalTasks, completedTasks, status } = app;
+  const isCompleted = status === 'completed' || (totalTasks > 0 && completedTasks >= totalTasks);
 
   // Calculate progress
   const progressPercentage = totalTasks > 0
@@ -28,7 +30,7 @@ export default function AppCard({ app, isSelected, onClick }) {
 
   // Card styling based on status and selection
   const getCardStyles = () => {
-    const baseStyles = 'w-full p-3 mb-2 rounded-lg border cursor-pointer transition-colors';
+    const baseStyles = 'w-full p-3 mb-2 rounded-lg border cursor-pointer transition-colors relative';
 
     if (isSelected) {
       return `${baseStyles} bg-orange-50 border-l-4 border-orange-600 border-r border-t border-b border-gray-200`;
@@ -56,8 +58,14 @@ export default function AppCard({ app, isSelected, onClick }) {
       }}
       aria-label={`${name} - ${completedTasks} of ${totalTasks} tasks completed`}
     >
+      {isCompleted && (
+        <div className="absolute top-2 right-2 bg-green-500 text-white p-1 rounded-full shadow-sm" aria-hidden="true">
+          <CheckCircle size={16} />
+        </div>
+      )}
+
       {/* App Icon and Name */}
-      <div className="flex items-center mb-2">
+      <div className="flex items-center mb-2 pr-8">
         <span className="text-3xl mr-2">{icon}</span>
         <span className="text-base font-semibold text-gray-900">{name}</span>
       </div>

@@ -5,6 +5,7 @@ const EmotionTracking = require('../../../models/EmotionTracking');
 const Course = require('../../../models/course');
 const StudentProgress = require('../../../models/StudentProgress');
 const CourseAssignment = require('../../../models/CourseAssignment');
+const Submission = require('../../../models/Submission');
 const mongoose = require('mongoose');
 const { errorLogger } = require('../../../config/pino-config');
 
@@ -19,6 +20,52 @@ const { errorLogger } = require('../../../config/pino-config');
  */
 
 // ==================== DASHBOARD ====================
+
+const getIdString = (value) => {
+  if (!value) return null;
+  return value._id?.toString() || value.toString();
+};
+
+const isContentItemCompleted = (item, completedItems, gradedSubmissions = new Set()) => {
+  const itemId = getIdString(item?._id);
+  const quizRef = getIdString(item?.quizRef);
+  const metadataQuizId = getIdString(item?.metadata?.quizId);
+
+  return completedItems.has(itemId) ||
+    gradedSubmissions.has(itemId) ||
+    (quizRef && completedItems.has(quizRef)) ||
+    (quizRef && gradedSubmissions.has(quizRef)) ||
+    (metadataQuizId && completedItems.has(metadataQuizId)) ||
+    (metadataQuizId && gradedSubmissions.has(metadataQuizId));
+};
+
+const calculateCourseProgress = (course, progress, gradedSubmissions = new Set()) => {
+  const completedItems = new Set(
+    progress?.completedItems?.map(i => getIdString(i.itemId)).filter(Boolean) || []
+  );
+
+  let totalTasks = 0;
+  let completedTasks = 0;
+
+  course.modules?.forEach(module => {
+    module.chapters?.forEach(chapter => {
+      (chapter.contentItems || []).forEach(item => {
+        totalTasks += 1;
+        if (isContentItemCompleted(item, completedItems, gradedSubmissions)) {
+          completedTasks += 1;
+        }
+      });
+    });
+  });
+
+  return { totalTasks, completedTasks };
+};
+
+const getProgressStatus = (progress, totalTasks, completedTasks) => {
+  if (totalTasks > 0 && completedTasks >= totalTasks) return 'completed';
+  if (completedTasks > 0 || progress) return 'in_progress';
+  return 'not_started';
+};
 
 /**
  * @desc Get student dashboard data
@@ -47,22 +94,32 @@ exports.getDashboard = async (req, res) => {
       course: { $in: allCourses.map(c => c._id) }
     }).lean();
 
+    const gradedSubmissionRecords = await Submission.find({
+      studentId,
+      courseId: { $in: allCourses.map(c => c._id) },
+      status: 'graded'
+    }).select('courseId taskId').lean();
+
     // build course map for easy lookup
     const progressMap = new Map(progressRecords.map(p => [p.course.toString(), p]));
+    const gradedSubmissionsMap = new Map();
+    gradedSubmissionRecords.forEach(submission => {
+      const courseKey = getIdString(submission.courseId);
+      const taskId = submission.taskId?.toString();
+      if (!courseKey || !taskId) return;
+      if (!gradedSubmissionsMap.has(courseKey)) {
+        gradedSubmissionsMap.set(courseKey, new Set());
+      }
+      gradedSubmissionsMap.get(courseKey).add(taskId);
+    });
 
     // aggregated courses data
     const courses = allCourses.map(course => {
-      const progress = progressMap.get(course._id.toString());
-
-      // Calculate total tasks (content items)
-      let totalTasks = 0;
-      course.modules?.forEach(m => {
-        m.chapters?.forEach(c => {
-          totalTasks += c.contentItems?.length || 0;
-        });
-      });
-
-      const completedTasks = progress?.completedItems?.length || 0;
+      const courseId = course._id.toString();
+      const progress = progressMap.get(courseId);
+      const gradedSubmissions = gradedSubmissionsMap.get(courseId) || new Set();
+      const { totalTasks, completedTasks } = calculateCourseProgress(course, progress, gradedSubmissions);
+      const progressPercentage = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
 
       return {
         courseId: course._id,
@@ -71,8 +128,8 @@ exports.getDashboard = async (req, res) => {
         thumbnail: course.thumbnail,
         totalTasks,
         completedTasks,
-        status: progress?.status || 'not_started',
-        progressPercentage: progress ? Math.round((completedTasks / (totalTasks || 1)) * 100) : 0
+        status: getProgressStatus(progress, totalTasks, completedTasks),
+        progressPercentage
       };
     });
 
@@ -106,7 +163,7 @@ exports.getDashboard = async (req, res) => {
 
     // Stats calculations
     const stats = {
-      totalTasksCompleted: progressRecords.reduce((acc, p) => acc + (p.completedItems?.length || 0), 0),
+      totalTasksCompleted: courses.reduce((acc, course) => acc + (course.completedTasks || 0), 0),
       currentStreak: student.streak || 0, // Assuming streak is on User model
       coinsEarnedToday: 0 // Placeholder, requires Transaction log query if strictly 'today'
     };

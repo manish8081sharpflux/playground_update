@@ -136,7 +136,12 @@ export default function LifeSkillsCoursePage() {
                         // Render based on Type
                         if (item.type === 'video') {
                           return (
-                            <div key={item.id} className="bg-white border-2 border-indigo-200 rounded-xl overflow-hidden hover:shadow-lg transition-shadow flex flex-col h-full" style={{ width: '100%', flexShrink: 0 }}>
+                            <div key={item.id} className="bg-white border-2 border-indigo-200 rounded-xl overflow-hidden hover:shadow-lg transition-shadow flex flex-col h-full relative" style={{ width: '100%', flexShrink: 0 }}>
+                              {item.isCompleted && (
+                                <div className="absolute top-3 right-3 bg-green-500 text-white p-1 rounded-full shadow-sm z-10" aria-hidden="true">
+                                  <CheckCircle size={16} />
+                                </div>
+                              )}
                               <div className="bg-indigo-50 p-4 flex justify-center items-center h-48">
                                 <span className="text-6xl">🎬</span>
                               </div>
@@ -159,7 +164,12 @@ export default function LifeSkillsCoursePage() {
                           );
                         } else if (item.type === 'pdf') {
                           return (
-                            <div key={item.id} className="bg-white border-2 border-red-200 rounded-xl overflow-hidden hover:shadow-lg transition-shadow flex flex-col h-full" style={{ width: '100%', flexShrink: 0 }}>
+                            <div key={item.id} className="bg-white border-2 border-red-200 rounded-xl overflow-hidden hover:shadow-lg transition-shadow flex flex-col h-full relative" style={{ width: '100%', flexShrink: 0 }}>
+                              {item.isCompleted && (
+                                <div className="absolute top-3 right-3 bg-green-500 text-white p-1 rounded-full shadow-sm z-10" aria-hidden="true">
+                                  <CheckCircle size={16} />
+                                </div>
+                              )}
                               <div className="bg-red-50 p-4 flex justify-center items-center h-48">
                                 <span className="text-6xl">📄</span>
                               </div>
@@ -216,11 +226,16 @@ export default function LifeSkillsCoursePage() {
                           return (
                             <div
                               key={item.id}
-                              className="bg-white border-2 border-green-300 rounded-xl p-6 hover:shadow-lg transition-shadow cursor-pointer flex flex-col h-full"
+                              className="bg-white border-2 border-green-300 rounded-xl p-6 hover:shadow-lg transition-shadow cursor-pointer flex flex-col h-full relative"
                               style={{ width: '100%', flexShrink: 0 }}
                               onClick={() => handleVoiceTaskClick(item.id)}
                             >
-                              <div className="flex items-center justify-between mb-3">
+                              {item.isCompleted && (
+                                <div className="absolute top-3 right-3 bg-green-500 text-white p-1 rounded-full shadow-sm" aria-hidden="true">
+                                  <CheckCircle size={16} />
+                                </div>
+                              )}
+                              <div className="flex items-center justify-between mb-3 pr-10">
                                 <span className="px-3 py-1 bg-green-100 text-green-700 text-sm rounded-full font-medium">
                                   {item.category}
                                 </span>

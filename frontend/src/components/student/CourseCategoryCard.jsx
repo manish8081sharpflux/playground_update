@@ -1,4 +1,5 @@
 import React from 'react';
+import { CheckCircle } from 'lucide-react';
 
 /**
  * CourseCategoryCard Component - Epic 01 Story 01
@@ -24,6 +25,7 @@ export default function CourseCategoryCard({
 }) {
   // Calculate progress percentage
   const progress = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+  const isCompleted = totalTasks > 0 && completedTasks >= totalTasks;
 
   // Color class mappings (Tailwind doesn't support dynamic classes)
   const colorClasses = {
@@ -65,7 +67,7 @@ export default function CourseCategoryCard({
       className={`
         ${colors.bg} border-2 ${colors.border} rounded-xl p-6
         cursor-pointer ${colors.bgHover} transition-colors shadow-sm
-        flex flex-col items-center justify-center min-h-[200px]
+        flex flex-col items-center justify-center min-h-[200px] relative
       `}
       role="button"
       tabIndex={0}
@@ -76,6 +78,12 @@ export default function CourseCategoryCard({
       }}
       aria-label={`${courseType} - ${progress}% complete`}
     >
+      {isCompleted && (
+        <div className="absolute top-3 right-3 bg-green-500 text-white p-1 rounded-full shadow-sm" aria-hidden="true">
+          <CheckCircle size={16} />
+        </div>
+      )}
+
       {/* Icon */}
       <div className={`text-6xl mb-4 ${colors.text}`}>
         {icon}
