@@ -47,9 +47,9 @@ export default function DeactivateConfirmModal({ machine, onClose, onConfirm }) 
       aria-modal="true"
       aria-labelledby="deactivate-machine-title"
     >
-      <div className="bg-white rounded-lg max-w-md w-full">
+      <div className="bg-white rounded-lg max-w-md w-full max-h-[85vh] flex flex-col overflow-hidden">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-slate-200">
+        <div className="flex flex-shrink-0 items-center justify-between p-6 border-b border-slate-200">
           <div className="flex items-center gap-2">
             <AlertTriangle className="w-5 h-5 text-amber-500" aria-hidden="true" />
             <h2 id="deactivate-machine-title" className="text-xl font-bold text-slate-900">
@@ -67,7 +67,7 @@ export default function DeactivateConfirmModal({ machine, onClose, onConfirm }) 
         </div>
 
         {/* Body */}
-        <div className="p-6">
+        <div className="flex-1 overflow-y-scroll custom-scrollbar p-6">
           <p className="text-slate-700 mb-4">
             Are you sure you want to deactivate this machine? The machine will be marked as
             inactive and will no longer be available for use.
@@ -87,7 +87,7 @@ export default function DeactivateConfirmModal({ machine, onClose, onConfirm }) 
           </div>
 
           {/* Actions */}
-          <div className="flex items-center justify-end gap-3">
+          <div className="flex flex-shrink-0 items-center justify-end gap-3 pt-4 border-t border-slate-200">
             <button
               type="button"
               onClick={onClose}

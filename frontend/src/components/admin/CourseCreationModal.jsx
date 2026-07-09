@@ -200,9 +200,9 @@ export default function CourseCreationModal({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+      <div className="mt-14 bg-white rounded-xl shadow-2xl w-full max-w-xl max-h-[85vh] flex flex-col overflow-hidden">
         {/* Header */}
-        <div className="sticky top-0 bg-purple-50 border-b border-purple-100 px-6 py-4 flex items-center justify-between z-10">
+        <div className="bg-purple-50 border-b border-purple-100 px-6 py-4 flex flex-shrink-0 items-center justify-between">
           <h2 className="text-2xl font-bold text-purple-900">
             {isEditMode ? 'Edit Course Metadata' : 'Create New Course'}
           </h2>
@@ -216,7 +216,7 @@ export default function CourseCreationModal({
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-6">
+        <form onSubmit={handleSubmit} className="flex-1 overflow-y-scroll custom-scrollbar p-6 space-y-6">
           {/* Course Title */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -380,7 +380,7 @@ export default function CourseCreationModal({
           )}
 
           {/* Footer */}
-          <div className="sticky bottom-0 bg-white border-t border-gray-200 -mx-6 -mb-6 px-6 py-4 flex justify-end gap-3">
+          <div className="flex-shrink-0 bg-white border-t border-gray-200 -mx-6 -mb-6 px-6 py-4 flex justify-end gap-3">
             <button
               type="button"
               onClick={onClose}

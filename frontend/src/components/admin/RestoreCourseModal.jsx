@@ -53,9 +53,9 @@ export default function RestoreCourseModal({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden">
+      <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] flex flex-col overflow-hidden">
         {/* Header */}
-        <div className="bg-blue-600 text-white py-4 px-6 flex justify-between items-center">
+        <div className="bg-blue-600 text-white py-4 px-6 flex flex-shrink-0 justify-between items-center">
           <div className="flex items-center gap-3">
             <RotateCcw size={28} />
             <div>
@@ -73,7 +73,7 @@ export default function RestoreCourseModal({
         </div>
 
         {/* Content */}
-        <div className="p-8 overflow-y-auto max-h-[calc(90vh-200px)]">
+        <div className="flex-1 overflow-y-scroll custom-scrollbar p-8">
           {/* Archive Information */}
           <div className="bg-gray-50 border-2 border-gray-200 rounded-xl p-6 mb-6">
             <h3 className="text-lg font-bold text-gray-800 mb-4">Archive Information:</h3>
@@ -174,7 +174,7 @@ export default function RestoreCourseModal({
         </div>
 
         {/* Footer */}
-        <div className="bg-gray-50 px-8 py-4 flex justify-between items-center border-t border-gray-200">
+        <div className="bg-gray-50 px-8 py-4 flex flex-shrink-0 justify-between items-center border-t border-gray-200">
           <button
             onClick={onClose}
             className="px-6 py-2 text-gray-700 hover:text-gray-900 font-semibold transition-colors"

@@ -45,8 +45,10 @@ export default function FillBlankEditor({ question, onSave, onCancel }) {
       return;
     }
 
-    if (!questionData.questionText.includes('_____')) {
-      toast.error('Question must contain at least one blank (_____))');
+    const blankPattern = /_{3,}/;
+
+    if (!blankPattern.test(questionData.questionText)) {
+      toast.error('Question must contain a blank using at least 3 underscores (___)');
       return;
     }
 
@@ -72,18 +74,19 @@ export default function FillBlankEditor({ question, onSave, onCancel }) {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="sticky top-0 bg-purple-600 text-white p-6 rounded-t-lg flex justify-between items-center">
+      <div className="mt-12 bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[85vh] flex flex-col overflow-hidden">
+        <div className="flex-shrink-0 bg-purple-600 text-white p-6 rounded-t-lg flex justify-between items-center">
           <div>
             <h2 className="text-2xl font-bold">Fill in the Blank</h2>
             <p className="text-purple-100 text-sm mt-1">Use _____ for blanks to fill</p>
           </div>
+
           <button onClick={onCancel} className="p-2 hover:bg-purple-700 rounded-lg transition-colors">
             <X size={24} />
           </button>
         </div>
 
-        <div className="p-6 space-y-6">
+        <div className="flex-1 overflow-y-scroll p-6 space-y-6 custom-scrollbar">
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-2">
               Question Text * <span className="text-xs text-gray-500">(Use _____ for blank)</span>
@@ -191,7 +194,7 @@ export default function FillBlankEditor({ question, onSave, onCancel }) {
           </div>
         </div>
 
-        <div className="sticky bottom-0 bg-gray-50 px-6 py-4 rounded-b-lg flex justify-end space-x-3 border-t border-gray-200">
+        <div className="flex-shrink-0 bg-gray-50 px-6 py-4 rounded-b-lg flex justify-end space-x-3 border-t border-gray-200">
           <button
             onClick={onCancel}
             className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-100 transition-colors"
@@ -207,5 +210,5 @@ export default function FillBlankEditor({ question, onSave, onCancel }) {
         </div>
       </div>
     </div>
-  );
+  )
 }

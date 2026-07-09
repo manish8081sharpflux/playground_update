@@ -84,10 +84,10 @@ export default function VendorFormModal({ vendor, onClose, onSubmit }) {
       onClick={onClose}
     >
       <div
-        className="bg-white rounded-lg max-w-lg w-full"
+        className="bg-white rounded-lg max-w-lg w-full max-h-[90vh] flex flex-col overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between p-6 border-b border-slate-200">
+        <div className="flex flex-shrink-0 items-center justify-between p-6 border-b border-slate-200">
           <h2 className="text-xl font-bold text-slate-900">
             {isEditing ? "Edit Vendor" : "Create Vendor"}
           </h2>
@@ -100,7 +100,7 @@ export default function VendorFormModal({ vendor, onClose, onSubmit }) {
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+        <form onSubmit={handleSubmit} className="flex-1 overflow-y-scroll custom-scrollbar p-6 space-y-4">
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-1">
               Vendor Name <span className="text-red-500">*</span>
@@ -174,7 +174,7 @@ export default function VendorFormModal({ vendor, onClose, onSubmit }) {
             </label>
           </div>
 
-          <div className="flex items-center justify-end gap-3 pt-2">
+          <div className="flex flex-shrink-0 items-center justify-end gap-3 pt-4 border-t border-slate-200">
             <button
               type="button"
               onClick={onClose}

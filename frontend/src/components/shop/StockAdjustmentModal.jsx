@@ -99,9 +99,9 @@ export default function StockAdjustmentModal({ product, onClose, onSuccess }) {
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg max-w-md w-full max-h-[90vh] flex flex-col">
+      <div className="bg-white rounded-lg max-w-md w-full max-h-[90vh] flex flex-col overflow-hidden">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-slate-200 flex-shrink-0">
+        <div className="flex flex-shrink-0 items-center justify-between p-6 border-b border-slate-200">
           <h2 className="text-xl font-bold text-slate-900">Adjust Stock</h2>
           <button
             onClick={onClose}
@@ -113,7 +113,7 @@ export default function StockAdjustmentModal({ product, onClose, onSuccess }) {
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-4 overflow-y-auto flex-1">
+        <form onSubmit={handleSubmit} className="flex-1 overflow-y-scroll custom-scrollbar p-6 space-y-4">
           {/* Product Info */}
           <div className="bg-slate-50 rounded-lg p-4 border border-slate-200">
             <div className="flex items-center gap-3 mb-3">

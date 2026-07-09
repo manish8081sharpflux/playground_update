@@ -1045,6 +1045,29 @@
     background-color: #fff3d8;
 }
 
+.student-search-container {
+    padding: 10px 12px;
+    background-color: #fff3d8;
+    border-bottom: 1px solid #ffe0a3;
+}
+
+.student-search-container input {
+    width: 100%;
+    min-height: 38px;
+    border: 1px solid #ffb347;
+    border-radius: 8px;
+    padding: 8px 12px;
+    color: #4b3668;
+    background: #ffffff;
+    font-size: 0.95rem;
+    outline: none;
+}
+
+.student-search-container input:focus {
+    border-color: #6a4c93;
+    box-shadow: 0 0 0 3px rgba(106, 76, 147, 0.14);
+}
+
 .student-list {
     padding: 5px 0;
     max-height: 320px;

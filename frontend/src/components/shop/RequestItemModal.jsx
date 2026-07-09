@@ -140,8 +140,8 @@ export default function RequestItemModal({ product, onClose }) {
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg max-w-md w-full shadow-xl">
-        <div className="flex items-center justify-between p-4 border-b border-slate-200">
+      <div className="bg-white rounded-lg max-w-md w-full max-h-[90vh] flex flex-col overflow-hidden shadow-xl">
+        <div className="flex flex-shrink-0 items-center justify-between p-4 border-b border-slate-200">
           <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
             <Package className="w-5 h-5 text-purple-600" />
             Request Item
@@ -151,7 +151,7 @@ export default function RequestItemModal({ product, onClose }) {
           </button>
         </div>
 
-        <div className="p-4 bg-slate-50 flex gap-3 border-b border-slate-200">
+        <div className="flex-shrink-0 p-4 bg-slate-50 flex gap-3 border-b border-slate-200">
           <div className="w-16 h-16 bg-white rounded border border-slate-200 flex-shrink-0 overflow-hidden">
             <img
               src={product.primaryImageUrl || product.imageUrl || "/placeholder-product.png"}
@@ -166,7 +166,7 @@ export default function RequestItemModal({ product, onClose }) {
           </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-4 space-y-4">
+        <form onSubmit={handleSubmit} className="flex-1 overflow-y-scroll custom-scrollbar p-4 space-y-4">
           {error && (
             <div className="bg-red-50 text-red-600 p-3 rounded-md text-sm flex items-start gap-2">
               <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
@@ -268,7 +268,7 @@ export default function RequestItemModal({ product, onClose }) {
             </div>
           )}
 
-          <div className="flex justify-end gap-3 pt-2">
+          <div className="flex flex-shrink-0 justify-end gap-3 pt-4 border-t border-slate-200">
             <button
               type="button"
               onClick={onClose}

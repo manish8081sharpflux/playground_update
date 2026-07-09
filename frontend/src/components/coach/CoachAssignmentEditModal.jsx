@@ -299,8 +299,8 @@ export default function CoachAssignmentEditModal({ isOpen, onClose, assignment, 
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white mt-16 rounded-lg shadow-xl max-w-3xl w-full max-h-[85vh] overflow-y-auto">
-        <div className="bg-purple-600 text-white px-6 py-4 flex items-center justify-between rounded-t-lg">
+      <div className="bg-white mt-16 rounded-lg shadow-xl max-w-3xl w-full max-h-[85vh] flex flex-col overflow-hidden">
+        <div className="bg-blue-600 text-white px-6 py-4 flex flex-shrink-0 items-center justify-between rounded-t-lg">
           <div>
             <h2 className="text-2xl font-bold">Edit Course Assignment</h2>
             <p className="text-purple-100 text-sm mt-1">Update course, assignees, due date, and status</p>
@@ -310,7 +310,7 @@ export default function CoachAssignmentEditModal({ isOpen, onClose, assignment, 
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-6">
+        <form onSubmit={handleSubmit} className="flex-1 overflow-y-scroll custom-scrollbar p-6 space-y-6">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Select Course <span className="text-red-500">*</span></label>
             <select

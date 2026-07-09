@@ -280,9 +280,9 @@ export default function CourseAssignmentModal({ isOpen, onClose, coachId, onAssi
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="mt-12 bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[85vh] overflow-y-auto">
+      <div className="mt-12 bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[85vh] flex flex-col overflow-hidden">
         {/* Header */}
-        <div className="bg-blue-600 text-white px-6 py-4 flex items-center justify-between rounded-t-lg">
+        <div className="bg-blue-600 text-white px-6 py-4 flex flex-shrink-0 items-center justify-between rounded-t-lg">
           <h2 className="text-2xl font-bold">Assign Course</h2>
           <button
             onClick={handleClose}
@@ -293,7 +293,7 @@ export default function CourseAssignmentModal({ isOpen, onClose, coachId, onAssi
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-6">
+        <form onSubmit={handleSubmit} className="flex-1 overflow-y-scroll custom-scrollbar p-6 space-y-6">
           {/* Course Selection */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">

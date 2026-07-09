@@ -49,9 +49,9 @@ export default function UnpublishConfirmationModal({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden">
+      <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] flex flex-col overflow-hidden">
         {/* Header */}
-        <div className="bg-yellow-600 text-white py-4 px-6 flex justify-between items-center">
+        <div className="bg-yellow-600 text-white py-4 px-6 flex flex-shrink-0 justify-between items-center">
           <div>
             <h2 className="text-2xl font-bold">Unpublish Course</h2>
             <p className="text-yellow-100 text-sm mt-1">{course?.title}</p>
@@ -66,7 +66,7 @@ export default function UnpublishConfirmationModal({
         </div>
 
         {/* Content */}
-        <div className="p-8 overflow-y-auto max-h-[calc(90vh-200px)]">
+        <div className="flex-1 overflow-y-scroll custom-scrollbar p-8">
           {/* Warning Message */}
           <div className="flex items-start gap-3 mb-6 p-4 bg-yellow-50 border-2 border-yellow-200 rounded-lg">
             <AlertTriangle className="text-yellow-600 mt-1" size={24} />
@@ -147,7 +147,7 @@ export default function UnpublishConfirmationModal({
         </div>
 
         {/* Footer */}
-        <div className="bg-gray-50 px-8 py-4 flex justify-between items-center border-t border-gray-200">
+        <div className="bg-gray-50 px-8 py-4 flex flex-shrink-0 justify-between items-center border-t border-gray-200">
           <button
             onClick={onClose}
             className="px-6 py-2 text-gray-700 hover:text-gray-900 font-semibold transition-colors"
