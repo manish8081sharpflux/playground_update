@@ -20,9 +20,9 @@ dayjs.extend(isSameOrBefore);
 
 export default function RepairManagement() {
   const [isInitialLoading, setIsInitialLoading] = useState(true);
-const [isRefreshing, setIsRefreshing] = useState(false);
-const [mutatingId, setMutatingId] = useState(null);
-const [fetchError, setFetchError] = useState(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [mutatingId, setMutatingId] = useState(null);
+  const [fetchError, setFetchError] = useState(null);
   const [showRepairModal, setShowRepairModal] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
   const [repairRequests, setRepairRequests] = useState([]);
@@ -190,7 +190,7 @@ const [fetchError, setFetchError] = useState(null);
             : "Estimated cost must be greater than 0",
           "error"
         );
-        setLoading(false);
+        setIsRefreshing(false);
         return;
       }
 
@@ -484,6 +484,20 @@ const [fetchError, setFetchError] = useState(null);
     // --- 4. Save ---
     doc.save("RepairRequests.pdf");
   };
+
+  const renderSkeletonRows = (rowCount = 5, columnCount = 8) => (
+    <tbody>
+      {Array.from({ length: rowCount }).map((_, rowIndex) => (
+        <tr key={`skeleton-row-${rowIndex}`}>
+          {Array.from({ length: columnCount }).map((_, columnIndex) => (
+            <td key={`skeleton-cell-${rowIndex}-${columnIndex}`}>
+              <div className="skeleton-cell">&nbsp;</div>
+            </td>
+          ))}
+        </tr>
+      ))}
+    </tbody>
+  );
 
   return (
     <div style={{ width: "100%", margin: "20px" }}>

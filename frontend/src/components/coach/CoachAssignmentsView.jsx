@@ -270,6 +270,7 @@ export default function CoachAssignmentsView({ coachId, coachName, balagruhaName
               <option value="expired">Expired</option>
               <option value="cancelled">Cancelled</option>
             </select>
+            </div>
 
           </div>
         </div>
@@ -470,5 +471,5 @@ export default function CoachAssignmentsView({ coachId, coachName, balagruhaName
         />
       )}
     </div>
-  );
+  )
 }
