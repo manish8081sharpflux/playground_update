@@ -70,6 +70,7 @@ function AdminDashboard() {
   const [balagruhaOfCoach, setBalagruhaOfCoach] = useState([]);
   const [showStudentDropdown, setShowStudentDropdown] = useState(false);
   const [balagruhaStudents, setBalagruhaStudents] = useState([]);
+  const [studentSearchQuery, setStudentSearchQuery] = useState("");
   const [selectedStudents, setSelectedStudents] = useState([]);
   const [medicalIssuesData, setMedicalIssuesData] = useState();
   const [studentUserId, setStudentUserId] = useState([]);
@@ -177,6 +178,7 @@ function AdminDashboard() {
       // Set students for the selected balagruha
       const balagruhaStudentsList = response?.data?.studentList || [];
       setBalagruhaStudents(balagruhaStudentsList);
+      setStudentSearchQuery("");
       setShowStudentDropdown(true);
     } catch (error) {
       console.error("Error fetching student list:", error);
@@ -908,6 +910,25 @@ function AdminDashboard() {
     student?.studentName ||
     `${student?.firstName || ""} ${student?.lastName || ""}`.trim() ||
     "-";
+
+  const normalizedStudentSearchQuery = studentSearchQuery.trim().toLowerCase();
+  const filteredBalagruhaStudents = balagruhaStudents.filter((student) => {
+    if (!normalizedStudentSearchQuery) return true;
+
+    const searchableValues = [
+      getStudentDisplayName(student),
+      student?.userId,
+      student?.studentId,
+      student?.admissionNumber,
+      student?.rollNumber,
+      student?._id,
+      getStudentUserId(student),
+    ];
+
+    return searchableValues.some((value) =>
+      String(value || "").toLowerCase().includes(normalizedStudentSearchQuery)
+    );
+  });
 
   const getBalagruhaDisplayName = (item) => {
     if (Array.isArray(item?.balagruhaNames) && item.balagruhaNames.length > 0) {
@@ -1791,32 +1812,46 @@ function AdminDashboard() {
                                 </div> */}
 
                 {showStudentDropdown && (
-                  <div className="student-list">
-                    {balagruhaStudents.length > 0 ? (
-                      balagruhaStudents?.map((student) => (
-                        <div key={student._id} className="student-item">
-                          <label className="checkbox-container">
-                            <input
-                              type="checkbox"
-                              checked={selectedStudents?.includes(getId(student._id))}
-                              onChange={() =>
-                                handleStudentCheckboxChange(
-                                  student._id,
-                                  getStudentUserId(student)
-                                )
-                              }
-                            />
-                            <span className="checkmark"></span>
-                            {student.name}
-                          </label>
+                  <>
+                    <div className="student-search-container">
+                      <input
+                        type="search"
+                        value={studentSearchQuery}
+                        onChange={(event) => setStudentSearchQuery(event.target.value)}
+                        placeholder="Search students"
+                        aria-label="Search students"
+                      />
+                    </div>
+
+                    <div className="student-list">
+                      {filteredBalagruhaStudents.length > 0 ? (
+                        filteredBalagruhaStudents.map((student) => (
+                          <div key={student._id} className="student-item">
+                            <label className="checkbox-container">
+                              <input
+                                type="checkbox"
+                                checked={selectedStudents?.includes(getId(student._id))}
+                                onChange={() =>
+                                  handleStudentCheckboxChange(
+                                    student._id,
+                                    getStudentUserId(student)
+                                  )
+                                }
+                              />
+                              <span className="checkmark"></span>
+                              {getStudentDisplayName(student)}
+                            </label>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="no-students-message">
+                          {balagruhaStudents.length > 0
+                            ? "No students match your search"
+                            : "No students found for this balagruha"}
                         </div>
-                      ))
-                    ) : (
-                      <div className="no-students-message">
-                        No students found for this balagruha
-                      </div>
-                    )}
-                  </div>
+                      )}
+                    </div>
+                  </>
                 )}
               </div>
             </div>
