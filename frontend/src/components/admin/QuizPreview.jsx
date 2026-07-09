@@ -23,9 +23,9 @@ export default function QuizPreview({ quiz, onClose }) {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+      <div className="mt-16 bg-white rounded-lg shadow-xl max-w-xl w-full max-h-[85vh] flex flex-col overflow-hidden">
         {/* Header */}
-        <div className="sticky top-0 bg-purple-600 text-white p-6 rounded-t-lg">
+        <div className="bg-purple-600 text-white p-6 rounded-t-lg flex-shrink-0">
           <div className="flex justify-between items-center">
             <div>
               <h2 className="text-2xl font-bold">Quiz Preview: {quiz.title}</h2>
@@ -45,7 +45,7 @@ export default function QuizPreview({ quiz, onClose }) {
         </div>
 
         {/* Question */}
-        <div className="p-8">
+        <div className="flex-1 overflow-y-scroll custom-scrollbar p-8">
           <div className="mb-6">
             <div className="text-lg font-bold text-gray-800 mb-2">
               Question {currentQuestion + 1} ({question.points} points)
@@ -105,7 +105,7 @@ export default function QuizPreview({ quiz, onClose }) {
         </div>
 
         {/* Navigation */}
-        <div className="sticky bottom-0 bg-gray-50 px-6 py-4 rounded-b-lg flex justify-between items-center border-t border-gray-200">
+        <div className="bg-gray-50 px-6 py-4 rounded-b-lg flex flex-shrink-0 justify-between items-center border-t border-gray-200">
           <button
             onClick={handlePrevious}
             disabled={currentQuestion === 0}

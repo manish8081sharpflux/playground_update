@@ -66,9 +66,9 @@ export default function FileDetailsModal({ file, isOpen, onClose }) {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+      <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] flex flex-col overflow-hidden">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-200 bg-purple-50">
+        <div className="flex flex-shrink-0 items-center justify-between p-6 border-b border-gray-200 bg-purple-50">
           <div className="flex items-center space-x-3">
             <span className="text-3xl">{getFileTypeIcon(file.fileType)}</span>
             <div>
@@ -85,7 +85,7 @@ export default function FileDetailsModal({ file, isOpen, onClose }) {
         </div>
 
         {/* Content */}
-        <div className="p-6 space-y-6">
+        <div className="flex-1 overflow-y-scroll custom-scrollbar p-6 space-y-6">
           {/* CDN URL Section */}
           <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
             <div className="flex items-center justify-between mb-2">
@@ -241,7 +241,7 @@ export default function FileDetailsModal({ file, isOpen, onClose }) {
         </div>
 
         {/* Footer */}
-        <div className="flex justify-end space-x-3 p-6 border-t border-gray-200 bg-gray-50">
+        <div className="flex flex-shrink-0 justify-end space-x-3 p-6 border-t border-gray-200 bg-gray-50">
           <button
             onClick={onClose}
             className="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"

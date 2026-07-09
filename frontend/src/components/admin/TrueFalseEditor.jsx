@@ -27,8 +27,8 @@ export default function TrueFalseEditor({ question, onSave, onCancel }) {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="sticky top-0 bg-purple-600 text-white p-6 rounded-t-lg flex justify-between items-center">
+      <div className="mt-12 bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[85vh] flex flex-col overflow-hidden">
+        <div className="bg-purple-600 text-white p-6 rounded-t-lg flex flex-shrink-0 justify-between items-center">
           <div>
             <h2 className="text-2xl font-bold">True / False</h2>
             <p className="text-purple-100 text-sm mt-1">Statement verification question</p>
@@ -38,7 +38,7 @@ export default function TrueFalseEditor({ question, onSave, onCancel }) {
           </button>
         </div>
 
-        <div className="p-6 space-y-6">
+        <div className="flex-1 overflow-y-scroll p-6 space-y-6 custom-scrollbar">
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-2">Statement *</label>
             <textarea
@@ -119,7 +119,7 @@ export default function TrueFalseEditor({ question, onSave, onCancel }) {
           </div>
         </div>
 
-        <div className="sticky bottom-0 bg-gray-50 px-6 py-4 rounded-b-lg flex justify-end space-x-3 border-t border-gray-200">
+        <div className="bg-gray-50 px-6 py-4 rounded-b-lg flex flex-shrink-0 justify-end space-x-3 border-t border-gray-200">
           <button
             onClick={onCancel}
             className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-100 transition-colors"

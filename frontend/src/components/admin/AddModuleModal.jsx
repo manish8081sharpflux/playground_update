@@ -57,9 +57,9 @@ export default function AddModuleModal({ isOpen, onClose, onAdd }) {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl shadow-2xl w-full max-w-md">
+      <div className="bg-white rounded-xl shadow-2xl w-full max-w-md max-h-[85vh] flex flex-col overflow-hidden">
         {/* Header */}
-        <div className="bg-purple-50 border-b border-purple-100 px-6 py-4 flex items-center justify-between">
+        <div className="bg-purple-50 border-b border-purple-100 px-6 py-4 flex flex-shrink-0 items-center justify-between">
           <h3 className="text-xl font-bold text-purple-900">Add New Module</h3>
           <button
             onClick={onClose}
@@ -71,7 +71,7 @@ export default function AddModuleModal({ isOpen, onClose, onAdd }) {
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+        <form onSubmit={handleSubmit} className="flex-1 overflow-y-scroll custom-scrollbar p-6 space-y-4">
           {/* Module Title */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -106,7 +106,7 @@ export default function AddModuleModal({ isOpen, onClose, onAdd }) {
           </div>
 
           {/* Footer */}
-          <div className="flex justify-end gap-3 pt-4">
+          <div className="flex flex-shrink-0 justify-end gap-3 pt-4 border-t border-gray-200">
             <button
               type="button"
               onClick={onClose}

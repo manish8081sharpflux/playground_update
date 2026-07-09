@@ -159,12 +159,12 @@ export default function AddContentItemModal({ isOpen, onClose, onAdd }) {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-xl shadow-2xl w-full max-w-md p-6 max-h-[90vh] overflow-y-auto">
-        <div className="flex items-center justify-between mb-4">
+      <div className="bg-white rounded-xl shadow-2xl w-full max-w-md max-h-[90vh] flex flex-col overflow-hidden">
+        <div className="flex flex-shrink-0 items-center justify-between p-6 pb-4 border-b border-gray-200">
           <h3 className="text-xl font-bold text-blue-900">Add Content Item</h3>
           <button onClick={onClose}><X size={24} /></button>
         </div>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="flex-1 overflow-y-scroll custom-scrollbar p-6 space-y-4">
           <div>
             <label className="block text-sm font-medium mb-1">Content Type *</label>
             <select
@@ -376,7 +376,7 @@ export default function AddContentItemModal({ isOpen, onClose, onAdd }) {
             </div>
           )}
 
-          <div className="flex justify-end gap-3 mt-6">
+          <div className="flex flex-shrink-0 justify-end gap-3 pt-4 border-t border-gray-200">
             <button type="button" onClick={onClose} className="px-4 py-2 bg-gray-300 rounded-lg hover:bg-gray-400 transition-colors">Cancel</button>
             <button
               type="submit"

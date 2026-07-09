@@ -56,9 +56,9 @@ const PublishTranslationsModal = ({ isOpen, onClose, courseId, progress }) => {
 
       {/* Modal */}
       <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
-        <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full p-8 max-h-[90vh] overflow-y-auto">
+        <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] flex flex-col overflow-hidden">
           {/* Header */}
-          <div className="flex justify-between items-center mb-6">
+          <div className="flex flex-shrink-0 justify-between items-center p-8 pb-6 border-b border-gray-200">
             <h2 className="text-2xl font-bold text-gray-800">Publish Translations</h2>
             <button
               onClick={() => !publishing && onClose(false)}
@@ -69,6 +69,7 @@ const PublishTranslationsModal = ({ isOpen, onClose, courseId, progress }) => {
             </button>
           </div>
 
+          <div className="flex-1 overflow-y-scroll custom-scrollbar p-8">
           {/* Translation Summary */}
           <div className="mb-6">
             <h3 className="text-lg font-semibold text-gray-700 mb-4">Translation Summary:</h3>
@@ -197,8 +198,10 @@ const PublishTranslationsModal = ({ isOpen, onClose, courseId, progress }) => {
             </div>
           )}
 
+          </div>
+
           {/* Action Buttons */}
-          <div className="flex justify-end gap-4">
+          <div className="flex flex-shrink-0 justify-end gap-4 p-8 pt-4 border-t border-gray-200">
             <button
               onClick={() => onClose(false)}
               disabled={publishing}

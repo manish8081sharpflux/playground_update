@@ -62,6 +62,52 @@ export default function BulkOperationModal({
   const config = getOperationConfig();
   const Icon = config.icon;
 
+  const formatErrorDetail = (detail) => {
+    if (!detail) return "";
+    if (typeof detail === "string") return detail;
+    if (Array.isArray(detail)) {
+      return detail.map(formatErrorDetail).filter(Boolean).join("; ");
+    }
+    if (typeof detail === "object") {
+      return (
+        detail.message ||
+        detail.error ||
+        detail.msg ||
+        detail.reason ||
+        detail.detail ||
+        Object.entries(detail)
+          .map(([key, value]) => `${key}: ${formatErrorDetail(value)}`)
+          .filter(Boolean)
+          .join("; ")
+      );
+    }
+    return String(detail);
+  };
+
+  const getBulkOperationErrorMessage = (error) => {
+    const data = error?.response?.data;
+    const details = [
+      typeof data === "string" ? data : null,
+      data?.message,
+      data?.errors,
+      data?.error,
+      data?.details,
+      data?.validationErrors,
+    ]
+      .map(formatErrorDetail)
+      .filter(Boolean);
+
+    if (details.length > 0) {
+      return Array.from(new Set(details)).join(" - ");
+    }
+
+    if (error?.message && !/^Request failed with status code/i.test(error.message)) {
+      return error.message;
+    }
+
+    return "The server did not return a detailed error message.";
+  };
+
   const executeBulkOperation = async () => {
     setProcessing(true);
     const operationResults = {
@@ -100,7 +146,7 @@ export default function BulkOperationModal({
         operationResults.failed.push({
           courseId: course._id,
           title: course.title,
-          error: error.response?.data?.error || error.message
+          error: getBulkOperationErrorMessage(error)
         });
       }
     }
@@ -135,9 +181,9 @@ export default function BulkOperationModal({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden">
+      <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] flex flex-col overflow-hidden">
         {/* Header */}
-        <div className={`bg-${config.color}-600 text-white py-4 px-6 flex justify-between items-center`}>
+        <div className={`bg-${config.color}-600 text-white py-4 px-6 flex flex-shrink-0 justify-between items-center`}>
           <div className="flex items-center gap-3">
             <Icon size={28} />
             <h2 className="text-2xl font-bold">{config.title}</h2>
@@ -153,7 +199,7 @@ export default function BulkOperationModal({
         </div>
 
         {/* Content */}
-        <div className="p-8 overflow-y-auto max-h-[calc(90vh-200px)]">
+        <div className="flex-1 overflow-y-scroll custom-scrollbar p-8">
           {!processing && !results && (
             <>
               {/* Confirmation */}
@@ -269,7 +315,7 @@ export default function BulkOperationModal({
         </div>
 
         {/* Footer */}
-        <div className="bg-gray-50 px-8 py-4 flex justify-between items-center border-t border-gray-200">
+        <div className="bg-gray-50 px-8 py-4 flex flex-shrink-0 justify-between items-center border-t border-gray-200">
           {!results ? (
             <>
               <button

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Search, Filter, MoreVertical, Edit, Copy, Trash2, Eye, Archive, RotateCcw } from 'lucide-react';
+import { Plus, Filter, MoreVertical, Edit, Copy, Trash2, Eye, Archive, RotateCcw, ArrowLeft } from 'lucide-react';
 import { api } from '../../api';
 import toast from 'react-hot-toast';
 import LoadingState from '../../components/common/LoadingState';
@@ -71,6 +71,10 @@ export default function QuizDashboard() {
     fetchQuizzes();
     fetchStats();
   }, [statusFilter, searchQuery, sortBy]);
+
+  const handleBackToCourses = () => {
+    navigate('/admin/courses');
+  };
 
   // Create new quiz
   const handleCreateQuiz = () => {
@@ -186,6 +190,21 @@ export default function QuizDashboard() {
     return badges[status] || badges.draft;
   };
 
+  const sortedQuizzes = [...(quizzes || [])].sort((a, b) => {
+    const titleA = (a.title || '').toLowerCase();
+    const titleB = (b.title || '').toLowerCase();
+
+    if (sortBy === 'title_az') {
+      return titleA.localeCompare(titleB);
+    }
+
+    if (sortBy === 'title_za') {
+      return titleB.localeCompare(titleA);
+    }
+
+    return 0;
+  });
+
   return (
     <div className="min-h-screen bg-gray-50 w-full pb-12">
       <div className="bg-purple-600 text-white p-6 shadow-md">
@@ -194,13 +213,22 @@ export default function QuizDashboard() {
             <h1 className="text-3xl font-bold">Quiz Management</h1>
             <p className="text-purple-100 mt-1">Create and manage quizzes for your courses</p>
           </div>
-          <button
-            onClick={handleCreateQuiz}
-            className="bg-white text-purple-600 px-6 py-3 rounded-lg font-semibold hover:bg-purple-50 transition-colors flex items-center space-x-2"
-          >
-            <Plus size={20} />
-            <span>Create New Quiz</span>
-          </button>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={handleBackToCourses}
+              className="bg-purple-700 text-white px-5 py-3 rounded-lg font-semibold hover:bg-purple-800 transition-colors flex items-center space-x-2 border border-purple-400"
+            >
+              <ArrowLeft size={20} />
+              <span>Back to Courses</span>
+            </button>
+            <button
+              onClick={handleCreateQuiz}
+              className="bg-white text-purple-600 px-6 py-3 rounded-lg font-semibold hover:bg-purple-50 transition-colors flex items-center space-x-2"
+            >
+              <Plus size={20} />
+              <span>Create New Quiz</span>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -245,7 +273,7 @@ export default function QuizDashboard() {
             {/* Search */}
             <div className="flex-1 md:mx-4">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+                {/* <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} /> */}
                 <input
                   type="text"
                   placeholder="Search quizzes..."
@@ -288,7 +316,7 @@ export default function QuizDashboard() {
               </button>
             </div>
           ) : (
-            (quizzes || []).map((quiz) => (
+            sortedQuizzes.map((quiz) => (
               <div key={quiz._id} className="bg-white p-6 rounded-lg shadow hover:shadow-lg transition-shadow">
                 <div className="flex items-start justify-between">
                   <div className="flex-1">

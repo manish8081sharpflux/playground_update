@@ -65,8 +65,8 @@ export default function QuestionBankModal({ onClose, onAddQuestions }) {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg shadow-xl max-w-5xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="sticky top-0 bg-purple-600 text-white p-6 rounded-t-lg flex justify-between items-center">
+      <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[85vh] flex flex-col overflow-hidden">
+        <div className="bg-purple-600 text-white p-6 rounded-t-lg flex flex-shrink-0 justify-between items-center">
           <div>
             <h2 className="text-2xl font-bold">Question Bank</h2>
             <p className="text-purple-100 text-sm mt-1">Browse and add questions from your library</p>
@@ -76,13 +76,13 @@ export default function QuestionBankModal({ onClose, onAddQuestions }) {
           </button>
         </div>
 
-        <div className="p-6">
+        <div className="flex-1 overflow-y-scroll custom-scrollbar p-6">
           {/* Filters */}
           <div className="flex items-center space-x-3 mb-4">
             <select
               value={typeFilter}
               onChange={(e) => setTypeFilter(e.target.value)}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+              className="px-4 py-2 w-32 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
             >
               <option value="all">All Types</option>
               <option value="mcq_single">MCQ Single</option>
@@ -92,13 +92,19 @@ export default function QuestionBankModal({ onClose, onAddQuestions }) {
             </select>
 
             <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+              <Search
+                className="absolute top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none z-10"
+                style={{ left: '16px' }}
+                size={20}
+              />
+
               <input
                 type="text"
                 placeholder="Search questions..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+                style={{ paddingLeft: '48px' }}
+                className="w-full pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:outline-none"
               />
             </div>
           </div>
@@ -150,7 +156,7 @@ export default function QuestionBankModal({ onClose, onAddQuestions }) {
           )}
         </div>
 
-        <div className="sticky bottom-0 bg-gray-50 px-6 py-4 rounded-b-lg flex justify-between items-center border-t border-gray-200">
+        <div className="bg-gray-50 px-6 py-4 rounded-b-lg flex flex-shrink-0 justify-between items-center border-t border-gray-200">
           <div className="text-sm text-gray-600">
             {selectedQuestions.length} question(s) selected
           </div>

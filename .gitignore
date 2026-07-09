@@ -18,3 +18,13 @@ logs/
 # Build folders
 dist/
 build/
+
+# Logs
+*.log
+logs/
+backend/logs/
+frontend/logs/
+
+# Package lock files
+package-lock.json
+**/package-lock.json

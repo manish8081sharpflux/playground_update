@@ -1421,7 +1421,7 @@ const CreateTaskForm = ({
                     )}
                   </div>
 
-                  <div className="dropdown-group">
+                  {/* <div className="dropdown-group">
                     <div className="dropdown-group-label" style={{ fontWeight: 600, padding: "8px" }}>
                       Students
                     </div>
@@ -1442,7 +1442,7 @@ const CreateTaskForm = ({
                         No students found
                       </div>
                     )}
-                  </div>
+                  </div> */}
                 </div>
               )}
             </div>

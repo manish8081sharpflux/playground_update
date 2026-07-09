@@ -1123,12 +1123,27 @@ exports.getStudentMedicalCheckInsByBalagruhaIds = async ({ balagruhaIds, coachId
         },
       },
       {
+        $lookup: {
+          from: "users",
+          localField: "medicalCheckIns.createdBy",
+          foreignField: "_id",
+          as: "createdByDetails",
+        },
+      },
+      {
+        $addFields: {
+          createdByUser: { $arrayElemAt: ["$createdByDetails", 0] },
+        },
+      },
+      {
         $addFields: {
           "medicalCheckIns.studentId": "$_id",
           "medicalCheckIns.userName": "$name",
           "medicalCheckIns.userEmail": "$email",
           "medicalCheckIns.balagruhaIds": "$balagruhaIds",
           "medicalCheckIns.balagruhaDetails": "$balagruhaDetails",
+          "medicalCheckIns.createdByUser": "$createdByUser.name",
+          "medicalCheckIns.createdByEmail": "$createdByUser.email",
         },
       },
       {
@@ -1189,9 +1204,32 @@ exports.getStudentMoodTrackerDetailsByBalagruhaIds = async ({
         },
       },
       {
+        $addFields: {
+          latestMoodTracker: {
+            $cond: [
+              { $ifNull: ["$latestMoodTracker._id", false] },
+              {
+                $mergeObjects: [
+                  "$latestMoodTracker",
+                  {
+                    studentId: "$_id",
+                    loginUserId: "$userId",
+                    userName: "$name",
+                    studentName: "$name",
+                    userEmail: "$email",
+                  },
+                ],
+              },
+              "$latestMoodTracker",
+            ],
+          },
+        },
+      },
+      {
         $project: {
           latestMoodTracker: 1,
-          _id: 0,
+          name: 1,
+          email: 1,
         },
       },
     ]);

@@ -4,6 +4,7 @@ import { api } from "../../api";
 import CourseAssignmentModal from "./CourseAssignmentModal";
 import AssignmentProgressModal from "./AssignmentProgressModal";
 import CoachAssignmentEditModal from "./CoachAssignmentEditModal";
+import AdminAssignmentEditModal from "../admin/AdminAssignmentEditModal";
 import { useAuth } from "../../contexts/AuthContext";
 import LoadingState from "../common/LoadingState";
 
@@ -478,13 +479,23 @@ export default function CoachAssignmentsView({
         onAssignmentCreated={handleAssignmentCreated}
       />
 
-      <CoachAssignmentEditModal
-        isOpen={!!editAssignment}
-        onClose={() => setEditAssignment(null)}
-        assignment={editAssignment}
-        onSaved={() => fetchAssignments()}
-        coachId={coachId}
-      />
+      {isAdmin ? (
+        <AdminAssignmentEditModal
+          isOpen={!!editAssignment}
+          onClose={() => setEditAssignment(null)}
+          assignment={editAssignment}
+          onSaved={() => fetchAssignments()}
+          coachId={coachId}
+        />
+      ) : (
+        <CoachAssignmentEditModal
+          isOpen={!!editAssignment}
+          onClose={() => setEditAssignment(null)}
+          assignment={editAssignment}
+          onSaved={() => fetchAssignments()}
+          coachId={coachId}
+        />
+      )}
 
       {/* Progress Report Modal */}
       {progressAssignmentId && (

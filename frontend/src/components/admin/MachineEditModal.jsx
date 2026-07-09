@@ -72,9 +72,9 @@ export default function MachineEditModal({ machine, balagruhaOptions, onClose, o
       aria-modal="true"
       aria-labelledby="edit-machine-title"
     >
-      <div className="bg-white rounded-lg max-w-md w-full">
+      <div className="bg-white rounded-lg max-w-md w-full max-h-[85vh] flex flex-col overflow-hidden">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-slate-200">
+        <div className="flex flex-shrink-0 items-center justify-between p-6 border-b border-slate-200">
           <h2 id="edit-machine-title" className="text-xl font-bold text-slate-900">
             Edit Machine Assignment
           </h2>
@@ -89,7 +89,7 @@ export default function MachineEditModal({ machine, balagruhaOptions, onClose, o
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+        <form onSubmit={handleSubmit} className="flex-1 overflow-y-scroll custom-scrollbar p-6 space-y-4">
           {/* Machine info (read-only) */}
           <div className="bg-slate-50 rounded-lg p-3 space-y-1">
             <p className="text-sm text-slate-600">
@@ -142,7 +142,7 @@ export default function MachineEditModal({ machine, balagruhaOptions, onClose, o
           </div>
 
           {/* Actions */}
-          <div className="flex items-center justify-end gap-3 pt-2">
+          <div className="flex flex-shrink-0 items-center justify-end gap-3 pt-4 border-t border-slate-200">
             <button
               type="button"
               onClick={onClose}

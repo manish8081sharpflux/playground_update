@@ -292,13 +292,31 @@ function AdminDashboard() {
     }
 
     try {
-      const response = await getTasks({
-        balagruhaId,
-        assignedFor: [coachId],
-        limit: 50,
-      });
+      const [assignedResponse, createdResponse] = await Promise.all([
+        getTasks({
+          balagruhaId,
+          assignedFor: [coachId],
+          type: ["sports", "music", "general", "purchase", "order", "medical"],
+          limit: 100,
+        }),
+        getTasks({
+          balagruhaId,
+          createdBy: [coachId],
+          type: ["sports", "music", "general", "purchase", "order", "medical"],
+          limit: 100,
+        }),
+      ]);
+
+      const combinedTasks = [
+        ...(assignedResponse?.data?.tasks || []),
+        ...(createdResponse?.data?.tasks || []),
+      ];
+      const uniqueTasks = Array.from(
+        new Map(combinedTasks.map((task) => [task._id || task.id, task])).values()
+      );
+
       if (isCurrentCoach(coachId)) {
-        setCoachTasks(response?.data?.tasks || []);
+        setCoachTasks(uniqueTasks);
       }
     } catch (error) {
       console.error("Error fetching coach tasks", error);
@@ -313,9 +331,11 @@ function AdminDashboard() {
       return Array.from(new Set(explicitBalagruhaIds));
     }
 
-    const selectedIds = selectedBalagruhaOfCoach
-      ? [selectedBalagruhaOfCoach]
-      : [];
+    const selectedIds = selectedBalagruha
+      ? [selectedBalagruha]
+      : selectedBalagruhaOfCoach
+        ? [selectedBalagruhaOfCoach]
+        : [];
 
     const assignedIds = balagruhaOfCoach
       .map((item) => item?._id)
@@ -352,7 +372,6 @@ function AdminDashboard() {
     try {
       const response = await getMedicalConditionBasedOnBalagruha({
         balagruhaIds,
-        coachId,
       });
 
       const medicalCheckIns =
@@ -386,8 +405,19 @@ function AdminDashboard() {
     try {
       const response = await api.get(`/api/v2/lms/coach/${coachId}/assignments`);
       const assignments = response?.data?.data?.assignments || response?.data?.assignments || [];
+      const activeBalagruhaIds = new Set(getActiveCoachBalagruhaIds(coachId));
+      const scopedAssignments = Array.isArray(assignments)
+        ? assignments.filter((assignment) => {
+            if (activeBalagruhaIds.size === 0) return true;
+            const assignmentBalagruhaIds = [
+              getId(assignment?.assignedTo?.balagruhaId),
+              ...(assignment?.assignedTo?.balagruhaIds || []).map((balagruha) => getId(balagruha)),
+            ].filter(Boolean);
+            return assignmentBalagruhaIds.length === 0 || assignmentBalagruhaIds.some((id) => activeBalagruhaIds.has(id));
+          })
+        : [];
       if (isCurrentCoach(coachId)) {
-        setCoachAssignments(Array.isArray(assignments) ? assignments : []);
+        setCoachAssignments(scopedAssignments);
       }
     } catch (error) {
       console.error("Error fetching selected coach syllabus data", error);
@@ -496,10 +526,12 @@ function AdminDashboard() {
       .map((item) => item?._id)
       .filter(Boolean);
 
-    const activeBalagruhaIds =
-      balagruhaIds.length > 0
-        ? balagruhaIds
-        : getCoachBalagruhaIds(coachId);
+    const activeBalagruhaIds = getActiveCoachBalagruhaIds(
+      coachId,
+      selectedBalagruha && balagruhaIds.includes(selectedBalagruha)
+        ? [selectedBalagruha]
+        : balagruhaIds
+    );
 
     if (menuId === 3) {
       await fetchCoachMedicalData(coachId, activeBalagruhaIds);
@@ -507,14 +539,30 @@ function AdminDashboard() {
       await fetchCoachAssignments(coachId);
     } else if (menuId === 5) {
       await fetchCoachSlowLearners(coachId);
-    } else if (menuId === 8) {
+    } else if (menuId === 6) {
       await fetchCoachShopData(coachId, activeBalagruhaIds);
-    } else if (menuId === 9) {
+    } else if (menuId === 7) {
       await fetchCoachSuggestions(coachId);
     }
   };
 
 
+  const clearCoachSelection = () => {
+    selectedCoachRef.current = undefined;
+    setSelectedCoach(undefined);
+    setCoachMenuSelected(1);
+    setCurrentWeekOffset(0);
+    setSelectedBalagruhaOfCoach(undefined);
+    setBalagruhaOfCoach([]);
+    setSchedules([]);
+    setCoachTasks([]);
+    setCoachMedicalData([]);
+    setCoachAssignments([]);
+    setCoachSlowLearners([]);
+    setCoachShopData([]);
+    setCoachSuggestions([]);
+    setIsLoadingCoachData(false);
+  };
   const handleCoachSelect = async (coachId) => {
     selectedCoachRef.current = coachId;
     setSelectedCoach(coachId);
@@ -533,13 +581,19 @@ function AdminDashboard() {
 
     try {
       const assignedBalagruhas = await fetchBalagruhaByCoach(coachId);
-      const selectedBalagruhaIds = assignedBalagruhas
+      const assignedBalagruhaIds = assignedBalagruhas
         .map((item) => item?._id)
         .filter(Boolean);
+      const selectedBalagruhaInScope =
+        selectedBalagruha && assignedBalagruhaIds.includes(selectedBalagruha)
+          ? [selectedBalagruha]
+          : [];
       const queryBalagruhaIds =
-        selectedBalagruhaIds.length > 0
-          ? selectedBalagruhaIds
-          : getCoachBalagruhaIds(coachId);
+        selectedBalagruhaInScope.length > 0
+          ? selectedBalagruhaInScope
+          : assignedBalagruhaIds.length > 0
+            ? assignedBalagruhaIds
+            : getCoachBalagruhaIds(coachId);
 
       if (!isCurrentCoach(coachId)) return;
 
@@ -564,6 +618,7 @@ function AdminDashboard() {
             coachId,
             queryBalagruhaIds
           ),
+
 
           fetchCoachAssignments(coachId),
 
@@ -668,6 +723,84 @@ function AdminDashboard() {
     return "";
   };
 
+  const getStudentUserId = (student) =>
+    getId(
+      student?.userId ||
+      student?.user?.userId ||
+      student?.user?._id ||
+      student?.user ||
+      student?._id
+    );
+  const getObjectId = (value) => {
+    if (!value) return "";
+    if (typeof value === "string") return value;
+    if (typeof value === "number") return String(value);
+    if (value._id) return getObjectId(value._id);
+    if (value.id) return getObjectId(value.id);
+    if (value.$oid) return value.$oid;
+    return "";
+  };
+
+  const getUserDisplayName = (user) => {
+    if (!user) return "-";
+    if (typeof user === "string") return user;
+    return user.name || user.fullName || user.email || "-";
+  };
+
+  const loadSelectedStudentDetails = async (selectedStudentIds, selectedUserIds) => {
+    if (!selectedBalagruha || selectedStudentIds.length === 0) {
+      setMedicalIssuesData([]);
+      setMoodData([]);
+      return;
+    }
+
+    const payload = {
+      balagruhaIds: [selectedBalagruha],
+      userIds: selectedUserIds,
+    };
+
+    const [medicalResponse, moodResponse] = await Promise.all([
+      getMedicalConditionBasedOnBalagruha(payload),
+      getMoodBasedOnBalagruha(payload.balagruhaIds),
+    ]);
+
+    const medicalList =
+      medicalResponse?.data?.medicalCheckIns ||
+      medicalResponse?.data?.data?.medicalCheckIns ||
+      medicalResponse?.medicalCheckIns ||
+      [];
+
+    const selectedIdSet = new Set(selectedStudentIds);
+    const selectedUserIdSet = new Set(selectedUserIds);
+
+    const filteredMedical = medicalList.filter((item) => {
+      const itemStudentId = getId(item.studentId || item.student);
+      return selectedIdSet.has(itemStudentId) || selectedUserIdSet.has(itemStudentId);
+    });
+
+    setMedicalIssuesData(filteredMedical);
+
+    const moodList =
+      moodResponse?.data?.moodInfo ||
+      moodResponse?.data?.moodInfor ||
+      moodResponse?.data?.data?.moodInfo ||
+      moodResponse?.data?.data?.moodInfor ||
+      [];
+
+    const filteredMood = moodList.filter((mood) => {
+      const moodUserId = getId(mood.userId || mood.user);
+      const moodStudentId = getId(mood.studentId || mood.student);
+
+      return (
+        selectedUserIdSet.has(moodUserId) ||
+        selectedIdSet.has(moodStudentId) ||
+        selectedIdSet.has(moodUserId)
+      );
+    });
+
+    setMoodData(filteredMood);
+  };
+
   const handleStudentCheckboxChange = async (studentId, userId) => {
     const studentIdStr = getId(studentId);
     const userIdStr = getId(userId) || studentIdStr;
@@ -684,72 +817,23 @@ function AdminDashboard() {
 
     setSelectedStudents(newSelectedStudents);
     setStudentUserId(newStudentUserIds);
-
-    if (!selectedBalagruha || newSelectedStudents.length === 0) {
-      setMedicalIssuesData([]);
-      setMoodData([]);
-      return;
-    }
-
-    const balagruhaIds = {
-      balagruhaIds: [selectedBalagruha],
-      userIds: newStudentUserIds,
-    };
-
-    const medicalResponse = await getMedicalConditionBasedOnBalagruha(balagruhaIds);
-    const medicalList =
-      medicalResponse?.data?.medicalCheckIns ||
-      medicalResponse?.data?.data?.medicalCheckIns ||
-      medicalResponse?.medicalCheckIns ||
-      [];
-
-    const filteredMedical = medicalList.filter((item) =>
-      newSelectedStudents.includes(getId(item.studentId))
-    );
-
-    setMedicalIssuesData(filteredMedical);
-
-    const moodResponse = await getMoodBasedOnBalagruha(balagruhaIds);
-    const moodList =
-      moodResponse?.data?.moodInfo ||
-      moodResponse?.data?.moodInfor ||
-      moodResponse?.data?.data?.moodInfo ||
-      moodResponse?.data?.data?.moodInfor ||
-      [];
-
-
-    console.log("Mood Response:", moodResponse);
-    console.log("Mood List:", moodList);
-
-    if (moodList.length > 0) {
-      console.log("First Mood Record:", moodList[0]);
-    }
-
-    console.log("Selected Student IDs:", newSelectedStudents);
-    console.log("Selected User IDs:", newStudentUserIds);
-
-    const filteredMood = moodList.filter((mood) => {
-      const moodUserId = getId(mood.userId || mood.user);
-      const moodStudentId = getId(mood.studentId || mood.student);
-
-      return (
-        newStudentUserIds.includes(moodUserId) ||
-        newSelectedStudents.includes(moodStudentId) ||
-        newSelectedStudents.includes(moodUserId)
-      );
-    });
-
-    setMoodData(filteredMood);
-
-
+    await loadSelectedStudentDetails(newSelectedStudents, newStudentUserIds);
   };
 
   // Handle select all students
-  const handleSelectAllStudents = () => {
+  const handleSelectAllStudents = async () => {
     if (selectedStudents.length === balagruhaStudents.length) {
       setSelectedStudents([]);
+      setStudentUserId([]);
+      setMedicalIssuesData([]);
+      setMoodData([]);
     } else {
-      setSelectedStudents(balagruhaStudents?.map((student) => student._id));
+      const allStudentIds = balagruhaStudents.map((student) => getId(student._id));
+      const allUserIds = balagruhaStudents.map(getStudentUserId).filter(Boolean);
+
+      setSelectedStudents(allStudentIds);
+      setStudentUserId(allUserIds);
+      await loadSelectedStudentDetails(allStudentIds, allUserIds);
     }
   };
 
@@ -802,10 +886,10 @@ function AdminDashboard() {
     { id: 3, name: "Medical", count: coachMedicalData.length },
     { id: 4, name: "Syllabus Tracker", count: coachAssignments.length },
     { id: 5, name: "Slow Learners", count: coachSlowLearners.length },
-    { id: 8, name: "ISF Shop", count: coachShopData.length },
-    { id: 9, name: "Suggestion", count: coachSuggestions.length },
-    { id: 10, name: "Activities" },
-    { id: 11, name: "Events" },
+    { id: 6, name: "ISF Shop", count: coachShopData.length },
+    { id: 7, name: "Suggestion", count: coachSuggestions.length },
+    { id: 8, name: "Activities", count: 0 },
+    { id: 9, name: "Events", count: 0 },
   ];
 
   const getDummyCoachData = (menuName) => {
@@ -817,6 +901,79 @@ function AdminDashboard() {
       metric: `${40 + index * 10}%`,
       date: new Date(Date.now() - index * 86400000).toLocaleDateString("en-GB"),
     }));
+  };
+
+  const getStudentDisplayName = (student) =>
+    student?.name ||
+    student?.studentName ||
+    `${student?.firstName || ""} ${student?.lastName || ""}`.trim() ||
+    "-";
+
+  const getBalagruhaDisplayName = (item) => {
+    if (Array.isArray(item?.balagruhaNames) && item.balagruhaNames.length > 0) {
+      return item.balagruhaNames.join(", ");
+    }
+    if (Array.isArray(item?.balagruhaIds) && item.balagruhaIds.length > 0) {
+      return item.balagruhaIds
+        .map((balagruha) => balagruha?.name)
+        .filter(Boolean)
+        .join(", ") || "-";
+    }
+    if (Array.isArray(item?.assignedTo?.balagruhaIds) && item.assignedTo.balagruhaIds.length > 0) {
+      return item.assignedTo.balagruhaIds
+        .map((balagruha) => balagruha?.name)
+        .filter(Boolean)
+        .join(", ") || "-";
+    }
+    return (
+      item?.balagruhaName ||
+      item?.balagruhaId?.name ||
+      item?.assignedTo?.balagruhaId?.name ||
+      "-"
+    );
+  };
+
+
+
+  const getAssignmentProgress = (assignment) =>
+    assignment?.progress?.averageCompletionPercentage ??
+    assignment?.averageCompletionPercentage ??
+    assignment?.progressPercentage ??
+    0;
+
+  const formatDisplayDate = (value) =>
+    value ? new Date(value).toLocaleDateString("en-IN") : "-";
+
+
+
+  const getScheduleTimeSlot = (item) =>
+    item?.timeSlot ||
+    `${item?.startTime ? new Date(item.startTime).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit", hour12: true }) : "-"} - ${item?.endTime ? new Date(item.endTime).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit", hour12: true }) : "-"}`;
+
+  const getTaskComputedStatus = (task) => {
+    if (task?.status === "completed") return "Completed";
+    if (task?.deadline && new Date(task.deadline) < new Date()) return "Overdue";
+    if (task?.status === "in progress" || task?.status === "inprogress") return "In Progress";
+    return task?.status || "Pending";
+  };
+
+  const getTaskRelation = (task) => {
+    const creatorId = getObjectId(task?.createdBy);
+    const assignedId = getObjectId(task?.assignedUser);
+    if (creatorId === selectedCoach && assignedId === selectedCoach) return "Created and assigned";
+    if (creatorId === selectedCoach) return "Created by coach";
+    if (assignedId === selectedCoach) return "Assigned to coach";
+    return "Related";
+  };
+
+  const getLatestFollowUp = (item) => {
+    const followUps = Array.isArray(item?.followUps) ? item.followUps : [];
+    return followUps.length > 0 ? followUps[followUps.length - 1] : item?.followUp;
+  };
+
+  const getLatestDoctorVisit = (item) => {
+    const visits = Array.isArray(item?.doctorVisits) ? item.doctorVisits : [];
+    return visits.length > 0 ? visits[visits.length - 1] : item?.doctorVisit;
   };
 
   const renderCoachMenuContent = () => {
@@ -835,7 +992,43 @@ function AdminDashboard() {
     }
 
     if (coachMenuSelected === 1) {
-      return null;
+      return (
+        <div className="data-display">
+          <h3>{menu.name}</h3>
+          <div className="table-container">
+            <table className="data-table coach-table">
+              <thead>
+                <tr>
+                  <th>Time Slot</th>
+                  <th>Assigned Activity</th>
+                  <th>Type</th>
+                  <th>Date</th>
+                  <th>Status</th>
+                  <th>Details</th>
+                </tr>
+              </thead>
+              <tbody>
+                {schedules.length > 0 ? (
+                  schedules.map((item, index) => (
+                    <tr key={item._id || index} className={index % 2 === 0 ? "even-row" : ""}>
+                      <td>{getScheduleTimeSlot(item)}</td>
+                      <td>{item.title || "Scheduled item"}</td>
+                      <td>{item.type || item.category || "Activity"}</td>
+                      <td>{formatDisplayDate(item.date || item.startTime)}</td>
+                      <td>{item.status || "pending"}</td>
+                      <td>{item.description || "-"}</td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan="6">No schedule items found for this coach in the selected Balagruha.</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      );
     }
 
     if (coachMenuSelected === 2) {
@@ -846,32 +1039,31 @@ function AdminDashboard() {
             <table className="data-table coach-table">
               <thead>
                 <tr>
-                  <th>Task</th>
-                  <th>Status</th>
+                  <th>Relation</th>
+                  <th>Title</th>
+                  <th>Description</th>
                   <th>Priority</th>
                   <th>Deadline</th>
+                  <th>Status</th>
+                  <th>Completion Date</th>
                 </tr>
               </thead>
               <tbody>
                 {coachTasks.length > 0 ? (
                   coachTasks.map((task, index) => (
-                    <tr
-                      key={task._id || index}
-                      className={index % 2 === 0 ? "even-row" : ""}
-                    >
+                    <tr key={task._id || index} className={index % 2 === 0 ? "even-row" : ""}>
+                      <td>{getTaskRelation(task)}</td>
                       <td>{task.title || "Untitled task"}</td>
-                      <td>{task.status || "Unknown"}</td>
+                      <td>{task.description || "-"}</td>
                       <td>{task.priority || "-"}</td>
-                      <td>
-                        {task.deadline
-                          ? new Date(task.deadline).toLocaleDateString()
-                          : "-"}
-                      </td>
+                      <td>{formatDisplayDate(task.deadline)}</td>
+                      <td>{getTaskComputedStatus(task)}</td>
+                      <td>{formatDisplayDate(task.completedAt || task.completionDate)}</td>
                     </tr>
                   ))
                 ) : (
                   <tr>
-                    <td colSpan="4">No tasks found for this coach.</td>
+                    <td colSpan="7">No tasks found for this coach in the selected Balagruha.</td>
                   </tr>
                 )}
               </tbody>
@@ -890,9 +1082,13 @@ function AdminDashboard() {
               <thead>
                 <tr>
                   <th>Student</th>
-                  <th>Health Status</th>
-                  <th>Symptoms</th>
-                  <th>Check-in Date</th>
+                  <th>Recent Health Issue</th>
+                  <th>Medical Records</th>
+                  <th>Medication Follow-up</th>
+                  <th>Doctor/Hospital Visit</th>
+                  <th>Treatment Status</th>
+                  <th>Pending Action</th>
+                  <th>Next Follow-up</th>
                 </tr>
               </thead>
               <tbody>
@@ -900,19 +1096,25 @@ function AdminDashboard() {
                   coachMedicalData.map((item, index) => {
                     const symptoms = Array.isArray(item.symptoms) && item.symptoms.length > 0
                       ? item.symptoms.join(", ").replaceAll("_", " ")
-                      : item.customSymptom || "-";
+                      : item.customSymptom || item.notes || "-";
+                    const followUp = getLatestFollowUp(item);
+                    const doctorVisit = getLatestDoctorVisit(item);
                     return (
                       <tr key={item._id || index} className={index % 2 === 0 ? "even-row" : ""}>
                         <td>{item.userName || item.studentName || item.name || "-"}</td>
-                        <td>{item.healthStatus || "-"}</td>
                         <td>{symptoms}</td>
-                        <td>{item.date ? new Date(item.date).toLocaleDateString() : "-"}</td>
+                        <td>{item.attachments?.length || item.medicalRecords?.length || 0}</td>
+                        <td>{followUp?.status || "-"}</td>
+                        <td>{doctorVisit?.doctorName || doctorVisit?.hospitalName || "-"}</td>
+                        <td>{item.healthStatus || "-"}</td>
+                        <td>{followUp?.notes || item.pendingAction || "-"}</td>
+                        <td>{formatDisplayDate(followUp?.followUpDate || item.nextFollowUpDate)}</td>
                       </tr>
                     );
                   })
                 ) : (
                   <tr>
-                    <td colSpan="4">No medical data found for this coach.</td>
+                    <td colSpan="8">No medical data found for this coach in the selected Balagruha.</td>
                   </tr>
                 )}
               </tbody>
@@ -930,25 +1132,33 @@ function AdminDashboard() {
             <table className="data-table coach-table">
               <thead>
                 <tr>
-                  <th>Course</th>
+                  <th>Student/Class</th>
+                  <th>Subject</th>
+                  <th>Topic/Chapter</th>
+                  <th>Completed Topics</th>
+                  <th>Pending Topics</th>
+                  <th>Progress</th>
                   <th>Status</th>
-                  <th>Balagruha</th>
-                  <th>Due Date</th>
+                  <th>Last Updated</th>
                 </tr>
               </thead>
               <tbody>
                 {coachAssignments.length > 0 ? (
                   coachAssignments.map((assignment, index) => (
                     <tr key={assignment._id || index} className={index % 2 === 0 ? "even-row" : ""}>
+                      <td>{getBalagruhaDisplayName(assignment)}</td>
+                      <td>{assignment.courseId?.category || assignment.course?.category || "-"}</td>
                       <td>{assignment.courseId?.title || assignment.course?.title || "Untitled course"}</td>
+                      <td>{assignment.progress?.studentsCompleted ?? assignment.completedTopics?.length ?? "-"}</td>
+                      <td>{assignment.progress?.totalStudents ? Math.max(assignment.progress.totalStudents - (assignment.progress.studentsCompleted || 0), 0) : "-"}</td>
+                      <td>{getAssignmentProgress(assignment)}%</td>
                       <td>{assignment.status || "-"}</td>
-                      <td>{assignment.assignedTo?.balagruhaId?.name || assignment.balagruhaName || "-"}</td>
-                      <td>{assignment.dueDate ? new Date(assignment.dueDate).toLocaleDateString() : "-"}</td>
+                      <td>{formatDisplayDate(assignment.updatedAt || assignment.createdAt)}</td>
                     </tr>
                   ))
                 ) : (
                   <tr>
-                    <td colSpan="4">No syllabus data found for this coach.</td>
+                    <td colSpan="8">No syllabus data found for this coach in the selected Balagruha.</td>
                   </tr>
                 )}
               </tbody>
@@ -967,24 +1177,122 @@ function AdminDashboard() {
               <thead>
                 <tr>
                   <th>Student</th>
-                  <th>Average Completion</th>
-                  <th>Courses</th>
-                  <th>Status</th>
+                  <th>Weak Subjects</th>
+                  <th>Weak Topics / Difficulties</th>
+                  <th>Identified Problems</th>
+                  <th>Improvement Plan</th>
+                  <th>Coach Actions</th>
+                  <th>Current Progress</th>
+                  <th>Remarks</th>
+                  <th>Next Follow-up</th>
                 </tr>
               </thead>
               <tbody>
                 {coachSlowLearners.length > 0 ? (
                   coachSlowLearners.map((student, index) => (
                     <tr key={student.studentId || index} className={index % 2 === 0 ? "even-row" : ""}>
-                      <td>{student.name || `${student.firstName || ""} ${student.lastName || ""}`.trim() || "-"}</td>
-                      <td>{student.averageCompletion ?? 0}%</td>
-                      <td>{student.courses?.length || 0}</td>
-                      <td>Below threshold</td>
+                      <td>{getStudentDisplayName(student)}</td>
+                      <td>{student.weakSubjects?.join?.(", ") || student.courseTitle || "-"}</td>
+                      <td>{student.weakTopics?.join?.(", ") || student.learningDifficulties || "-"}</td>
+                      <td>{student.identifiedProblems || "Low completion"}</td>
+                      <td>{student.improvementPlan || "-"}</td>
+                      <td>{student.actionsTaken || "-"}</td>
+                      <td>{student.averageCompletion ?? student.currentProgress ?? 0}%</td>
+                      <td>{student.remarks || "-"}</td>
+                      <td>{formatDisplayDate(student.nextFollowUpDate)}</td>
                     </tr>
                   ))
                 ) : (
                   <tr>
-                    <td colSpan="4">No slow learners found for this coach.</td>
+                    <td colSpan="9">No slow learners found for this coach in the selected Balagruha.</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      );
+    }
+
+    if (coachMenuSelected === 6) {
+      return (
+        <div className="data-display">
+          <h3>{menu.name}</h3>
+          <div className="table-container">
+            <table className="data-table coach-table">
+              <thead>
+                <tr>
+                  <th>Student</th>
+                  <th>Requested Item</th>
+                  <th>Request Date</th>
+                  <th>Quantity</th>
+                  <th>Request Status</th>
+                  <th>Decision</th>
+                  <th>Distributed Item</th>
+                  <th>Distribution Date</th>
+                </tr>
+              </thead>
+              <tbody>
+                {coachShopData.length > 0 ? (
+                  coachShopData.map((item, index) => (
+                    <tr key={item._id || index} className={index % 2 === 0 ? "even-row" : ""}>
+                      <td>{item.studentName || "-"}</td>
+                      <td>{item.requestedItem || item.name || "-"}</td>
+                      <td>{formatDisplayDate(item.requestDate || item.createdAt)}</td>
+                      <td>{item.quantity ?? item.stock ?? "-"}</td>
+                      <td>{item.requestStatus || item.status || (item.stock > 0 ? "available" : "pending")}</td>
+                      <td>{item.decision || item.approvalStatus || "-"}</td>
+                      <td>{item.distributedItem || "-"}</td>
+                      <td>{formatDisplayDate(item.distributionDate || item.updatedAt)}</td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan="8">No ISF shop data found for this coach in the selected Balagruha.</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      );
+    }
+
+    if (coachMenuSelected === 7) {
+      return (
+        <div className="data-display">
+          <h3>{menu.name}</h3>
+          <div className="table-container">
+            <table className="data-table coach-table">
+              <thead>
+                <tr>
+                  <th>Title</th>
+                  <th>Category</th>
+                  <th>Description</th>
+                  <th>Submitted Date</th>
+                  <th>Status</th>
+                  <th>Admin Response</th>
+                  <th>Resolution</th>
+                  <th>Resolution Date</th>
+                </tr>
+              </thead>
+              <tbody>
+                {coachSuggestions.length > 0 ? (
+                  coachSuggestions.map((suggestion, index) => (
+                    <tr key={suggestion._id || index} className={index % 2 === 0 ? "even-row" : ""}>
+                      <td>{suggestion.title || "Untitled suggestion"}</td>
+                      <td>{suggestion.category || suggestion.type || "-"}</td>
+                      <td>{suggestion.description || suggestion.content || suggestion.reason || "-"}</td>
+                      <td>{formatDisplayDate(suggestion.submittedDate || suggestion.createdAt || suggestion.suggestedDate)}</td>
+                      <td>{suggestion.status || "pending"}</td>
+                      <td>{suggestion.adminResponse || suggestion.reviewNotes || "-"}</td>
+                      <td>{suggestion.resolutionStatus || suggestion.status || "pending"}</td>
+                      <td>{formatDisplayDate(suggestion.resolutionDate || suggestion.updatedAt)}</td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan="8">No suggestions found for this coach.</td>
                   </tr>
                 )}
               </tbody>
@@ -1002,27 +1310,21 @@ function AdminDashboard() {
             <table className="data-table coach-table">
               <thead>
                 <tr>
-                  <th>Product</th>
-                  <th>Stock</th>
-                  <th>Category</th>
-                  <th>Price</th>
+                  <th>Activity Name</th>
+                  <th>Activity Date</th>
+                  <th>Students Involved</th>
+                  <th>Participants</th>
+                  <th>Coach Role</th>
+                  <th>Attendance</th>
+                  <th>Status</th>
+                  <th>Outcomes</th>
+                  <th>Remarks</th>
                 </tr>
               </thead>
               <tbody>
-                {coachShopData.length > 0 ? (
-                  coachShopData.map((item, index) => (
-                    <tr key={item._id || index} className={index % 2 === 0 ? "even-row" : ""}>
-                      <td>{item.name || "-"}</td>
-                      <td>{item.stock ?? 0}</td>
-                      <td>{item.category || item.purchaseCategory || "-"}</td>
-                      <td>{item.discountPrice ?? item.price ?? "-"}</td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan="4">No ISF shop data found for this coach.</td>
-                  </tr>
-                )}
+                <tr>
+                  <td colSpan="9">No activities data found for this coach in the selected Balagruha.</td>
+                </tr>
               </tbody>
             </table>
           </div>
@@ -1038,34 +1340,28 @@ function AdminDashboard() {
             <table className="data-table coach-table">
               <thead>
                 <tr>
-                  <th>Title</th>
-                  <th>Student</th>
+                  <th>Event Name</th>
+                  <th>Date & Time</th>
+                  <th>Venue</th>
+                  <th>Participating Students</th>
+                  <th>Coach Responsibility</th>
                   <th>Status</th>
-                  <th>Suggested Date</th>
+                  <th>Attendance</th>
+                  <th>Outcome</th>
+                  <th>Report</th>
+                  <th>Remarks</th>
                 </tr>
               </thead>
               <tbody>
-                {coachSuggestions.length > 0 ? (
-                  coachSuggestions.map((suggestion, index) => (
-                    <tr key={suggestion._id || index} className={index % 2 === 0 ? "even-row" : ""}>
-                      <td>{suggestion.title || "Untitled suggestion"}</td>
-                      <td>{suggestion.studentName || "-"}</td>
-                      <td>{suggestion.status || "-"}</td>
-                      <td>{suggestion.suggestedDate ? new Date(suggestion.suggestedDate).toLocaleDateString() : "-"}</td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan="4">No suggestions found for this coach.</td>
-                  </tr>
-                )}
+                <tr>
+                  <td colSpan="10">No events data found for this coach in the selected Balagruha.</td>
+                </tr>
               </tbody>
             </table>
           </div>
         </div>
       );
     }
-
     return (
       <div className="data-display">
         <h3>{menu.name}</h3>
@@ -1446,6 +1742,7 @@ function AdminDashboard() {
                         setStudentUserId([]);
                         setMoodData();
                         setMedicalIssuesData();
+                        clearCoachSelection();
                         setSelectedBalagruha(bal._id);
                         getStudentListBasedonDate(bal._id);
                       }}
@@ -1505,7 +1802,7 @@ function AdminDashboard() {
                               onChange={() =>
                                 handleStudentCheckboxChange(
                                   student._id,
-                                  student.userId || student.user?.userId || student.user?._id || student.user || student._id
+                                  getStudentUserId(student)
                                 )
                               }
                             />
@@ -1620,7 +1917,7 @@ function AdminDashboard() {
                             >
                               <td>{index + 1}</td>
                               <td>{item?.userName}</td>
-                              <td>{item.createdByUser}</td>
+                              <td>{item.createdByUser || getUserDisplayName(item.createdBy)}</td>
                               <td>{item.temperature}</td>
                               <td>
                                 {new Date(item.date).toLocaleString("en-IN", {
@@ -1760,7 +2057,7 @@ function AdminDashboard() {
                             >
                               <td>{index + 1}</td>
                               <td>{item.userName || item.studentName || "-"}</td>
-                              <td>{getId(item.userId)}</td>
+                              <td>{item.loginUserId ?? item.userLoginId ?? item.studentUserId ?? getId(item.userId)}</td>
                               <td>{item.mood}</td>
                               <td>
                                 {new Date(
