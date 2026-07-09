@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import dayjs from 'dayjs';
 import { completePurchaseRequest } from '../../../api';
 import showToast from '../../../utils/toast';
+import { confirmDialog } from '../../../utils/dialogs';
 import '../PurchaseManagement.css';
 
 /**
@@ -98,7 +99,7 @@ export default function UpdateStockModal({ request, onClose, onRefresh }) {
       return;
     }
 
-    if (!window.confirm(`Complete this purchase request and update stock for ${items.length} product(s)?`)) {
+    if (!(await confirmDialog(`Complete this purchase request and update stock for ${items.length} product(s)?`, { confirmText: 'Complete' }))) {
       return;
     }
 

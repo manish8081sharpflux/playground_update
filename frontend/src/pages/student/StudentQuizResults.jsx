@@ -32,7 +32,7 @@ export default function LifeSkillsQuizResults() {
     correctAnswers,
     totalQuestions,
     coinsEarned, // This is the total coins earned
-    alreadyEarned, // True when student previously passed this quiz (dedup)
+    alreadyEarned, // True when this task is no longer eligible for another reward
     baseCoinsAvailable, // What they would have earned if it were a fresh attempt
     breakdown
   } = results;
@@ -89,7 +89,7 @@ export default function LifeSkillsQuizResults() {
             <div className="text-sm text-gray-600 space-y-1">
               {alreadyEarned ? (
                 <div className="text-blue-700 font-medium">
-                  ℹ️ Coins for this quiz were already earned on a previous attempt — practice doesn't pay twice, but keep practicing! 🌟
+                  ℹ️ Coins are only awarded on the first submission, but you can keep practicing! 🌟
                 </div>
               ) : (
                 <>
@@ -123,7 +123,7 @@ export default function LifeSkillsQuizResults() {
               🌟 Great Practice! 🌟
             </div>
             <p className="text-blue-700">
-              You aced this quiz again! Coins were earned the first time you passed — this round was just for fun.
+              Nice work completing the quiz again! Coins are only available on the first submission.
             </p>
           </div>
         )}
@@ -134,7 +134,7 @@ export default function LifeSkillsQuizResults() {
               💪 Keep Going!
             </div>
             <p className="text-yellow-700">
-              You can retry the quiz to improve your score and earn more coins!
+              You can retry the quiz to improve your score. This task is already counted as completed.
             </p>
           </div>
         )}

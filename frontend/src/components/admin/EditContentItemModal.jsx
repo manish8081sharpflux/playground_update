@@ -12,7 +12,7 @@ export default function EditContentItemModal({ isOpen, contentItem, chapterId, m
         type: 'video' // default, but will be overwritten
     });
 
-    const { uploadFile, cancelUpload } = useFileUpload();
+    const { uploads, uploadFile, cancelUpload } = useFileUpload();
     const fileInputRef = useRef(null);
     const [loading, setLoading] = useState(false);
     const [uploadingFile, setUploadingFile] = useState(false);
@@ -44,6 +44,16 @@ export default function EditContentItemModal({ isOpen, contentItem, chapterId, m
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (!formData.title.trim()) return;
+
+        if (uploadingFile) {
+            toast.error('Please wait for the file upload to finish');
+            return;
+        }
+
+        if (showUpload && !formData.fileUrl?.trim()) {
+            toast.error(`Please upload a ${formData.type} file or enter its URL`);
+            return;
+        }
 
         // Validate URL if provided
         if (formData.fileUrl && !formData.fileUrl.startsWith('data:') && !isValidUrl(formData.fileUrl)) {
@@ -163,6 +173,7 @@ export default function EditContentItemModal({ isOpen, contentItem, chapterId, m
     };
 
     const showUpload = ['video', 'pdf', 'image', 'audio'].includes(formData.type);
+    const currentUpload = currentUploadId ? uploads[currentUploadId] : null;
 
     if (!isOpen) return null;
 
@@ -230,7 +241,17 @@ export default function EditContentItemModal({ isOpen, contentItem, chapterId, m
                                 {uploadingFile ? (
                                     <div className="flex flex-col items-center">
                                         <Loader size={32} className="animate-spin text-blue-600 mb-2" />
-                                        <p className="text-sm text-gray-600">Uploading...</p>
+                                        <p className="text-sm text-gray-600">
+                                            {currentUpload?.progress >= 100
+                                                ? 'Finishing upload...'
+                                                : `Uploading${currentUpload?.progress ? `... ${currentUpload.progress}%` : '...'}`}
+                                        </p>
+                                        <div className="mt-3 h-2 w-full max-w-xs rounded-full bg-gray-200 overflow-hidden">
+                                            <div
+                                                className="h-full bg-blue-600 transition-all"
+                                                style={{ width: `${currentUpload?.progress || 0}%` }}
+                                            />
+                                        </div>
                                     </div>
                                 ) : (
                                     <div className="flex flex-col items-center">

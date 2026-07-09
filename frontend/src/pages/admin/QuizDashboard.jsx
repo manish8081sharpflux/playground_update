@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Plus, Filter, MoreVertical, Edit, Copy, Trash2, Eye, Archive, RotateCcw, ArrowLeft } from 'lucide-react';
 import { api } from '../../api';
 import toast from 'react-hot-toast';
+import { confirmDialog } from '../../utils/dialogs';
 import LoadingState from '../../components/common/LoadingState';
 
 /**
@@ -103,7 +104,7 @@ export default function QuizDashboard() {
 
   // Delete quiz
   const handleDeleteQuiz = async (quizId) => {
-    if (!window.confirm('Delete this quiz? This action cannot be undone.')) {
+    if (!(await confirmDialog('Delete this quiz? This action cannot be undone.', { danger: true, confirmText: 'Delete' }))) {
       return;
     }
 

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import toast from "react-hot-toast";
+import { confirmDialog } from "../../utils/dialogs";
 import { api } from "../../api";
 import CourseAssignmentModal from "./CourseAssignmentModal";
 import AssignmentProgressModal from "./AssignmentProgressModal";
@@ -59,9 +60,10 @@ export default function CoachAssignmentsView({
 
   const handleDeleteAssignment = async (assignmentId) => {
     if (
-      !window.confirm(
+      !(await confirmDialog(
         "Are you sure you want to permanently delete this assignment?",
-      )
+        { danger: true, confirmText: "Delete" },
+      ))
     ) {
       return;
     }
@@ -91,7 +93,7 @@ export default function CoachAssignmentsView({
         ? "Are you sure you want to reassign this course?"
         : "Are you sure you want to unassign this course?";
 
-    if (!window.confirm(confirmMessage)) {
+    if (!(await confirmDialog(confirmMessage))) {
       return;
     }
 

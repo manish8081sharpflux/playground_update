@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Plus, RefreshCw, Search, Pencil, Power } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { confirmDialog } from '../utils/dialogs';
 import { useNavigate } from 'react-router-dom';
 
 import { api } from '../api';
@@ -136,7 +137,7 @@ export default function VendorManagement() {
     const nextActive = !vendor.active;
     const actionLabel = nextActive ? 'activate' : 'deactivate';
 
-    const confirmed = window.confirm(
+    const confirmed = await confirmDialog(
       `Are you sure you want to ${actionLabel} vendor "${vendor.name}"?`
     );
     if (!confirmed) return;

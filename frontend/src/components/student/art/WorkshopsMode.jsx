@@ -13,15 +13,26 @@ export default function WorkshopsMode({ data, studentId, onRefresh }) {
   const [selectedWorkshop, setSelectedWorkshop] = useState(null);
   const [showSubmissionModal, setShowSubmissionModal] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
+  const [selectedTask, setSelectedTask] = useState(null);
 
   const workshops = data?.workshops || [];
+  const isDirectVideoFile = (url = '') =>
+    /\.(mp4|webm|ogg|mov)(?:$|[?#])/i.test(url);
 
   // Auto-select first workshop on load
   React.useEffect(() => {
-    if (workshops.length > 0 && !selectedWorkshop) {
-      setSelectedWorkshop(workshops[0]);
-    }
+    setSelectedWorkshop(current =>
+      workshops.find(workshop => String(workshop.id) === String(current?.id)) ||
+      workshops[0] ||
+      null
+    );
   }, [workshops]);
+
+  React.useEffect(() => {
+    const tasks = selectedWorkshop?.tasks || [];
+    setSelectedTask(tasks.find(task => !task.completed) || tasks[0] || null);
+    setSelectedFile(null);
+  }, [selectedWorkshop]);
 
   const handleSubmit = () => {
     if (!selectedFile) {
@@ -42,7 +53,13 @@ export default function WorkshopsMode({ data, studentId, onRefresh }) {
       formData.append('type', 'art');
       formData.append('mode', 'workshop');
       formData.append('courseId', selectedWorkshop?.id || '');
-      formData.append('taskTitle', metadata.title || selectedWorkshop?.title || 'Workshop artwork');
+      if (selectedTask?.id) {
+        formData.append('taskId', selectedTask.id);
+      }
+      formData.append(
+        'taskTitle',
+        selectedTask?.title || metadata.title || selectedWorkshop?.title || 'Workshop artwork'
+      );
 
       await apiWithoutContentType.post(
         `/api/v2/lms/student/${studentId}/courses/art/submissions`,
@@ -110,13 +127,25 @@ export default function WorkshopsMode({ data, studentId, onRefresh }) {
             <div>
               <h3 className="text-lg font-semibold text-gray-800 mb-3">Video Tutorial</h3>
               <div className="relative rounded-lg overflow-hidden shadow-lg" style={{ aspectRatio: '16/9' }}>
-                <iframe
-                  src={selectedWorkshop.videoUrl}
-                  title={selectedWorkshop.title}
-                  className="w-full h-full"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                ></iframe>
+                {isDirectVideoFile(selectedWorkshop.videoUrl) ? (
+                  <video
+                    src={selectedWorkshop.videoUrl}
+                    title={selectedWorkshop.title}
+                    className="w-full h-full bg-black"
+                    controls
+                    preload="metadata"
+                  >
+                    Your browser does not support the video element.
+                  </video>
+                ) : (
+                  <iframe
+                    src={selectedWorkshop.videoUrl}
+                    title={selectedWorkshop.title}
+                    className="w-full h-full"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                  ></iframe>
+                )}
               </div>
             </div>
           )}
@@ -128,6 +157,45 @@ export default function WorkshopsMode({ data, studentId, onRefresh }) {
               {selectedWorkshop.instructions}
             </div>
           </div>
+
+          {selectedWorkshop.tasks?.length > 0 && (
+            <div>
+              <h3 className="text-lg font-semibold text-gray-800 mb-3">Tasks</h3>
+              <div className="space-y-2">
+                {selectedWorkshop.tasks.map((task, index) => (
+                  <button
+                    key={task.id}
+                    type="button"
+                    onClick={() => {
+                      setSelectedTask(task);
+                      setSelectedFile(null);
+                    }}
+                    className={`w-full rounded-lg border-2 p-4 text-left transition-colors ${
+                      selectedTask?.id === task.id
+                        ? 'border-pink-500 bg-pink-50'
+                        : 'border-gray-200 hover:border-pink-300'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="font-semibold text-gray-900">
+                        {index + 1}. {task.title}
+                      </span>
+                      {task.completed && (
+                        <span className="rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-700">
+                          Completed
+                        </span>
+                      )}
+                    </div>
+                    {(task.instructions || task.description) && (
+                      <p className="mt-2 text-sm text-gray-600">
+                        {task.instructions || task.description}
+                      </p>
+                    )}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Canvas Preview & File Upload */}
           <CanvasPreview
@@ -142,7 +210,7 @@ export default function WorkshopsMode({ data, studentId, onRefresh }) {
       {showSubmissionModal && (
         <SubmissionModal
           mode="workshop"
-          metadata={{ workshopId: selectedWorkshop?.id }}
+          metadata={{ workshopId: selectedWorkshop?.id, taskId: selectedTask?.id }}
           onClose={() => setShowSubmissionModal(false)}
           onSubmit={handleConfirmSubmission}
           file={selectedFile}

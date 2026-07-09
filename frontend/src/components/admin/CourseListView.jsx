@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { MoreVertical, Calendar, BarChart2, FolderOpen, Users } from 'lucide-react';
 import { api } from '../../api';
 import toast from 'react-hot-toast';
+import { confirmDialog } from '../../utils/dialogs';
 import ContextMenu from './ContextMenu';
 import CourseCreationModal from './CourseCreationModal';
 import PublishValidationModal from './PublishValidationModal';
@@ -151,7 +152,7 @@ export default function CourseListView({
   };
 
   const handleDelete = async (courseId) => {
-    if (!window.confirm('Are you sure you want to delete this course permanently? This action cannot be undone.')) {
+    if (!(await confirmDialog('Are you sure you want to delete this course permanently? This action cannot be undone.', { danger: true, confirmText: 'Delete' }))) {
       closeMenu();
       return;
     }

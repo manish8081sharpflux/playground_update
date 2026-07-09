@@ -155,7 +155,7 @@ exports.getCoachDeliveries = async (req, res) => {
         .populate('userId', 'name userId balagruhaIds')
         .populate('items.shopItemId', 'name sku imageUrl')
         .populate('deliveredBy', 'name')
-        .sort({ placedAt: 1 })  // Oldest first
+        .sort({ placedAt: -1 })  // Latest orders first
         .skip(skip)
         .limit(parseInt(limit))
         .lean(),

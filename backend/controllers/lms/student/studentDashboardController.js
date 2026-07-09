@@ -26,23 +26,38 @@ const getIdString = (value) => {
   return value._id?.toString() || value.toString();
 };
 
-const isContentItemCompleted = (item, completedItems, gradedSubmissions = new Set()) => {
+const getQuizRefId = (item) =>
+  getIdString(item?.quizRef) || getIdString(item?.metadata?.quizId);
+
+const isContentItemCompleted = (
+  item,
+  completedItems,
+  submittedItems = new Set(),
+  quizRefCounts = new Map()
+) => {
   const itemId = getIdString(item?._id);
-  const quizRef = getIdString(item?.quizRef);
-  const metadataQuizId = getIdString(item?.metadata?.quizId);
+  const quizRefId = getQuizRefId(item);
+  const uniqueLegacyQuizCompletion =
+    quizRefId &&
+    quizRefCounts.get(quizRefId) === 1 &&
+    (completedItems.has(quizRefId) || submittedItems.has(quizRefId));
 
   return completedItems.has(itemId) ||
-    gradedSubmissions.has(itemId) ||
-    (quizRef && completedItems.has(quizRef)) ||
-    (quizRef && gradedSubmissions.has(quizRef)) ||
-    (metadataQuizId && completedItems.has(metadataQuizId)) ||
-    (metadataQuizId && gradedSubmissions.has(metadataQuizId));
+    submittedItems.has(itemId) ||
+    uniqueLegacyQuizCompletion;
 };
 
-const calculateCourseProgress = (course, progress, gradedSubmissions = new Set()) => {
+const calculateCourseProgress = (course, progress, submittedItems = new Set()) => {
   const completedItems = new Set(
     progress?.completedItems?.map(i => getIdString(i.itemId)).filter(Boolean) || []
   );
+  const quizRefCounts = new Map();
+  course.modules?.forEach(module => module.chapters?.forEach(chapter =>
+    (chapter.contentItems || []).forEach(item => {
+      const quizRefId = getQuizRefId(item);
+      if (quizRefId) quizRefCounts.set(quizRefId, (quizRefCounts.get(quizRefId) || 0) + 1);
+    })
+  ));
 
   let totalTasks = 0;
   let completedTasks = 0;
@@ -51,7 +66,7 @@ const calculateCourseProgress = (course, progress, gradedSubmissions = new Set()
     module.chapters?.forEach(chapter => {
       (chapter.contentItems || []).forEach(item => {
         totalTasks += 1;
-        if (isContentItemCompleted(item, completedItems, gradedSubmissions)) {
+        if (isContentItemCompleted(item, completedItems, submittedItems, quizRefCounts)) {
           completedTasks += 1;
         }
       });
@@ -94,31 +109,31 @@ exports.getDashboard = async (req, res) => {
       course: { $in: allCourses.map(c => c._id) }
     }).lean();
 
-    const gradedSubmissionRecords = await Submission.find({
+    const submissionRecords = await Submission.find({
       studentId,
       courseId: { $in: allCourses.map(c => c._id) },
-      status: 'graded'
+      status: { $in: ['pending', 'graded'] }
     }).select('courseId taskId').lean();
 
     // build course map for easy lookup
     const progressMap = new Map(progressRecords.map(p => [p.course.toString(), p]));
-    const gradedSubmissionsMap = new Map();
-    gradedSubmissionRecords.forEach(submission => {
+    const submittedItemsMap = new Map();
+    submissionRecords.forEach(submission => {
       const courseKey = getIdString(submission.courseId);
       const taskId = submission.taskId?.toString();
       if (!courseKey || !taskId) return;
-      if (!gradedSubmissionsMap.has(courseKey)) {
-        gradedSubmissionsMap.set(courseKey, new Set());
+      if (!submittedItemsMap.has(courseKey)) {
+        submittedItemsMap.set(courseKey, new Set());
       }
-      gradedSubmissionsMap.get(courseKey).add(taskId);
+      submittedItemsMap.get(courseKey).add(taskId);
     });
 
     // aggregated courses data
     const courses = allCourses.map(course => {
       const courseId = course._id.toString();
       const progress = progressMap.get(courseId);
-      const gradedSubmissions = gradedSubmissionsMap.get(courseId) || new Set();
-      const { totalTasks, completedTasks } = calculateCourseProgress(course, progress, gradedSubmissions);
+      const submittedItems = submittedItemsMap.get(courseId) || new Set();
+      const { totalTasks, completedTasks } = calculateCourseProgress(course, progress, submittedItems);
       const progressPercentage = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
 
       return {

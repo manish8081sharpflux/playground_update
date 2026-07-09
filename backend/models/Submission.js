@@ -33,6 +33,10 @@ const SubmissionSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    s3Key: {
+      type: String,
+      default: null,
+    },
     thumbnailUrl: {
       type: String,
       default: null,
@@ -160,6 +164,13 @@ const SubmissionSchema = new mongoose.Schema(
     offlineSubmission: {
       type: Boolean,
       default: false,
+    },
+    // Only the first submission for a course task can earn coins. Retries are
+    // still stored and graded, but remain practice-only for rewards.
+    isFirstAttempt: {
+      type: Boolean,
+      default: true,
+      index: true,
     },
     syncedAt: {
       type: Date,

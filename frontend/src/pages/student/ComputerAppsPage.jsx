@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import AppCard from '../../components/student/computer-apps/AppCard';
 import { api } from '../../api';
 import toast from 'react-hot-toast';
-import { BookOpen, CheckCircle, ChevronRight, PlayCircle, FileText, HelpCircle, X, Music, Image as ImageIcon } from 'lucide-react'; // Added Icons
+import { BookOpen, CheckCircle, ChevronRight, PlayCircle, FileText, HelpCircle, X, Music, Image as ImageIcon, ArrowLeft } from 'lucide-react'; // Added Icons
 import CourseAudioPlayer from '../../components/student/computer-apps/CourseAudioPlayer';
 import CourseImageViewer from '../../components/student/computer-apps/CourseImageViewer';
 import LoadingState from '../../components/common/LoadingState';
@@ -148,7 +148,7 @@ export default function ComputerAppsPage() {
       toast.success('Starting Quiz...');
       // Use quizId (generic ID) or fallback to item.id if missing
       navigate(`/student/computer-apps/quiz/${item.quizId || item.id}`, {
-        state: { courseId }
+        state: { courseId, contentItemId: item.id }
       });
       // Quiz marks complete upon SUBMISSION, not click.
     } else if (item.type === 'audio') {
@@ -178,6 +178,12 @@ export default function ComputerAppsPage() {
     return (
       <div className="p-6 h-full overflow-y-auto bg-gray-50">
         <div className="max-w-7xl mx-auto">
+          <button
+            onClick={() => navigate('/student/dashboard')}
+            className="text-sm text-indigo-600 font-bold mb-4 hover:underline flex items-center gap-1"
+          >
+            <ArrowLeft size={16} /> Back to Dashboard
+          </button>
           <div className="bg-orange-100 rounded-2xl p-8 mb-8 shadow-sm">
             <h1 className="text-3xl font-bold text-gray-900 mb-2" style={{ fontFamily: 'Patrick Hand, cursive' }}>Computer Applications 💻</h1>
             <p className="text-lg text-gray-700">Select a course to start mastering digital skills!</p>

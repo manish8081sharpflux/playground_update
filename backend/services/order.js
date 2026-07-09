@@ -216,6 +216,10 @@ async function createOrder(userId) {
  * @returns {Promise<Object>} Order details
  */
 async function getOrderByNumber(orderNumber, userId, userRole = null) {
+  // Keep the five-minute delivery transition current even when only the
+  // student-facing order pages are being used.
+  await Order.checkAndConfirmOrders();
+
   // Use the static method which properly populates shopItemId with images
   const order = await Order.getByOrderNumber(orderNumber);
 
@@ -243,6 +247,7 @@ async function getOrderByNumber(orderNumber, userId, userRole = null) {
  * @returns {Promise<Object>} Orders and pagination info
  */
 async function getUserOrders(userId, page = 1, limit = 10, status = null) {
+  await Order.checkAndConfirmOrders();
   return await Order.getUserOrders(userId, page, limit, status);
 }
 
@@ -254,6 +259,8 @@ async function getUserOrders(userId, page = 1, limit = 10, status = null) {
  * @returns {Promise<Object>} Order details
  */
 async function getOrderById(orderId, userId, userRole = null) {
+  await Order.checkAndConfirmOrders();
+
   const order = await Order.findById(orderId)
     .populate('userId', 'name email userId balagruhaIds')
     .populate('items.shopItemId', 'name imageUrl images category price')

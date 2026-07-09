@@ -2,8 +2,11 @@
 const Submission = require("../../../models/Submission");
 const User = require("../../../models/user");
 const Course = require("../../../models/course");
+const StudentProgress = require("../../../models/StudentProgress");
 const Notification = require("../../../models/notification");
 const Coin = require("../../../models/coin");
+const s3Service = require("../../../services/aws/s3");
+const mongoose = require("mongoose");
 const { errorLogger } = require('../../../config/pino-config');
 
 /**
@@ -39,7 +42,64 @@ const getSubmissionAnswers = (submission) => {
   return normalizeAnswerPayload(answerPayload);
 };
 
-const formatSubmissionForGrading = (submission) => ({
+const collectSubmissionFileReferences = (submission, rawSubmission = {}) => {
+  const refs = [];
+  const add = (value) => {
+    if (typeof value === "string" && value.trim()) {
+      refs.push(value.trim());
+    }
+  };
+  const addFromAttachment = (attachment) => {
+    if (!attachment || typeof attachment !== "object") return;
+    add(attachment.s3Key);
+    add(attachment.key);
+    add(attachment.fileUrl);
+    add(attachment.url);
+    add(attachment.filePath);
+    add(attachment.path);
+  };
+
+  [
+    submission.s3Key,
+    rawSubmission.s3Key,
+    submission.fileUrl,
+    rawSubmission.fileUrl,
+    rawSubmission.filePath,
+    rawSubmission.artworkUrl,
+    rawSubmission.submissionUrl,
+    rawSubmission.image,
+    rawSubmission.metadata?.s3Key,
+    rawSubmission.metadata?.fileUrl,
+    rawSubmission.metadata?.filePath,
+    rawSubmission.metadata?.artworkUrl,
+    rawSubmission.metadata?.submissionUrl,
+  ].forEach(add);
+
+  const attachments = rawSubmission.attachments || submission.attachments;
+  if (Array.isArray(attachments)) {
+    attachments.forEach(addFromAttachment);
+  } else {
+    addFromAttachment(attachments);
+  }
+
+  return Array.from(new Set(refs));
+};
+
+const getViewableFileUrl = async (submission) => {
+  if (!submission.fileUrl || submission.submissionType !== "art") {
+    return submission.fileUrl;
+  }
+
+  const s3Key = s3Service.extractS3KeyFromUrl(submission.fileUrl);
+  if (!s3Key) {
+    return submission.fileUrl;
+  }
+
+  const result = await s3Service.generateLMSContentDownloadUrl(s3Key);
+  return result.success ? result.downloadUrl : submission.fileUrl;
+};
+
+const formatSubmissionForGrading = async (submission) => ({
   id: submission._id,
   studentId: submission.studentId?._id || null,
   studentName: submission.studentId?.name || "Unknown",
@@ -52,7 +112,8 @@ const formatSubmissionForGrading = (submission) => ({
   taskId: submission.taskId,
   taskTitle: submission.taskTitle,
   submissionType: submission.submissionType,
-  fileUrl: submission.fileUrl,
+  fileUrl: await getViewableFileUrl(submission),
+  originalFileUrl: submission.fileUrl,
   thumbnailUrl: submission.thumbnailUrl,
   metadata: submission.metadata,
   answers: getSubmissionAnswers(submission),
@@ -62,6 +123,67 @@ const formatSubmissionForGrading = (submission) => ({
   grade: submission.grade || null,
   draft: submission.draft || null,
 });
+
+const courseHasTask = (course, taskObjectId) => {
+  const taskId = taskObjectId.toString();
+  return (course?.modules || []).some(module =>
+    (module.chapters || []).some(chapter =>
+      (chapter.contentItems || []).some(item =>
+        item?.type === "task" && item._id?.toString() === taskId
+      )
+    )
+  );
+};
+
+const markArtTaskCompletedForSubmission = async (submission) => {
+  if (
+    submission.submissionType !== "art" ||
+    !submission.studentId?._id ||
+    !submission.courseId?._id ||
+    !mongoose.Types.ObjectId.isValid(submission.taskId)
+  ) {
+    return false;
+  }
+
+  const taskObjectId = new mongoose.Types.ObjectId(submission.taskId);
+  const course = submission.courseId.modules
+    ? submission.courseId
+    : await Course.findById(submission.courseId._id).lean();
+
+  if (!courseHasTask(course, taskObjectId)) {
+    return false;
+  }
+
+  const existingProgress = await StudentProgress.findOne({
+    student: submission.studentId._id,
+    course: submission.courseId._id,
+  }).select("completedItems");
+
+  const alreadyCompleted = existingProgress?.completedItems?.some(
+    item => item.itemId?.toString() === taskObjectId.toString()
+  );
+  if (alreadyCompleted) {
+    return false;
+  }
+
+  await StudentProgress.findOneAndUpdate(
+    { student: submission.studentId._id, course: submission.courseId._id },
+    {
+      $push: {
+        completedItems: {
+          itemId: taskObjectId,
+          itemType: "task",
+          completedAt: new Date(),
+        },
+      },
+      $set: { lastAccessedAt: new Date(), status: "in_progress" },
+      $setOnInsert: { startedAt: new Date() },
+    },
+    { upsert: true, new: true }
+  );
+
+  return true;
+};
 /**
  * @route GET /api/v2/lms/coach/:coachId/submissions
  * @desc Get all submissions for grading with filters
@@ -96,7 +218,9 @@ exports.getSubmissions = async (req, res) => {
     const stats = await Submission.getCoachStats(coachId);
 
     // Format submissions for response
-    const formattedSubmissions = submissions.map(formatSubmissionForGrading);
+    const formattedSubmissions = await Promise.all(
+      submissions.map(formatSubmissionForGrading)
+    );
 
     res.status(200).json({
       success: true,
@@ -136,13 +260,90 @@ exports.getSubmissionById = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      submission: formatSubmissionForGrading(submission),
+      submission: await formatSubmissionForGrading(submission),
     });
   } catch (error) {
     errorLogger.error({ err: error }, "Error fetching submission:");
     res.status(500).json({
       success: false,
       error: "Failed to fetch submission",
+    });
+  }
+};
+
+/**
+ * @route GET /api/v2/lms/coach/grading/submissions/:submissionId/file
+ * @desc Stream a submitted file through the authenticated backend API
+ * @access Private (Coach/Admin)
+ */
+exports.streamSubmissionFile = async (req, res) => {
+  try {
+    const { submissionId } = req.params;
+
+    const submission = await Submission.findById(submissionId)
+      .populate("studentId", "balagruhaIds");
+
+    if (!submission) {
+      return res.status(404).json({
+        success: false,
+        error: "Submission not found",
+      });
+    }
+
+    const rawSubmission = await Submission.collection.findOne({ _id: submission._id });
+
+    if (req.user.role !== "admin") {
+      const coach = await User.findById(req.user._id).select("balagruhaIds");
+      const coachBalagruhaIds = (coach?.balagruhaIds || []).map(id => id.toString());
+      const studentBalagruhaIds = (submission.studentId?.balagruhaIds || []).map(id => id.toString());
+      const hasSharedBalagruha = studentBalagruhaIds.some(id => coachBalagruhaIds.includes(id));
+
+      if (!hasSharedBalagruha) {
+        return res.status(403).json({
+          success: false,
+          error: "Cannot access this submission file",
+        });
+      }
+    }
+
+    const fileReferences = collectSubmissionFileReferences(submission, rawSubmission || {});
+    let fileObject = null;
+    for (const fileReference of fileReferences) {
+      const result = await s3Service.getLMSContentObject(fileReference);
+      if (result.success && result.stream) {
+        fileObject = result;
+        break;
+      }
+    }
+
+    if (!fileObject || !fileObject.success || !fileObject.stream) {
+      return res.status(404).json({
+        success: false,
+        error: "Submission file not found",
+      });
+    }
+
+    res.setHeader("Content-Type", fileObject.contentType || submission.metadata?.mimeType || "application/octet-stream");
+    if (fileObject.contentLength) {
+      res.setHeader("Content-Length", fileObject.contentLength);
+    }
+    res.setHeader("Cache-Control", "private, max-age=300");
+
+    fileObject.stream.on("error", (error) => {
+      errorLogger.error({ err: error }, "Error streaming submission file:");
+      if (!res.headersSent) {
+        res.status(500).end();
+      } else {
+        res.destroy(error);
+      }
+    });
+
+    fileObject.stream.pipe(res);
+  } catch (error) {
+    errorLogger.error({ err: error }, "Error fetching submission file:");
+    res.status(500).json({
+      success: false,
+      error: "Failed to fetch submission file",
     });
   }
 };
@@ -167,11 +368,11 @@ exports.submitGrade = async (req, res) => {
 
     // Auto-calculate coins from quality rating; allow coach override
     const hasCoinsOverride = coinsOverride !== undefined && coinsOverride !== null;
-    const coinsAwarded = hasCoinsOverride
+    const calculatedCoins = hasCoinsOverride
       ? coinsOverride
       : (QUALITY_COIN_MAP[quality] !== undefined ? QUALITY_COIN_MAP[quality] : 0);
 
-    if (coinsAwarded < 0 || coinsAwarded > 100) {
+    if (calculatedCoins < 0 || calculatedCoins > 100) {
       return res.status(400).json({
         success: false,
         error: "Coin amount must be between 0 and 100",
@@ -202,6 +403,8 @@ exports.submitGrade = async (req, res) => {
       });
     }
 
+    const coinsAwarded = submission.isFirstAttempt === false ? 0 : calculatedCoins;
+
     // Grade data
     const gradeData = {
       quality,
@@ -213,6 +416,7 @@ exports.submitGrade = async (req, res) => {
 
     // Mark as graded
     await submission.markAsGraded(gradeData);
+    await markArtTaskCompletedForSubmission(submission);
 
     // Award coins to student using Coin model's findOrCreateForUser + addCoins pattern
     let coinBalance = 0;
@@ -226,6 +430,7 @@ exports.submitGrade = async (req, res) => {
         {
           submissionId: submission._id,
           courseId: submission.courseId._id,
+          taskId: submission.taskId,
           quality,
         }
       );
@@ -334,9 +539,12 @@ exports.bulkGrade = async (req, res) => {
         }
 
         // Grade data
+        const submissionCoinsAwarded =
+          submission.isFirstAttempt === false ? 0 : coinsAwarded;
+
         const gradeData = {
           quality,
-          coinsAwarded,
+          coinsAwarded: submissionCoinsAwarded,
           feedback: feedback || null,
           evaluationCriteria: {},
           gradedBy,
@@ -344,25 +552,27 @@ exports.bulkGrade = async (req, res) => {
 
         // Mark as graded
         await submission.markAsGraded(gradeData);
+        await markArtTaskCompletedForSubmission(submission);
 
         // Award coins to student using Coin model's findOrCreateForUser + addCoins pattern
-        if (coinsAwarded > 0) {
+        if (submissionCoinsAwarded > 0) {
           const coinRecord = await Coin.findOrCreateForUser(submission.studentId._id);
           await coinRecord.addCoins(
-            coinsAwarded,
+            submissionCoinsAwarded,
             "earned",
             `Graded submission for "${submission.taskTitle}"`,
             "grading",
             {
               submissionId: submission._id,
               courseId: submission.courseId._id,
+              taskId: submission.taskId,
               quality,
             }
           );
         }
 
         // Send notification
-        const notificationMessage = `Coach ${coach.name} graded your "${submission.taskTitle}" submission! ${coinsAwarded > 0 ? `+${coinsAwarded} coins` : ""
+        const notificationMessage = `Coach ${coach.name} graded your "${submission.taskTitle}" submission! ${submissionCoinsAwarded > 0 ? `+${submissionCoinsAwarded} coins` : ""
           }`;
 
         try {
@@ -371,7 +581,7 @@ exports.bulkGrade = async (req, res) => {
             'Submission Graded',
             notificationMessage,
             'COACH_MESSAGE',
-            { submissionId: submission._id, courseId: submission.courseId._id, coinsAwarded, quality }
+            { submissionId: submission._id, courseId: submission.courseId._id, coinsAwarded: submissionCoinsAwarded, quality }
           );
         } catch (notifErr) {
           errorLogger.error({ err: notifErr }, "Failed to send bulk grading notification (non-fatal)");

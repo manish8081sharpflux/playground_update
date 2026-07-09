@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { ArrowLeft } from 'lucide-react';
 // import StudentLayout from '../../components/student/StudentLayout';
 import WorkshopsMode from '../../components/student/art/WorkshopsMode';
 import FreeSketchMode from '../../components/student/art/FreeSketchMode';
@@ -14,6 +16,7 @@ import LoadingState from '../../components/common/LoadingState';
  * Pink theme (#EC4899 pink-600)
  */
 export default function ArtCoursePage() {
+  const navigate = useNavigate();
   const [activeMode, setActiveMode] = useState('workshops');
   const [artData, setArtData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -80,6 +83,14 @@ export default function ArtCoursePage() {
   return (
     <>
       <div className="max-w-6xl mx-auto p-6">
+        {/* Back Button */}
+        <button
+          onClick={() => navigate('/student/dashboard')}
+          className="text-sm text-pink-600 font-bold mb-4 hover:underline flex items-center gap-1"
+        >
+          <ArrowLeft size={16} /> Back to Courses
+        </button>
+
         {/* Header */}
         <div className="mb-6">
           <h1 className="text-3xl font-bold text-gray-900">ART COURSE</h1>
