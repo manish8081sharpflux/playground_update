@@ -2,12 +2,13 @@
 // Main container for all transaction reports and coin economy metrics
 
 import React, { useState, useEffect } from 'react';
-import { FileText, Loader } from 'lucide-react';
+import { FileText } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import TransactionLogTable from '../components/shop/TransactionLogTable';
 import StudentLeaderboard from '../components/shop/StudentLeaderboard';
 import ZeroPurchasesReport from '../components/shop/ZeroPurchasesReport';
 import CoinEconomyHealth from '../components/shop/CoinEconomyHealth';
+import LoadingState from '../components/common/LoadingState';
 import {
   getTransactionLog,
   getStudentLeaderboard,
@@ -269,14 +270,7 @@ const TransactionReports = () => {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center main-content main-content-full-page">
-        <div className="text-center">
-          <Loader className="w-12 h-12 text-purple-600 animate-spin mx-auto mb-4" />
-          <p className="text-lg font-medium text-gray-900">Loading transaction reports...</p>
-        </div>
-      </div>
-    );
+    return <LoadingState message="Loading transaction reports..." fullScreen />;
   }
 
   if (error) {

@@ -9,6 +9,7 @@ import ArtGradingInterface from '../../components/coach/grading/ArtGradingInterf
 import VideoGradingInterface from '../../components/coach/grading/VideoGradingInterface';
 import AudioGradingInterface from '../../components/coach/grading/AudioGradingInterface';
 import QuizGradingInterface from "../../components/coach/grading/QuizGradingInterface";
+import LoadingState from '../../components/common/LoadingState';
 
 export default function GradingDashboard() {
   const { user } = useAuth();
@@ -173,11 +174,7 @@ export default function GradingDashboard() {
   };
 
   if (!user) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-xl text-gray-600">Loading...</div>
-      </div>
-    );
+    return <LoadingState fullScreen />;
   }
 
   return (

@@ -5,6 +5,7 @@ import Breadcrumbs from '../components/shop/Breadcrumbs';
 import showToast from '../utils/toast';
 import { PurchaseRequestStatuses, getPurchaseRequestStatusMeta } from '../constants/purchaseRequestStatuses';
 import { formatDateOnly } from '../utils/dateFormatter';
+import LoadingState from '../components/common/LoadingState';
 
 const getDateRangeFromFilter = (filterValue) => {
   const formatDateParam = (date) => {
@@ -334,7 +335,7 @@ export default function CoachRequestsDashboard() {
             </div>
           </div>
 
-          {purchaseLoading && <p className="text-slate-600">Loading purchase requests...</p>}
+          {purchaseLoading && <LoadingState message="Loading purchase requests..." />}
 
           {purchaseError && !purchaseLoading && (
             <p className="text-red-600">{purchaseError}</p>
@@ -446,7 +447,7 @@ export default function CoachRequestsDashboard() {
             </div>
           </div>
 
-          {ordersLoading && <p className="text-slate-600">Loading digital orders...</p>}
+          {ordersLoading && <LoadingState message="Loading digital orders..." />}
 
           {ordersError && !ordersLoading && (
             <p className="text-red-600">{ordersError}</p>

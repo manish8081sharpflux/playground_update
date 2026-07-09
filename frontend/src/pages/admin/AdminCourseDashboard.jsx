@@ -6,6 +6,7 @@ import toast from 'react-hot-toast';
 import { useRBAC } from '../../contexts/RBACContext';
 import CourseListView from '../../components/admin/CourseListView';
 import CourseCreationModal from '../../components/admin/CourseCreationModal';
+import LoadingState from '../../components/common/LoadingState';
 
 /**
  * AdminCourseDashboard - Sprint 2 Epic 02 Story 01
@@ -116,11 +117,7 @@ export default function AdminCourseDashboard() {
 
   // Show loading while RBAC initializes
   if (rbacLoading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-purple-600"></div>
-      </div>
-    );
+    return <LoadingState message="Loading permissions..." fullScreen />;
   }
 
   return (

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../../api';
+import LoadingState from '../../components/common/LoadingState';
 
 /**
  * TranslationDashboard - Epic 02 Story 04
@@ -221,9 +222,7 @@ const TranslationDashboard = () => {
 
         {/* Loading State */}
         {loading && (
-          <div className="flex justify-center items-center py-12">
-            <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-purple-600"></div>
-          </div>
+          <LoadingState message="Loading translation progress..." />
         )}
       </div>
     </div>

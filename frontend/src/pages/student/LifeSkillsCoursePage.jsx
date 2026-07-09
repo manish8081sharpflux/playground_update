@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { api } from '../../api';
 import toast from 'react-hot-toast';
 import { CheckCircle } from 'lucide-react';
+import LoadingState from '../../components/common/LoadingState';
 // import StudentLayout from '../../components/student/StudentLayout';
 
 /**
@@ -73,11 +74,7 @@ export default function LifeSkillsCoursePage() {
   };
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <p className="text-xl text-gray-600">Loading Life Skills tasks...</p>
-      </div>
-    );
+    return <LoadingState message="Loading Life Skills tasks..." fullScreen />;
   }
 
   if (error) {

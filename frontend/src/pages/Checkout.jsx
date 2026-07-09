@@ -5,6 +5,7 @@ import OrderSummary from '../components/shop/OrderSummary';
 import PaymentDetails from '../components/shop/PaymentDetails';
 import OrderConfirmation from '../components/shop/OrderConfirmation';
 import '../styles/shop/Checkout.css';
+import LoadingState from '../components/common/LoadingState';
 
 /**
  * Checkout Page - Sprint5-Story-03
@@ -81,14 +82,7 @@ const Checkout = () => {
 
   // Show loading state
   if (cartLoading && checkoutStep === 'review') {
-    return (
-      <div className="checkout-container">
-        <div className="checkout-loading">
-          <div className="spinner-large"></div>
-          <p>Loading checkout...</p>
-        </div>
-      </div>
-    );
+    return <LoadingState message="Loading checkout..." fullScreen />;
   }
 
   // Show confirmation page

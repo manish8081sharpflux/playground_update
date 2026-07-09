@@ -8,6 +8,7 @@ import TrueFalseEditor from '../../components/admin/TrueFalseEditor';
 import FillBlankEditor from '../../components/admin/FillBlankEditor';
 import QuestionBankModal from '../../components/admin/QuestionBankModal';
 import QuizPreview from '../../components/admin/QuizPreview';
+import LoadingState from '../../components/common/LoadingState';
 
 const QUIZ_ENABLED_COURSE_CATEGORIES = ['Computer Apps', 'Life Skills'];
 
@@ -316,14 +317,7 @@ export default function QuizBuilder() {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto"></div>
-          <p className="text-gray-500 mt-4">Loading quiz...</p>
-        </div>
-      </div>
-    );
+    return <LoadingState message="Loading quiz..." fullScreen />;
   }
 
   return (

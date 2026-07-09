@@ -6,6 +6,7 @@ import toast from 'react-hot-toast';
 import { BookOpen, CheckCircle, ChevronRight, PlayCircle, FileText, HelpCircle, X, Music, Image as ImageIcon } from 'lucide-react'; // Added Icons
 import CourseAudioPlayer from '../../components/student/computer-apps/CourseAudioPlayer';
 import CourseImageViewer from '../../components/student/computer-apps/CourseImageViewer';
+import LoadingState from '../../components/common/LoadingState';
 
 /**
  * ComputerAppsPage Component - Epic 01 Story 02
@@ -171,9 +172,7 @@ export default function ComputerAppsPage() {
   // Render List View
   if (!courseId) {
     if (loading) return (
-      <div className="flex items-center justify-center h-full">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600"></div>
-      </div>
+      <LoadingState message="Loading computer apps..." fullScreen />
     );
 
     return (
@@ -250,7 +249,7 @@ export default function ComputerAppsPage() {
       {/* Main Content: Card Grid */}
       <div className="flex-1 bg-gray-50 p-8">
         {loading ? (
-          <div className="flex justify-center items-center h-64">Loading content...</div>
+          <LoadingState message="Loading content..." />
         ) : selectedChapter ? (
           <div className="max-w-6xl mx-auto">
             <div className="mb-8">

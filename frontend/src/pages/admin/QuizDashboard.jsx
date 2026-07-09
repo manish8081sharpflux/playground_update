@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Plus, Search, Filter, MoreVertical, Edit, Copy, Trash2, Eye, Archive, RotateCcw } from 'lucide-react';
 import { api } from '../../api';
 import toast from 'react-hot-toast';
+import LoadingState from '../../components/common/LoadingState';
 
 /**
  * QuizDashboard - Sprint 2 Epic 02 Story 03
@@ -275,10 +276,7 @@ export default function QuizDashboard() {
         {/* Quiz List */}
         <div className="mt-6 space-y-4">
           {loading ? (
-            <div className="bg-white p-12 rounded-lg shadow text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto"></div>
-              <p className="text-gray-500 mt-4">Loading quizzes...</p>
-            </div>
+            <LoadingState message="Loading quizzes..." />
           ) : quizzes.length === 0 ? (
             <div className="bg-white p-12 rounded-lg shadow text-center">
               <p className="text-gray-500 text-lg">No quizzes found</p>

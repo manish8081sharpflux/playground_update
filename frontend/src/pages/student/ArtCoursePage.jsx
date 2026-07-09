@@ -6,6 +6,7 @@ import ArtStoriesMode from '../../components/student/art/ArtStoriesMode';
 import CompetitionMode from '../../components/student/art/CompetitionMode';
 import { api } from '../../api';
 import toast from 'react-hot-toast';
+import LoadingState from '../../components/common/LoadingState';
 
 /**
  * ArtCoursePage Component - Epic 01 Story 03
@@ -73,14 +74,7 @@ export default function ArtCoursePage() {
   };
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center h-full">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading Art Course...</p>
-        </div>
-      </div>
-    );
+    return <LoadingState message="Loading Art Course..." fullScreen />;
   }
 
   return (

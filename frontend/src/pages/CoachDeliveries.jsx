@@ -4,6 +4,7 @@ import ShopNavigation from '../components/shop/ShopNavigation';
 import Breadcrumbs from '../components/shop/Breadcrumbs';
 import { useAuth } from '../contexts/AuthContext';
 import toast from 'react-hot-toast';
+import LoadingState from '../components/common/LoadingState';
 
 /**
  * CoachDeliveries Page - Sprint5-Story-13
@@ -537,20 +538,7 @@ export default function CoachDeliveries() {
 
         {/* Loading State */}
         {loading && (
-          <div className="space-y-4">
-            {[...Array(3)].map((_, i) => (
-              <div key={i} className="animate-pulse bg-white rounded-lg p-6 border border-slate-200">
-                <div className="flex gap-4">
-                  <div className="flex-1">
-                    <div className="h-5 bg-slate-200 rounded w-1/3 mb-3"></div>
-                    <div className="h-4 bg-slate-200 rounded w-1/4 mb-4"></div>
-                    <div className="h-4 bg-slate-200 rounded w-1/2"></div>
-                  </div>
-                  <div className="h-10 w-32 bg-slate-200 rounded"></div>
-                </div>
-              </div>
-            ))}
-          </div>
+          <LoadingState message="Loading deliveries..." />
         )}
 
         {/* Error State */}

@@ -8,6 +8,7 @@ import WebcamPreview from '../../components/student/spoken-english/WebcamPreview
 import RecordingControls from '../../components/student/spoken-english/RecordingControls';
 import RedoModal from '../../components/student/spoken-english/RedoModal';
 import { CheckCircle } from 'lucide-react';
+import LoadingState from '../../components/common/LoadingState';
 
 /**
  * Spoken English Page - Epic 01 Story 04
@@ -288,11 +289,7 @@ export default function SpokenEnglishPage() {
 
   // Loading State
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <p className="text-xl text-gray-600">{isListMode ? 'Loading tasks...' : 'Loading task...'}</p>
-      </div>
-    );
+    return <LoadingState message={isListMode ? 'Loading tasks...' : 'Loading task...'} fullScreen />;
   }
 
   // List mode — render task picker when no taskId in URL

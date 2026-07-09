@@ -5,6 +5,7 @@ import toast from 'react-hot-toast';
 // import StudentLayout from '../../components/student/StudentLayout';
 import AudioQuestionCard from '../../components/student/lifeskills/AudioQuestionCard';
 import WaveformVisualizer from '../../components/student/lifeskills/WaveformVisualizer';
+import LoadingState from '../../components/common/LoadingState';
 
 /**
  * Life Skills Voice Recording Task Page - Epic 01 Story 05
@@ -229,13 +230,7 @@ export default function LifeSkillsVoiceTaskPage() {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-100 pb-20">
-        <div className="flex items-center justify-center min-h-screen">
-          <p className="text-xl text-gray-600">Loading voice task...</p>
-        </div>
-      </div>
-    );
+    return <LoadingState message="Loading voice task..." fullScreen />;
   }
 
   if (error || !task) {

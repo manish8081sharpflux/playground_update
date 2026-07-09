@@ -2,7 +2,7 @@
 // Main page component that integrates all analytics components
 
 import React, { useState, useEffect } from 'react';
-import { BarChart3, AlertCircle, Loader2 } from 'lucide-react';
+import { BarChart3, AlertCircle } from 'lucide-react';
 import DateRangeSelector from '../components/shop/DateRangeSelector';
 import AnalyticsOverview from '../components/shop/AnalyticsOverview';
 import RevenueChart from '../components/shop/RevenueChart';
@@ -10,6 +10,7 @@ import CategoryPieChart from '../components/shop/CategoryPieChart';
 import TopProductsTable from '../components/shop/TopProductsTable';
 import { getShopAnalytics } from '../api';
 import Breadcrumbs from '../components/shop/Breadcrumbs';
+import LoadingState from '../components/common/LoadingState';
 import ShopAdminControls from '../components/shop/ShopAdminControls';
 
 const ShopAnalytics = () => {
@@ -91,12 +92,7 @@ const ShopAnalytics = () => {
 
         {/* Loading State */}
         {loading && (
-          <div className="flex items-center justify-center py-20">
-            <div className="text-center">
-              <Loader2 className="w-12 h-12 text-blue-600 animate-spin mx-auto mb-4" />
-              <p className="text-gray-600">Loading analytics data...</p>
-            </div>
-          </div>
+          <LoadingState message="Loading analytics data..." />
         )}
 
         {/* Error State */}

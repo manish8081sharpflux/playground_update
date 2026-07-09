@@ -4,6 +4,7 @@ import toast from 'react-hot-toast';
 import { api } from '../../api';
 import { useAuth } from '../../contexts/AuthContext';
 import CourseListView from '../../components/admin/CourseListView';
+import LoadingState from '../../components/common/LoadingState';
 
 /**
  * CoachCoursesPage - Sprint 2 Story 05
@@ -63,11 +64,7 @@ export default function CoachCoursesPage() {
   }, [courses, categoryFilter, searchTerm]);
 
   if (!user) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-xl text-gray-600">Loading...</div>
-      </div>
-    );
+    return <LoadingState fullScreen />;
   }
 
   return (
