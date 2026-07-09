@@ -28,3 +28,6 @@ frontend/logs/
 # Package lock files
 package-lock.json
 **/package-lock.json
+
+backend/logs/pino-logger.log
+backend/logs/scheduler-events.log
