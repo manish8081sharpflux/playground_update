@@ -64,6 +64,20 @@
     box-sizing: border-box;
 }
 
+/* React Select renders a native search input inside its own styled control.
+   Prevent the modal's generic form input rules from drawing a second,
+   narrow input box around the text cursor. */
+.modal-content .form-group .health-check-select__input-container input,
+.modal-content .form-group .health-check-select__input-container input:focus {
+    width: auto !important;
+    padding: 0 !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    outline: 0 !important;
+    box-shadow: none !important;
+    background: transparent !important;
+}
+
 .form-row {
     display: flex;
     gap: 15px;

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { ChevronDown, ChevronRight, Plus, MoreVertical, Trash2, Edit2, GripVertical } from 'lucide-react';
 import { api } from '../../api';
 import toast from 'react-hot-toast';
+import { confirmDialog } from '../../utils/dialogs';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { DndContext, closestCenter, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
@@ -82,7 +83,7 @@ export default function ChapterCard({
   };
 
   const handleDelete = async () => {
-    if (!window.confirm(`Are you sure you want to delete "${chapter.title}"?`)) {
+    if (!(await confirmDialog(`Are you sure you want to delete "${chapter.title}"?`, { danger: true, confirmText: 'Delete' }))) {
       setShowMenu(false);
       return;
     }

@@ -14,6 +14,7 @@ import {
   batchOrderPurchaseRequests, // FIX-038: Batch order endpoint
 } from "../../../api";
 import showToast from "../../../utils/toast";
+import { confirmDialog, promptDialog } from "../../../utils/dialogs";
 import {
   formatDate,
   formatDateOnly,
@@ -910,10 +911,11 @@ export default function ShopInventoryView({
   };
 
   // Story 2.6: Handle marking as delivered to store with technician name prompt for Repairs
-  const handleMarkDeliveredStore = (request) => {
+  const handleMarkDeliveredStore = async (request) => {
     if (request.category === "Repairs") {
-      const technicianName = window.prompt(
+      const technicianName = await promptDialog(
         "Enter Repair Technician Name (required):",
+        { title: "Repair technician", confirmText: "Continue" },
       );
       if (!technicianName || !technicianName.trim()) {
         showToast("Technician name is required for repair items", "error");
@@ -937,7 +939,10 @@ export default function ShopInventoryView({
   };
 
   const handleCancelRequest = async (requestId) => {
-    if (!window.confirm("Are you sure you want to cancel this request?")) {
+    if (!(await confirmDialog("Are you sure you want to cancel this request?", {
+      danger: true,
+      confirmText: "Cancel request",
+    }))) {
       return;
     }
 

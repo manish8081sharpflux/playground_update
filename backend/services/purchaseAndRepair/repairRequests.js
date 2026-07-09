@@ -44,7 +44,7 @@ class RepairRequest {
         if (!isOfflineReq) {
           let result = await uploadFileToS3(
             file.path,
-            process.env.AWS_S3_BUCKET_NAME_REPAIR_REQUEST_ATTACHMENTS,
+            process.env.AWS_S3_FOLDER_REPAIR_REQUEST_ATTACHMENTS,
             fileName
           );
           if (result.success) {

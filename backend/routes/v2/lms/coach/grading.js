@@ -25,6 +25,14 @@ router.get(
   coachGradingController.getSubmissionById
 );
 
+// Stream submitted file for authenticated preview/download
+router.get(
+  "/submissions/:submissionId/file",
+  authenticate,
+  authorize("LMS Management", "Read"),
+  coachGradingController.streamSubmissionFile
+);
+
 // Submit grade for a submission
 router.post(
   "/submissions/:submissionId/grade",

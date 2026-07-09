@@ -611,6 +611,13 @@ exports.addContentItem = async (req, res) => {
       });
     }
 
+    const fileContentTypes = ["video", "pdf", "audio", "image"];
+    if (fileContentTypes.includes(type) && !fileUrl?.trim()) {
+      return res.status(400).json({
+        error: `A file URL is required for ${type} content`,
+      });
+    }
+
     const course = await Course.findById(courseId);
     if (!course) {
       return res.status(404).json({ error: "Course not found" });
@@ -717,6 +724,15 @@ exports.updateContentItem = async (req, res) => {
         }
       }
     });
+
+    if (
+      ["video", "pdf", "audio", "image"].includes(contentItem.type) &&
+      !contentItem.fileUrl?.trim()
+    ) {
+      return res.status(400).json({
+        error: `A file URL is required for ${contentItem.type} content`,
+      });
+    }
 
     await course.save();
 

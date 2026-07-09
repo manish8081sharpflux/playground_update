@@ -6,7 +6,9 @@ const path = require('path');
 dotenv.config({ path: path.join(__dirname, '..', '.env') });
 
 const s3Client = new S3Client({
+  endpoint: process.env.AWS_S3_ENDPOINT,
   region: process.env.AWS_S3_REGION,
+  forcePathStyle: true,
   credentials: {
     accessKeyId: process.env.AWS_S3_ACCESS_KEY_ID,
     secretAccessKey: process.env.AWS_S3_SECRET_KEY
@@ -17,27 +19,27 @@ async function testShopS3Bucket() {
   console.log('🧪 Testing S3 Bucket Configuration for Shop Products\n');
   console.log('📋 Configuration:');
   console.log(`   Region: ${process.env.AWS_S3_REGION}`);
-  console.log(`   Bucket: ${process.env.AWS_S3_BUCKET_NAME_SHOP_PRODUCTS}`);
+  console.log(`   Bucket: ${process.env.AWS_S3_BUCKET_NAME}`);
   console.log(`   Access Key: ${process.env.AWS_S3_ACCESS_KEY_ID?.substring(0, 8)}...`);
   console.log('');
 
   // Check if bucket name is configured
-  if (!process.env.AWS_S3_BUCKET_NAME_SHOP_PRODUCTS) {
-    console.error('❌ ERROR: AWS_S3_BUCKET_NAME_SHOP_PRODUCTS is not set in .env file');
+  if (!process.env.AWS_S3_BUCKET_NAME) {
+    console.error('❌ ERROR: AWS_S3_BUCKET_NAME is not set in .env file');
     console.log('\n💡 Add this line to backend/.env:');
-    console.log('   AWS_S3_BUCKET_NAME_SHOP_PRODUCTS=balagruha-shop-product-images');
+    console.log('   AWS_S3_BUCKET_NAME=playground');
     process.exit(1);
   }
 
-  const bucketName = process.env.AWS_S3_BUCKET_NAME_SHOP_PRODUCTS;
-  const testKey = 'test/test-file.txt';
+  const bucketName = process.env.AWS_S3_BUCKET_NAME;
+  const testKey = `${process.env.AWS_S3_FOLDER_SHOP_PRODUCTS}/test-file.txt`;
   const testContent = 'Test file for shop product images bucket';
 
   try {
     // Test 1: Upload
     console.log('📤 Test 1: Uploading test file...');
     const uploadParams = {
-      Bucket: bucketName,
+      Bucket: process.env.AWS_S3_BUCKET_NAME,
       Key: testKey,
       Body: testContent,
       ContentType: 'text/plain'
@@ -52,7 +54,10 @@ async function testShopS3Bucket() {
     console.log('   ✅ Upload successful means write permissions work');
 
     // Test 3: Public Access
-    const publicUrl = `https://${bucketName}.s3.${process.env.AWS_S3_REGION}.amazonaws.com/${testKey}`;
+    const endpoint = process.env.AWS_S3_ENDPOINT?.replace(/\/+$/, '');
+    const publicUrl = endpoint
+      ? `${endpoint}/${bucketName}/${testKey}`
+      : `https://${bucketName}.s3.${process.env.AWS_S3_REGION}.amazonaws.com/${testKey}`;
     console.log('🌐 Test 3: Public URL generated');
     console.log(`   URL: ${publicUrl}`);
     console.log('   ℹ️  Try opening this URL in browser to verify public access');
@@ -61,7 +66,7 @@ async function testShopS3Bucket() {
     console.log('🗑️  Test 4: Testing delete operation...');
     try {
       const deleteParams = {
-        Bucket: bucketName,
+        Bucket: process.env.AWS_S3_BUCKET_NAME,
         Key: testKey
       };
 

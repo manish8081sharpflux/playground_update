@@ -25,6 +25,7 @@ import jsPDF from "jspdf";
 import "jspdf-autotable";
 import { CSVLink } from "react-csv";
 import UserManagement from "../usermanagement/usermanagement";
+import { confirmDialog } from "../../utils/dialogs";
 
 const TrainingSessionModal = ({
   isOpen,
@@ -1579,7 +1580,10 @@ const MusicCoachDashboard = () => {
 
   const handleDeleteSession = async (sessionId) => {
     if (
-      window.confirm("Are you sure you want to delete this training session?")
+      await confirmDialog("Are you sure you want to delete this training session?", {
+        danger: true,
+        confirmText: "Delete",
+      })
     ) {
       try {
         // Add your delete API call here

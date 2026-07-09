@@ -197,7 +197,9 @@ exports.getSpokenEnglishTasks = async (req, res) => {
       tasks: allTasks,
       totalTasks: allTasks.length,
       availableTasks: allTasks.filter(t => t.status === 'available').length,
-      completedTasks: allTasks.filter(t => t.status === 'graded').length
+      completedTasks: allTasks.filter(t =>
+        t.status === 'graded' || t.status === 'under_review'
+      ).length
     });
 
   } catch (error) {
@@ -301,6 +303,12 @@ exports.submitVideoRecording = async (req, res) => {
     // 3. Replace-on-resubmit: a student gets ONE active submission per task.
     // Re-recording supersedes the previous attempt (matches the "re-record if
     // not satisfied" intent) and resets it to pending for fresh grading.
+    const priorSubmission = await Submission.exists({
+      studentId,
+      courseId: course._id,
+      taskId,
+      submissionType: 'video'
+    });
     await Submission.deleteMany({ studentId, taskId, submissionType: 'video' });
 
     // 4. Create Submission Record
@@ -319,13 +327,29 @@ exports.submitVideoRecording = async (req, res) => {
         fileSize: fileSize || 0
       },
       status: "pending",
+      isFirstAttempt: !priorSubmission,
       submittedAt: new Date()
     });
 
     await submission.save();
 
-    // 4. Update StudentProgress to mark as "in_progress" or "submitted"
-    // (Optional, usually we wait for grade to complete it)
+    if (!priorSubmission) {
+      await StudentProgress.findOneAndUpdate(
+        { student: studentId, course: course._id },
+        {
+          $push: {
+            completedItems: {
+              itemId: taskId,
+              itemType: 'task',
+              completedAt: new Date()
+            }
+          },
+          $set: { lastAccessedAt: new Date(), status: 'in_progress' },
+          $setOnInsert: { startedAt: new Date() }
+        },
+        { upsert: true, new: true }
+      );
+    }
 
     res.status(200).json({
       success: true,

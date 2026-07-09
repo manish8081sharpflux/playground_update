@@ -159,7 +159,7 @@ const ShopHome = () => {
       {canManageShop && <ShopAdminControls />}
 
       {/* Page Header */}
-      <div className="bg-white border-b border-slate-200 sticky top-0 z-10">
+      <div className="bg-white border-b border-slate-200">
         <div className="w-full px-4 sm:px-6 lg:px-8 py-4">
           <h1 className="text-3xl font-bold text-slate-900">ISF Shop</h1>
           <p className="text-slate-600 mt-1">

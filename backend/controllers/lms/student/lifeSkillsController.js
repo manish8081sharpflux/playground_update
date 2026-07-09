@@ -301,19 +301,28 @@ exports.submitVoiceRecording = async (req, res) => {
     });
 
     // Save submission
+    const priorSubmission = await Submission.exists({
+      studentId,
+      courseId: course._id,
+      taskId
+    });
     const submission = new Submission({
       studentId,
       courseId: course._id,
       taskId,
       taskTitle,
-      type: "voice",
+      submissionType: "audio",
       fileUrl: s3Url,
       metadata: { duration, fileSize },
-      status: "submitted",
+      isFirstAttempt: !priorSubmission,
+      status: "pending",
       submittedAt: new Date()
     });
 
     await submission.save();
+    if (!priorSubmission) {
+      await updateProgress(studentId, course._id, taskId, 'audio');
+    }
 
     res.status(201).json({
       success: true,
@@ -477,7 +486,7 @@ exports.submitQuiz = async (req, res) => {
 
     let correctAnswers = 0;
     let baseCoins = 0;
-    const canonicalTaskId = quiz._id.toString();
+    const canonicalTaskId = quizId;
 
     // Always compute breakdown + baseCoins. The duplicate-reward check is
     // performed inside the transaction below using the Coin document's
@@ -582,8 +591,10 @@ exports.submitQuiz = async (req, res) => {
     // The "already rewarded" check runs INSIDE the transaction against the
     // Coin document's transactions[] array.
     const session = await mongoose.startSession();
-    let alreadyPassed = false;
+    let alreadyAttempted = false;
+    let alreadyRewarded = false;
     let coinsAwarded = 0;
+    const assignedCourseId = quiz.course || courseRef;
 
     try {
       await session.withTransaction(async () => {
@@ -591,19 +602,24 @@ exports.submitQuiz = async (req, res) => {
         const User = require('../../../models/user');
 
         // Fresh read inside the txn â€” scan for a prior quiz_pass for THIS quiz.
+        alreadyAttempted = Boolean(await Submission.exists({
+          studentId,
+          courseId: assignedCourseId,
+          taskId: canonicalTaskId,
+          submissionType: 'quiz'
+        }).session(session));
+
         const coinRecord = await Coin.findOrCreateForUser(studentId, { session });
-        const quizIdStr = quiz._id.toString();
-        alreadyPassed = coinRecord.transactions.some(t =>
+        alreadyRewarded = coinRecord.transactions.some(t =>
           t.source === 'quiz_pass' &&
-          t.metadata &&
-          t.metadata.quizId &&
-          t.metadata.quizId.toString() === quizIdStr
+          t.metadata?.contentItemId?.toString() === canonicalTaskId.toString() &&
+          t.metadata?.courseId?.toString() === assignedCourseId?.toString()
         );
 
         // Save Submission
         const submission = new Submission({
           studentId,
-          courseId: quiz.course || courseRef,
+          courseId: assignedCourseId,
           taskId: canonicalTaskId,
           taskTitle: quiz.title || 'Quiz Submission',
           submissionType: 'quiz',
@@ -611,23 +627,24 @@ exports.submitQuiz = async (req, res) => {
           status: 'graded',
           grade: {
             score,
-            points: (passed && !alreadyPassed) ? baseCoins : 0
+            points: (!alreadyAttempted && !alreadyRewarded) ? baseCoins : 0
           },
           metadata: { breakdown, answers: breakdown },
+          isFirstAttempt: !alreadyAttempted,
           submittedAt: new Date()
         });
         await submission.save({ session });
 
         // Award Coins
-        if (passed && !alreadyPassed && baseCoins > 0) {
-          const cId = quiz.course || courseRef;
+        if (!alreadyAttempted && !alreadyRewarded && baseCoins > 0) {
+          const cId = assignedCourseId;
 
           await coinRecord.addCoins(
             baseCoins,
             'earned',
             `Quiz Completed: ${quiz.title}`,
             'quiz_pass',
-            { quizId: quiz._id, courseId: cId },
+            { quizId: quiz._id, courseId: cId, contentItemId: canonicalTaskId },
             { session }
           );
 
@@ -637,8 +654,8 @@ exports.submitQuiz = async (req, res) => {
         }
 
         // Update Progress
-        if (passed && !alreadyPassed) {
-          const courseIdToUse = quiz.course || (courseRef && courseRef._id) || courseRef;
+        if (!alreadyAttempted) {
+          const courseIdToUse = assignedCourseId;
           await updateProgress(studentId, courseIdToUse, quizId, 'quiz', score);
         }
       });
@@ -657,7 +674,8 @@ exports.submitQuiz = async (req, res) => {
         coinsEarned: coinsAwarded,
         // Honest signal so the UI can avoid lying with "you earned bonus coins!"
         // when alreadyPassed dedup withheld the reward on a repeat attempt.
-        alreadyEarned: alreadyPassed,
+        alreadyEarned: alreadyAttempted || alreadyRewarded,
+        alreadySubmitted: alreadyAttempted,
         baseCoinsAvailable: baseCoins,
         breakdown
       }

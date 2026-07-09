@@ -15,6 +15,130 @@ const getFileTypeFromMimeType = (mimeType) => {
 };
 
 /**
+ * Create a presigned S3 upload URL so large LMS files can go straight from
+ * the browser to object storage instead of passing through the API server.
+ * POST /api/v2/lms/admin/content/upload-url
+ */
+exports.createUploadUrl = async (req, res) => {
+  try {
+    const { fileName, fileType, mimeType, fileSize } = req.body;
+
+    if (!fileName || !fileType || !mimeType || !fileSize) {
+      return res.status(400).json({
+        success: false,
+        message: 'fileName, fileType, mimeType, and fileSize are required',
+      });
+    }
+
+    const resolvedFileType = getFileTypeFromMimeType(mimeType);
+    if (!resolvedFileType || resolvedFileType !== fileType) {
+      return res.status(400).json({
+        success: false,
+        message: 'Unsupported or mismatched file type',
+      });
+    }
+
+    const result = await s3Service.generateLMSContentUploadUrl(
+      fileName,
+      fileType,
+      mimeType
+    );
+
+    if (!result.success) {
+      return res.status(500).json({
+        success: false,
+        message: result.message || 'Failed to create upload URL',
+        error: result.error,
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      uploadUrl: result.uploadUrl,
+      cdnUrl: result.cdnUrl,
+      s3Key: result.s3Key,
+      expiresIn: result.expiresIn,
+    });
+  } catch (error) {
+    errorLogger.error({ err: error }, 'Create LMS upload URL error:');
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Internal server error',
+    });
+  }
+};
+
+/**
+ * Record a file after direct browser-to-S3 upload completes.
+ * POST /api/v2/lms/admin/content/complete-upload
+ */
+exports.completeDirectUpload = async (req, res) => {
+  try {
+    const {
+      fileName,
+      fileType,
+      fileUrl,
+      s3Key,
+      fileSize,
+      mimeType,
+      tags,
+      description,
+    } = req.body;
+
+    if (!fileName || !fileType || !fileUrl || !s3Key || !fileSize || !mimeType) {
+      return res.status(400).json({
+        success: false,
+        message: 'Missing required uploaded file metadata',
+      });
+    }
+
+    const resolvedFileType = getFileTypeFromMimeType(mimeType);
+    if (!resolvedFileType || resolvedFileType !== fileType) {
+      return res.status(400).json({
+        success: false,
+        message: 'Unsupported or mismatched file type',
+      });
+    }
+
+    const contentLibraryEntry = new ContentLibrary({
+      fileName,
+      fileType,
+      fileUrl,
+      s3Key,
+      fileSize,
+      mimeType,
+      uploadedBy: req.user._id,
+      uploadStatus: 'complete',
+      uploadedAt: new Date(),
+      description: description || '',
+      tags: Array.isArray(tags) ? tags : [],
+    });
+
+    await contentLibraryEntry.save();
+
+    res.status(201).json({
+      success: true,
+      message: 'File uploaded successfully',
+      file: {
+        id: contentLibraryEntry._id,
+        fileName: contentLibraryEntry.fileName,
+        fileType: contentLibraryEntry.fileType,
+        fileUrl: contentLibraryEntry.fileUrl,
+        fileSize: contentLibraryEntry.fileSize,
+        mimeType: contentLibraryEntry.mimeType,
+        s3Key: contentLibraryEntry.s3Key,
+      },
+    });
+  } catch (error) {
+    errorLogger.error({ err: error }, 'Complete direct LMS upload error:');
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Internal server error',
+    });
+  }
+};
+
+/**
  * Upload files directly to S3 via backend (backend proxy pattern)
  * POST /api/v2/lms/admin/content/upload
  * Expects multipart/form-data with files field

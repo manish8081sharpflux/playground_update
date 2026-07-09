@@ -55,7 +55,7 @@ async function checkMedicalFileUrls() {
               console.log(`            🔍 URL Analysis:`);
               console.log(`               - Protocol: ${prescription.url.startsWith('https') ? 'HTTPS ✅' : 'HTTP/Other ⚠️'}`);
               console.log(`               - Contains S3: ${prescription.url.includes('s3') ? 'Yes ✅' : 'No ⚠️'}`);
-              console.log(`               - Contains bucket: ${prescription.url.includes(process.env.AWS_S3_BUCKET_NAME_MEDICAL_RECORDS || 'medical') ? 'Yes ✅' : 'No ⚠️'}`);
+              console.log(`               - Contains folder: ${prescription.url.includes(process.env.AWS_S3_FOLDER_MEDICAL_RECORDS || 'student-medical-records') ? 'Yes ✅' : 'No ⚠️'}`);
             }
           });
         }
@@ -72,7 +72,7 @@ async function checkMedicalFileUrls() {
               console.log(`            🔍 URL Analysis:`);
               console.log(`               - Protocol: ${attachment.url.startsWith('https') ? 'HTTPS ✅' : 'HTTP/Other ⚠️'}`);
               console.log(`               - Contains S3: ${attachment.url.includes('s3') ? 'Yes ✅' : 'No ⚠️'}`);
-              console.log(`               - Contains bucket: ${attachment.url.includes(process.env.AWS_S3_BUCKET_NAME_MEDICAL_RECORDS || 'medical') ? 'Yes ✅' : 'No ⚠️'}`);
+              console.log(`               - Contains folder: ${attachment.url.includes(process.env.AWS_S3_FOLDER_MEDICAL_RECORDS || 'student-medical-records') ? 'Yes ✅' : 'No ⚠️'}`);
             }
           });
         }
@@ -81,7 +81,8 @@ async function checkMedicalFileUrls() {
     
     console.log('\n🔧 S3 CONFIGURATION CHECK:');
     console.log('===========================');
-    console.log(`AWS_S3_BUCKET_NAME_MEDICAL_RECORDS: ${process.env.AWS_S3_BUCKET_NAME_MEDICAL_RECORDS || 'NOT SET ❌'}`);
+    console.log(`AWS_S3_BUCKET_NAME: ${process.env.AWS_S3_BUCKET_NAME || 'NOT SET ❌'}`);
+    console.log(`AWS_S3_FOLDER_MEDICAL_RECORDS: ${process.env.AWS_S3_FOLDER_MEDICAL_RECORDS || 'NOT SET ❌'}`);
     console.log(`AWS_S3_REGION: ${process.env.AWS_S3_REGION || 'NOT SET ❌'}`);
     console.log(`AWS_S3_ACCESS_KEY_ID: ${process.env.AWS_S3_ACCESS_KEY_ID ? 'SET ✅' : 'NOT SET ❌'}`);
     console.log(`AWS_S3_SECRET_KEY: ${process.env.AWS_S3_SECRET_KEY ? 'SET ✅' : 'NOT SET ❌'}`);

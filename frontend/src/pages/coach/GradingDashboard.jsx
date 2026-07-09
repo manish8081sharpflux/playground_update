@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import toast from 'react-hot-toast';
+import { promptDialog } from '../../utils/dialogs';
 import { api } from '../../api';
 import SubmissionQueue from '../../components/coach/grading/SubmissionQueue';
 import ArtGradingInterface from '../../components/coach/grading/ArtGradingInterface';
@@ -130,7 +131,7 @@ export default function GradingDashboard() {
 
   const handleFlag = async () => {
     try {
-      const reason = prompt('Enter reason for flagging this submission:');
+      const reason = await promptDialog('Enter reason for flagging this submission:');
       if (!reason) return;
 
       await api.put(
@@ -151,7 +152,7 @@ export default function GradingDashboard() {
 
   // Bulk grade: apply same quality + coins to multiple submissions at once
   const handleBulkGrade = async (submissionIds) => {
-    const quality = window.prompt('Enter quality for all selected (excellent / good / needs_improvement):');
+    const quality = await promptDialog('Enter quality for all selected (excellent / good / needs_improvement):');
     if (!quality || !['excellent', 'good', 'needs_improvement'].includes(quality)) {
       toast.error('Invalid quality. Use: excellent, good, or needs_improvement');
       return;

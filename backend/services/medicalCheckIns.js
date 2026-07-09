@@ -113,7 +113,7 @@ class MedicalCheckIns {
           let fileName = file.replace("uploads/", "");
           let result = await uploadFileToS3(
             file,
-            process.env.AWS_S3_BUCKET_NAME_MEDICAL_RECORDS,
+            process.env.AWS_S3_FOLDER_MEDICAL_RECORDS,
             fileName
           );
           if (result.success) {
@@ -143,7 +143,7 @@ class MedicalCheckIns {
           let fileName = file.replace("uploads/", "");
           let result = await uploadFileToS3(
             file,
-            process.env.AWS_S3_BUCKET_NAME_MEDICAL_RECORDS,
+            process.env.AWS_S3_FOLDER_MEDICAL_RECORDS,
             fileName
           );
           if (result.success) {
@@ -173,7 +173,7 @@ class MedicalCheckIns {
           let fileName = file.replace("uploads/", "");
           let result = await uploadFileToS3(
             file,
-            process.env.AWS_S3_BUCKET_NAME_MEDICAL_RECORDS,
+            process.env.AWS_S3_FOLDER_MEDICAL_RECORDS,
             fileName
           );
           if (result.success) {
@@ -203,7 +203,7 @@ class MedicalCheckIns {
           let fileName = file.replace("uploads/", "");
           let result = await uploadFileToS3(
             file,
-            process.env.AWS_S3_BUCKET_NAME_MEDICAL_RECORDS,
+            process.env.AWS_S3_FOLDER_MEDICAL_RECORDS,
             fileName
           );
           if (result.success) {
@@ -233,7 +233,7 @@ class MedicalCheckIns {
           let fileName = file.replace("uploads/", "");
           let result = await uploadFileToS3(
             file,
-            process.env.AWS_S3_BUCKET_NAME_MEDICAL_RECORDS,
+            process.env.AWS_S3_FOLDER_MEDICAL_RECORDS,
             fileName
           );
           if (result.success) {
@@ -554,8 +554,7 @@ class MedicalCheckIns {
           let fileName = file.replace("uploads/", "");
           let result = await uploadFileToS3(
             file,
-            process.env.AWS_S3_BUCKET_NAME_MEDICAL_ATTACHMENTS ||
-              "medical-attachments",
+            process.env.AWS_S3_FOLDER_MEDICAL_ATTACHMENTS,
             fileName
           );
           if (result.success) {
@@ -585,7 +584,7 @@ class MedicalCheckIns {
           let fileName = file.replace("uploads/", "");
           let result = await uploadFileToS3(
             file,
-            process.env.AWS_S3_BUCKET_NAME_MEDICAL_RECORDS,
+            process.env.AWS_S3_FOLDER_MEDICAL_RECORDS,
             fileName
           );
           if (result.success) {
@@ -608,7 +607,7 @@ class MedicalCheckIns {
           let fileName = file.replace("uploads/", "");
           let result = await uploadFileToS3(
             file,
-            process.env.AWS_S3_BUCKET_NAME_MEDICAL_RECORDS,
+            process.env.AWS_S3_FOLDER_MEDICAL_RECORDS,
             fileName
           );
           if (result.success) {

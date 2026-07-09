@@ -42,6 +42,23 @@ exports.getArtCourseData = async (req, res) => {
     }).lean();
 
     const progressMap = new Map(progressRecords.map(p => [p.course.toString(), p]));
+    const gradedSubmissions = await Submission.find({
+      studentId,
+      courseId: { $in: artCourses.map(c => c._id) },
+      submissionType: 'art',
+      status: 'graded'
+    }).select('courseId taskId').lean();
+
+    const gradedSubmissionMap = new Map();
+    gradedSubmissions.forEach(submission => {
+      const courseKey = submission.courseId?.toString();
+      const taskKey = submission.taskId?.toString();
+      if (!courseKey || !taskKey) return;
+      if (!gradedSubmissionMap.has(courseKey)) {
+        gradedSubmissionMap.set(courseKey, []);
+      }
+      gradedSubmissionMap.get(courseKey).push(taskKey);
+    });
 
     // 3. Separate courses into workshop vs story modes
     const workshops = [];
@@ -49,28 +66,72 @@ exports.getArtCourseData = async (req, res) => {
 
     artCourses.forEach(course => {
       const progress = progressMap.get(course._id.toString());
+      const completedItemIds = new Set(
+        (progress?.completedItems || []).map(item => item.itemId?.toString())
+      );
+      const gradedTaskIds = gradedSubmissionMap.get(course._id.toString()) || [];
       const createdBy = course.createdBy;
       const instructorName = createdBy
         ? `${createdBy.firstName || ''} ${createdBy.lastName || ''}`.trim()
         : 'Coach';
 
+      const tasks = [];
+      let firstVideoUrl = null;
+      const courseTaskIds = new Set();
+
+      (course.modules || []).forEach(module => {
+        (module.chapters || []).forEach(chapter => {
+          (chapter.contentItems || []).forEach(contentItem => {
+            if (!firstVideoUrl && contentItem.type === 'video') {
+              firstVideoUrl = contentItem.fileUrl || null;
+            }
+            if (contentItem.type === 'task') {
+              courseTaskIds.add(contentItem._id.toString());
+              tasks.push({
+                id: contentItem._id,
+                title: contentItem.title,
+                description: contentItem.description || '',
+                instructions: contentItem.taskData?.instructions || contentItem.description || '',
+                submissionType: contentItem.taskData?.submissionType || 'file',
+                maxFileSize: contentItem.taskData?.maxFileSize || null,
+                moduleTitle: module.title,
+                chapterTitle: chapter.title,
+                completed:
+                  completedItemIds.has(contentItem._id.toString()) ||
+                  gradedTaskIds.includes(contentItem._id.toString())
+              });
+            }
+          });
+        });
+      });
+
+      let unmatchedGradedArtCompletions = gradedTaskIds
+        .filter(taskId => !courseTaskIds.has(taskId)).length;
+      tasks.forEach(task => {
+        if (!task.completed && unmatchedGradedArtCompletions > 0) {
+          task.completed = true;
+          unmatchedGradedArtCompletions -= 1;
+        }
+      });
+
+      const completedTaskCount = tasks.filter(task => task.completed).length;
       const item = {
         id: course._id,
         title: course.title,
         instructor: instructorName,
         duration: course.duration ? parseInt(course.duration, 10) : 45,
         level: course.difficultyLevel || 'Beginner',
-        videoUrl: null,
+        videoUrl: firstVideoUrl,
         thumbnailUrl: course.thumbnail,
         instructions: course.description,
-        completed: progress?.status === 'completed',
-        progress: progress?.completionPercentage || 0
+        completed: tasks.length > 0
+          ? completedTaskCount === tasks.length
+          : progress?.status === 'completed',
+        progress: tasks.length > 0
+          ? Math.round((completedTaskCount / tasks.length) * 100)
+          : progress?.completionPercentage || 0,
+        tasks
       };
-
-      // Extract video URL from first video content item
-      if (course.modules?.[0]?.chapters?.[0]?.contentItems?.[0]?.type === 'video') {
-        item.videoUrl = course.modules[0].chapters[0].contentItems[0].fileUrl;
-      }
 
       // Discriminator: title containing 'story' -> Art Stories, else Workshop
       if (course.title.toLowerCase().includes('story')) {
@@ -182,6 +243,7 @@ exports.submitArtwork = async (req, res) => {
       try { metadata = JSON.parse(metadata); } catch (_e) { metadata = {}; }
     }
     const file = req.file;
+    let courseTask = null;
 
     // Validate required fields
     if (!type || type !== 'art') {
@@ -203,6 +265,43 @@ exports.submitArtwork = async (req, res) => {
         success: false,
         message: 'No artwork file provided. Please upload an image.'
       });
+    }
+
+    if (taskId) {
+      if (!courseId || !mongoose.Types.ObjectId.isValid(courseId)) {
+        return res.status(400).json({
+          success: false,
+          message: 'A valid courseId is required for task submissions'
+        });
+      }
+
+      const taskCourse = await Course.findById(courseId);
+      if (!taskCourse) {
+        return res.status(404).json({
+          success: false,
+          message: 'Course not found'
+        });
+      }
+
+      for (const module of taskCourse.modules || []) {
+        for (const chapter of module.chapters || []) {
+          const matchedTask = (chapter.contentItems || []).find(
+            item => item.type === 'task' && item._id.toString() === taskId.toString()
+          );
+          if (matchedTask) {
+            courseTask = matchedTask;
+            break;
+          }
+        }
+        if (courseTask) break;
+      }
+
+      if (!courseTask) {
+        return res.status(404).json({
+          success: false,
+          message: 'Task not found in this Art course'
+        });
+      }
     }
 
     // Upload to S3
@@ -275,14 +374,21 @@ exports.submitArtwork = async (req, res) => {
 
     // For workshop / art_story / free_sketch modes, create a Submission record
     const resolvedCourseId = courseId || metadata?.workshopId || metadata?.storyId;
+    const resolvedTaskId = taskId || `art-${mode}-${Date.now()}`;
+    const priorSubmission = await Submission.exists({
+      studentId,
+      courseId: resolvedCourseId,
+      taskId: resolvedTaskId
+    });
 
     const submission = await Submission.create({
       studentId,
       courseId: resolvedCourseId || new mongoose.Types.ObjectId(), // placeholder if no course
-      taskId: taskId || `art-${mode}-${Date.now()}`,
-      taskTitle: taskTitle || title || `Art ${mode} submission`,
+      taskId: resolvedTaskId,
+      taskTitle: courseTask?.title || taskTitle || title || `Art ${mode} submission`,
       submissionType: 'art',
       fileUrl: uploadResult.url,
+      s3Key: uploadResult.s3Key,
       thumbnailUrl: null,
       metadata: {
         fileSize: file.size,
@@ -291,7 +397,26 @@ exports.submitArtwork = async (req, res) => {
       },
       status: 'pending',
       offlineSubmission: false,
+      isFirstAttempt: !priorSubmission,
     });
+
+    if (!priorSubmission && resolvedCourseId && taskId) {
+      await StudentProgress.findOneAndUpdate(
+        { student: studentId, course: resolvedCourseId },
+        {
+          $push: {
+            completedItems: {
+              itemId: taskId,
+              itemType: 'task',
+              completedAt: new Date()
+            }
+          },
+          $set: { lastAccessedAt: new Date(), status: 'in_progress' },
+          $setOnInsert: { startedAt: new Date() }
+        },
+        { upsert: true, new: true }
+      );
+    }
 
     res.json({
       success: true,

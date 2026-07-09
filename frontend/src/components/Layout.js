@@ -419,6 +419,7 @@ const Layout = () => {
       { id: 5, name: "Machines", link: "/machines" },
       { id: 6, name: "Purchases", link: "/purchase" },
       { id: 7, name: "Shop", link: "/shop" },
+      { id: 8, name: "Doctors", link: "/medical/doctors" },
     ],
     "sports-coach": [
       { id: 1, name: "Dashboard", link: "/dashboard" },

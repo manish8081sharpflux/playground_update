@@ -4,6 +4,25 @@
 const AnalyticsService = require('../services/analytics');
 const { errorLogger } = require('../config/pino-config');
 
+const parseDateBoundary = (value, endOfDay = false) => {
+  if (!value) return null;
+
+  const parsed = new Date(value);
+  if (isNaN(parsed.getTime())) return parsed;
+
+  // Date inputs send YYYY-MM-DD. Include the entire selected boundary day.
+  if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    parsed.setUTCHours(
+      endOfDay ? 23 : 0,
+      endOfDay ? 59 : 0,
+      endOfDay ? 59 : 0,
+      endOfDay ? 999 : 0
+    );
+  }
+
+  return parsed;
+};
+
 /**
  * Get shop analytics for a date range
  * GET /api/v2/shop/admin/analytics
@@ -14,8 +33,8 @@ exports.getShopAnalytics = async (req, res) => {
     const { startDate, endDate } = req.query;
 
     // Parse dates if provided
-    const start = startDate ? new Date(startDate) : null;
-    const end = endDate ? new Date(endDate) : null;
+    const start = parseDateBoundary(startDate);
+    const end = parseDateBoundary(endDate, true);
 
     // Validate dates
     if (start && isNaN(start.getTime())) {
@@ -64,8 +83,8 @@ exports.getStudentParticipationDetails = async (req, res) => {
     const User = require('../models/user');
     const Order = require('../models/order');
 
-    const start = startDate ? new Date(startDate) : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
-    const end = endDate ? new Date(endDate) : new Date();
+    const start = parseDateBoundary(startDate) || new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+    const end = parseDateBoundary(endDate, true) || new Date();
 
     // Get students who never purchased
     const studentsNeverPurchased = await User.aggregate([

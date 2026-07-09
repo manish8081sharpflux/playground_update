@@ -33,8 +33,22 @@ export default function StudentDashboardPage() {
       if (response.data.success) {
         setDashboardData(response.data.data);
 
-        // Cache data for offline use
-        localStorage.setItem('cachedDashboardData', JSON.stringify(response.data.data));
+        // Cache data for offline use (best-effort; storage quota can be exceeded)
+        try {
+          localStorage.setItem('cachedDashboardData', JSON.stringify(response.data.data));
+        } catch (cacheError) {
+          if (cacheError.name === 'QuotaExceededError') {
+            console.warn('Dashboard cache skipped: localStorage quota exceeded');
+            // Clear the old cache so it doesn't keep blocking future writes
+            try {
+              localStorage.removeItem('cachedDashboardData');
+            } catch (_) {
+              // Ignore secondary failure
+            }
+          } else {
+            console.warn('Failed to cache dashboard data:', cacheError);
+          }
+        }
 
         setLoading(false);
       }

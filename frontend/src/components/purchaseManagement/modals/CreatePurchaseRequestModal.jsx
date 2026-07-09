@@ -1193,8 +1193,11 @@ export default function CreatePurchaseRequestModal({
 
             {/* ================================================================ */}
             {/* PRODUCT SELECTION - Checkbox List */}
+            {/* Hidden during Reorder flow for Purchase Managers since the */}
+            {/* product is already pre-selected via initialProduct */}
             {/* ================================================================ */}
 
+            {!(initialProduct && isPurchaseManager) && (
             <div className="form-group">
               <label className="form-label">
                 Select Products <span className="required">*</span>
@@ -1983,6 +1986,7 @@ export default function CreatePurchaseRequestModal({
                   </small>
                 )}
             </div>
+            )}
 
             {/* ================================================================ */}
             {/* SELECTED PRODUCTS TABLE */}

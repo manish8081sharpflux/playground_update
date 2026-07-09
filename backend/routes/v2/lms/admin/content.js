@@ -8,6 +8,28 @@ const { lmsUploadWithErrorHandling } = require('../../../../middleware/upload');
 // ==================== CONTENT UPLOAD ENDPOINTS ====================
 
 /**
+ * Create presigned URL for direct browser-to-S3 upload
+ * POST /api/v2/lms/admin/content/upload-url
+ */
+router.post(
+  '/upload-url',
+  authenticate,
+  authorize('LMS Management', 'Manage'),
+  contentController.createUploadUrl
+);
+
+/**
+ * Record metadata after direct browser-to-S3 upload completes
+ * POST /api/v2/lms/admin/content/complete-upload
+ */
+router.post(
+  '/complete-upload',
+  authenticate,
+  authorize('LMS Management', 'Manage'),
+  contentController.completeDirectUpload
+);
+
+/**
  * Upload files directly to S3 via backend (backend proxy pattern)
  * POST /api/v2/lms/admin/content/upload
  * Expects multipart/form-data with 'files' field (up to 10 files, max 500MB each)

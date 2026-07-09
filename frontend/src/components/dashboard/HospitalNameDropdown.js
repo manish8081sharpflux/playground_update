@@ -68,6 +68,7 @@ const HospitalNameDropdown = ({ value, onChange, placeholder }) => {
 
   return (
     <CreatableSelect
+      classNamePrefix="health-check-select"
       isClearable
       isLoading={isLoading}
       options={hospitals}

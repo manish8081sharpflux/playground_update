@@ -436,7 +436,7 @@ exports.updateUserDetailsById = async (userId, payload) => {
         try {
           const s3Result = await uploadFileToS3(
             facialFile.path,
-            process.env.AWS_S3_BUCKET_NAME_USER_PHOTOS || process.env.AWS_S3_BUCKET_NAME_MEDICAL_RECORDS,
+            process.env.AWS_S3_FOLDER_MEDICAL_RECORDS,
             facialFile.filename
           );
           if (s3Result && s3Result.success) {
@@ -475,7 +475,7 @@ exports.updateUserDetailsById = async (userId, payload) => {
         try {
           const s3Result = await uploadFileToS3(
             imagePath,
-            process.env.AWS_S3_BUCKET_NAME_USER_PHOTOS || process.env.AWS_S3_BUCKET_NAME_MEDICAL_RECORDS,
+            process.env.AWS_S3_FOLDER_MEDICAL_RECORDS,
             fileName
           );
           if (s3Result.success) {

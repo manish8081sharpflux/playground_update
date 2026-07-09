@@ -15,6 +15,7 @@ import { Dialog, DialogContent } from "../ui/dialog.jsx";
 import { Button } from "../ui/button.jsx";
 import { getWtfDrafts, deleteWtfPin } from "../../api";
 import { useAuth } from "../../contexts/AuthContext";
+import { confirmDialog } from "../../utils/dialogs";
 
 const DraftsModal = ({ isOpen, onClose, onSelectDraft, onDraftDeleted }) => {
   const { user } = useAuth();
@@ -50,7 +51,10 @@ const DraftsModal = ({ isOpen, onClose, onSelectDraft, onDraftDeleted }) => {
   };
 
   const handleDeleteDraft = async (draftId) => {
-    if (!window.confirm("Are you sure you want to delete this draft?")) {
+    if (!(await confirmDialog("Are you sure you want to delete this draft?", {
+      danger: true,
+      confirmText: "Delete",
+    }))) {
       return;
     }
 

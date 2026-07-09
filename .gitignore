@@ -31,3 +31,10 @@ package-lock.json
 
 backend/logs/pino-logger.log
 backend/logs/scheduler-events.log
+
+backend/uploads/
+backend/logs/
+frontend/build/
+backend/uploads/
+backend/logs/
+frontend/build/

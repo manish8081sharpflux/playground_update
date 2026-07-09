@@ -6,6 +6,7 @@ import { cancelPurchaseRequest, updatePurchaseRequestStatus, approvePurchaseRequ
 import showToast from '../../../utils/toast';
 import { formatDateTime } from '../../../utils/dateFormatter';  // Sprint5-Story-23
 import { UserTypes, normalizeUserRole } from '../../../constants/userTypes';
+import { confirmDialog, promptDialog } from '../../../utils/dialogs';
 import {
   PurchaseRequestStatuses,
   getPurchaseRequestStatusMeta
@@ -38,7 +39,7 @@ export default function ViewRequestModal({ request, onClose, userRole, onRefresh
   };
 
   const handleCancel = async () => {
-    if (!window.confirm('Are you sure you want to cancel this request?')) {
+    if (!(await confirmDialog('Are you sure you want to cancel this request?', { danger: true, confirmText: 'Cancel request' }))) {
       return;
     }
 
@@ -58,7 +59,7 @@ export default function ViewRequestModal({ request, onClose, userRole, onRefresh
   };
 
   const handleApprove = async () => {
-    if (!window.confirm('Approve this purchase request?')) return;
+    if (!(await confirmDialog('Approve this purchase request?', { confirmText: 'Approve' }))) return;
     setStatusUpdating(true);
     try {
       const response = await approvePurchaseRequest(request._id, {});
@@ -77,7 +78,10 @@ export default function ViewRequestModal({ request, onClose, userRole, onRefresh
   };
 
   const handleReject = async () => {
-    const reason = window.prompt('Reason for rejection (optional):');
+    const reason = await promptDialog('Reason for rejection (optional):', {
+      title: 'Reject purchase request',
+      confirmText: 'Reject',
+    });
     if (reason === null) return; // user cancelled
     setStatusUpdating(true);
     try {
