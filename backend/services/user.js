@@ -528,6 +528,11 @@ exports.updateUserDetailsById = async (userId, payload) => {
     }
     */ // END COMMENTED OUT - Face detection in updateUser
 
+    if (updateData.clearFacialData === "true" || updateData.clearFacialData === true) {
+      updateData.facialDataUrl = "";
+    }
+    delete updateData.clearFacialData;
+
     // Check for the password key is present with any value
     if (updateData.password && updateData.password !== "") {
       // Hash the password

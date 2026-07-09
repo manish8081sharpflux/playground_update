@@ -2,9 +2,22 @@ const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
 
+const uploadsDir = path.resolve(__dirname, "..", "uploads");
+
+const ensureUploadsDir = () => {
+  if (!fs.existsSync(uploadsDir)) {
+    fs.mkdirSync(uploadsDir, { recursive: true });
+  }
+};
+
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, "uploads/");
+    try {
+      ensureUploadsDir();
+      cb(null, uploadsDir);
+    } catch (error) {
+      cb(error);
+    }
   },
   filename: (req, file, cb) => {
     const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
@@ -208,6 +221,32 @@ const lmsUploadWithErrorHandling = (req, res, next) => {
   });
 };
 
+const uploadAnyWithErrorHandling = (req, res, next) => {
+  upload.any()(req, res, (err) => {
+    if (err) {
+      console.error("Upload error:", {
+        message: err.message,
+        code: err.code,
+        field: err.field,
+      });
+
+      if (err.code === "LIMIT_FILE_SIZE") {
+        return res.status(400).json({
+          success: false,
+          message: "File too large. Maximum size is 5MB.",
+        });
+      }
+
+      return res.status(400).json({
+        success: false,
+        message: `Upload error: ${err.message}`,
+      });
+    }
+
+    next();
+  });
+};
+
 // Wrap the multer middleware to add error handling
 const wtfUploadWithErrorHandling = (req, res, next) => {
   wtfUpload.single("file")(req, res, (err) => {
@@ -260,32 +299,30 @@ const wtfUploadWithErrorHandling = (req, res, next) => {
 
 // Cleanup function to remove orphaned files
 const cleanupOrphanedFiles = () => {
-  const uploadsDir = "uploads/";
-
   try {
-    if (fs.existsSync(uploadsDir)) {
-      const files = fs.readdirSync(uploadsDir);
-      const now = Date.now();
-      const maxAge = 24 * 60 * 60 * 1000; // 24 hours
+    ensureUploadsDir();
 
-      files.forEach((file) => {
-        if (file === "uploaded_files_here.txt") return; // Skip the placeholder file
+    const files = fs.readdirSync(uploadsDir);
+    const now = Date.now();
+    const maxAge = 24 * 60 * 60 * 1000; // 24 hours
 
-        const filePath = path.join(uploadsDir, file);
-        const stats = fs.statSync(filePath);
-        const age = now - stats.mtime.getTime();
+    files.forEach((file) => {
+      if (file === "uploaded_files_here.txt") return; // Skip the placeholder file
 
-        // Remove files older than 24 hours
-        if (age > maxAge) {
-          try {
-            fs.unlinkSync(filePath);
-            // Cleaned up orphaned file
-          } catch (error) {
-            console.error(`❌ Failed to clean up file ${file}:`, error.message);
-          }
+      const filePath = path.join(uploadsDir, file);
+      const stats = fs.statSync(filePath);
+      const age = now - stats.mtime.getTime();
+
+      // Remove files older than 24 hours
+      if (age > maxAge) {
+        try {
+          fs.unlinkSync(filePath);
+          // Cleaned up orphaned file
+        } catch (error) {
+          console.error(`❌ Failed to clean up file ${file}:`, error.message);
         }
-      });
-    }
+      }
+    });
   } catch (error) {
     console.error("❌ Error during cleanup:", error.message);
   }
@@ -309,11 +346,13 @@ const stopCleanupTimer = () => {
 
 module.exports = {
   upload,
+  uploadAnyWithErrorHandling,
   wtfUpload,
   wtfUploadWithErrorHandling,
   fontUpload,
   lmsUpload,
   lmsUploadWithErrorHandling,
   cleanupOrphanedFiles,
+  ensureUploadsDir,
   stopCleanupTimer,
 };

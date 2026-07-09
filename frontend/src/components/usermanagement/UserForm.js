@@ -59,7 +59,7 @@ const createEmptyMedicalHistoryEntry = () => ({
   isDirty: true,
 });
 
-const UserForm = ({ mode = "add", user = null, onSuccess, onCancel }) => {
+const UserForm = ({ mode = "add", user = null, existingUsers = [], onSuccess, onCancel }) => {
   const navigate = useNavigate();
   const [machines, setMachines] = useState([]);
   const role = localStorage.getItem("role");
@@ -107,6 +107,7 @@ const UserForm = ({ mode = "add", user = null, onSuccess, onCancel }) => {
     facialData: null,
     // medicalHistoryFiles removed - Sprint6-Story-02
   });
+  const [facialPhotoRemoved, setFacialPhotoRemoved] = useState(false);
   const isStudentRole = formData.role === "student";
   const showMedicalHistoryForStaff =
     formData.role && formData.role !== "student";
@@ -122,6 +123,34 @@ const UserForm = ({ mode = "add", user = null, onSuccess, onCancel }) => {
 
   const fileInputRefs = {
     facialData: useRef(null),
+  };
+
+  const isSameUserRecord = (candidate) => {
+    if (!candidate || !user) return false;
+    const candidateId = candidate._id || candidate.id;
+    const currentId = user._id || user.id;
+    return Boolean(candidateId && currentId && String(candidateId) === String(currentId));
+  };
+
+  const isDuplicateEmail = (email) => {
+    const emailValue = String(email || "").trim().toLowerCase();
+    if (!emailValue) return false;
+
+    return existingUsers.some((existingUser) => {
+      if (isSameUserRecord(existingUser)) return false;
+      return String(existingUser?.email || "").trim().toLowerCase() === emailValue;
+    });
+  };
+
+  const isDuplicateUserId = (userId) => {
+    const userIdValue = String(userId || "").trim();
+    if (!userIdValue) return false;
+
+    return existingUsers.some((existingUser) => {
+      if (isSameUserRecord(existingUser)) return false;
+      if (existingUser?.role !== "student") return false;
+      return String(existingUser?.userId || "").trim() === userIdValue;
+    });
   };
 
   const getMachinesData = async () => {
@@ -231,6 +260,7 @@ const UserForm = ({ mode = "add", user = null, onSuccess, onCancel }) => {
           facialData: existingFacialPhoto,
         }));
       }
+      setFacialPhotoRemoved(false);
     } else if (mode === "add") {
       setFormData((prev) => ({
         ...prev,
@@ -238,6 +268,7 @@ const UserForm = ({ mode = "add", user = null, onSuccess, onCancel }) => {
       }));
       setPreviews({ facialData: null });
       setFiles({ facialData: null });
+      setFacialPhotoRemoved(false);
     }
     fetchBalagruhaOptions();
     getMachinesData();
@@ -415,6 +446,8 @@ const UserForm = ({ mode = "add", user = null, onSuccess, onCancel }) => {
       newErrors.email = "Email is required for non-student users";
     } else if (emailValue && !validateEmail(emailValue)) {
       newErrors.email = "Please enter a valid email address";
+    } else if (emailValue && isDuplicateEmail(emailValue)) {
+      newErrors.email = "This email is already registered";
     }
 
     // Role validation
@@ -451,6 +484,8 @@ const UserForm = ({ mode = "add", user = null, onSuccess, onCancel }) => {
         newErrors.userId = "User ID must be at least 3 characters long";
       } else if (!/^\d+$/.test(userIdValue)) {
         newErrors.userId = "User ID must contain only numbers";
+      } else if (isDuplicateUserId(userIdValue)) {
+        newErrors.userId = "This User ID is already registered";
       }
 
       // Age validation
@@ -611,6 +646,8 @@ const UserForm = ({ mode = "add", user = null, onSuccess, onCancel }) => {
           fieldError = "Email is required for non-student users";
         } else if (value && value.trim() && !validateEmail(value)) {
           fieldError = "Please enter a valid email address";
+        } else if (value && value.trim() && isDuplicateEmail(value)) {
+          fieldError = "This email is already registered";
         }
         break;
 
@@ -631,6 +668,8 @@ const UserForm = ({ mode = "add", user = null, onSuccess, onCancel }) => {
           fieldError = "User ID must be at least 3 characters long";
         } else if (!/^\d+$/.test(userIdValue)) {
           fieldError = "User ID must contain only numbers";
+        } else if (isDuplicateUserId(userIdValue)) {
+          fieldError = "This User ID is already registered";
         }
         break;
 
@@ -764,6 +803,10 @@ const UserForm = ({ mode = "add", user = null, onSuccess, onCancel }) => {
       [type]: file,
     }));
 
+    if (type === "facialData") {
+      setFacialPhotoRemoved(false);
+    }
+
     if (file.type.startsWith("image/")) {
       const reader = new FileReader();
       reader.onloadend = () => {
@@ -781,6 +824,22 @@ const UserForm = ({ mode = "add", user = null, onSuccess, onCancel }) => {
         [type]: null,
       }));
     }
+  };
+
+  const handleRemoveFacialPhoto = () => {
+    setFiles((prev) => ({ ...prev, facialData: null }));
+    setPreviews((prev) => ({ ...prev, facialData: null }));
+    setFacialPhotoRemoved(true);
+
+    if (fileInputRefs.facialData.current) {
+      fileInputRefs.facialData.current.value = "";
+    }
+
+    setErrors((prev) => {
+      const nextErrors = { ...prev };
+      delete nextErrors.facialData;
+      return nextErrors;
+    });
   };
 
   const formatDateForInput = (dateString) => {
@@ -1057,6 +1116,8 @@ const UserForm = ({ mode = "add", user = null, onSuccess, onCancel }) => {
         // Add facial data file if available
         if (files.facialData) {
           formDataToSend.append("facialData", files.facialData);
+        } else if (mode === "edit" && facialPhotoRemoved) {
+          formDataToSend.append("clearFacialData", "true");
         }
       }
 
@@ -1216,6 +1277,7 @@ const UserForm = ({ mode = "add", user = null, onSuccess, onCancel }) => {
             onCapture={(file, previewUrl) => {
               setFiles((prev) => ({ ...prev, facialData: file }));
               setPreviews((prev) => ({ ...prev, facialData: previewUrl }));
+              setFacialPhotoRemoved(false);
 
               setErrors((prev) => {
                 const newErrors = { ...prev };
@@ -1895,7 +1957,7 @@ const UserForm = ({ mode = "add", user = null, onSuccess, onCancel }) => {
 
                 <div className="form-group">
                   <label htmlFor="facialData" aria-required={mode === "add"}>
-                    Facial Photo {mode === "add" && "*"}
+                    Facial Photo
                   </label>
                   <div className="file-upload-container">
                     <input
@@ -1922,12 +1984,19 @@ const UserForm = ({ mode = "add", user = null, onSuccess, onCancel }) => {
                       📷 Capture Photo
                     </button>
                     {(files.facialData || previews.facialData) && (
-                      <div className="file-preview">
+                      <div className="file-preview facial-photo-preview">
                         <img
                           src={previews.facialData}
-                          alt="Facial photo preview"
+                          alt="Facial preview"
                           className="preview-image"
                         />
+                        <button
+                          type="button"
+                          className="remove-photo-btn"
+                          onClick={handleRemoveFacialPhoto}
+                        >
+                          Delete Photo
+                        </button>
                       </div>
                     )}
                   </div>

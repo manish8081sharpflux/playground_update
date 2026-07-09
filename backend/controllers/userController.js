@@ -212,9 +212,10 @@ exports.createUserV1 = async (req, res) => {
     req.body.createdBy = req.user._id;
     let data = req.file;
     // req.body.facialData = req.files['facialData']
-    req.body.facialData = req.files.filter(
+    const uploadedFiles = Array.isArray(req.files) ? req.files : [];
+    req.body.facialData = uploadedFiles.find(
       (file) => file.fieldname === "facialData"
-    )[0];
+    );
     // req.body.medicalHistory = req.files['medicalHistory']
 
     const medicalHistory = extractMedicalHistory(req);
