@@ -8,6 +8,7 @@ import CancelOrderModal from '../components/shop/CancelOrderModal';
 import ShopNavigation from '../components/shop/ShopNavigation';
 import Breadcrumbs from '../components/shop/Breadcrumbs';
 import toast from 'react-hot-toast';
+import LoadingState from '../components/common/LoadingState';
 
 /**
  * OrderDetail Page - Sprint5-Story-04, Sprint5-Story-10
@@ -93,35 +94,7 @@ export default function OrderDetail() {
   };
 
   if (loading) {
-    return (
-      <div
-        style={{
-          width: "100%",
-          minHeight: "calc(100vh - 120px)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          backgroundColor: "#f8fafc",
-        }}
-      >
-        <div style={{ textAlign: "center" }}>
-          <div
-            style={{
-              width: "48px",
-              height: "48px",
-              border: "4px solid #e9d5ff",
-              borderTopColor: "#9333ea",
-              borderRadius: "50%",
-              animation: "spin 0.8s linear infinite",
-              margin: "0 auto 16px",
-            }}
-          ></div>
-          <p style={{ color: "#475569", margin: 0 }}>
-            Loading order details...
-          </p>
-        </div>
-      </div>
-    );
+    return <LoadingState message="Loading order details..." fullScreen />;
   }
 
   if (error || !order) {

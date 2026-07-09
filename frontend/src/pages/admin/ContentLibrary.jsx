@@ -7,6 +7,7 @@ import FileDetailsModal from '../../components/admin/FileDetailsModal';
 import EditMetadataModal from '../../components/admin/EditMetadataModal';
 import UploadQueue from '../../components/admin/UploadQueue';
 import useFileUpload from '../../hooks/useFileUpload';
+import LoadingState from '../../components/common/LoadingState';
 
 /**
  * ContentLibrary - Sprint 2 Epic 02 Story 02
@@ -296,9 +297,7 @@ export default function ContentLibrary() {
       {/* Content Area */}
       <div className="bg-white rounded-lg shadow p-6">
         {loading ? (
-          <div className="flex justify-center items-center py-20">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
-          </div>
+          <LoadingState message="Loading content..." />
         ) : files.length === 0 ? (
           <div className="text-center py-20">
             <Upload className="mx-auto mb-4 text-gray-400" size={48} />

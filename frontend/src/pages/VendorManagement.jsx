@@ -10,6 +10,7 @@ import { UserTypes, normalizeUserRole } from '../constants/userTypes';
 import Breadcrumbs from '../components/shop/Breadcrumbs';
 import ShopAdminControls from '../components/shop/ShopAdminControls';
 import VendorFormModal from '../components/shop/VendorFormModal';
+import LoadingState from '../components/common/LoadingState';
 
 export default function VendorManagement() {
   const navigate = useNavigate();
@@ -158,14 +159,7 @@ export default function VendorManagement() {
   };
 
   if (rbacLoading) {
-    return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
-          <p className="text-slate-600">Loading permissions...</p>
-        </div>
-      </div>
-    );
+    return <LoadingState message="Loading permissions..." fullScreen />;
   }
 
   if (!canManageShop || !isAdmin) {
@@ -247,12 +241,7 @@ export default function VendorManagement() {
         {/* Table */}
         <div className="bg-white rounded-lg border border-slate-200 overflow-hidden">
           {loading ? (
-            <div className="flex items-center justify-center py-12">
-              <div className="text-center">
-                <div className="inline-block w-8 h-8 border-4 border-purple-600 border-t-transparent rounded-full animate-spin mb-4"></div>
-                <p className="text-slate-600">Loading vendors...</p>
-              </div>
-            </div>
+            <LoadingState message="Loading vendors..." />
           ) : error ? (
             <div className="p-6">
               <p className="text-red-600">{error}</p>

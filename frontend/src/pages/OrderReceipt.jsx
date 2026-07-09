@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { api } from '../api';
+import LoadingState from '../components/common/LoadingState';
 
 /**
  * OrderReceipt Page - Sprint5-Story-04
@@ -55,32 +56,7 @@ export default function OrderReceipt() {
 
 
   if (loading) {
-    return (
-      <div
-        style={{
-          minHeight: "calc(100vh - 120px)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          backgroundColor: "#ffffff",
-        }}
-      >
-        <div style={{ textAlign: "center" }}>
-          <div
-            style={{
-              width: "48px",
-              height: "48px",
-              border: "4px solid #e9d5ff",
-              borderTopColor: "#9333ea",
-              borderRadius: "50%",
-              animation: "spin 0.8s linear infinite",
-              margin: "0 auto 16px",
-            }}
-          ></div>
-          <p style={{ color: "#475569", margin: 0 }}>Loading receipt...</p>
-        </div>
-      </div>
-    );
+    return <LoadingState message="Loading receipt..." fullScreen />;
   }
 
   if (!order) {

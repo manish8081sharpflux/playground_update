@@ -6,6 +6,7 @@ import OrdersEmptyState from '../components/shop/OrdersEmptyState';
 import ShopNavigation from '../components/shop/ShopNavigation';
 import Breadcrumbs from '../components/shop/Breadcrumbs';
 import { useAuth } from '../contexts/AuthContext';
+import LoadingState from '../components/common/LoadingState';
 
 /**
  * OrderHistory Page - Sprint5-Story-04
@@ -288,22 +289,7 @@ export default function OrderHistory() {
 
         {/* Loading State */}
         {loading && (
-          <div className="space-y-4">
-            {[...Array(3)].map((_, i) => (
-              <div
-                key={i}
-                className="animate-pulse bg-white rounded-lg p-6 border border-slate-200"
-              >
-                <div className="h-5 bg-slate-200 rounded w-1/3 mb-3"></div>
-                <div className="h-4 bg-slate-200 rounded w-1/4 mb-4"></div>
-                <div className="flex gap-2 mb-4">
-                  <div className="w-12 h-12 bg-slate-200 rounded"></div>
-                  <div className="w-12 h-12 bg-slate-200 rounded"></div>
-                </div>
-                <div className="h-10 bg-slate-200 rounded"></div>
-              </div>
-            ))}
-          </div>
+          <LoadingState message="Loading orders..." />
         )}
 
         {/* Error State */}

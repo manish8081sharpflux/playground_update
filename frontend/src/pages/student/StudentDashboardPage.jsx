@@ -5,6 +5,7 @@ import toast from 'react-hot-toast';
 // import StudentLayout from '../../components/student/StudentLayout';
 import ResumeActivityCard from '../../components/student/ResumeActivityCard';
 import CourseCategoryCard from '../../components/student/CourseCategoryCard';
+import LoadingState from '../../components/common/LoadingState';
 
 /**
  * StudentDashboardPage Component - Epic 01 Story 01
@@ -160,14 +161,7 @@ export default function StudentDashboardPage() {
 
   // Loading state
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center">
-          <div className="text-6xl mb-4 animate-pulse">⏳</div>
-          <p className="text-xl text-gray-600 font-medium">Loading your dashboard...</p>
-        </div>
-      </div>
-    );
+    return <LoadingState message="Loading your dashboard..." />;
   }
 
   // No data state

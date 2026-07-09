@@ -14,6 +14,7 @@ import { api } from "../api";
 import toast from "react-hot-toast";
 import { useRBAC } from "../contexts/RBACContext";
 import StockAdjustmentModal from "../components/shop/StockAdjustmentModal";
+import LoadingState from "../components/common/LoadingState";
 import BulkStockUploadModal from "../components/shop/BulkStockUploadModal";
 import AuditTrailModal from "../components/shop/AuditTrailModal";
 import Breadcrumbs from "../components/shop/Breadcrumbs";
@@ -204,14 +205,7 @@ export default function InventoryManagement() {
 
   // Show loading state while RBAC context is loading
   if (rbacLoading) {
-    return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
-          <p className="text-slate-600">Loading permissions...</p>
-        </div>
-      </div>
-    );
+    return <LoadingState message="Loading permissions..." fullScreen />;
   }
 
   return (
@@ -433,10 +427,7 @@ export default function InventoryManagement() {
         )}
 
         {loading && (
-          <div className="bg-white rounded-lg border border-slate-200 p-12 text-center">
-            <div className="inline-block w-8 h-8 border-4 border-purple-600 border-t-transparent rounded-full animate-spin"></div>
-            <p className="mt-4 text-slate-600">Loading inventory...</p>
-          </div>
+          <LoadingState message="Loading inventory..." />
         )}
 
         {!loading && !error && filteredInventory.length === 0 && (

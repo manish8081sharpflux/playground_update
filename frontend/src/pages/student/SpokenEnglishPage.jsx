@@ -7,6 +7,8 @@ import AudioInstructions from '../../components/student/spoken-english/AudioInst
 import WebcamPreview from '../../components/student/spoken-english/WebcamPreview';
 import RecordingControls from '../../components/student/spoken-english/RecordingControls';
 import RedoModal from '../../components/student/spoken-english/RedoModal';
+import { CheckCircle } from 'lucide-react';
+import LoadingState from '../../components/common/LoadingState';
 
 /**
  * Spoken English Page - Epic 01 Story 04
@@ -287,11 +289,7 @@ export default function SpokenEnglishPage() {
 
   // Loading State
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <p className="text-xl text-gray-600">{isListMode ? 'Loading tasks...' : 'Loading task...'}</p>
-      </div>
-    );
+    return <LoadingState message={isListMode ? 'Loading tasks...' : 'Loading task...'} fullScreen />;
   }
 
   // List mode — render task picker when no taskId in URL
@@ -341,13 +339,18 @@ export default function SpokenEnglishPage() {
                   type="button"
                   disabled={locked}
                   onClick={() => !locked && navigate(`/student/spoken-english/${t.id}`)}
-                  className={`text-left bg-white border-2 rounded-xl p-5 transition-shadow ${
+                  className={`text-left bg-white border-2 rounded-xl p-5 transition-shadow relative ${
                     locked
                       ? 'border-gray-200 opacity-60 cursor-not-allowed'
                       : 'border-blue-200 hover:shadow-lg cursor-pointer'
                   }`}
                 >
-                  <div className="flex items-center justify-between mb-3">
+                  {graded && (
+                    <div className="absolute top-3 right-3 bg-green-500 text-white p-1 rounded-full shadow-sm" aria-hidden="true">
+                      <CheckCircle size={16} />
+                    </div>
+                  )}
+                  <div className="flex items-center justify-between mb-3 pr-10">
                     <span className="px-3 py-1 bg-blue-100 text-blue-700 text-xs rounded-full font-medium">
                       {t.difficulty || 'Beginner'}
                     </span>
@@ -385,8 +388,13 @@ export default function SpokenEnglishPage() {
                     ? 'Needs Re-do'
                     : 'Under Review';
                 return (
-                  <div key={s.submissionId} className="bg-white border border-gray-200 rounded-lg p-4">
-                    <div className="flex items-start justify-between gap-3 flex-wrap">
+                  <div key={s.submissionId} className="bg-white border border-gray-200 rounded-lg p-4 relative">
+                    {s.status === 'graded' && (
+                      <div className="absolute top-3 right-3 bg-green-500 text-white p-1 rounded-full shadow-sm" aria-hidden="true">
+                        <CheckCircle size={16} />
+                      </div>
+                    )}
+                    <div className="flex items-start justify-between gap-3 flex-wrap pr-10">
                       <div className="min-w-0">
                         <h3 className="font-bold text-gray-800">{s.taskTitle || 'Spoken English Task'}</h3>
                         <p className="text-sm text-gray-500">

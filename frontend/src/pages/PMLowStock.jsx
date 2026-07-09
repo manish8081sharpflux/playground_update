@@ -5,6 +5,7 @@ import { api, getBalagruha } from '../api';
 import { useAuth } from '../contexts/AuthContext';
 import CreatePurchaseRequestModal from '../components/purchaseManagement/modals/CreatePurchaseRequestModal';
 import showToast from '../utils/toast';
+import LoadingState from '../components/common/LoadingState';
 
 /**
  * PMLowStock Page
@@ -237,10 +238,7 @@ export default function PMLowStock() {
                 )}
 
                 {loading && (
-                    <div className="bg-white rounded-lg border border-slate-200 p-12 text-center">
-                        <div className="inline-block w-8 h-8 border-4 border-purple-600 border-t-transparent rounded-full animate-spin"></div>
-                        <p className="mt-4 text-slate-600">Loading inventory...</p>
-                    </div>
+                    <LoadingState message="Loading inventory..." />
                 )}
 
                 {!loading && !error && inventory.length === 0 && (

@@ -5,6 +5,7 @@ import { api } from '../api';
 import toast from 'react-hot-toast';
 import StockAdjustmentModal from '../components/shop/StockAdjustmentModal';
 import Breadcrumbs from '../components/shop/Breadcrumbs';
+import LoadingState from '../components/common/LoadingState';
 
 /**
  * LowStockReport Component - Sprint5-Story-07
@@ -99,12 +100,7 @@ export default function LowStockReport() {
       {/* Content */}
       <div className="w-full px-4 py-8">
         {loading ? (
-          <div className="flex items-center justify-center py-12">
-            <div className="text-center">
-              <div className="inline-block w-8 h-8 border-4 border-purple-600 border-t-transparent rounded-full animate-spin mb-4"></div>
-              <p className="text-slate-600">Loading low stock products...</p>
-            </div>
-          </div>
+          <LoadingState message="Loading low stock products..." />
         ) : products.length === 0 ? (
           <div className="bg-white rounded-lg border border-slate-200 p-12 text-center">
             <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">

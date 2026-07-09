@@ -7,6 +7,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
+import LoadingState from "../../components/common/LoadingState";
 import {
   getAllDoctors,
   createDoctor,
@@ -211,7 +212,7 @@ export default function DoctorsDataBank() {
         {/* Search */}
         <div className="bg-white rounded-lg border border-slate-200 p-4 mb-4 ">
           <div className="flex items-center gap-3">
-            <span className="text-slate-400">🔍</span>
+            {/* <span className="text-slate-400">🔍</span> */}
             <input
               type="text"
               placeholder="Search by name, specialty, hospital, or contact..."
@@ -233,7 +234,7 @@ export default function DoctorsDataBank() {
         {/* Table */}
         <div className="bg-white rounded-lg border border-slate-200 overflow-hidden">
           {loading ? (
-            <div className="p-12 text-center text-slate-500">Loading doctors…</div>
+            <LoadingState message="Loading doctors..." />
           ) : filtered.length === 0 ? (
             <div className="p-12 text-center">
               <p className="text-slate-500 mb-2">

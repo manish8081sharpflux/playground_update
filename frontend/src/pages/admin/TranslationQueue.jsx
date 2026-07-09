@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { api } from '../../api';
+import LoadingState from '../../components/common/LoadingState';
 
 /**
  * TranslationQueue - Epic 02 Story 04
@@ -129,11 +130,7 @@ const TranslationQueue = () => {
   };
 
   if (loading) {
-    return (
-      <div className="flex justify-center items-center min-h-screen">
-        <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-purple-600"></div>
-      </div>
-    );
+    return <LoadingState message="Loading translation queue..." fullScreen />;
   }
 
   return (

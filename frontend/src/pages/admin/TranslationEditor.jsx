@@ -3,6 +3,7 @@ import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { api } from '../../api';
 import { useDebounce } from '../../hooks/useDebounce';
 import PublishTranslationsModal from '../../components/admin/PublishTranslationsModal';
+import LoadingState from '../../components/common/LoadingState';
 
 /**
  * TranslationEditor - Epic 02 Story 04
@@ -312,11 +313,7 @@ const TranslationEditor = () => {
   };
 
   if (loading) {
-    return (
-      <div className="flex justify-center items-center min-h-screen">
-        <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-purple-600"></div>
-      </div>
-    );
+    return <LoadingState message="Loading translation..." fullScreen />;
   }
 
   if (error || !currentItem) {

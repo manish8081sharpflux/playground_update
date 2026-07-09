@@ -10,6 +10,7 @@ import {
   ArrowUpDown,
 } from "lucide-react";
 import toast from "react-hot-toast";
+import LoadingState from "../components/common/LoadingState";
 
 import { api } from "../api";
 import { useRBAC } from "../contexts/RBACContext";
@@ -210,14 +211,7 @@ export default function MasterInventoryReport() {
   };
 
   if (rbacLoading) {
-    return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
-          <p className="text-slate-600">Loading permissions...</p>
-        </div>
-      </div>
-    );
+    return <LoadingState message="Loading permissions..." fullScreen />;
   }
 
   if (!canManageShop) {
@@ -327,12 +321,7 @@ export default function MasterInventoryReport() {
         {/* Table */}
         <div className="bg-white rounded-lg border border-slate-200 overflow-hidden">
           {loading ? (
-            <div className="flex items-center justify-center py-12">
-              <div className="text-center">
-                <div className="inline-block w-8 h-8 border-4 border-purple-600 border-t-transparent rounded-full animate-spin mb-4"></div>
-                <p className="text-slate-600">Loading report...</p>
-              </div>
-            </div>
+            <LoadingState message="Loading report..." />
           ) : error ? (
             <div className="p-6">
               <p className="text-red-600">{error}</p>

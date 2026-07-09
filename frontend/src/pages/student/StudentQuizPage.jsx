@@ -4,6 +4,7 @@ import { api } from '../../api';
 import toast from 'react-hot-toast';
 import AudioQuestionCard from '../../components/student/lifeskills/AudioQuestionCard';
 import { useCoinBalance } from '../../contexts/CoinBalanceContext';
+import LoadingState from '../../components/common/LoadingState';
 
 /**
  * Generic Student MCQ Quiz Page
@@ -183,13 +184,7 @@ export default function StudentQuizPage() {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-100 pb-20">
-        <div className="flex items-center justify-center min-h-screen">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-        </div>
-      </div>
-    );
+    return <LoadingState message="Loading quiz..." fullScreen />;
   }
 
   if (error || questions.length === 0) {

@@ -6,6 +6,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { api } from '../api';
 import { useAuth } from '../contexts/AuthContext';
 import toast from 'react-hot-toast';
+import LoadingState from '../components/common/LoadingState';
 
 // Profile Components
 import ProfileHeader from '../components/profile/ProfileHeader';
@@ -58,14 +59,7 @@ export default function StudentProfile() {
 
   // Loading State
   if (loading) {
-    return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="inline-block w-16 h-16 border-4 border-purple-600 border-t-transparent rounded-full animate-spin mb-4"></div>
-          <p className="text-xl text-slate-600">Loading profile...</p>
-        </div>
-      </div>
-    );
+    return <LoadingState message="Loading profile..." fullScreen />;
   }
 
   // Error State

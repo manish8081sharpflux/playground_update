@@ -20,9 +20,9 @@ dayjs.extend(isSameOrBefore);
 
 export default function RepairManagement() {
   const [isInitialLoading, setIsInitialLoading] = useState(true);
-const [isRefreshing, setIsRefreshing] = useState(false);
-const [mutatingId, setMutatingId] = useState(null);
-const [fetchError, setFetchError] = useState(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [mutatingId, setMutatingId] = useState(null);
+  const [fetchError, setFetchError] = useState(null);
   const [showRepairModal, setShowRepairModal] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
   const [repairRequests, setRepairRequests] = useState([]);
@@ -65,7 +65,10 @@ const [fetchError, setFetchError] = useState(null);
         estimatedCost: repair.estimatedCost || "",
         attachments: [],
         existingAttachments:
-          repair.attachments || repair.attachment || repair.existingAttachments || [],
+          repair.attachments ||
+          repair.attachment ||
+          repair.existingAttachments ||
+          [],
         repairDetails: repair.repairDetails || "",
         status: repair.status || "pending",
       });
@@ -98,13 +101,15 @@ const [fetchError, setFetchError] = useState(null);
       if (response.success) {
         setRepairRequests(response.data.repairRequests || []);
       } else {
-        const msg = "Error fetching repairs: " + (response.message || "Unknown error");
+        const msg =
+          "Error fetching repairs: " + (response.message || "Unknown error");
         showToast(msg, "error");
         setFetchError(msg);
       }
     } catch (error) {
       console.error("Error fetching repairs:", error);
-      const msg = "Error fetching repairs: " + (error.message || "Unknown error");
+      const msg =
+        "Error fetching repairs: " + (error.message || "Unknown error");
       showToast(msg, "error");
       setFetchError(msg);
     } finally {
@@ -125,8 +130,8 @@ const [fetchError, setFetchError] = useState(null);
       } else {
         showToast(
           "Error deleting repair request: " +
-          (response.message || "Unknown error"),
-          "error"
+            (response.message || "Unknown error"),
+          "error",
         );
       }
       setShowDeleteConfirmation(false);
@@ -135,7 +140,7 @@ const [fetchError, setFetchError] = useState(null);
       console.error("Error deleting repair request:", error);
       showToast(
         "Error deleting repair request: " + (error.message || "Unknown error"),
-        "error"
+        "error",
       );
     } finally {
       setMutatingId(null);
@@ -188,9 +193,9 @@ const [fetchError, setFetchError] = useState(null);
           !repairForm.estimatedCost
             ? "Estimated cost is required"
             : "Estimated cost must be greater than 0",
-          "error"
+          "error",
         );
-        setLoading(false);
+        setIsRefreshing(false);
         return;
       }
 
@@ -217,7 +222,7 @@ const [fetchError, setFetchError] = useState(null);
       if (editingItem) {
         formData.append(
           "existingAttachments",
-          JSON.stringify(repairForm.existingAttachments || [])
+          JSON.stringify(repairForm.existingAttachments || []),
         );
       }
 
@@ -233,7 +238,7 @@ const [fetchError, setFetchError] = useState(null);
           editingItem
             ? "Repair request updated successfully"
             : "Repair request created successfully",
-          "success"
+          "success",
         );
         setShowRepairModal(false);
         fetchRepairRequests(true);
@@ -330,18 +335,17 @@ const [fetchError, setFetchError] = useState(null);
 
       if (response.success) {
         setBalagruhas(response.data.balagruhas || []);
-
       } else {
         showToast(
           "Error fetching balagruha: " + (response.message || "Unknown error"),
-          "error"
+          "error",
         );
       }
     } catch (error) {
       console.error("Error fetching balagruha:", error);
       showToast(
         "Error fetching balagruha: " + (error.message || "Unknown error"),
-        "error"
+        "error",
       );
     }
   };
@@ -369,9 +373,7 @@ const [fetchError, setFetchError] = useState(null);
       passesDateFilter =
         reportedDate.month() === lastMonth.month() &&
         reportedDate.year() === lastMonth.year();
-    }
-
-    else if (selectDate === "custom") {
+    } else if (selectDate === "custom") {
       if (!fromDate || !toDate) {
         passesDateFilter = true;
       } else if (dayjs(fromDate).isAfter(dayjs(toDate))) {
@@ -394,7 +396,9 @@ const [fetchError, setFetchError] = useState(null);
 
     const statusFilter = filterStatus === "all" || bal.status === filterStatus;
 
-    return passesDateFilter && passesBalagruhaFilter && searchFilter && statusFilter;
+    return (
+      passesDateFilter && passesBalagruhaFilter && searchFilter && statusFilter
+    );
   });
 
   const exportToPDF = () => {
@@ -410,7 +414,7 @@ const [fetchError, setFetchError] = useState(null);
 
     if (selectDate === "custom" && fromDate && toDate) {
       filterInfo = `Date Range: ${dayjs(fromDate).format(
-        "DD-MM-YYYY"
+        "DD-MM-YYYY",
       )} to ${dayjs(toDate).format("DD-MM-YYYY")}`;
     } else if (selectDate === "today") {
       filterInfo = `Date: ${today.format("DD-MM-YYYY")}`;
@@ -420,19 +424,19 @@ const [fetchError, setFetchError] = useState(null);
         ? today
         : today.endOf("week");
       filterInfo = `Date Range: ${startOfWeek.format(
-        "DD-MM-YYYY"
+        "DD-MM-YYYY",
       )} to ${endOfWeek.format("DD-MM-YYYY")}`;
     } else if (selectDate === "thisMonth") {
       const startOfMonth = today.startOf("month");
       const endOfMonth = today.endOf("month");
       filterInfo = `Date Range: ${startOfMonth.format(
-        "DD-MM-YYYY"
+        "DD-MM-YYYY",
       )} to ${endOfMonth.format("DD-MM-YYYY")}`;
     } else if (selectDate === "lastMonth") {
       const startOfLastMonth = today.subtract(1, "month").startOf("month");
       const endOfLastMonth = today.subtract(1, "month").endOf("month");
       filterInfo = `Date Range: ${startOfLastMonth.format(
-        "DD-MM-YYYY"
+        "DD-MM-YYYY",
       )} to ${endOfLastMonth.format("DD-MM-YYYY")}`;
     } else {
       filterInfo = "Date Filter: All";
@@ -474,7 +478,7 @@ const [fetchError, setFetchError] = useState(null);
     // --- 3. Total Cost Summary ---
     const totalCost = filteredRepairRequests.reduce(
       (acc, curr) => acc + (curr.estimatedCost || 0),
-      0
+      0,
     );
     const finalY = doc.lastAutoTable.finalY || 30;
 
@@ -485,6 +489,20 @@ const [fetchError, setFetchError] = useState(null);
     doc.save("RepairRequests.pdf");
   };
 
+  const renderSkeletonRows = (rowCount = 5, columnCount = 8) => (
+    <tbody>
+      {Array.from({ length: rowCount }).map((_, rowIndex) => (
+        <tr key={`skeleton-row-${rowIndex}`}>
+          {Array.from({ length: columnCount }).map((_, columnIndex) => (
+            <td key={`skeleton-cell-${rowIndex}-${columnIndex}`}>
+              <div className="skeleton-cell">&nbsp;</div>
+            </td>
+          ))}
+        </tr>
+      ))}
+    </tbody>
+  );
+
   return (
     <div style={{ width: "100%", margin: "20px" }}>
       <div className="purchase-repairs-section">
@@ -493,8 +511,9 @@ const [fetchError, setFetchError] = useState(null);
             <div>
               <button
                 onClick={() => setSelectDate(null)}
-                className={`date-picker-button ${selectDate === null ? "selected" : ""
-                  }`}
+                className={`date-picker-button ${
+                  selectDate === null ? "selected" : ""
+                }`}
               >
                 All
               </button>
@@ -502,8 +521,9 @@ const [fetchError, setFetchError] = useState(null);
             <div>
               <button
                 onClick={() => setSelectDate("today")}
-                className={`date-picker-button ${selectDate === "today" ? "selected" : ""
-                  }`}
+                className={`date-picker-button ${
+                  selectDate === "today" ? "selected" : ""
+                }`}
               >
                 Today
               </button>
@@ -511,8 +531,9 @@ const [fetchError, setFetchError] = useState(null);
             <div>
               <button
                 onClick={() => setSelectDate("thisWeek")}
-                className={`date-picker-button ${selectDate === "thisWeek" ? "selected" : ""
-                  }`}
+                className={`date-picker-button ${
+                  selectDate === "thisWeek" ? "selected" : ""
+                }`}
               >
                 This week
               </button>
@@ -520,8 +541,9 @@ const [fetchError, setFetchError] = useState(null);
             <div>
               <button
                 onClick={() => setSelectDate("thisMonth")}
-                className={`date-picker-button ${selectDate === "thisMonth" ? "selected" : ""
-                  }`}
+                className={`date-picker-button ${
+                  selectDate === "thisMonth" ? "selected" : ""
+                }`}
               >
                 This month
               </button>
@@ -529,17 +551,21 @@ const [fetchError, setFetchError] = useState(null);
             <div>
               <button
                 onClick={() => setSelectDate("lastMonth")}
-                className={`date-picker-button ${selectDate === "lastMonth" ? "selected" : ""
-                  }`}
+                className={`date-picker-button ${
+                  selectDate === "lastMonth" ? "selected" : ""
+                }`}
               >
                 Last Month
               </button>
             </div>
             <div>
               <button
-                onClick={() => setSelectDate(selectDate === "custom" ? null : "custom")}
-                className={`date-picker-button ${selectDate === "custom" ? "selected" : ""
-                  }`}
+                onClick={() =>
+                  setSelectDate(selectDate === "custom" ? null : "custom")
+                }
+                className={`date-picker-button ${
+                  selectDate === "custom" ? "selected" : ""
+                }`}
               >
                 Custom
               </button>
@@ -903,7 +929,9 @@ const [fetchError, setFetchError] = useState(null);
                   </select>
                 </div>
                 <div className="form-group">
-                  <label htmlFor="repair-estimated-cost">Estimated Cost *</label>
+                  <label htmlFor="repair-estimated-cost">
+                    Estimated Cost *
+                  </label>
                   <input
                     type="number"
                     id="repair-estimated-cost"
@@ -984,7 +1012,10 @@ const [fetchError, setFetchError] = useState(null);
                             .filter((file) => {
                               const url = getAttachmentUrl(file);
                               const ext = getAttachmentExtension(file);
-                              return url && ["jpg", "jpeg", "png", "gif"].includes(ext);
+                              return (
+                                url &&
+                                ["jpg", "jpeg", "png", "gif"].includes(ext)
+                              );
                             })
                             .map((file, index) => (
                               <div
@@ -1008,9 +1039,10 @@ const [fetchError, setFetchError] = useState(null);
                                     onClick={() => {
                                       setRepairForm((prev) => ({
                                         ...prev,
-                                        existingAttachments: prev.existingAttachments.filter(
-                                          (_, i) => i !== index
-                                        ),
+                                        existingAttachments:
+                                          prev.existingAttachments.filter(
+                                            (_, i) => i !== index,
+                                          ),
                                       }));
                                     }}
                                   >

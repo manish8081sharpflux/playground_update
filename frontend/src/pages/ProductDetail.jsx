@@ -7,11 +7,11 @@ import {
   ChevronLeft,
   ChevronRight,
   AlertCircle,
-  Loader2,
 } from "lucide-react";
 import { api } from "../api";
 import useShopStore from "../store/shopStore";
 import { useAuth } from "../contexts/AuthContext";
+import LoadingState from "../components/common/LoadingState";
 
 /**
  * ProductDetail Page - Story 13.4 (FIX-016 / FR4)
@@ -183,18 +183,7 @@ const ProductDetail = () => {
 
   // Loading state
   if (loading) {
-    return (
-      <div
-        className="min-h-screen bg-slate-50 flex items-center justify-center"
-        role="status"
-        aria-label="Loading product details"
-      >
-        <div className="flex flex-col items-center gap-4">
-          <Loader2 className="w-10 h-10 text-purple-600 animate-spin" />
-          <p className="text-slate-600">Loading product details...</p>
-        </div>
-      </div>
-    );
+    return <LoadingState message="Loading product details..." fullScreen />;
   }
 
   // Error state
