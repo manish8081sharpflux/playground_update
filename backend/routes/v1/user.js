@@ -20,7 +20,7 @@ const {
 const { getStudentProfile } = require("../../controllers/profileController");
 // const upload = require('../../middleware/upload'); // Multer middleware for file uploads
 const router = express.Router();
-const { upload } = require("../../middleware/upload");
+const { uploadAnyWithErrorHandling } = require("../../middleware/upload");
 // API for create USER
 router.post(
   "/",
@@ -32,7 +32,7 @@ router.post(
   // ]),
   // faceDataUpload.single("facialData"),
   // upload.single('image'),
-  upload.any(),
+  uploadAnyWithErrorHandling,
   createUserV1
 );
 // API for create the medical record for the student
@@ -121,7 +121,7 @@ router.put(
   "/:userId",
   authenticate,
   authorize("User Management", "Update"),
-  upload.any(),
+  uploadAnyWithErrorHandling,
   updateUserDetails
 );
 

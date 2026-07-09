@@ -55,6 +55,7 @@ class Student {
     this.medicalRecords = obj.medicalRecords || null;
     this.assignedMachines = obj.assignedMachines || null;
     this.facialData = obj.facialData || null;
+    this.facialDataUrl = obj.facialDataUrl || "";
   }
 
   toJSON() {
@@ -83,6 +84,7 @@ class Student {
       medicalRecords: this.medicalRecords,
       assignedMachines: this.assignedMachines,
       facialData: this.facialData || null,
+      facialDataUrl: this.facialDataUrl || "",
     };
   }
 
@@ -106,6 +108,7 @@ class Student {
       attendanceRecords: this.attendanceRecords,
       medicalRecords: this.medicalRecords,
       assignedMachines: this.assignedMachines,
+      facialDataUrl: this.facialDataUrl || "",
     };
   }
 

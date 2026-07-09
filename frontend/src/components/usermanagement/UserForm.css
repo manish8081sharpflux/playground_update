@@ -480,6 +480,17 @@ textarea.error:focus {
     flex-wrap: wrap;
 }
 
+.form-group:has(#facialData) .file-upload-container {
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding: 1.5rem;
+    border: 2px dashed var(--gray-300);
+    border-radius: var(--border-radius-lg);
+    background: var(--gray-50);
+}
+
 .file-upload-btn {
     padding: 0.75rem 1.5rem;
     background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
@@ -503,22 +514,52 @@ textarea.error:focus {
 }
 
 .file-preview {
-    margin-top: 1rem;
+    margin-top: 20px;
+    width: 100%;
+    min-height: 220px;
     display: flex;
+    flex-direction: column;
     justify-content: center;
     align-items: center;
-    background: var(--gray-50);
-    border: 2px dashed var(--gray-300);
-    border-radius: var(--border-radius-lg);
-    padding: 1rem;
+    gap: 16px;
+    padding: 20px;
+    border: 2px dashed #d1d5db;
+    border-radius: 10px;
+    background: #fafafa;
 }
 
 .preview-image {
-    max-width: 200px;
-    max-height: 200px;
-    border-radius: var(--border-radius-md);
+    width: 220px;
+    height: 220px;
     object-fit: cover;
-    box-shadow: var(--shadow-md);
+    border-radius: 10px;
+    border: 1px solid #ddd;
+    box-shadow: 0 4px 10px rgba(0,0,0,.15);
+}
+
+.facial-photo-preview {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+}
+
+.remove-photo-btn {
+    border: 1px solid var(--danger-color);
+    border-radius: var(--border-radius-md);
+    background: var(--danger-light);
+    color: #b91c1c;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 600;
+    padding: 0.55rem 1rem;
+    transition: all var(--transition-duration) ease;
+}
+
+.remove-photo-btn:hover {
+    background: var(--danger-color);
+    color: #ffffff;
 }
 
 /* ============================================================================= */

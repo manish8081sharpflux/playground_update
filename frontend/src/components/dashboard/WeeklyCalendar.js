@@ -925,7 +925,7 @@ const WeeklyCalendar = ({
 
                 {showModal && (
                     <div className="modal-overlay">
-                        <div className="modal-content">
+                        <div className="modal-content schedule-add-modal">
                             <div className="modal-header">
                                 {/* <h3>{modalMode === 'create' ? 'Add New Balagruha' : 'Edit Balagruha'}</h3> */}
                                 <h3>Add new schedule</h3>
