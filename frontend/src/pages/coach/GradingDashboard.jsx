@@ -193,7 +193,7 @@ export default function GradingDashboard() {
             onClick={() => navigate('/coach/assignments')}
             className="bg-white text-blue-600 px-6 py-2 rounded-lg font-medium hover:bg-blue-50 transition"
           >
-            Assign Courses
+            + Assign Courses
           </button>
         </div>
       </div>

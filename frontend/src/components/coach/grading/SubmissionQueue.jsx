@@ -196,11 +196,10 @@ export default function SubmissionQueue({
                     <h3 className="text-lg font-bold text-gray-900">
                       {submission.taskTitle}
                     </h3>
-                    <span className={`px-3 py-1 text-xs font-medium rounded-full ${
-                      submission.status === 'graded' ? 'bg-green-100 text-green-800' :
+                    <span className={`px-3 py-1 text-xs font-medium rounded-full ${submission.status === 'graded' ? 'bg-green-100 text-green-800' :
                       submission.status === 'flagged' ? 'bg-red-100 text-red-800' :
-                      'bg-yellow-100 text-yellow-800'
-                    }`}>
+                        'bg-yellow-100 text-yellow-800'
+                      }`}>
                       {submission.status.toUpperCase()}
                     </span>
                   </div>
@@ -231,13 +230,24 @@ export default function SubmissionQueue({
                     {submission.submissionType === 'art' && '🎨 Art Submission'}
                     {submission.submissionType === 'video' && '🎥 Video Submission'}
                     {submission.submissionType === 'audio' && '🎙️ Audio Submission'}
+                    {submission.submissionType === 'quiz' && '📝 Quiz Submission'}
                   </div>
 
                   {/* Grade info for graded submissions */}
                   {submission.grade && (
                     <div className="mt-2 text-sm text-gray-600 bg-gray-50 rounded p-2">
-                      Quality: <strong>{submission.grade.quality}</strong> • Coins: <strong>{submission.grade.coinsAwarded}</strong>
-                      {submission.grade.feedback && <span> • "{submission.grade.feedback}"</span>}
+                      {submission.submissionType === 'quiz' ? (
+                        <>
+                          Score: <strong>{submission.grade.score ?? 0}%</strong> • Coins:{' '}
+                          <strong>{submission.grade.points ?? submission.grade.coinsAwarded ?? 0}</strong>
+                        </>
+                      ) : (
+                        <>
+                          Quality: <strong>{submission.grade.quality || '-'}</strong> • Coins:{' '}
+                          <strong>{submission.grade.coinsAwarded ?? 0}</strong>
+                          {submission.grade.feedback && <span> • "{submission.grade.feedback}"</span>}
+                        </>
+                      )}
                     </div>
                   )}
                 </div>

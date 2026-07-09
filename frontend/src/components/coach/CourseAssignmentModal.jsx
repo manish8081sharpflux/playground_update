@@ -282,7 +282,7 @@ export default function CourseAssignmentModal({ isOpen, onClose, coachId, onAssi
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="mt-12 bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[85vh] flex flex-col overflow-hidden">
         {/* Header */}
-        <div className="bg-purple-600 text-white px-6 py-4 flex flex-shrink-0 items-center justify-between rounded-t-lg">
+        <div className="bg-blue-600 text-white px-6 py-4 flex flex-shrink-0 items-center justify-between rounded-t-lg">
           <h2 className="text-2xl font-bold">Assign Course</h2>
           <button
             onClick={handleClose}
