@@ -542,13 +542,11 @@ class MusicTask {
               };
             }
           } else {
-            let attachmentObj = {
-              fileName: fileName,
-              fileUrl: fileFullPath,
-              fileType: file.contentType,
-              uploadedBy: createdById,
+            return {
+              success: false,
+              data: {},
+              message: "S3 upload is required for attachments.",
             };
-            attachments[i] = attachmentObj;
           }
         }
 
@@ -630,13 +628,11 @@ class MusicTask {
               };
             }
           } else {
-            let attachmentObj = {
-              fileName: fileName,
-              fileUrl: fileFullPath,
-              fileType: file.contentType,
-              uploadedBy: createdById,
+            return {
+              success: false,
+              data: {},
+              message: "S3 upload is required for attachments.",
             };
-            attachments[i] = attachmentObj;
           }
         }
         // prepare the comment object

@@ -23,7 +23,13 @@ export const Modal = ({ isOpen, onClose, title, children }) => {
 
     return (
         <div className="modal-overlay">
-            <div className="modal-content">
+            <div className="modal-content" style={{
+                            padding: '0',
+                            overflow: 'hidden',
+                            scrollbarWidth: 'none',
+                            msOverflowStyle: 'none',
+                            paddingBottom: '20px'
+                        }}>
                 <div className="modal-header">
                     <h2>{title}</h2>
 

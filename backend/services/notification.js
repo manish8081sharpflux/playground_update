@@ -176,6 +176,31 @@ class NotificationService {
   }
 
   /**
+   * Get unread personal notifications for a user.
+   * This is intentionally user-scoped so one student reading notifications
+   * never changes another student's unread list.
+   */
+  static async getUnreadNotifications(userId, limit = 50, skip = 0) {
+    try {
+      const notifications = await Notification.find({ userId, isRead: false })
+        .sort({ createdAt: -1 })
+        .limit(limit)
+        .skip(skip);
+
+      return {
+        success: true,
+        data: notifications,
+        message: "Unread notifications retrieved successfully",
+      };
+    } catch (error) {
+      errorLogger.error(
+        { userId, error: error.message },
+        "Error retrieving unread notifications"
+      );
+      throw error;
+    }
+  }
+  /**
    * Get unread notification count for a user
    */
   static async getUnreadCount(userId) {
@@ -800,3 +825,4 @@ class NotificationService {
 }
 
 module.exports = NotificationService;
+

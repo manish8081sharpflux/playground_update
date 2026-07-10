@@ -8,7 +8,7 @@ export default function CourseAssignmentModal({ isOpen, onClose, coachId, onAssi
   const { user } = useAuth();
   const isAdmin = user?.role === 'admin';
   const effectiveCoachId = coachId || user?.id || user?._id;
-  
+
   const [loading, setLoading] = useState(false);
   const [courses, setCourses] = useState([]);
   const [students, setStudents] = useState([]);
@@ -165,12 +165,12 @@ export default function CourseAssignmentModal({ isOpen, onClose, coachId, onAssi
       );
       const allBalagruhas = getResponseList(balagruhasResponse, 'balagruhas');
       setBalagruhasInfo(allBalagruhas);
-      
+
       // Select all by default
       if (allBalagruhas.length > 0 && selectedBalagruhas.length === 0) {
         setSelectedBalagruhas(allBalagruhas);
       }
-      
+
       // Fetch all students across all pages
       const studentsData = (await fetchAllStudents())
         .filter((student) => student?.role === 'student');
@@ -180,7 +180,7 @@ export default function CourseAssignmentModal({ isOpen, onClose, coachId, onAssi
         balagruhaIds: getStudentBalagruhaIds(student),
         balagruhaNames: getStudentBalagruhaNames(student, allBalagruhas)
       }));
-      
+
       setStudents(studentsWithInfo);
     } catch (error) {
       console.error('Error fetching admin data:', error);
@@ -283,7 +283,12 @@ export default function CourseAssignmentModal({ isOpen, onClose, coachId, onAssi
       <div className="mt-12 bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[85vh] flex flex-col overflow-hidden">
         {/* Header */}
         <div className="bg-blue-600 text-white px-6 py-4 flex flex-shrink-0 items-center justify-between rounded-t-lg">
-          <h2 className="text-2xl font-bold">Assign Course</h2>
+          <div>
+            <h2 className="text-2xl font-bold">Assign Course</h2>
+            <p className="text-purple-100 text-sm mt-1">
+              Select a published course
+            </p>
+          </div>
           <button
             onClick={handleClose}
             className="text-white hover:text-gray-200 text-2xl"
@@ -334,8 +339,8 @@ export default function CourseAssignmentModal({ isOpen, onClose, coachId, onAssi
             <div
               onClick={() => setAssignmentType('balagruha')}
               className={`border-2 rounded-lg p-4 cursor-pointer mb-3 transition ${assignmentType === 'balagruha'
-                  ? 'border-blue-500 bg-blue-50'
-                  : 'border-gray-300 hover:border-blue-300'
+                ? 'border-blue-500 bg-blue-50'
+                : 'border-gray-300 hover:border-blue-300'
                 }`}
             >
               <div className="flex items-start">
@@ -423,8 +428,8 @@ export default function CourseAssignmentModal({ isOpen, onClose, coachId, onAssi
             <div
               onClick={() => setAssignmentType('students')}
               className={`border-2 rounded-lg p-4 cursor-pointer transition ${assignmentType === 'students'
-                  ? 'border-blue-500 bg-blue-50'
-                  : 'border-gray-300 hover:border-blue-300'
+                ? 'border-blue-500 bg-blue-50'
+                : 'border-gray-300 hover:border-blue-300'
                 }`}
             >
               <div className="flex items-center">

@@ -145,7 +145,8 @@ const Layout = () => {
     // existing syllabus grading tracker at /coach/grading.
     { id: 16, name: "Courses", link: "/coach/courses", roles: ["coach"] },
     { id: 161, name: "Grading", link: "/coach/grading", roles: ["coach"] },
-    { id: 17, name: "Assignments", link: "/coach/assignments", roles: ["coach", "admin"] },
+    { id: 17, name: "Assignments", link: "/coach/assignments", roles: ["coach"] },
+    { id: 171, name: "Assignments", link: "/admin/courses/assignments", roles: ["admin"] },
     // Medical: Doctors Data Bank - shared directory managed by medical incharge + admin
     { id: 19, name: "Doctors", link: "/medical/doctors", roles: ["medical-incharge", "admin"] },
     {
@@ -343,6 +344,7 @@ const Layout = () => {
       "/coach/courses": ["LMS Management"],
       "/coach/grading": ["LMS Management"],
       "/coach/assignments": ["LMS Management"],
+      "/admin/courses/assignments": ["LMS Management"],
     };
 
     const requiredModules = permissionMap[menu.link];
@@ -539,6 +541,7 @@ const Layout = () => {
                 "menu-item",
                 isActive ? "active" : "",
                 wtfHighlight ? "wtf-highlight" : "",
+                isPurchases ? "has-pending-badge" : "",
                 isWtf && shouldShakeWtf ? "shake" : "",
               ]
                 .filter(Boolean)
@@ -640,3 +643,5 @@ const Layout = () => {
 };
 
 export default Layout;
+
+

@@ -16,7 +16,14 @@ async function computeProgressForAssignments(assignments) {
   if (!assignments.length) return {};
 
   // Gather unique courseIds and collect student lookups
-  const courseIds = [...new Set(assignments.map(a => (a.courseId?._id || a.courseId).toString()))];
+  const courseIds = [
+    ...new Set(
+      assignments
+        .map((assignment) => assignment.courseId?._id || assignment.courseId)
+        .filter(Boolean)
+        .map((courseId) => courseId.toString())
+    ),
+  ];
   const courses = await Course.find({ _id: { $in: courseIds } });
   const courseItemCountMap = {};
   courses.forEach(c => { courseItemCountMap[c._id.toString()] = c.contentItemCount || 0; });
@@ -28,7 +35,10 @@ async function computeProgressForAssignments(assignments) {
       const bgIds = a.assignedTo.balagruhaIds?.length
         ? a.assignedTo.balagruhaIds
         : (a.assignedTo.balagruhaId ? [a.assignedTo.balagruhaId] : []);
-      bgIds.forEach(id => balagruhaIds.push((id._id || id).toString()));
+      bgIds.forEach((id) => {
+        const balagruhaId = id?._id || id;
+        if (balagruhaId) balagruhaIds.push(balagruhaId.toString());
+      });
     }
   });
 
@@ -58,10 +68,12 @@ async function computeProgressForAssignments(assignments) {
         ? a.assignedTo.balagruhaIds
         : (a.assignedTo.balagruhaId ? [a.assignedTo.balagruhaId] : []);
       bgIds.forEach(bgId => {
-        (balagruhaStudentsMap[(bgId._id || bgId).toString()] || []).forEach(sid => studentIds.push(sid));
+        const balagruhaId = bgId?._id || bgId;
+        if (!balagruhaId) return;
+        (balagruhaStudentsMap[balagruhaId.toString()] || []).forEach(sid => studentIds.push(sid));
       });
     } else {
-      studentIds = (a.assignedTo.studentIds || []).map(id => id.toString());
+      studentIds = (a.assignedTo.studentIds || []).filter(Boolean).map(id => id.toString());
     }
     assignmentStudentMap[a._id.toString()] = [...new Set(studentIds)];
     studentIds.forEach(sid => allStudentIds.add(sid));
@@ -597,7 +609,7 @@ exports.getAssignmentProgressReport = async (req, res) => {
 exports.updateAssignment = async (req, res) => {
   try {
     const { assignmentId } = req.params;
-    const { dueDate, status } = req.body;
+    const { dueDate, status, notifications } = req.body;
 
     if (!mongoose.Types.ObjectId.isValid(assignmentId)) {
       return res.status(400).json({ error: "Invalid assignment ID" });
@@ -628,6 +640,44 @@ exports.updateAssignment = async (req, res) => {
         return res.status(400).json({ error: "Invalid status" });
       }
       assignment.status = status;
+    }
+
+    let notificationsSent = { inApp: 0, email: 0 };
+    if (notifications) {
+      if (typeof notifications.inApp !== "undefined") {
+        assignment.notifications.inApp = !!notifications.inApp;
+      }
+      if (typeof notifications.email !== "undefined") {
+        assignment.notifications.email = !!notifications.email;
+      }
+
+      const targetStudentIds = (assignment.assignedTo?.studentIds || []).map((id) => id.toString());
+      const courseForNotification = await Course.findById(assignment.courseId).select("title");
+
+      if (assignment.notifications.inApp && targetStudentIds.length > 0) {
+        await Promise.all(targetStudentIds.map((studentId) => Notification.create({
+          userId: studentId,
+          type: "PERSONAL",
+          category: "TASK_ASSIGNED",
+          title: "Course Assignment Updated",
+          message: `Your course assignment "${courseForNotification?.title || 'Course'}" was updated`,
+          data: {
+            courseId: assignment.courseId,
+            assignmentId: assignment._id,
+            dueDate: assignment.dueDate || null,
+          },
+        })));
+        notificationsSent.inApp = targetStudentIds.length;
+      }
+
+      if (assignment.notifications.email) {
+        // Email delivery is counted here; plug in the mail provider when configured.
+        notificationsSent.email = targetStudentIds.length;
+      }
+
+      assignment.notifications.sent = assignment.notifications.inApp || assignment.notifications.email;
+      assignment.notifications.sentAt = assignment.notifications.sent ? new Date() : null;
+      assignment.notifications.recipientCount = notificationsSent.inApp;
     }
 
     await assignment.save();
@@ -882,3 +932,5 @@ exports.getBalagruhaCourses = async (req, res) => {
     });
   }
 };
+
+

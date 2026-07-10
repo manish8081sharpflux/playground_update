@@ -239,14 +239,13 @@ notificationSchema.statics.getUserNotifications = async function (
   limit = 50,
   skip = 0
 ) {
-  const personalNotifications = await this.find({ userId, isRead: false })
+  const personalNotifications = await this.find({ userId })
     .sort({ createdAt: -1 })
     .limit(limit)
     .skip(skip);
 
   const commonNotifications = await this.find({
     isGlobal: true,
-    isRead: false,
     createdAt: { $gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) }, // Last 30 days
   })
     .sort({ createdAt: -1 })
@@ -375,3 +374,4 @@ notificationSchema.statics.cleanupExpired = async function () {
 const Notification = mongoose.models.Notification || mongoose.model("Notification", notificationSchema);
 
 module.exports = Notification;
+

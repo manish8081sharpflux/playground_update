@@ -277,25 +277,13 @@ exports.submitVideoRecording = async (req, res) => {
       if (fs.existsSync(videoFile.path)) {
         fs.unlinkSync(videoFile.path);
       }
-    } else if (process.env.NODE_ENV !== 'production') {
-      // DEV-ONLY fallback: when S3 isn't configured locally, keep the file on
-      // disk and serve it from the backend's /uploads mount so the full
-      // submit→grade flow is testable. NEVER used in production — graded work
-      // must not silently land on ephemeral local disk.
-      const base = process.env.PUBLIC_BACKEND_URL || `http://localhost:${process.env.PORT || 5001}`;
-      s3Url = `${base}/uploads/${path.basename(videoFile.path)}`;
-      errorLogger.error(
-        { err: uploadResult.error },
-        'Spoken English: S3 upload failed — using local /uploads fallback (dev only)'
-      );
     } else {
-      // Production: fail loudly rather than risk losing a student's submission.
       if (fs.existsSync(videoFile.path)) {
         fs.unlinkSync(videoFile.path);
       }
       return res.status(500).json({
         success: false,
-        message: 'Failed to upload video to storage',
+        message: 'Failed to upload video to S3',
         error: uploadResult.error
       });
     }

@@ -570,6 +570,16 @@ const App = () => {
                     }
                   />
 
+                  {/* Admin Course Assignments */}
+                  <Route
+                    path="/admin/courses/assignments"
+                    element={
+                      <ProtectedRoute module="LMS Management" action="Manage">
+                        <CoachAssignmentsPage />
+                      </ProtectedRoute>
+                    }
+                  />
+
                   {/* Coach Course Assignments - Sprint 2 Epic 03 Story 01 */}
                   <Route
                     path="/coach/assignments"
@@ -639,3 +649,5 @@ const App = () => {
 };
 
 export default App;
+
+

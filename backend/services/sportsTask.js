@@ -572,13 +572,11 @@ class SportsTask {
               };
             }
           } else {
-            let attachmentObj = {
-              fileName: fileName,
-              fileUrl: fileFullPath,
-              fileType: file.mimetype,
-              uploadedBy: createdById,
+            return {
+              success: false,
+              data: {},
+              message: "S3 upload is required for attachments.",
             };
-            attachments[i] = attachmentObj;
           }
         }
 
@@ -660,13 +658,11 @@ class SportsTask {
               };
             }
           } else {
-            let attachmentObj = {
-              fileName: fileName,
-              fileUrl: fileFullPath,
-              fileType: file.mimetype,
-              uploadedBy: createdById,
+            return {
+              success: false,
+              data: {},
+              message: "S3 upload is required for attachments.",
             };
-            attachments[i] = attachmentObj;
           }
         }
         // prepare the comment object
