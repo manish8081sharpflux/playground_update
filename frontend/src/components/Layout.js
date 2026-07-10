@@ -336,7 +336,7 @@ const Layout = () => {
       "/users": ["User Management"],
       "/machines": ["Machine Management"],
       "/task": ["Task Management"],
-      "/attendance": ["Attendance Management"],
+      "/attendance": ["Attendance Management", "User Management"],
       "/repair": ["Purchase Management"],
       "/purchase": ["Purchase Management"],
       "/shop": ["Shop Management"],

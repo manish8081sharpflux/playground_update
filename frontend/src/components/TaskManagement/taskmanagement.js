@@ -800,8 +800,7 @@ const CreateTaskForm = ({
     description: "",
     priority: "medium",
     deadline: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
-      .toISOString()
-      .split("T")[0], // Default to 1 week from now
+      .toISOString().slice(0, 16), // Default to 1 week from now
     assignedUser: [],
     status: "pending",
     balagruhaId: balagruhaId || "",
@@ -1329,13 +1328,13 @@ const CreateTaskForm = ({
               Deadline <span className="required">*</span>
             </label>
             <input
-              type="date"
+              type="datetime-local"
               id="deadline"
               name="deadline"
               value={formData.deadline}
               onChange={handleInputChange}
               className={formErrors.deadline ? "error" : ""}
-              min={new Date().toISOString().split("T")[0]}
+              min={new Date().toISOString().slice(0, 16)}
             />
             {formErrors.deadline && (
               <div className="error-message">{formErrors.deadline}</div>
@@ -2492,16 +2491,18 @@ export const TaskDetailsModal = ({
 
   // Enable edit mode for a specific field
   const enableEditMode = (field) => {
-    if (!canManageTask) {
-      return;
-    }
+    if (!canManageTask) return;
+
     setEditMode((prev) => ({ ...prev, [field]: true }));
+
     setEditedValues((prev) => ({
       ...prev,
       [field]:
         field === "assignedUser"
           ? selectedTask.assignedUser?._id
-          : selectedTask[field],
+          : field === "deadline"
+            ? formatDateForInput(selectedTask.deadline)
+            : selectedTask[field],
     }));
   };
 

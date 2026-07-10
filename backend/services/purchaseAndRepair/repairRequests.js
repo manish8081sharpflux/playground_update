@@ -1,6 +1,6 @@
 const repairRequestsDA = require("../../data-access/repairRequests");
-const { getUploadedFilesFullPath } = require("../../utils/helper");
 const { uploadFileToS3 } = require("../aws/s3");
+const { cleanupLocalFile } = require("../../utils/fileCleanup");
 
 class RepairRequest {
   constructor(obj) {
@@ -39,29 +39,46 @@ class RepairRequest {
       // upload the attachment if existing
       for (let i = 0; i < attachments.length; i++) {
         let file = attachments[i];
+
+        if (file.fileUrl || file.url) {
+          attachments[i] = {
+            fileName: file.fileName || file.name || "Attachment",
+            fileUrl: file.fileUrl || file.url,
+            s3Key: file.s3Key,
+            fileType: file.fileType || file.mimetype,
+            uploadedBy: file.uploadedBy || repairRequestData.createdBy,
+            uploadedAt: file.uploadedAt || new Date(),
+          };
+          continue;
+        }
+
         let fileName = file.filename;
-        let fileFullPath = getUploadedFilesFullPath(fileName);
         if (!isOfflineReq) {
-          let result = await uploadFileToS3(
-            file.path,
-            process.env.AWS_S3_FOLDER_REPAIR_REQUEST_ATTACHMENTS,
-            fileName
-          );
-          if (result.success) {
-            // replace the /upload from the file name to empty string
-            let attachmentObj = {
-              fileName: fileName,
-              fileUrl: result.url,
-              fileType: result.contentType,
-              uploadedBy: repairRequestData.createdBy,
-            };
-            attachments[i] = attachmentObj;
-          } else {
-            return {
-              success: false,
-              data: {},
-              message: "Failed to upload attachments.",
-            };
+          try {
+            let result = await uploadFileToS3(
+              file.path,
+              process.env.AWS_S3_FOLDER_REPAIR_REQUEST_ATTACHMENTS,
+              fileName
+            );
+            if (result.success) {
+              let attachmentObj = {
+                fileName: file.originalname || fileName,
+                fileUrl: result.url,
+                s3Key: result.key,
+                fileType: result.contentType || file.mimetype,
+                uploadedBy: repairRequestData.createdBy,
+                uploadedAt: new Date(),
+              };
+              attachments[i] = attachmentObj;
+            } else {
+              return {
+                success: false,
+                data: {},
+                message: "Failed to upload attachments.",
+              };
+            }
+          } finally {
+            cleanupLocalFile(file.path, file.filename);
           }
         } else {
           return {
@@ -113,3 +130,4 @@ class RepairRequest {
 }
 
 module.exports = RepairRequest;
+

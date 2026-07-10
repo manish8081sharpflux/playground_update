@@ -14,7 +14,7 @@ export const createRepair = async (data) => {
 
 export const getAllRepairs = async () => {
   try {
-    const response = await api.get(`/api/v1/purchase-repair/repair-requests`);
+    const response = await api.get(`/api/v1/purchase-repair/repair-requests`, { params: { limit: 1000 } });
     return response.data;
   } catch (error) {
     console.error("Error fetching repairs:", error);
@@ -46,3 +46,4 @@ export const updateRepairRequest = async (id, data) => {
     throw error;
   }
 };
+

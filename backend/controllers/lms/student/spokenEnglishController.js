@@ -6,6 +6,8 @@ const s3Service = require('../../../services/aws/s3');
 const fs = require('fs');
 const path = require('path');
 const { errorLogger } = require('../../../config/pino-config');
+const User = require('../../../models/user');
+const { decorateAssignmentStatus, getStudentCourseAccess, assertStudentCanSubmitForCourse } = require('../../../utils/lmsAssignmentStatus');
 
 // backend/controllers/lms/student/spokenEnglishController.js
 // Epic 01 Story 04: Spoken English Video Recording
@@ -85,7 +87,12 @@ exports.getSpokenEnglishTask = async (req, res) => {
     res.status(200).json({
       success: true,
       task: taskResponse,
-      submissionStatus: submission ? submission.status : 'not_started'
+      ...courseAccess,
+      submissionStatus: decorateAssignmentStatus({
+        baseStatus: submission ? submission.status : 'not_started',
+        hasSubmission: Boolean(submission),
+        courseAccess
+      })
     });
 
   } catch (error) {
@@ -119,6 +126,12 @@ exports.getSpokenEnglishTasks = async (req, res) => {
         completedTasks: 0
       });
     }
+
+    const student = await User.findById(studentId).select('balagruhaIds').lean();
+    const accessByCourse = new Map();
+    await Promise.all(courses.map(async (course) => {
+      accessByCourse.set(course._id.toString(), await getStudentCourseAccess(student, course._id));
+    }));
 
     // 2. Fetch completed items from StudentProgress
     const progressRecords = await StudentProgress.find({
@@ -160,7 +173,8 @@ exports.getSpokenEnglishTasks = async (req, res) => {
               status: isCompleted ? 'graded' : (isLocked ? 'locked' : 'available'),
               // Note: 'graded' is simplified; real logic checks Submission model for 'under_review' vs 'graded'
               // But 'completed' in StudentProgress usually implies passing grade or submission done.
-              thumbnailUrl: course.thumbnail
+              thumbnailUrl: course.thumbnail,
+              ...(accessByCourse.get(course._id.toString()) || {})
             });
 
             if (!isCompleted) previousTaskCompleted = false;
@@ -188,6 +202,9 @@ exports.getSpokenEnglishTasks = async (req, res) => {
         } else if (sub.status === 'graded') {
           t.status = 'graded';
         }
+      }
+      if (!sub) {
+        t.status = decorateAssignmentStatus({ baseStatus: t.status, hasSubmission: false, courseAccess });
       }
       return t;
     });
@@ -246,6 +263,9 @@ exports.submitVideoRecording = async (req, res) => {
     if (!course) {
       return res.status(404).json({ success: false, message: "Task not found." });
     }
+
+    const student = await User.findById(studentId).select('balagruhaIds').lean();
+    await assertStudentCanSubmitForCourse({ student, courseId: course._id });
 
     // Find item to get title
     let taskTitle = "Spoken English Task";

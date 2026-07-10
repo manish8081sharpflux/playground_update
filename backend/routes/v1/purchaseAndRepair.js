@@ -9,7 +9,7 @@ const repairRequestController = require("../../controllers/purchaseAndRepair");
 router.post(
   "/repair-requests",
   authenticate,
-  authorize("Machine Management", "Read"),
+  authorize("Purchase Management", "Create"),
   upload.array("attachments", 5), // Allow up to 5 files
   repairRequestController.createRepairRequest
 );
@@ -18,7 +18,7 @@ router.post(
 router.get(
   "/repair-requests",
   authenticate,
-  authorize("Machine Management", "Read"),
+  authorize("Purchase Management", "Read"),
   repairRequestController.getAllRepairRequests
 );
 
@@ -26,7 +26,7 @@ router.get(
 router.get(
   "/repair-requests/:id",
   authenticate,
-  authorize("Machine Management", "Read"),
+  authorize("Purchase Management", "Read"),
   repairRequestController.getRepairRequestById
 );
 
@@ -34,7 +34,7 @@ router.get(
 router.put(
   "/repair-requests/:id",
   authenticate,
-  authorize("Machine Management", "Read"),
+  authorize("Purchase Management", "Update"),
   upload.array("attachments", 5), // Allow up to 5 files for updates
   repairRequestController.updateRepairRequest
 );
@@ -43,7 +43,7 @@ router.put(
 router.delete(
   "/repair-requests/:id",
   authenticate,
-  authorize("Machine Management", "Read"),
+  authorize("Purchase Management", "Delete"),
   repairRequestController.deleteRepairRequest
 );
 
@@ -51,7 +51,7 @@ router.delete(
 router.put(
   "/repair-requests/status/:id",
   authenticate,
-  authorize("Machine Management", "Read"),
+  authorize("Purchase Management", "Update"),
   repairRequestController.toggleRepairRequestStatus
 );
 
@@ -60,7 +60,7 @@ router.put(
 router.post(
   "/purchase-orders",
   authenticate,
-  authorize("Machine Management", "Read"),
+  authorize("Purchase Management", "Create"),
   upload.array("attachments", 5), // Allow up to 5 files
   repairRequestController.createPurchaseOrder
 );
@@ -69,7 +69,7 @@ router.post(
 router.get(
   "/purchase-orders",
   authenticate,
-  authorize("Machine Management", "Read"),
+  authorize("Purchase Management", "Read"),
   repairRequestController.getAllPurchaseOrders
 );
 
@@ -77,7 +77,7 @@ router.get(
 router.get(
   "/purchase-orders/:id",
   authenticate,
-  authorize("Machine Management", "Read"),
+  authorize("Purchase Management", "Read"),
   repairRequestController.getPurchaseOrderById
 );
 
@@ -85,7 +85,7 @@ router.get(
 router.put(
   "/purchase-orders/:id",
   authenticate,
-  authorize("Machine Management", "Read"),
+  authorize("Purchase Management", "Update"),
   upload.array("attachments", 5), // Allow up to 5 files for updates
   repairRequestController.updatePurchaseOrder
 );
@@ -94,7 +94,7 @@ router.put(
 router.delete(
   "/purchase-orders/:id",
   authenticate,
-  authorize("Machine Management", "Read"),
+  authorize("Purchase Management", "Delete"),
   repairRequestController.deletePurchaseOrder
 );
 
@@ -102,7 +102,7 @@ router.delete(
 router.put(
   "/purchase-orders/status/:id",
   authenticate,
-  authorize("Machine Management", "Read"),
+  authorize("Purchase Management", "Update"),
   repairRequestController.updatePurchaseOrderStatus
 );
 
@@ -110,8 +110,9 @@ router.put(
 router.get(
   "/overview",
   authenticate,
-  authorize("Machine Management", "Read"),
+  authorize("Purchase Management", "Read"),
   repairRequestController.getPurchaseManagerOverview
 );
 
 module.exports = router;
+

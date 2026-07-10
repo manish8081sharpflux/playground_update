@@ -45,12 +45,12 @@ export default function AssignmentProgressModal({ assignmentId, onClose }) {
       not_started: { bg: 'bg-gray-100', text: 'text-gray-600', label: 'Not Started' },
     };
     const m = map[status] || map.not_started;
-    return <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${m.bg} ${m.text}`}>{m.label}</span>;
+    return <span className={`px-2 py-0.5 rounded-full text-xs font-thin ${m.bg} ${m.text}`}>{m.label}</span>;
   };
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-      <div className="mt-12 bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[85vh] flex flex-col">
+      <div className="mt-12 bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[85vh] flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200">
           <div>

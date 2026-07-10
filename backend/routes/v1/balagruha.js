@@ -1,5 +1,5 @@
 const express = require("express");
-const { authorize, authenticate } = require("../../middleware/auth");
+const { authorize, authorizeAny, authenticate } = require("../../middleware/auth");
 const {
   createBalagruha,
   getAllBalagruha,
@@ -22,7 +22,10 @@ router.post(
 router.get(
   "/",
   authenticate,
-  authorize("User Management", "Read"),
+  authorizeAny([
+    { module: "Purchase Management", action: "Read" },
+    { module: "User Management", action: "Read" },
+  ]),
   getAllBalagruha
 );
 // Sprint5-Story-21: Get Balagruhas with STOCK option
@@ -30,7 +33,10 @@ router.get(
 router.get(
   "/with-stock",
   authenticate,
-  authorize("User Management", "Read"),
+  authorizeAny([
+    { module: "Purchase Management", action: "Read" },
+    { module: "User Management", action: "Read" },
+  ]),
   getBalagruhasWithStock
 );
 router.get(
@@ -67,3 +73,5 @@ router.get(
   getBalagruhaListByAssignedID
 );
 module.exports = router;
+
+

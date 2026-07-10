@@ -29,10 +29,6 @@ export default function GradingPanel({
       return;
     }
 
-    if (coinsAwarded < 0 || coinsAwarded > 100) {
-      alert('Coin amount must be between 0 and 100');
-      return;
-    }
 
     setIsSubmitting(true);
 
@@ -120,12 +116,12 @@ export default function GradingPanel({
                 className="mr-3"
               />
               <div>
-                <div className="font-medium text-gray-900">🟢 Excellent</div>
+                <div className="font-medium text-gray-900">Excellent</div>
                 <div className="text-sm text-gray-600">
                   Shows creativity, good technique
                 </div>
                 <div className="text-xs text-gray-500 mt-1">
-                  Suggested Coins: 80-100
+                  Award: 85 ISF Coins
                 </div>
               </div>
             </div>
@@ -146,12 +142,12 @@ export default function GradingPanel({
                 className="mr-3"
               />
               <div>
-                <div className="font-medium text-gray-900">🟡 Good</div>
+                <div className="font-medium text-gray-900">Good</div>
                 <div className="text-sm text-gray-600">
                   Meets requirements, some effort
                 </div>
                 <div className="text-xs text-gray-500 mt-1">
-                  Suggested Coins: 50-79
+                  Award: 65 ISF Coins
                 </div>
               </div>
             </div>
@@ -172,12 +168,12 @@ export default function GradingPanel({
                 className="mr-3"
               />
               <div>
-                <div className="font-medium text-gray-900">🔴 Needs Improvement</div>
+                <div className="font-medium text-gray-900">Needs Improvement</div>
                 <div className="text-sm text-gray-600">
                   Incomplete or minimal effort
                 </div>
                 <div className="text-xs text-gray-500 mt-1">
-                  Suggested Coins: 0-49
+                  Award: 25 ISF Coins
                 </div>
               </div>
             </div>
@@ -193,14 +189,18 @@ export default function GradingPanel({
           ISF Coins to Award <span className="text-red-500">*</span>
         </label>
 
-        {/* Slider */}
+        <p className="text-sm text-gray-600 mb-3">
+          This amount is set automatically from the selected quality rating.
+        </p>
+
         <input
           type="range"
           min="0"
           max="100"
           value={coinsAwarded}
-          onChange={(e) => setCoinsAwarded(parseInt(e.target.value))}
-          className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+          readOnly
+          aria-label="ISF coins determined by quality rating"
+          className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-not-allowed"
           style={{
             background: `linear-gradient(to right, #2563eb 0%, #2563eb ${coinsAwarded}%, #e5e7eb ${coinsAwarded}%, #e5e7eb 100%)`,
           }}
@@ -213,13 +213,9 @@ export default function GradingPanel({
             min="0"
             max="100"
             value={coinsAwarded}
-            onChange={(e) => {
-              const value = parseInt(e.target.value) || 0;
-              if (value >= 0 && value <= 100) {
-                setCoinsAwarded(value);
-              }
-            }}
-            className="w-20 border border-gray-300 rounded-lg px-3 py-2 text-center font-bold text-lg"
+            readOnly
+            aria-label="ISF coins determined by quality rating"
+            className="w-20 border border-gray-300 bg-gray-100 rounded-lg px-3 py-2 text-center font-bold text-lg"
           />
           <span className="text-gray-600">coins</span>
         </div>
@@ -252,7 +248,7 @@ export default function GradingPanel({
           disabled={isSubmitting || !quality}
           className="w-full px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed font-medium text-lg transition"
         >
-          {isSubmitting ? 'Submitting Grade...' : 'Submit Grade →'}
+          {isSubmitting ? 'Submitting Grade...' : 'Submit Grade'}
         </button>
       </div>
     </div>

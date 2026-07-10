@@ -11,14 +11,48 @@ const { errorLogger } = require('../../../config/pino-config');
 
 /**
  * Quality-to-coin mapping for auto-calculating coin awards from rubric score.
- * Coaches can override by explicitly providing coinsAwarded in the request body.
+ * The amount is fixed by the quality rating. Keeping this mapping server-side
+ * prevents modified client requests from awarding mismatched coin amounts.
  */
 // Must match frontend GradingPanel.jsx auto-coin values (85, 65, 25).
-// These are only used when the coach doesn't explicitly set coinsAwarded.
+// If the client sends coinsAwarded, it must match these fixed values.
 const QUALITY_COIN_MAP = {
   excellent: 85,
   good: 65,
   needs_improvement: 25,
+};
+
+const getCoinsForQuality = (quality, coinsAwarded) => {
+  const expectedCoins = QUALITY_COIN_MAP[quality];
+  if (expectedCoins === undefined) return { error: "Invalid quality rating" };
+
+  if (coinsAwarded !== undefined && coinsAwarded !== null) {
+    const requestedCoins = Number(coinsAwarded);
+    if (!Number.isInteger(requestedCoins) || requestedCoins !== expectedCoins) {
+      return {
+        error: `ISF Coins must match the ${quality.replace("_", " ")} quality rating (${expectedCoins} coins)`,
+      };
+    }
+  }
+
+  return { coinsAwarded: expectedCoins };
+};
+
+const canCoachGradeSubmission = async (coachId, submission) => {
+  if (!coachId || !submission?.studentId) return false;
+
+  const coachQuery = User.findById(coachId);
+  const coach = typeof coachQuery.select === "function"
+    ? await coachQuery.select("balagruhaIds")
+    : await coachQuery;
+  const coachBalagruhaIds = (coach?.balagruhaIds || []).map((id) => id.toString());
+  if (coachBalagruhaIds.length === 0) return false;
+
+  const studentBalagruhaIds = (submission.studentId.balagruhaIds || []).map((id) =>
+    (id?._id || id).toString()
+  );
+
+  return studentBalagruhaIds.some((id) => coachBalagruhaIds.includes(id));
 };
 
 const normalizeAnswerPayload = (payload) => {
@@ -356,7 +390,8 @@ exports.streamSubmissionFile = async (req, res) => {
 exports.submitGrade = async (req, res) => {
   try {
     const { submissionId } = req.params;
-    const { quality, coinsAwarded: coinsOverride, feedback, evaluationCriteria, gradedBy } = req.body;
+    const { quality, coinsAwarded: coinsOverride, feedback, evaluationCriteria } = req.body;
+    const gradedBy = req.user?._id || req.user?.id;
 
     // Validation
     if (!quality) {
@@ -366,18 +401,14 @@ exports.submitGrade = async (req, res) => {
       });
     }
 
-    // Auto-calculate coins from quality rating; allow coach override
-    const hasCoinsOverride = coinsOverride !== undefined && coinsOverride !== null;
-    const calculatedCoins = hasCoinsOverride
-      ? coinsOverride
-      : (QUALITY_COIN_MAP[quality] !== undefined ? QUALITY_COIN_MAP[quality] : 0);
-
-    if (calculatedCoins < 0 || calculatedCoins > 100) {
+    const coinValidation = getCoinsForQuality(quality, coinsOverride);
+    if (coinValidation.error) {
       return res.status(400).json({
         success: false,
-        error: "Coin amount must be between 0 and 100",
+        error: coinValidation.error,
       });
     }
+    const calculatedCoins = coinValidation.coinsAwarded;
 
     if (feedback && feedback.length > 500) {
       return res.status(400).json({
@@ -400,6 +431,14 @@ exports.submitGrade = async (req, res) => {
       return res.status(400).json({
         success: false,
         error: "Submission already graded",
+      });
+    }
+
+    const hasAccess = await canCoachGradeSubmission(gradedBy, submission);
+    if (!hasAccess) {
+      return res.status(403).json({
+        success: false,
+        error: "You are not authorized to grade this submission",
       });
     }
 
@@ -442,7 +481,8 @@ exports.submitGrade = async (req, res) => {
 
     // Send notification to student
     const coach = await User.findById(gradedBy);
-    const notificationMessage = `Coach ${coach.name} graded your "${submission.taskTitle}" submission! ${coinsAwarded > 0 ? `+${coinsAwarded} coins` : ""
+    const coachName = coach?.name || [coach?.firstName, coach?.lastName].filter(Boolean).join(" ") || "your coach";
+    const notificationMessage = `Coach ${coachName} graded your "${submission.taskTitle}" submission! ${coinsAwarded > 0 ? `+${coinsAwarded} ISF Coins` : ""
       }`;
 
     try {
@@ -450,12 +490,13 @@ exports.submitGrade = async (req, res) => {
         submission.studentId._id,
         'Submission Graded',
         notificationMessage,
-        'COACH_MESSAGE',
+        'COINS_AWARDED',
         {
-          submissionId: submission._id,
-          courseId: submission.courseId._id,
-          coinsAwarded,
-          quality,
+          coinAmount: coinsAwarded,
+          coinSource: 'grading',
+          coachId: gradedBy,
+          relatedEntityId: submission._id,
+          relatedEntityType: 'submission',
           feedback: feedback || null,
         }
       );
@@ -469,6 +510,8 @@ exports.submitGrade = async (req, res) => {
       submissionId: submission._id,
       studentId: submission.studentId._id,
       studentCoinBalance: coinBalance,
+      coinsAwarded,
+      quality,
       message: `Grade submitted successfully! ${submission.studentId.name} has been notified and earned ${coinsAwarded} ISF Coins.`,
     });
   } catch (error) {
@@ -487,12 +530,8 @@ exports.submitGrade = async (req, res) => {
  */
 exports.bulkGrade = async (req, res) => {
   try {
-    const { submissionIds, quality, coinsAwarded: coinsOverride, feedback, gradedBy } = req.body;
-
-    // H2 fix: verify gradedBy matches authenticated user
-    if (req.user.role !== 'admin' && gradedBy !== req.user._id.toString()) {
-      return res.status(403).json({ success: false, error: "Cannot grade on behalf of another coach" });
-    }
+    const { submissionIds, quality, coinsAwarded: coinsOverride, feedback } = req.body;
+    const gradedBy = req.user?._id || req.user?.id;
 
     // Validation
     if (!submissionIds || !Array.isArray(submissionIds) || submissionIds.length === 0) {
@@ -509,18 +548,14 @@ exports.bulkGrade = async (req, res) => {
       });
     }
 
-    // Auto-calculate coins from quality rating; allow coach override
-    const hasCoinsOverride = coinsOverride !== undefined && coinsOverride !== null;
-    const coinsAwarded = hasCoinsOverride
-      ? coinsOverride
-      : (QUALITY_COIN_MAP[quality] !== undefined ? QUALITY_COIN_MAP[quality] : 0);
-
-    if (coinsAwarded < 0 || coinsAwarded > 100) {
+    const coinValidation = getCoinsForQuality(quality, coinsOverride);
+    if (coinValidation.error) {
       return res.status(400).json({
         success: false,
-        error: "Coin amount must be between 0 and 100",
+        error: coinValidation.error,
       });
     }
+    const coinsAwarded = coinValidation.coinsAwarded;
 
     let gradedCount = 0;
     const failedSubmissions = [];
@@ -534,6 +569,12 @@ exports.bulkGrade = async (req, res) => {
         const submission = await Submission.findById(submissionId).populate("studentId courseId");
 
         if (!submission || submission.status === "graded") {
+          failedSubmissions.push(submissionId);
+          continue;
+        }
+
+        const hasAccess = await canCoachGradeSubmission(gradedBy, submission);
+        if (!hasAccess) {
           failedSubmissions.push(submissionId);
           continue;
         }
@@ -572,7 +613,8 @@ exports.bulkGrade = async (req, res) => {
         }
 
         // Send notification
-        const notificationMessage = `Coach ${coach.name} graded your "${submission.taskTitle}" submission! ${submissionCoinsAwarded > 0 ? `+${submissionCoinsAwarded} coins` : ""
+        const coachName = coach?.name || [coach?.firstName, coach?.lastName].filter(Boolean).join(" ") || "your coach";
+        const notificationMessage = `Coach ${coachName} graded your "${submission.taskTitle}" submission! ${submissionCoinsAwarded > 0 ? `+${submissionCoinsAwarded} ISF Coins` : ""
           }`;
 
         try {
@@ -580,8 +622,14 @@ exports.bulkGrade = async (req, res) => {
             submission.studentId._id,
             'Submission Graded',
             notificationMessage,
-            'COACH_MESSAGE',
-            { submissionId: submission._id, courseId: submission.courseId._id, coinsAwarded: submissionCoinsAwarded, quality }
+            'COINS_AWARDED',
+            {
+              coinAmount: submissionCoinsAwarded,
+              coinSource: 'grading',
+              coachId: gradedBy,
+              relatedEntityId: submission._id,
+              relatedEntityType: 'submission',
+            }
           );
         } catch (notifErr) {
           errorLogger.error({ err: notifErr }, "Failed to send bulk grading notification (non-fatal)");

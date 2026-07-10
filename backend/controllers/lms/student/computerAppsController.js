@@ -2,6 +2,8 @@ const Course = require('../../../models/course');
 const StudentProgress = require('../../../models/StudentProgress');
 const mongoose = require('mongoose');
 const { errorLogger } = require('../../../config/pino-config');
+const User = require('../../../models/user');
+const { getStudentCourseAccess, assertStudentCanSubmitForCourse } = require('../../../utils/lmsAssignmentStatus');
 
 // ==================== GET APPS LIST ====================
 
@@ -53,10 +55,16 @@ exports.getComputerApps = async (req, res) => {
     }).lean();
 
     const progressMap = new Map(progressRecords.map(p => [p.course.toString(), p]));
+    const student = await User.findById(studentId).select('balagruhaIds').lean();
+    const accessByCourse = new Map();
+    await Promise.all(appCourses.map(async (course) => {
+      accessByCourse.set(course._id.toString(), await getStudentCourseAccess(student, course._id));
+    }));
 
     // Map to response format
     const apps = appCourses.map(course => {
-      const progress = progressMap.get(course._id.toString());
+      const courseId = course._id.toString();
+      const progress = progressMap.get(courseId);
       const completedItems = new Set(progress?.completedItems?.map(i => i.itemId?.toString()).filter(Boolean) || []);
       const quizRefCounts = getQuizRefCounts(course);
 
@@ -88,7 +96,8 @@ exports.getComputerApps = async (req, res) => {
         totalTasks,
         completedTasks,
         status,
-        progressPercentage: progressPercent
+        progressPercentage: progressPercent,
+        ...(accessByCourse.get(courseId) || {})
       };
     });
 
@@ -129,6 +138,8 @@ exports.getCourseHierarchy = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Course not found' });
     }
 
+    const student = await User.findById(studentId).select('balagruhaIds').lean();
+    const courseAccess = await getStudentCourseAccess(student, courseId);
     const progress = await StudentProgress.findOne({ student: studentId, course: courseId }).lean();
     const completedItems = new Set(progress?.completedItems?.map(i => i.itemId?.toString()).filter(Boolean) || []);
     const quizRefCounts = getQuizRefCounts(course);
@@ -161,6 +172,7 @@ exports.getCourseHierarchy = async (req, res) => {
       success: true,
       courseId,
       courseTitle: course.title,
+      ...courseAccess,
       modules
     });
   } catch (error) {
@@ -193,12 +205,14 @@ exports.getContentDetails = async (req, res) => {
     }
 
     // Check completion status
+    const student = await User.findById(studentId).select('balagruhaIds').lean();
+    const courseAccess = await getStudentCourseAccess(student, courseId);
     const progress = await StudentProgress.findOne({ student: studentId, course: courseId }).lean();
     const completedSet = new Set(progress?.completedItems?.map(i => i.itemId.toString()) || []);
 
     const isCompleted = completedSet.has(contentId);
 
-    let details = { ...content, isCompleted };
+    let details = { ...content, isCompleted, ...courseAccess };
 
     // Populate Quiz metadata if needed
     if (content.type === 'quiz' && content.quizRef) {
@@ -272,6 +286,9 @@ exports.submitQuiz = async (req, res) => {
       }).select('_id');
       if (fallback) courseId = fallback._id;
     }
+
+    const student = await User.findById(studentId).select('balagruhaIds').lean();
+    await assertStudentCanSubmitForCourse({ student, courseId });
 
     if (!answers || !Array.isArray(answers)) {
       throw new Error('Invalid answers format');
@@ -495,6 +512,9 @@ exports.markComplete = async (req, res) => {
     if (!itemId || !courseId) {
       return res.status(400).json({ success: false, message: 'Missing itemId or courseId' });
     }
+
+    const student = await User.findById(studentId).select('balagruhaIds').lean();
+    await assertStudentCanSubmitForCourse({ student, courseId });
 
     // Explicitly cast to ObjectId
     const studentObjectId = new mongoose.Types.ObjectId(studentId);

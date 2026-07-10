@@ -30,25 +30,27 @@ describe('CoachGradingController', () => {
     const studentId = new mongoose.Types.ObjectId();
     const courseId = new mongoose.Types.ObjectId();
     const submissionId = new mongoose.Types.ObjectId();
+    const balagruhaId = new mongoose.Types.ObjectId();
 
     function buildReq(overrides = {}) {
       return mockRequest({
         params: { submissionId: submissionId.toString() },
         body: {
           quality: 'excellent',
-          coinsAwarded: 15,
+          coinsAwarded: 85,
           feedback: 'Well done',
           evaluationCriteria: {},
           gradedBy: coachId,
           ...overrides,
         },
+        user: { _id: coachId, id: coachId },
       });
     }
 
     function mockSubmissionObj() {
       return {
         _id: submissionId,
-        studentId: { _id: studentId, firstName: 'John', lastName: 'Doe' },
+        studentId: { _id: studentId, firstName: 'John', lastName: 'Doe', balagruhaIds: [balagruhaId] },
         courseId: { _id: courseId },
         taskTitle: 'Draw a Tree',
         status: 'submitted',
@@ -67,7 +69,7 @@ describe('CoachGradingController', () => {
       });
 
       const mockAddCoins = jest.fn().mockImplementation(function () {
-        this.balance += 15;
+        this.balance += 85;
         return Promise.resolve(this);
       });
       const coinRecord = { balance: 0, addCoins: mockAddCoins };
@@ -77,6 +79,7 @@ describe('CoachGradingController', () => {
         _id: coachId,
         firstName: 'Coach',
         lastName: 'Smith',
+        balagruhaIds: [balagruhaId],
       });
 
       const mockNotifSave = jest.fn().mockResolvedValue(true);
@@ -94,7 +97,7 @@ describe('CoachGradingController', () => {
 
       // Verify addCoins was called with correct args: source must be 'task' (not 'submission_grade')
       expect(mockAddCoins).toHaveBeenCalledWith(
-        15,
+        85,
         'earned',
         expect.stringContaining('Draw a Tree'),
         'grading',
@@ -109,7 +112,7 @@ describe('CoachGradingController', () => {
       expect(res.json).toHaveBeenCalledWith(
         expect.objectContaining({
           success: true,
-          studentCoinBalance: 15,
+          studentCoinBalance: 85,
         })
       );
     });
@@ -121,12 +124,13 @@ describe('CoachGradingController', () => {
       });
 
       const mockAddCoins = jest.fn().mockResolvedValue(true);
-      Coin.findOrCreateForUser = jest.fn().mockResolvedValue({ balance: 15, addCoins: mockAddCoins });
+      Coin.findOrCreateForUser = jest.fn().mockResolvedValue({ balance: 85, addCoins: mockAddCoins });
 
       User.findById.mockResolvedValue({
         _id: coachId,
         firstName: 'Coach',
         lastName: 'Smith',
+        balagruhaIds: [balagruhaId],
       });
       User.findByIdAndUpdate = jest.fn();
 
@@ -149,7 +153,7 @@ describe('CoachGradingController', () => {
       });
 
       const mockAddCoins = jest.fn().mockImplementation(function () {
-        this.balance += 10;
+        this.balance += 85;
         return Promise.resolve(this);
       });
       const coinRecord = { balance: 0, addCoins: mockAddCoins };
@@ -159,12 +163,13 @@ describe('CoachGradingController', () => {
         _id: coachId,
         firstName: 'Coach',
         lastName: 'Smith',
+        balagruhaIds: [balagruhaId],
       });
 
       const mockNotifSave = jest.fn().mockResolvedValue(true);
       Notification.mockImplementation(() => ({ save: mockNotifSave }));
 
-      // No coinsAwarded in body — should auto-calculate from quality='excellent' => 10
+      // No coinsAwarded in body — should auto-calculate from quality='excellent' => 85
       const req = buildReq({ coinsAwarded: undefined });
       // Remove coinsAwarded from body entirely
       delete req.body.coinsAwarded;
@@ -174,27 +179,43 @@ describe('CoachGradingController', () => {
 
       expect(res.status).toHaveBeenCalledWith(200);
       expect(mockAddCoins).toHaveBeenCalledWith(
-        10, // excellent = 10 coins
+        85, // excellent = 85 coins
         'earned',
         expect.stringContaining('Draw a Tree'),
         'grading',
         expect.objectContaining({ quality: 'excellent' })
       );
       expect(res.json).toHaveBeenCalledWith(
-        expect.objectContaining({ success: true, studentCoinBalance: 10 })
+        expect.objectContaining({ success: true, studentCoinBalance: 85 })
       );
     });
 
     it('should map each quality rating to the correct coin amount (FIX-012)', () => {
       const { QUALITY_COIN_MAP } = coachGradingController;
       expect(QUALITY_COIN_MAP).toEqual({
-        excellent: 10,
-        good: 7,
-        needs_improvement: 2,
+        excellent: 85,
+        good: 65,
+        needs_improvement: 25,
       });
     });
 
-    it('should use coach override when coinsAwarded is explicitly provided (FIX-012)', async () => {
+    it('should reject a coinsAwarded value that does not match quality (FIX-012)', async () => {
+      const mockAddCoins = jest.fn();
+      Coin.findOrCreateForUser = jest.fn().mockResolvedValue({ balance: 0, addCoins: mockAddCoins });
+
+      const req = buildReq({ quality: 'good', coinsAwarded: 25 });
+      const res = mockResponse();
+
+      await coachGradingController.submitGrade(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith(
+        expect.objectContaining({ success: false, error: expect.stringContaining('65 coins') })
+      );
+      expect(mockAddCoins).not.toHaveBeenCalled();
+    });
+
+    it('should auto-calculate coins for needs_improvement quality (FIX-012)', async () => {
       const sub = mockSubmissionObj();
       Submission.findById.mockReturnValue({
         populate: jest.fn().mockResolvedValue(sub),
@@ -211,50 +232,13 @@ describe('CoachGradingController', () => {
         _id: coachId,
         firstName: 'Coach',
         lastName: 'Smith',
+        balagruhaIds: [balagruhaId],
       });
 
       const mockNotifSave = jest.fn().mockResolvedValue(true);
       Notification.mockImplementation(() => ({ save: mockNotifSave }));
 
-      // Coach explicitly overrides with 25 coins (quality='good' would auto-calc to 7)
-      const req = buildReq({ quality: 'good', coinsAwarded: 25 });
-      const res = mockResponse();
-
-      await coachGradingController.submitGrade(req, res);
-
-      expect(res.status).toHaveBeenCalledWith(200);
-      expect(mockAddCoins).toHaveBeenCalledWith(
-        25, // coach override, not 7
-        'earned',
-        expect.stringContaining('Draw a Tree'),
-        'grading',
-        expect.objectContaining({ quality: 'good' })
-      );
-    });
-
-    it('should auto-calculate coins for needs_improvement quality (FIX-012)', async () => {
-      const sub = mockSubmissionObj();
-      Submission.findById.mockReturnValue({
-        populate: jest.fn().mockResolvedValue(sub),
-      });
-
-      const mockAddCoins = jest.fn().mockImplementation(function () {
-        this.balance += 2;
-        return Promise.resolve(this);
-      });
-      const coinRecord = { balance: 0, addCoins: mockAddCoins };
-      Coin.findOrCreateForUser = jest.fn().mockResolvedValue(coinRecord);
-
-      User.findById.mockResolvedValue({
-        _id: coachId,
-        firstName: 'Coach',
-        lastName: 'Smith',
-      });
-
-      const mockNotifSave = jest.fn().mockResolvedValue(true);
-      Notification.mockImplementation(() => ({ save: mockNotifSave }));
-
-      // No coinsAwarded — quality='needs_improvement' => 2
+      // No coinsAwarded — quality='needs_improvement' => 25
       const req = buildReq({ quality: 'needs_improvement' });
       delete req.body.coinsAwarded;
       const res = mockResponse();
@@ -263,7 +247,7 @@ describe('CoachGradingController', () => {
 
       expect(res.status).toHaveBeenCalledWith(200);
       expect(mockAddCoins).toHaveBeenCalledWith(
-        2, // needs_improvement = 2 coins
+        25, // needs_improvement = 25 coins
         'earned',
         expect.stringContaining('Draw a Tree'),
         'grading',
@@ -283,12 +267,14 @@ describe('CoachGradingController', () => {
         _id: coachId,
         firstName: 'Coach',
         lastName: 'Smith',
+        balagruhaIds: [balagruhaId],
       });
 
       const mockNotifSave = jest.fn().mockResolvedValue(true);
       Notification.mockImplementation(() => ({ save: mockNotifSave }));
 
-      const req = buildReq({ coinsAwarded: 0 });
+      sub.isFirstAttempt = false;
+      const req = buildReq({ coinsAwarded: 85 });
       const res = mockResponse();
 
       await coachGradingController.submitGrade(req, res);
@@ -305,24 +291,26 @@ describe('CoachGradingController', () => {
     const coachId = new mongoose.Types.ObjectId().toString();
     const studentId = new mongoose.Types.ObjectId();
     const courseId = new mongoose.Types.ObjectId();
+    const balagruhaId = new mongoose.Types.ObjectId();
 
     function buildReq(submissionIds, overrides = {}) {
       return mockRequest({
         body: {
           submissionIds,
           quality: 'excellent',
-          coinsAwarded: 10,
+          coinsAwarded: 85,
           feedback: 'Great work',
           gradedBy: coachId,
           ...overrides,
         },
+        user: { _id: coachId, id: coachId },
       });
     }
 
     function mockSubmission(id) {
       return {
         _id: id,
-        studentId: { _id: studentId },
+        studentId: { _id: studentId, balagruhaIds: [balagruhaId] },
         courseId: { _id: courseId },
         taskTitle: 'Test Task',
         status: 'submitted',
@@ -364,7 +352,7 @@ describe('CoachGradingController', () => {
 
       expect(res.status).toHaveBeenCalledWith(400);
       expect(res.json).toHaveBeenCalledWith(
-        expect.objectContaining({ success: false, error: 'Coin amount must be between 0 and 100' })
+        expect.objectContaining({ success: false, error: expect.stringContaining('85 coins') })
       );
     });
 
@@ -391,11 +379,12 @@ describe('CoachGradingController', () => {
         _id: coachId,
         firstName: 'Coach',
         lastName: 'Smith',
+        balagruhaIds: [balagruhaId],
       });
 
       // Mock Coin.findOrCreateForUser + addCoins pattern
       const mockAddCoins = jest.fn().mockResolvedValue(true);
-      Coin.findOrCreateForUser = jest.fn().mockResolvedValue({ balance: 10, addCoins: mockAddCoins });
+      Coin.findOrCreateForUser = jest.fn().mockResolvedValue({ balance: 85, addCoins: mockAddCoins });
 
       // Mock Notification constructor and save
       const mockNotifSave = jest.fn().mockResolvedValue(true);
@@ -427,7 +416,7 @@ describe('CoachGradingController', () => {
       expect(Coin.findOrCreateForUser).toHaveBeenCalledTimes(3);
       expect(mockAddCoins).toHaveBeenCalledTimes(3);
       expect(mockAddCoins).toHaveBeenCalledWith(
-        10, 'earned', expect.stringContaining('Graded submission'), 'grading', expect.any(Object)
+        85, 'earned', expect.stringContaining('Graded submission'), 'grading', expect.any(Object)
       );
     });
 
@@ -449,10 +438,11 @@ describe('CoachGradingController', () => {
         _id: coachId,
         firstName: 'Coach',
         lastName: 'Smith',
+        balagruhaIds: [balagruhaId],
       });
 
       const mockAddCoins = jest.fn().mockResolvedValue(true);
-      Coin.findOrCreateForUser = jest.fn().mockResolvedValue({ balance: 10, addCoins: mockAddCoins });
+      Coin.findOrCreateForUser = jest.fn().mockResolvedValue({ balance: 85, addCoins: mockAddCoins });
 
       const mockNotifSave = jest.fn().mockResolvedValue(true);
       Notification.mockImplementation(() => ({ save: mockNotifSave }));
@@ -484,10 +474,11 @@ describe('CoachGradingController', () => {
         _id: coachId,
         firstName: 'Coach',
         lastName: 'Smith',
+        balagruhaIds: [balagruhaId],
       });
 
       const mockAddCoins = jest.fn().mockResolvedValue(true);
-      Coin.findOrCreateForUser = jest.fn().mockResolvedValue({ balance: 10, addCoins: mockAddCoins });
+      Coin.findOrCreateForUser = jest.fn().mockResolvedValue({ balance: 85, addCoins: mockAddCoins });
 
       const mockNotifSave = jest.fn().mockResolvedValue(true);
       Notification.mockImplementation(() => ({ save: mockNotifSave }));

@@ -10,8 +10,15 @@ export default function SubmissionQueue({
   onBulkGrade,
 }) {
   const [selectedIds, setSelectedIds] = useState(new Set());
+  const GRADABLE_TYPES = ['art', 'audio', 'video'];
 
-  const pendingSubmissions = submissions.filter(s => s.status === 'pending');
+  const isGradableSubmission = (submission) =>
+    GRADABLE_TYPES.includes(submission.submissionType);
+
+  const pendingSubmissions = submissions.filter(
+    s => s.status === 'pending' && isGradableSubmission(s)
+  );
+  const gradableSubmissions = submissions.filter(isGradableSubmission);
   const allPendingSelected = pendingSubmissions.length > 0 && pendingSubmissions.every(s => selectedIds.has(s.id));
 
   const toggleSelect = (id) => {
@@ -130,7 +137,8 @@ export default function SubmissionQueue({
       {/* Submission Count + Bulk Actions */}
       <div className="flex items-center justify-between">
         <div className="text-sm text-gray-600">
-          {submissions.length} submission{submissions.length !== 1 ? 's' : ''} found
+          {gradableSubmissions.length} submission
+          {gradableSubmissions.length !== 1 ? 's' : ''} found
         </div>
         {pendingSubmissions.length > 0 && onBulkGrade && (
           <div className="flex items-center gap-3">
@@ -159,7 +167,7 @@ export default function SubmissionQueue({
       </div>
 
       {/* Submission Cards */}
-      {submissions.length === 0 ? (
+      {gradableSubmissions.length === 0 ? (
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-12 text-center">
           <div className="text-6xl mb-4">📚</div>
           <h3 className="text-xl font-medium text-gray-900 mb-2">No submissions found</h3>
@@ -169,7 +177,7 @@ export default function SubmissionQueue({
         </div>
       ) : (
         <div className="space-y-4">
-          {submissions.map((submission) => (
+          {gradableSubmissions.map((submission) => (
             <div
               key={submission.id}
               className={`bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition ${getBorderColorClass(
@@ -230,7 +238,6 @@ export default function SubmissionQueue({
                     {submission.submissionType === 'art' && '🎨 Art Submission'}
                     {submission.submissionType === 'video' && '🎥 Video Submission'}
                     {submission.submissionType === 'audio' && '🎙️ Audio Submission'}
-                    {submission.submissionType === 'quiz' && '📝 Quiz Submission'}
                   </div>
 
                   {/* Grade info for graded submissions */}
