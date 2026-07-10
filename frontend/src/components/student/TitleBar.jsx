@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { api } from '../../api';
 import TransactionHistoryModal from './coins/TransactionHistoryModal';
@@ -23,7 +23,7 @@ const POLLING_INTERVAL_MS = 30000;
  * - Milestone celebrations (100, 500, 1000, 5000 coins)
  */
 export default function TitleBar() {
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
 
   // Coin balance from single source of truth (CoinBalanceContext)
   const { balance: coinBalance, loading: coinLoading, refreshBalance } = useCoinBalance();
@@ -35,6 +35,10 @@ export default function TitleBar() {
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
   const [loading, setLoading] = useState(true);
   const [showTransactionModal, setShowTransactionModal] = useState(false);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [notificationsList, setNotificationsList] = useState([]);
+  const [notificationsLoading, setNotificationsLoading] = useState(false);
+  const notificationRef = useRef(null);
 
   // Milestone detection hook (Epic 01 Story 06 - Phase 3)
   const { celebrationMilestone, closeCelebration } = useMilestones(coinBalance ?? 0);
@@ -47,19 +51,34 @@ export default function TitleBar() {
     return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
   };
 
-  // Fetch unread notification count
+  // Fetch unread notification count for the authenticated student
   const fetchNotificationCount = async () => {
+    if (!user?.id) return;
+
     try {
-      const studentId = localStorage.getItem('userId') || 'student123';
-      const response = await api.get(`/api/v2/lms/student/${studentId}/notifications/count`);
+      const response = await api.get('/api/notifications/unread-count');
       if (response.data.success) {
-        setUnreadCount(response.data.unreadCount || 0);
+        setUnreadCount(response.data.data?.count || 0);
       }
     } catch (error) {
       console.error('Failed to fetch notification count:', error);
     }
   };
 
+
+  const fetchNotifications = async () => {
+    setNotificationsLoading(true);
+    try {
+      const response = await api.get('/api/notifications', { params: { limit: 20, skip: 0 } });
+      const data = response.data?.data || response.data?.notifications || [];
+      setNotificationsList(Array.isArray(data) ? data : []);
+    } catch (error) {
+      console.error('Failed to fetch notifications:', error);
+      setNotificationsList([]);
+    } finally {
+      setNotificationsLoading(false);
+    }
+  };
   // Initialize session timer from localStorage
   const initSessionTimer = () => {
     const today = new Date().toDateString();
@@ -91,10 +110,44 @@ export default function TitleBar() {
   };
 
   // Handle notification bell click
-  const handleNotificationClick = () => {
-    // Notification center dropdown not yet implemented (Sprint 2 Epic 5 backlog)
+  const handleNotificationClick = async () => {
+    const nextOpen = !showNotifications;
+    setShowNotifications(nextOpen);
+    if (!nextOpen) return;
+
+    try {
+      await api.put('/api/notifications/mark-all-read');
+      setUnreadCount(0);
+      setNotificationsList([]);
+      await fetchNotifications();
+      await fetchNotificationCount();
+    } catch (error) {
+      console.error('Failed to mark notifications as read:', error);
+      await fetchNotifications();
+      await fetchNotificationCount();
+    }
   };
 
+  const handleNotificationItemClick = async (notificationId) => {
+    try {
+      await api.put(`/api/notifications/${notificationId}/read`);
+      await fetchNotifications();
+      await fetchNotificationCount();
+    } catch (error) {
+      console.error('Failed to mark notification as read:', error);
+    }
+  };
+
+  const handleDeleteNotification = async (event, notificationId) => {
+    event.stopPropagation();
+    try {
+      await api.delete(`/api/notifications/${notificationId}`);
+      setNotificationsList((prev) => prev.filter((notification) => notification._id !== notificationId));
+      await fetchNotificationCount();
+    } catch (error) {
+      console.error('Failed to delete notification:', error);
+    }
+  };
   // Effects
   useEffect(() => {
     // Initialize session timer
@@ -131,8 +184,18 @@ export default function TitleBar() {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
     };
-  }, []);
+  }, [user?.id]);
 
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (notificationRef.current && !notificationRef.current.contains(event.target)) {
+        setShowNotifications(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
   return (
     <>
       <header className="sticky top-0 z-50 bg-white border-b border-gray-200 px-6 py-3">
@@ -175,18 +238,72 @@ export default function TitleBar() {
             </button>
 
             {/* Notification Bell */}
-            <button
-              onClick={handleNotificationClick}
-              className="relative hover:bg-gray-100 p-2 rounded-full transition-colors"
-              aria-label="Notifications"
-            >
-              <span className="text-2xl">🔔</span>
-              {unreadCount > 0 && (
-                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
-                  {unreadCount > 9 ? '9+' : unreadCount}
-                </span>
+            <div className="relative" ref={notificationRef}>
+              <button
+                onClick={handleNotificationClick}
+                className="relative hover:bg-gray-100 p-2 rounded-full transition-colors"
+                aria-label="Notifications"
+                aria-expanded={showNotifications}
+              >
+                <span className="text-2xl">🔔</span>
+                {unreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full min-w-5 h-5 px-1 flex items-center justify-center">
+                    {unreadCount > 9 ? '9+' : unreadCount}
+                  </span>
+                )}
+              </button>
+
+              {showNotifications && (
+                <div className="absolute right-0 top-12 z-[70] w-80 max-w-[calc(100vw-2rem)] bg-white border border-gray-200 rounded-lg shadow-xl overflow-hidden">
+                  <div className="px-4 py-3 border-b border-gray-200 flex items-center justify-between">
+                    <h2 className="text-sm font-semibold text-gray-900">Notifications</h2>
+                    <button
+                      type="button"
+                      onClick={() => setShowNotifications(false)}
+                      className="text-gray-500 hover:text-gray-800 text-lg leading-none"
+                      aria-label="Close notifications"
+                    >
+                      x
+                    </button>
+                  </div>
+                  <div className="max-h-40 overflow-y-auto">
+                    {notificationsLoading ? (
+                      <div className="px-4 py-6 text-sm text-gray-500 text-center">Loading notifications...</div>
+                    ) : notificationsList.length === 0 ? (
+                      <div className="px-4 py-6 text-sm text-gray-500 text-center">No notifications</div>
+                    ) : (
+                      notificationsList.map((notification) => (
+                        <div
+                          key={notification._id}
+                          className={`group flex items-start gap-2 border-b border-gray-100 hover:bg-purple-50 transition-colors ${!notification.isRead ? 'bg-purple-50/70' : 'bg-white'}`}
+                        >
+                          <button
+                            type="button"
+                            onClick={() => handleNotificationItemClick(notification._id)}
+                            className="flex-1 text-left px-4 py-3 pr-1"
+                          >
+                            <div className="text-sm font-semibold text-gray-900">{notification.title}</div>
+                            <div className="text-xs text-gray-600 mt-1 line-clamp-2">{notification.message}</div>
+                            <div className="text-[11px] text-gray-400 mt-2">
+                              {notification.createdAt ? new Date(notification.createdAt).toLocaleString() : ''}
+                            </div>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={(event) => handleDeleteNotification(event, notification._id)}
+                            className="mt-2 mr-2 flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold text-red-500 hover:bg-red-50 hover:text-red-700"
+                            aria-label="Delete notification"
+                            title="Delete notification"
+                          >
+                            x
+                          </button>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
               )}
-            </button>
+            </div>
 
             {/* Cart Icon */}
             <CartIcon />
@@ -262,3 +379,15 @@ function NavItem({ to, icon, label }) {
     </Link>
   );
 }
+
+
+
+
+
+
+
+
+
+
+
+

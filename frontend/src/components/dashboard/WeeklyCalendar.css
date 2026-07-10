@@ -17,6 +17,18 @@
     font-family: 'Patrick Hand', cursive;
 }
 
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgba(0, 0, 0, 0.45);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
 .add-task-button-schedule-btn-new {
     background-color: #14e309;
     color: white;
@@ -197,12 +209,68 @@
     background-color: #e3eafa;
     border-radius: 20px;
     width: 900px;
-    max-width: 90%;
+    max-width: min(90vw, 900px);
+    max-height: 88vh;
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
     animation: modalAppear 0.3s ease-out;
-    border: 8px solid #9370db;
+    border: 4px solid #9370db;
     overflow: hidden;
-    padding: 70px;
+    padding: 28px;
+}
+
+/* .schedule-add-modal {
+    width: min(560px, 92vw);
+    max-width: 92vw;
+    max-height: 86vh;
+    padding: 0;
+    border: 4px solid #9370db;
+    border-radius: 20px;
+    overflow: hidden;
+} */
+
+/* .schedule-add-modal .modal-header {
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    padding: 22px 30px;
+    background-color: #eee5ff;
+} */
+
+/* .schedule-add-modal form {
+    max-height: calc(86vh - 92px);
+    overflow-y: auto;
+    padding: 28px 30px 32px;
+} */
+
+.schedule-add-modal .form-group {
+    margin-bottom: 22px;
+}
+
+.schedule-add-modal .form-group label {
+    margin-bottom: 8px;
+}
+
+.schedule-add-modal .form-group input,
+.schedule-add-modal .form-group textarea {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.schedule-add-modal .end-btn-div {
+    margin: 8px 0 18px;
+}
+
+.schedule-add-modal .add-task-button-schedule-btn-new {
+    width: auto;
+    min-width: 190px;
+    margin-bottom: 0;
+}
+
+.schedule-add-modal .modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    padding-top: 8px;
 }
 
 .schedule-label {
@@ -365,4 +433,66 @@
   display: flex;
   justify-content: flex-end;
   margin-bottom: 10px;
+}
+
+
+
+.schedule-add-modal {
+  width: min(560px, 92vw);
+  max-height: 86vh;
+  background-color: #e3eafa;
+  border: 4px solid #9370db;
+  border-radius: 20px;
+  overflow: hidden;
+
+  display: flex;
+  flex-direction: column;
+}
+
+.schedule-add-modal .modal-header {
+  flex-shrink: 0;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  padding: 18px 24px;
+  background-color: #cfe0ff;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.schedule-add-modal .modal-header h3 {
+  margin: 0;
+}
+
+.schedule-add-modal form {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 24px;
+}
+
+.schedule-add-modal .form-group {
+  margin-bottom: 18px;
+}
+
+.schedule-add-modal input,
+.schedule-add-modal select,
+.schedule-add-modal textarea {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.schedule-add-modal .end-btn-div,
+.schedule-add-modal .close-btn-newdetails {
+  width: 100%;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.schedule-add-modal .add-task-button-schedule-btn-new {
+  width: auto;
+  min-width: 160px;
+  margin-bottom: 0;
 }

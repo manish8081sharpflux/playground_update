@@ -470,21 +470,22 @@ function AdminDashboard() {
     try {
       const queryParams = new URLSearchParams();
 
-      queryParams.set("limit", "1000");
-      queryParams.set("inStock", "false");
-      queryParams.set("balagruhaIds", balagruhaIds.join(","));
+      queryParams.set("limit", "100");
+      queryParams.set("status", "all");
       queryParams.set("coachId", coachId);
 
+      if (balagruhaIds.length === 1) {
+        queryParams.set("balagruhaId", balagruhaIds[0]);
+      }
+
       const response = await api.get(
-        `/api/v2/shop/products?${queryParams.toString()}`
+        `/api/v2/shop/coach/deliveries?${queryParams.toString()}`
       );
 
-      const shopItems = response?.data?.products || [];
+      const shopOrders = response?.data?.orders || [];
 
       if (isCurrentCoach(coachId)) {
-        setCoachShopData(
-          Array.isArray(shopItems) ? shopItems : []
-        );
+        setCoachShopData(Array.isArray(shopOrders) ? shopOrders : []);
       }
     } catch (error) {
       console.error("Error fetching selected coach shop data", error);
@@ -962,8 +963,31 @@ function AdminDashboard() {
     assignment?.progressPercentage ??
     0;
 
-  const formatDisplayDate = (value) =>
-    value ? new Date(value).toLocaleDateString("en-IN") : "-";
+  const formatDisplayDate = (value) => {
+    if (!value) return "-";
+    const parsedDate = new Date(value);
+    return Number.isNaN(parsedDate.getTime()) ? "-" : parsedDate.toLocaleDateString("en-IN");
+  };
+
+  const getOrderItemsLabel = (items = []) => {
+    if (!Array.isArray(items) || items.length === 0) return "-";
+    const names = items
+      .map((entry) => entry?.shopItemId?.name || entry?.name || entry?.productName)
+      .filter(Boolean);
+    if (names.length === 0) return "-";
+    return names.length > 1 ? `${names[0]} +${names.length - 1} more` : names[0];
+  };
+
+  const getOrderQuantity = (items = []) => {
+    if (!Array.isArray(items) || items.length === 0) return "-";
+    return items.reduce((total, entry) => total + Number(entry?.quantity || entry?.requestedQuantity || 0), 0) || "-";
+  };
+
+  const getShopRequestStatus = (order) => {
+    if (order?.deliveryStatus === "cancelled" || order?.status === "cancelled" || order?.status === "refunded") return "Rejected";
+    if (order?.deliveryStatus === "pending_delivery" || order?.deliveryStatus === "delivered") return "Approved";
+    return "Pending";
+  };
 
 
 
@@ -1243,33 +1267,31 @@ function AdminDashboard() {
             <table className="data-table coach-table">
               <thead>
                 <tr>
-                  <th>Student</th>
-                  <th>Requested Item</th>
-                  <th>Request Date</th>
+                  <th>Student Name</th>
+                  <th>Item Requested</th>
                   <th>Quantity</th>
-                  <th>Request Status</th>
-                  <th>Decision</th>
-                  <th>Distributed Item</th>
+                  <th>Request Date</th>
+                  <th>Status</th>
                   <th>Distribution Date</th>
+                  <th>Delivery Status</th>
                 </tr>
               </thead>
               <tbody>
                 {coachShopData.length > 0 ? (
                   coachShopData.map((item, index) => (
                     <tr key={item._id || index} className={index % 2 === 0 ? "even-row" : ""}>
-                      <td>{item.studentName || "-"}</td>
-                      <td>{item.requestedItem || item.name || "-"}</td>
-                      <td>{formatDisplayDate(item.requestDate || item.createdAt)}</td>
-                      <td>{item.quantity ?? item.stock ?? "-"}</td>
-                      <td>{item.requestStatus || item.status || (item.stock > 0 ? "available" : "pending")}</td>
-                      <td>{item.decision || item.approvalStatus || "-"}</td>
-                      <td>{item.distributedItem || "-"}</td>
-                      <td>{formatDisplayDate(item.distributionDate || item.updatedAt)}</td>
+                      <td>{item.userId?.name || item.studentName || "-"}</td>
+                      <td>{getOrderItemsLabel(item.items)}</td>
+                      <td>{getOrderQuantity(item.items)}</td>
+                      <td>{formatDisplayDate(item.placedAt || item.createdAt)}</td>
+                      <td>{getShopRequestStatus(item)}</td>
+                      <td>{formatDisplayDate(item.deliveredAt)}</td>
+                      <td>{(item.deliveryStatus || item.status || "-").replaceAll("_", " ")}</td>
                     </tr>
                   ))
                 ) : (
                   <tr>
-                    <td colSpan="8">No ISF shop data found for this coach in the selected Balagruha.</td>
+                    <td colSpan="7">No ISF shop data found for this coach in the selected Balagruha.</td>
                   </tr>
                 )}
               </tbody>

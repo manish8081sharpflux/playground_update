@@ -293,11 +293,8 @@ exports.getNotificationCount = async (req, res) => {
       });
     }
 
-    // Count unread notifications
-    const unreadCount = await Notification.countDocuments({
-      recipientId: studentId,
-      isRead: false
-    });
+    // Count unread notifications using the Notification schema's userId field.
+    const unreadCount = await Notification.getUnreadCount(studentId);
 
     res.json({
       success: true,
@@ -503,3 +500,5 @@ exports.batchSaveEmotions = async (req, res) => {
     });
   }
 };
+
+

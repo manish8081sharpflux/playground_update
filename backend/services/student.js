@@ -55,6 +55,7 @@ class Student {
     this.medicalRecords = obj.medicalRecords || null;
     this.assignedMachines = obj.assignedMachines || null;
     this.facialData = obj.facialData || null;
+    this.facialDataUrl = obj.facialDataUrl || "";
   }
 
   toJSON() {
@@ -83,6 +84,7 @@ class Student {
       medicalRecords: this.medicalRecords,
       assignedMachines: this.assignedMachines,
       facialData: this.facialData || null,
+      facialDataUrl: this.facialDataUrl || "",
     };
   }
 
@@ -106,6 +108,7 @@ class Student {
       attendanceRecords: this.attendanceRecords,
       medicalRecords: this.medicalRecords,
       assignedMachines: this.assignedMachines,
+      facialDataUrl: this.facialDataUrl || "",
     };
   }
 
@@ -252,25 +255,33 @@ class Student {
         const isOfflineReq = payload.isOfflineReq || false;
         let facialDataUrl = null;
 
-        if (!isOfflineReq) {
-          try {
-            const s3Result = await uploadFileToS3(
-              facialFile.path,
-              process.env.AWS_S3_FOLDER_MEDICAL_RECORDS,
-              facialFile.filename
-            );
-            if (s3Result && s3Result.success) {
-              facialDataUrl = s3Result.url;
-            }
-          } catch (s3Error) {
-            errorLogger.error({ err: s3Error }, "Error uploading facial photo to S3 (create path) — falling back to local URL");
-          }
+        if (isOfflineReq) {
+          return {
+            success: false,
+            data: {},
+            message: "S3 upload is required for facial photos.",
+          };
         }
 
-        // Fallback to a backend-served URL when S3 isn't available.
+        try {
+          const s3Result = await uploadFileToS3(
+            facialFile.path,
+            process.env.AWS_S3_FOLDER_MEDICAL_RECORDS,
+            facialFile.filename
+          );
+          if (s3Result && s3Result.success) {
+            facialDataUrl = s3Result.url;
+          }
+        } catch (s3Error) {
+          errorLogger.error({ err: s3Error }, "Error uploading facial photo to S3 (create path)");
+        }
+
         if (!facialDataUrl) {
-          const base = process.env.PUBLIC_BACKEND_URL || `http://localhost:${process.env.PORT || 5001}`;
-          facialDataUrl = `${base}/uploads/${facialFile.filename}`;
+          return {
+            success: false,
+            data: {},
+            message: "Failed to upload facial photo to S3.",
+          };
         }
 
         payload.facialDataUrl = facialDataUrl;

@@ -2,7 +2,37 @@ const PurchaseOrder = require("../services/purchaseAndRepair/purchaseOrder");
 const RepairRequest = require("../services/purchaseAndRepair/repairRequests");
 const { isRequestFromLocalhost } = require("../utils/helper");
 const { errorLogger } = require('../config/pino-config');
+const { uploadFileToS3 } = require('../services/aws/s3');
+const { cleanupLocalFile } = require('../utils/fileCleanup');
 
+async function uploadRepairAttachmentsToS3(files = [], uploadedBy) {
+  const attachments = [];
+
+  for (const file of files) {
+    const result = await uploadFileToS3(
+      file.path,
+      process.env.AWS_S3_FOLDER_REPAIR_REQUEST_ATTACHMENTS,
+      file.filename,
+    );
+
+    if (!result.success) {
+      throw new Error(result.error || result.message || `Failed to upload ${file.originalname} to S3`);
+    }
+
+    attachments.push({
+      fileName: file.originalname,
+      fileUrl: result.url,
+      s3Key: result.key,
+      fileType: result.contentType || file.mimetype,
+      uploadedBy,
+      uploadedAt: new Date(),
+    });
+
+    cleanupLocalFile(file.path, file.filename);
+  }
+
+  return attachments;
+}
 const repairRequestController = {
   // Create a new repair request
   createRepairRequest: async (req, res) => {
@@ -134,13 +164,7 @@ const repairRequestController = {
 
       // Handle file attachments if any
       if (req.files && req.files.length > 0) {
-        const newAttachments = req.files.map((file) => ({
-          fileName: file.originalname,
-          fileUrl: file.path,
-          fileType: file.mimetype,
-          uploadedBy: req.user._id,
-          uploadedAt: new Date(),
-        }));
+        const newAttachments = await uploadRepairAttachmentsToS3(req.files, req.user._id);
 
         // Append new attachments to existing ones
         if (!updateData.attachments) {

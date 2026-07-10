@@ -13,7 +13,7 @@ import {
     getAssignableUsersForSchedule,
     getMedicalConditionBasedOnBalagruha,
     getMyPurchaseRequests,
-    getAllShopItems
+    getCoachDeliveries
 } from '../../api';
 import { TaskDetailsModal } from '../TaskManagement/taskmanagement';
 import { useRBAC } from '../../contexts/RBACContext';
@@ -82,7 +82,9 @@ function CoachDashboard() {
     };
 
     const formatDate = (date) => {
-        return date ? new Date(date).toLocaleDateString("en-IN") : "N/A";
+        if (!date || date === "N/A") return "N/A";
+        const parsedDate = new Date(date);
+        return Number.isNaN(parsedDate.getTime()) ? "N/A" : parsedDate.toLocaleDateString("en-IN");
     };
 
     const getSymptoms = (item) => {
@@ -92,22 +94,93 @@ function CoachDashboard() {
 
         return item.customSymptom || "N/A";
     };
+    const getStudentName = (item) => {
+        return item?.userId?.name || item?.studentId?.name || item?.userName || item?.studentName || item?.name || "N/A";
+    };
+
+    const getLatestDoctorVisit = (item) => {
+        const visits = Array.isArray(item?.doctorVisits) ? item.doctorVisits.filter(Boolean) : [];
+        const visit = visits.length > 0 ? visits[visits.length - 1] : item?.doctorVisit;
+
+        if (!visit) return "N/A";
+
+        const place = [visit.doctorName, visit.hospitalName].filter(Boolean).join(" / ");
+        const date = visit.visitDate ? ` (${formatDate(visit.visitDate)})` : "";
+        return place ? `${place}${date}` : "N/A";
+    };
+
+    const getLatestFollowUp = (item) => {
+        const followUps = Array.isArray(item?.followUps) ? item.followUps.filter(Boolean) : [];
+        const followUp = followUps.length > 0 ? followUps[followUps.length - 1] : item?.followUp;
+        return followUp || {};
+    };
+
+    const getMedication = (item) => {
+        const visit = Array.isArray(item?.doctorVisits) && item.doctorVisits.length > 0
+            ? item.doctorVisits[item.doctorVisits.length - 1]
+            : item?.doctorVisit;
+
+        return visit?.testDetails || visit?.conclusion || item?.medication || item?.medicine || "N/A";
+    };
+
+    const getTreatmentStatus = (item) => {
+        const followUp = getLatestFollowUp(item);
+        return followUp.status || item?.treatmentStatus || item?.healthStatus || "N/A";
+    };
+
+    const getTaskProgress = (item) => {
+        if (item.progress !== undefined && item.progress !== null) return item.progress;
+        if (item.status === "Completed") return "100%";
+        if (item.status === "In Progress") return "50%";
+        return "0%";
+    };
+
+    const getTaskRemarks = (item) => {
+        return item.remarks || item.description || item.taskData?.description || "N/A";
+    };
+
+    const getRequestItems = (items = []) => {
+        if (!Array.isArray(items) || items.length === 0) return "N/A";
+        const names = items.map((entry) => entry.productName || entry.name || entry.shopItemId?.name).filter(Boolean);
+        if (names.length === 0) return "N/A";
+        return names.length > 1 ? `${names[0]} +${names.length - 1} more` : names[0];
+    };
+
+    const getRequestQuantity = (items = []) => {
+        if (!Array.isArray(items) || items.length === 0) return "N/A";
+        return items.reduce((total, entry) => total + Number(entry.requestedQuantity || entry.quantity || 0), 0) || "N/A";
+    };
+
+    const getPurchaseCost = (item) => {
+        const cost = item?.totalEstimatedCost ?? item?.totalActualCost ?? item?.items?.reduce((total, entry) => {
+            return total + Number(entry.estimatedTotalCost || entry.actualTotalCost || 0);
+        }, 0);
+
+        return cost ? `Rs. ${cost}` : "N/A";
+    };
+
+    const getShopRequestStatus = (item) => {
+        if (item.deliveryStatus === "cancelled" || item.status === "cancelled" || item.status === "refunded") return "Rejected";
+        if (item.deliveryStatus === "pending_delivery" || item.deliveryStatus === "delivered") return "Approved";
+        return "Pending";
+    };
 
     const getSearchValue = (item) => {
         if (coachMenuSelected === 2) {
-            return `${item.title} ${item.status} ${item.date} ${item.attendees?.[0]}`;
+            return `${item.title} ${item.status} ${item.date} ${item.assignedDate} ${item.priority} ${item.attendees?.[0]} ${getTaskRemarks(item)}`;
         }
 
         if (coachMenuSelected === 3) {
-            return `${item.userName || item.studentName || item.name} ${item.healthStatus} ${getSymptoms(item)} ${formatDate(item.date)}`;
+            const followUp = getLatestFollowUp(item);
+            return `${getStudentName(item)} ${item.healthStatus} ${getSymptoms(item)} ${getMedication(item)} ${getLatestDoctorVisit(item)} ${getTreatmentStatus(item)} ${formatDate(followUp.followUpDate)} ${formatDate(item.date)}`;
         }
 
         if (coachMenuSelected === 7) {
-            return `${item.requestId} ${(item.items || []).map(i => i.productName).join(" ")} ${item.status} ${formatDate(item.createdAt)}`;
+            return `${item.requestId} ${getRequestItems(item.items)} ${getRequestQuantity(item.items)} ${item.requestedBy?.name || item.requestedByName || ""} ${item.status} ${item.deliveryStatus || ""} ${getPurchaseCost(item)} ${formatDate(item.createdAt)}`;
         }
 
         if (coachMenuSelected === 8) {
-            return `${item.name} ${item.category} ${item.purchaseCategory} ${item.stock} ${item.price} ${item.discountPrice}`;
+            return `${getStudentName(item)} ${item.orderNumber} ${getRequestItems(item.items)} ${getRequestQuantity(item.items)} ${getShopRequestStatus(item)} ${item.deliveryStatus} ${formatDate(item.placedAt || item.createdAt)} ${formatDate(item.deliveredAt)}`;
         }
 
         return "";
@@ -121,11 +194,7 @@ function CoachDashboard() {
         if (coachMenuSelected === 3) return item.healthStatus;
         if (coachMenuSelected === 7) return item.status;
 
-        if (coachMenuSelected === 8) {
-            if (item.stock <= 0) return "out_of_stock";
-            if (item.stock <= item.lowStockThreshold) return "low_stock";
-            return "in_stock";
-        }
+        if (coachMenuSelected === 8) return item.deliveryStatus || getShopRequestStatus(item);
 
         return "";
     };
@@ -210,22 +279,33 @@ function CoachDashboard() {
 
 
             // Convert tasks to calendar events format
-            const formattedTasks = (response?.data?.tasks || []).map(task => ({
-                id: task._id,
-                title: task.title,
-                location: task.location || "Not specified",
-                date: task.deadline ? task.deadline.split('T')[0] : new Date().toISOString().split('T')[0],
-                time: task.startTime || "All day",
-                type: (task.priority || "medium").toLowerCase(),
-                description: task.description,
-                attendees: [
-                    users.find(u => u._id === task.assignedUser)?.name || "Unassigned",
-                    users.find(u => u._id === task.createdBy)?.name || "Unknown"
-                ],
-                status: task.status === "completed" ? "Completed" :
-                    task.status === "in progress" ? "In Progress" : "Pending",
-                taskData: task
-            }));
+            const formattedTasks = (response?.data?.tasks || []).map(task => {
+                const assignedUserId = task.assignedUser?._id || task.assignedUser;
+                const createdById = task.createdBy?._id || task.createdBy;
+                const assignedUserName = task.assignedUser?.name || users.find(u => u._id === assignedUserId)?.name || "Unassigned";
+                const createdByName = task.createdBy?.name || users.find(u => u._id === createdById)?.name || "Unknown";
+                const status = task.status === "completed" ? "Completed" :
+                    task.status === "in progress" ? "In Progress" : "Pending";
+
+                return {
+                    id: task._id,
+                    title: task.title,
+                    location: task.location || "Not specified",
+                    date: task.deadline ? task.deadline.split('T')[0] : new Date().toISOString().split('T')[0],
+                    assignedDate: task.createdAt ? task.createdAt.split('T')[0] : "N/A",
+                    time: task.startTime || "All day",
+                    type: (task.priority || "medium").toLowerCase(),
+                    priority: task.priority || "medium",
+                    description: task.description,
+                    attendees: [assignedUserName, createdByName],
+                    assignedTo: assignedUserName,
+                    createdBy: createdByName,
+                    status,
+                    progress: status === "Completed" ? "100%" : status === "In Progress" ? "50%" : "0%",
+                    remarks: task.comments?.[task.comments.length - 1]?.comment || task.description || "N/A",
+                    taskData: task
+                };
+            });
 
             setTasks(formattedTasks);
         } catch (error) {
@@ -277,16 +357,14 @@ function CoachDashboard() {
 
     const getIsfShopList = async () => {
         try {
-            const response = await getAllShopItems();
+            const response = await getCoachDeliveries({
+                balagruhaId: selectedBalagruha,
+                status: "all",
+                limit: 100,
+            });
 
-            console.log("ISF Shop Response:", response);
-
-            const shopList =
-                response?.data ||
-                response?.products ||
-                [];
-
-            setIsfShopData(Array.isArray(shopList) ? shopList : []);
+            const orders = response?.orders || [];
+            setIsfShopData(Array.isArray(orders) ? orders : []);
         } catch (error) {
             console.error("Error fetching ISF shop data:", error);
             setIsfShopData([]);
@@ -803,14 +881,18 @@ function CoachDashboard() {
                                                 <option value="approved">Approved</option>
                                                 <option value="rejected">Rejected</option>
                                                 <option value="ordered">Ordered</option>
+                                                <option value="delivered_store">Delivered Store</option>
+                                                <option value="delivered_balagruha">Delivered Balagruha</option>
+                                                <option value="completed">Completed</option>
                                             </>
                                         )}
 
                                         {coachMenuSelected === 8 && (
                                             <>
-                                                <option value="in_stock">In Stock</option>
-                                                <option value="low_stock">Low Stock</option>
-                                                <option value="out_of_stock">Out of Stock</option>
+                                                <option value="pending_confirmation">Pending</option>
+                                                <option value="pending_delivery">Approved</option>
+                                                <option value="delivered">Delivered</option>
+                                                <option value="cancelled">Rejected</option>
                                             </>
                                         )}
                                     </select>
@@ -820,37 +902,49 @@ function CoachDashboard() {
                                         <tr>
                                             {coachMenuSelected === 2 && (
                                                 <>
-                                                    <th>Task</th>
+                                                    <th>Task Name</th>
+                                                    <th>Assigned Date</th>
+                                                    <th>Due Date</th>
+                                                    <th>Priority</th>
                                                     <th>Status</th>
-                                                    <th>Deadline</th>
-                                                    <th>Assigned To</th>
+                                                    <th>Progress</th>
+                                                    <th>Remarks</th>
                                                 </>
                                             )}
 
                                             {coachMenuSelected === 3 && (
                                                 <>
-                                                    <th>Student</th>
-                                                    <th>Health Status</th>
-                                                    <th>Symptoms</th>
-                                                    <th>Check-in Date</th>
+                                                    <th>Student Name</th>
+                                                    <th>Health Issue</th>
+                                                    <th>Medication</th>
+                                                    <th>Doctor/Hospital Visit</th>
+                                                    <th>Treatment Status</th>
+                                                    <th>Follow-up Date</th>
+                                                    <th>Status</th>
                                                 </>
                                             )}
 
                                             {coachMenuSelected === 7 && (
                                                 <>
-                                                    {/* <th>Request ID</th> */}
-                                                    <th>Product</th>
-                                                    <th>Status</th>
-                                                    <th>Created On</th>
+                                                    <th>Request ID</th>
+                                                    <th>Item Name</th>
+                                                    <th>Quantity</th>
+                                                    <th>Requested By</th>
+                                                    <th>Request Date</th>
+                                                    <th>Approval Status</th>
+                                                    <th>Delivery Status</th>
                                                 </>
                                             )}
 
                                             {coachMenuSelected === 8 && (
                                                 <>
-                                                    <th>Product</th>
-                                                    <th>Stock</th>
-                                                    <th>Category</th>
-                                                    <th>Price</th>
+                                                    <th>Student Name</th>
+                                                    <th>Item Requested</th>
+                                                    <th>Quantity</th>
+                                                    <th>Request Date</th>
+                                                    <th>Status</th>
+                                                    <th>Distribution Date</th>
+                                                    <th>Delivery Status</th>
                                                 </>
                                             )}
                                         </tr>
@@ -861,40 +955,51 @@ function CoachDashboard() {
                                             paginatedData.length > 0 ? (
                                                 paginatedData.map((item, index) => (
                                                     <tr key={item.id} className={index % 2 === 0 ? "even-row" : "odd-row"}>
-                                                        <td>{item.title}</td>
+                                                        <td>{item.title || "N/A"}</td>
+                                                        <td>{formatDate(item.assignedDate)}</td>
+                                                        <td>{formatDate(item.date)}</td>
+                                                        <td>{formatStatus(item.priority)}</td>
                                                         <td>
                                                             <span className={`status-badge ${getStatusClass(item.status)}`}>
                                                                 {formatStatus(item.status)}
                                                             </span>
                                                         </td>
-                                                        <td>{item.date}</td>
-                                                        <td>{item.attendees?.[0] || "Unassigned"}</td>
+                                                        <td>{getTaskProgress(item)}</td>
+                                                        <td className="remarks-cell">{getTaskRemarks(item)}</td>
                                                     </tr>
                                                 ))
                                             ) : (
                                                 <tr>
-                                                    <td colSpan="4" style={{ textAlign: "center" }}>
+                                                    <td colSpan="7" style={{ textAlign: "center" }}>
                                                         No tasks found
                                                     </td>
                                                 </tr>
                                             )
                                         ) : coachMenuSelected === 3 ? (
                                             paginatedData.length > 0 ? (
-                                                paginatedData.map((item, index) => (
-                                                    <tr key={item._id || index} className={index % 2 === 0 ? "even-row" : "odd-row"}>
-                                                        <td>{item.userName || item.studentName || item.name || "N/A"}</td>
-                                                        <td>
-                                                            <span className={`status-badge ${getStatusClass(item.healthStatus)}`}>
-                                                                {formatStatus(item.healthStatus)}
-                                                            </span>
-                                                        </td>
-                                                        <td>{getSymptoms(item)}</td>
-                                                        <td>{formatDate(item.date)}</td>
-                                                    </tr>
-                                                ))
+                                                paginatedData.map((item, index) => {
+                                                    const followUp = getLatestFollowUp(item);
+                                                    const treatmentStatus = getTreatmentStatus(item);
+
+                                                    return (
+                                                        <tr key={item._id || index} className={index % 2 === 0 ? "even-row" : "odd-row"}>
+                                                            <td>{getStudentName(item)}</td>
+                                                            <td>{getSymptoms(item)}</td>
+                                                            <td>{getMedication(item)}</td>
+                                                            <td>{getLatestDoctorVisit(item)}</td>
+                                                            <td>{formatStatus(treatmentStatus)}</td>
+                                                            <td>{formatDate(followUp.followUpDate)}</td>
+                                                            <td>
+                                                                <span className={`status-badge ${getStatusClass(item.healthStatus)}`}>
+                                                                    {formatStatus(item.healthStatus)}
+                                                                </span>
+                                                            </td>
+                                                        </tr>
+                                                    );
+                                                })
                                             ) : (
                                                 <tr>
-                                                    <td colSpan="4" style={{ textAlign: "center" }}>
+                                                    <td colSpan="7" style={{ textAlign: "center" }}>
                                                         No medical data found
                                                     </td>
                                                 </tr>
@@ -903,26 +1008,22 @@ function CoachDashboard() {
                                             paginatedData.length > 0 ? (
                                                 paginatedData.map((item, index) => (
                                                     <tr key={item._id || index} className={index % 2 === 0 ? "even-row" : "odd-row"}>
-                                                        {/* <td>{item.requestId || "N/A"}</td> */}
-                                                        <td>
-                                                            {item.items?.[0]?.productName || "N/A"}
-                                                            {item.items?.length > 1 && (
-                                                                <span style={{ marginLeft: "6px", fontSize: "12px", color: "#666" }}>
-                                                                    +{item.items.length - 1} more
-                                                                </span>
-                                                            )}
-                                                        </td>
+                                                        <td>{item.requestId || item._id || "N/A"}</td>
+                                                        <td>{getRequestItems(item.items)}</td>
+                                                        <td>{getRequestQuantity(item.items)}</td>
+                                                        <td>{item.requestedBy?.name || item.requestedByName || "N/A"}</td>
+                                                        <td>{formatDate(item.createdAt)}</td>
                                                         <td>
                                                             <span className={`status-badge ${getStatusClass(item.status)}`}>
                                                                 {formatStatus(item.status)}
                                                             </span>
                                                         </td>
-                                                        <td>{formatDate(item.createdAt)}</td>
+                                                        <td>{formatStatus(item.deliveryStatus || item.status)}</td>
                                                     </tr>
                                                 ))
                                             ) : (
                                                 <tr>
-                                                    <td colSpan="4" style={{ textAlign: "center" }}>
+                                                    <td colSpan="7" style={{ textAlign: "center" }}>
                                                         No purchase data found
                                                     </td>
                                                 </tr>
@@ -931,39 +1032,29 @@ function CoachDashboard() {
                                             paginatedData.length > 0 ? (
                                                 paginatedData.map((item, index) => (
                                                     <tr key={item._id || index} className={index % 2 === 0 ? "even-row" : "odd-row"}>
-                                                        <td>{item.name || "N/A"}</td>
+                                                        <td>{getStudentName(item)}</td>
+                                                        <td>{getRequestItems(item.items)}</td>
+                                                        <td>{getRequestQuantity(item.items)}</td>
+                                                        <td>{formatDate(item.placedAt || item.createdAt)}</td>
                                                         <td>
-                                                            <span
-                                                                className={`status-badge ${item.stock <= 0
-                                                                    ? "status-danger"
-                                                                    : item.stock <= item.lowStockThreshold
-                                                                        ? "status-warning"
-                                                                        : "status-success"
-                                                                    }`}
-                                                            >
-                                                                {item.stock ?? 0} in stock
+                                                            <span className={`status-badge ${getStatusClass(getShopRequestStatus(item))}`}>
+                                                                {getShopRequestStatus(item)}
                                                             </span>
                                                         </td>
-                                                        <td>{item.category || item.purchaseCategory || "N/A"}</td>
-                                                        <td>
-                                                            {item.discountPrice !== null && item.discountPrice !== undefined
-                                                                ? `${item.discountPrice} coins`
-                                                                : item.price !== undefined
-                                                                    ? `${item.price} coins`
-                                                                    : "N/A"}
-                                                        </td>
+                                                        <td>{formatDate(item.deliveredAt)}</td>
+                                                        <td>{formatStatus(item.deliveryStatus || item.status)}</td>
                                                     </tr>
                                                 ))
                                             ) : (
                                                 <tr>
-                                                    <td colSpan="4" style={{ textAlign: "center" }}>
+                                                    <td colSpan="7" style={{ textAlign: "center" }}>
                                                         No ISF shop data found
                                                     </td>
                                                 </tr>
                                             )
                                         ) : (
                                             <tr>
-                                                <td colSpan="4" style={{ textAlign: "center" }}>
+                                                <td colSpan="7" style={{ textAlign: "center" }}>
                                                     No data found
                                                 </td>
                                             </tr>

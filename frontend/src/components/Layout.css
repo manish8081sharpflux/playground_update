@@ -387,7 +387,7 @@
   margin-top:10px;
   margin-bottom: 10px;
   min-width: 100px;
-  padding: 10px;
+  padding: 10px 12px;
   background-color: white;
   border-radius: 50px;
   text-align: center;
@@ -395,6 +395,16 @@
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
   font-weight: bold;
   font-size: 14px;
+  white-space: nowrap;
+}
+
+.top-menu .menu-item.has-pending-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-width: 126px;
+  overflow: hidden;
 }
 
 /* Active state for current route */
@@ -631,16 +641,18 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  flex: 0 0 auto;
   background-color: #ef4444;
   color: white;
   border-radius: 10px;
   padding: 2px 6px;
   font-size: 11px;
   font-weight: 700;
-  margin-left: 6px;
   min-width: 18px;
+  max-width: 42px;
   height: 18px;
   line-height: 1;
+  overflow: hidden;
   animation: badge-pulse 2s infinite;
 }
 

@@ -10,12 +10,16 @@ import { X, Users } from 'lucide-react';
 export default function AdminCourseAssignmentModal({ isOpen, onClose, course, onAssignmentSuccess }) {
   const [loading, setLoading] = useState(false);
   const [dataLoading, setDataLoading] = useState(true);
+  const [courses, setCourses] = useState([]);
+  const [selectedCourse, setSelectedCourse] = useState(course || null);
   const [balagruhas, setBalagruhas] = useState([]);
   const [students, setStudents] = useState([]);
   const [selectedBalagruhas, setSelectedBalagruhas] = useState([]);
   const [selectedStudents, setSelectedStudents] = useState([]);
   const [assignmentType, setAssignmentType] = useState('balagruha'); // 'balagruha' or 'students'
   const [dueDate, setDueDate] = useState('');
+  const [sendInAppNotification, setSendInAppNotification] = useState(true);
+  const [sendEmailNotification, setSendEmailNotification] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [balagruhaFilter, setBalagruhaFilter] = useState('all');
 
@@ -29,6 +33,7 @@ export default function AdminCourseAssignmentModal({ isOpen, onClose, course, on
   // Fetch all Balagruhas and students on mount
   useEffect(() => {
     if (isOpen) {
+      setSelectedCourse(course || null);
       fetchData();
     }
   }, [isOpen]);
@@ -60,6 +65,15 @@ export default function AdminCourseAssignmentModal({ isOpen, onClose, course, on
   const fetchData = async () => {
     setDataLoading(true);
     try {
+      const coursesResponse = await api.get('/api/v2/lms/admin/courses', {
+        params: { status: 'published' },
+      });
+      const publishedCourses = getResponseList(coursesResponse, 'courses');
+      setCourses(publishedCourses);
+      if (!course && publishedCourses.length === 1) {
+        setSelectedCourse(publishedCourses[0]);
+      }
+
       // First fetch all Balagruhas
       const balagruhasResponse = await api.get(
         `/api/v1/balagruha`
@@ -90,7 +104,9 @@ export default function AdminCourseAssignmentModal({ isOpen, onClose, course, on
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!course) {
+    const assignmentCourse = course || selectedCourse;
+
+    if (!assignmentCourse) {
       toast.error('No course selected');
       return;
     }
@@ -109,7 +125,7 @@ export default function AdminCourseAssignmentModal({ isOpen, onClose, course, on
 
     try {
       const payload = {
-        courseId: course._id,
+        courseId: assignmentCourse._id,
         assignedTo: {
           type: assignmentType,
           ...(assignmentType === 'balagruha'
@@ -118,11 +134,15 @@ export default function AdminCourseAssignmentModal({ isOpen, onClose, course, on
           ),
         },
         dueDate: dueDate || null,
+        notifications: {
+          inApp: sendInAppNotification,
+          email: sendEmailNotification,
+        },
       };
 
-      // Use the coach assignment endpoint - it will work for admin too
+      // Use the admin assignment endpoint so assignments appear in admin assignment management
       const response = await api.post(
-        `/api/v2/lms/coach/assignments`,
+        `/api/v2/lms/admin/courses/assignments`,
         payload
       );
 
@@ -241,13 +261,13 @@ export default function AdminCourseAssignmentModal({ isOpen, onClose, course, on
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="mt-12 bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[85vh] flex flex-col overflow-hidden">
+      <div className="mt-12 bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[85vh] flex flex-col overflow-hidden">
         {/* Header */}
-        <div className="bg-blue-600 text-white px-6 py-4 flex flex-shrink-0 items-center justify-between rounded-t-lg">
+        <div className="bg-purple-600 text-white px-6 py-4 flex flex-shrink-0 items-center justify-between rounded-t-lg">
           <div>
             <h2 className="text-2xl font-bold">Assign Course (Admin)</h2>
             <p className="text-purple-100 text-sm mt-1">
-              {course?.title}
+              {(course || selectedCourse)?.title || 'Select a published course'}
             </p>
           </div>
           <button
@@ -260,6 +280,38 @@ export default function AdminCourseAssignmentModal({ isOpen, onClose, course, on
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="flex-1 overflow-y-scroll custom-scrollbar p-6 space-y-6">
+                    {/* Course Selection */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Select Course <span className="text-red-500">*</span>
+            </label>
+            {course ? (
+              <div className="border border-purple-200 bg-purple-50 rounded-lg px-4 py-3">
+                <div className="font-medium text-purple-900">{course.title}</div>
+                <div className="text-sm text-purple-700 mt-1">
+                  {course.category || 'Course'}{course.difficultyLevel ? ` - ${course.difficultyLevel}` : ''}
+                </div>
+              </div>
+            ) : (
+              <select
+                value={selectedCourse?._id || ''}
+                onChange={(e) => {
+                  const nextCourse = courses.find((item) => item._id === e.target.value);
+                  setSelectedCourse(nextCourse || null);
+                }}
+                className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                disabled={dataLoading}
+                required
+              >
+                <option value="">-- Select a published course --</option>
+                {courses.map((item) => (
+                  <option key={item._id} value={item._id}>
+                    {item.title}
+                  </option>
+                ))}
+              </select>
+            )}
+          </div>
           {/* Assignment Type */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -430,7 +482,7 @@ export default function AdminCourseAssignmentModal({ isOpen, onClose, course, on
                 {/* Search Filter */}
                 <input
                   type="text"
-                  placeholder="Ã°Å¸â€Â Search students by name, ID, or Balagruha..."
+                  placeholder="Search students by name, ID, or Balagruha..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
@@ -517,6 +569,32 @@ export default function AdminCourseAssignmentModal({ isOpen, onClose, course, on
             </p>
           </div>
 
+          {/* Notifications */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Notifications
+            </label>
+            <div className="space-y-2">
+              <label className="flex items-center">
+                <input
+                  type="checkbox"
+                  checked={sendInAppNotification}
+                  onChange={(e) => setSendInAppNotification(e.target.checked)}
+                  className="mr-2 h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded"
+                />
+                <span className="text-sm text-gray-700">Send in-app notification to students</span>
+              </label>
+              <label className="flex items-center">
+                <input
+                  type="checkbox"
+                  checked={sendEmailNotification}
+                  onChange={(e) => setSendEmailNotification(e.target.checked)}
+                  className="mr-2 h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded"
+                />
+                <span className="text-sm text-gray-700">Send email notification to students (if email available)</span>
+              </label>
+            </div>
+          </div>
           {/* Actions */}
           <div className="flex justify-end gap-3 pt-4 border-t">
             <button
@@ -529,7 +607,7 @@ export default function AdminCourseAssignmentModal({ isOpen, onClose, course, on
             </button>
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || !(course || selectedCourse)}
               className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
             >
               {loading ? 'Assigning...' : 'Assign Course'}
@@ -540,3 +618,11 @@ export default function AdminCourseAssignmentModal({ isOpen, onClose, course, on
     </div>
   );
 }
+
+
+
+
+
+
+
+

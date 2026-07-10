@@ -50,7 +50,6 @@ const orderSchema = new mongoose.Schema({
     type: String,
     required: true,
     unique: true,
-    index: true,
     match: /^ORD-\d{8}-\d{5}$/  // Format: ORD-YYYYMMDD-XXXXX
   },
   userId: {
@@ -160,7 +159,6 @@ const orderSchema = new mongoose.Schema({
 // Indexes for efficient queries
 orderSchema.index({ userId: 1, createdAt: -1 }); // User's orders sorted by date
 orderSchema.index({ status: 1, placedAt: -1 });  // Orders by status and date
-orderSchema.index({ orderNumber: 1 });           // Unique order lookup
 orderSchema.index({ deliveryStatus: 1, placedAt: -1 }); // Sprint5-Story-13: Coach delivery queries
 
 // Virtual: Item count

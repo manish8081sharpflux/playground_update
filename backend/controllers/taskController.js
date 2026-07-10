@@ -6,6 +6,28 @@ const { logger, errorLogger } = require("../config/pino-config");
 const Tasks = require("../services/task");
 const { isRequestFromLocalhost } = require("../utils/helper");
 const { UserTypes } = require("../constants/users");
+const { uploadFileToS3 } = require("../services/aws/s3");
+const { cleanupLocalFile } = require("../utils/fileCleanup");
+async function uploadTaskFilesToS3(files = []) {
+  const attachments = [];
+
+  for (const file of files) {
+    const result = await uploadFileToS3(
+      file.path,
+      process.env.AWS_S3_FOLDER_TASK_ATTACHMENTS,
+      file.filename,
+    );
+
+    if (!result.success) {
+      throw new Error(result.error || result.message || `Failed to upload ${file.originalname} to S3`);
+    }
+
+    attachments.push(result.url);
+    cleanupLocalFile(file.path, file.filename);
+  }
+
+  return attachments;
+}
 // Create a new task with file upload
 exports.createTask = async (req, res) => {
   try {
@@ -42,7 +64,7 @@ exports.createTask = async (req, res) => {
       return res.status(400).json({ message: "Invalid or past deadline." });
     }
 
-    const attachments = req.files ? req.files.map((file) => file.path) : [];
+    const attachments = req.files ? await uploadTaskFilesToS3(req.files) : [];
 
     const task = new Task({
       title,
@@ -79,7 +101,7 @@ exports.updateTask = async (req, res) => {
       req.body;
 
     // Handle file uploads
-    const newAttachments = req.files ? req.files.map((file) => file.path) : [];
+    const newAttachments = req.files ? await uploadTaskFilesToS3(req.files) : [];
 
     // Find the task
     const task = await Task.findById(id);
@@ -282,7 +304,7 @@ exports.createTaskV1 = async (req, res) => {
       },
       `Request received to create a new task`
     );
-    const attachments = req.files ? req.files.map((file) => file.path) : [];
+    const attachments = req.files ? await uploadTaskFilesToS3(req.files) : [];
     req.body.attachments = attachments;
     // let result = await Tasks.createTask(req.body);
     let isOfflineReq = isRequestFromLocalhost(req);

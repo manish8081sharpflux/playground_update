@@ -4,6 +4,8 @@ const User = require("../models/user");
 const InventoryTransaction = require("../models/inventoryTransaction");
 const mongoose = require("mongoose");
 const { errorLogger } = require("../config/pino-config");
+const { uploadFileToS3 } = require("../services/aws/s3");
+const { cleanupLocalFile } = require("../utils/fileCleanup");
 
 /**
  * PM Error Codes — Sprint 2 E5 Story 5
@@ -19,6 +21,32 @@ const PR_ERROR = {
 };
 
 /** Log a failed PM operation for audit trail */
+async function uploadPurchaseAttachmentsToS3(files = []) {
+  const attachments = [];
+
+  for (const file of files) {
+    const result = await uploadFileToS3(
+      file.path,
+      process.env.AWS_S3_FOLDER_PURCHASE_ORDER_ATTACHMENTS,
+      file.filename,
+    );
+
+    if (!result.success) {
+      throw new Error(result.error || result.message || `Failed to upload ${file.originalname} to S3`);
+    }
+
+    attachments.push({
+      filename: file.originalname,
+      fileUrl: result.url,
+      s3Key: result.key,
+      uploadedAt: new Date(),
+    });
+
+    cleanupLocalFile(file.path, file.filename);
+  }
+
+  return attachments;
+}
 function logPmOperation(userId, requestId, action, error) {
   errorLogger.error(
     {
@@ -236,12 +264,8 @@ exports.createPurchaseRequest = async (req, res) => {
       });
     }
 
-    // Process uploaded files
-    const attachments = uploadedFiles.map((file) => ({
-      filename: file.originalname,
-      fileUrl: `/uploads/${file.filename}`, // Relative path for frontend
-      uploadedAt: new Date(),
-    }));
+    // Process uploaded files through S3 so stored URLs are permanent.
+    const attachments = await uploadPurchaseAttachmentsToS3(uploadedFiles);
 
     // Sprint5-Story-24: Calculate approval threshold
     const maxItemCost = Math.max(
@@ -1973,11 +1997,7 @@ exports.updatePurchaseRequest = async (req, res) => {
     // Handle new attachments if uploaded
     const uploadedFiles = req.files || [];
     if (uploadedFiles.length > 0) {
-      const newAttachments = uploadedFiles.map((file) => ({
-        filename: file.originalname,
-        fileUrl: `/uploads/${file.filename}`,
-        uploadedAt: new Date(),
-      }));
+      const newAttachments = await uploadPurchaseAttachmentsToS3(uploadedFiles);
       request.attachments = [...request.attachments, ...newAttachments];
     }
 

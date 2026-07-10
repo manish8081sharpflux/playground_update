@@ -14,6 +14,7 @@ const { uploadFileToS3 } = require("./aws/s3");
 const { getUploadedFilesFullPath } = require("../utils/helper");
 const { cleanupLocalFile } = require("../utils/fileCleanup");
 const { isRequestFromLocalhost } = require("../utils/helper");
+const { ensureUserEditFilesUseS3 } = require("../utils/ensureS3Urls");
 
 // REMOVED - Task 1: FR Rebuild
 // const { Canvas, Image, ImageData } = canvas;
@@ -254,6 +255,7 @@ exports.getUserInfo = async (userId) => {
     const result = await UserDataAccess.getUserDetailedInfoById({ userId });
 
     if (result.success && result.data) {
+      await ensureUserEditFilesUseS3(result.data);
       return {
         success: true,
         data: {
@@ -432,27 +434,33 @@ exports.updateUserDetailsById = async (userId, payload) => {
       const isOfflineReq = updateData.isOfflineReq || false;
       let facialDataUrl = null;
 
-      if (!isOfflineReq) {
-        try {
-          const s3Result = await uploadFileToS3(
-            facialFile.path,
-            process.env.AWS_S3_FOLDER_MEDICAL_RECORDS,
-            facialFile.filename
-          );
-          if (s3Result && s3Result.success) {
-            facialDataUrl = s3Result.url;
-          }
-        } catch (s3Error) {
-          errorLogger.error({ err: s3Error }, "Error uploading facial photo to S3 (update path) — falling back to local URL");
-        }
+      if (isOfflineReq) {
+        return {
+          success: false,
+          data: {},
+          message: "S3 upload is required for facial photos.",
+        };
       }
 
-      // Fallback: if S3 didn't return a URL (offline mode or upload failed),
-      // serve the photo from the backend's /uploads static mount so the
-      // frontend can still display it. Prefers a configured PUBLIC_BACKEND_URL.
+      try {
+        const s3Result = await uploadFileToS3(
+          facialFile.path,
+          process.env.AWS_S3_FOLDER_MEDICAL_RECORDS,
+          facialFile.filename
+        );
+        if (s3Result && s3Result.success) {
+          facialDataUrl = s3Result.url;
+        }
+      } catch (s3Error) {
+        errorLogger.error({ err: s3Error }, "Error uploading facial photo to S3 (update path)");
+      }
+
       if (!facialDataUrl) {
-        const base = process.env.PUBLIC_BACKEND_URL || `http://localhost:${process.env.PORT || 5001}`;
-        facialDataUrl = `${base}/uploads/${facialFile.filename}`;
+        return {
+          success: false,
+          data: {},
+          message: "Failed to upload facial photo to S3.",
+        };
       }
 
       updateData.facialDataUrl = facialDataUrl;
@@ -527,6 +535,11 @@ exports.updateUserDetailsById = async (userId, payload) => {
       }
     }
     */ // END COMMENTED OUT - Face detection in updateUser
+
+    if (updateData.clearFacialData === "true" || updateData.clearFacialData === true) {
+      updateData.facialDataUrl = "";
+    }
+    delete updateData.clearFacialData;
 
     // Check for the password key is present with any value
     if (updateData.password && updateData.password !== "") {

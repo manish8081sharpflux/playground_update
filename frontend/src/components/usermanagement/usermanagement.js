@@ -971,6 +971,7 @@ const UserManagement = () => {
         <UserForm
           mode={view}
           user={selectedUser}
+          existingUsers={users}
           onSuccess={handleSuccess}
           onCancel={() => setView("list")}
         />

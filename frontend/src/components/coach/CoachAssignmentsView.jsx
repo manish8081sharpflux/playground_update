@@ -6,6 +6,7 @@ import CourseAssignmentModal from "./CourseAssignmentModal";
 import AssignmentProgressModal from "./AssignmentProgressModal";
 import CoachAssignmentEditModal from "./CoachAssignmentEditModal";
 import AdminAssignmentEditModal from "../admin/AdminAssignmentEditModal";
+import AdminCourseAssignmentModal from "../admin/AdminCourseAssignmentModal";
 import { useAuth } from "../../contexts/AuthContext";
 import LoadingState from "../common/LoadingState";
 
@@ -474,12 +475,20 @@ export default function CoachAssignmentsView({
       </div>
 
       {/* Assignment Modal */}
-      <CourseAssignmentModal
-        isOpen={showModal}
-        onClose={() => setShowModal(false)}
-        coachId={coachId}
-        onAssignmentCreated={handleAssignmentCreated}
-      />
+      {isAdmin ? (
+        <AdminCourseAssignmentModal
+          isOpen={showModal}
+          onClose={() => setShowModal(false)}
+          onAssignmentSuccess={handleAssignmentCreated}
+        />
+      ) : (
+        <CourseAssignmentModal
+          isOpen={showModal}
+          onClose={() => setShowModal(false)}
+          coachId={coachId}
+          onAssignmentCreated={handleAssignmentCreated}
+        />
+      )}
 
       {isAdmin ? (
         <AdminAssignmentEditModal
@@ -509,3 +518,4 @@ export default function CoachAssignmentsView({
     </div>
   );
 }
+

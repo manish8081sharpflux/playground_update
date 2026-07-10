@@ -95,8 +95,25 @@ exports.getCoachDeliveries = async (req, res) => {
     const statusFilter = status || 'pending_delivery';
 
     switch (statusFilter) {
+      case 'all':
+        orderQuery.status = { $in: ['completed', 'cancelled', 'refunded'] };
+        break;
+
+      case 'pending_confirmation':
+        orderQuery.deliveryStatus = 'pending_confirmation';
+        break;
+
       case 'pending_delivery':
         orderQuery.deliveryStatus = 'pending_delivery';
+        break;
+
+      case 'cancelled':
+        orderQuery.status = 'cancelled';
+        orderQuery.deliveryStatus = 'cancelled';
+        break;
+
+      case 'refunded':
+        orderQuery.status = 'refunded';
         break;
 
       case 'delivered_today':

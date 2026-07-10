@@ -10,6 +10,14 @@ backend/.env
 frontend/.env
 
 # Logs
+logs/
+*.log
+
+# Build folders
+dist/
+build/
+
+# Logs
 *.log
 logs/
 backend/logs/
@@ -26,3 +34,16 @@ frontend/build/
 # Package lock files
 package-lock.json
 **/package-lock.json
+# Package lock files
+package-lock.json
+**/package-lock.json
+
+backend/logs/pino-logger.log
+backend/logs/scheduler-events.log
+
+backend/uploads/
+backend/logs/
+frontend/build/
+backend/uploads/
+backend/logs/
+frontend/build/
