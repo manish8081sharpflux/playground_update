@@ -54,7 +54,7 @@ class PurchaseOrder {
           if (result.success) {
             let attachmentObj = {
               fileName: fileName,
-              fileUrl: fileFullPath,
+              fileUrl: result.url,
               fileType: result.contentType,
               uploadedBy: uploadedBy,
             };
@@ -63,13 +63,7 @@ class PurchaseOrder {
             return { success: false, message: "Failed to upload attachments." };
           }
         } else {
-          let attachmentObj = {
-            fileName: fileName,
-            fileUrl: file.path,
-            fileType: file.mimetype,
-            uploadedBy: uploadedBy,
-          };
-          processedAttachments.push(attachmentObj);
+          return { success: false, message: "S3 upload is required for attachments." };
         }
       }
 
@@ -116,13 +110,11 @@ class PurchaseOrder {
             };
           }
         } else {
-          let attachmentObj = {
-            fileName: fileName,
-            fileUrl: fileFullPath,
-            fileType: file.mimetype,
-            uploadedBy: purchaseOrderData.createdBy,
+          return {
+            success: false,
+            data: {},
+            message: "S3 upload is required for attachments.",
           };
-          attachments[i] = attachmentObj;
         }
       }
     }

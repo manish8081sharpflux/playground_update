@@ -13,6 +13,7 @@ const FaceEmbedding = require('../models/FaceEmbedding');
 // Redis client
 let redisClient = null;
 let cacheEnabled = false;
+let redisFailureReported = false;
 
 /**
  * Initialize Redis connection
@@ -22,8 +23,13 @@ function initializeCache() {
     const cacheFlag = String(process.env.FR_CACHE_ENABLED || '').toLowerCase();
     const redisUrl = process.env.REDIS_URL;
 
-    if (cacheFlag === 'false' || (!redisUrl && cacheFlag !== 'true')) {
-      console.log('FR Cache: Redis disabled. Running without cache.');
+    if (cacheFlag !== 'true') {
+      cacheEnabled = false;
+      return null;
+    }
+
+    if (!redisUrl) {
+      console.warn('FR Cache: Redis enabled but REDIS_URL is missing. Running without cache.');
       cacheEnabled = false;
       return null;
     }
@@ -31,7 +37,11 @@ function initializeCache() {
     redisClient = new Redis(redisUrl, {
       retryStrategy: (times) => {
         if (times > 3) {
-          console.warn('⚠️  FR Cache: Redis connection failed after 3 retries. Running without cache.');
+          if (!redisFailureReported) {
+            console.warn('FR Cache: Redis unavailable. Running without cache.');
+            redisFailureReported = true;
+          }
+          cacheEnabled = false;
           return null; // Stop retrying
         }
         return Math.min(times * 100, 3000); // Retry after delay
@@ -40,23 +50,25 @@ function initializeCache() {
     });
 
     redisClient.on('connect', () => {
-      // FR Cache: Redis connected successfully
+      redisFailureReported = false;
       cacheEnabled = true;
     });
 
     redisClient.on('error', (error) => {
-      console.error('❌ FR Cache: Redis error:', error.message);
+      if (!redisFailureReported) {
+        console.warn('FR Cache: Redis unavailable. Running without cache.', error.message || '');
+        redisFailureReported = true;
+      }
       cacheEnabled = false;
     });
 
     redisClient.on('close', () => {
-      console.warn('⚠️  FR Cache: Redis connection closed');
       cacheEnabled = false;
     });
 
     return redisClient;
   } catch (error) {
-    console.error('❌ FR Cache: Failed to initialize Redis:', error.message);
+    console.warn('FR Cache: Failed to initialize Redis. Running without cache.', error.message);
     cacheEnabled = false;
     return null;
   }

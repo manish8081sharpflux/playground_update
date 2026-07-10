@@ -8,7 +8,13 @@
  */
 
 const { Canvas, Image } = require('canvas');
-const tf = require('@tensorflow/tfjs');
+let tf;
+try {
+  tf = require('@tensorflow/tfjs-node');
+} catch (error) {
+  console.warn('tfjs-node failed to load; falling back to @tensorflow/tfjs:', error.message);
+  tf = require('@tensorflow/tfjs');
+}
 const FaceEmbedding = require('../models/FaceEmbedding');
 const FRSession = require('../models/FRSession');
 const frCacheService = require('./frCacheService');
@@ -57,6 +63,12 @@ async function bufferToImage(imageBuffer) {
   if (!Buffer.isBuffer(imageBuffer)) {
     throw new Error('bufferToImage expects a Buffer');
   }
+  if (!tf.node || typeof tf.node.decodeImage !== 'function') {
+    throw new Error(
+      'TensorFlow Node image decoder is unavailable. Reinstall backend dependencies so @tensorflow/tfjs-node loads correctly.'
+    );
+  }
+
   // decodeImage returns shape [h, w, channels]; channels=3 forces RGB so
   // Human's BlazeFace input pipeline gets a consistent tensor.
   const tensor = tf.node.decodeImage(imageBuffer, 3);

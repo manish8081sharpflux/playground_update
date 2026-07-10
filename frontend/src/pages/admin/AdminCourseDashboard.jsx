@@ -110,9 +110,9 @@ export default function AdminCourseDashboard() {
     toast.success('Course deleted successfully!');
   };
 
-  // Navigate to coach assignments page for admin
+  // Navigate to the admin assignment management page
   const handleAssignCourse = () => {
-    navigate('/coach/assignments');
+    navigate('/admin/courses/assignments');
   };
 
   // Show loading while RBAC initializes
@@ -244,3 +244,5 @@ export default function AdminCourseDashboard() {
     </div>
   );
 }
+
+
