@@ -14,6 +14,9 @@ const { lmsUpload } = require('../../../../middleware/upload');
 // Get all Life Skills tasks (voice questions + quiz)
 router.get('/', authenticate, verifyStudentOwnership, lifeSkillsController.getLifeSkillsTasks);
 
+// Stream a chapter content file (PDF/video/audio/image) for Life Skills
+router.get('/content/:contentItemId/file', authenticate, verifyStudentOwnership, lifeSkillsController.getContentItemFile);
+
 // Voice Recording Routes
 router.get('/voice/:taskId', authenticate, verifyStudentOwnership, lifeSkillsController.getVoiceTask);
 router.post('/voice/submit', authenticate, verifyStudentOwnership, lmsUpload.single('file'), lifeSkillsController.submitVoiceRecording);

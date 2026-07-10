@@ -48,6 +48,11 @@ export default function ArtGradingInterface({ submission, onClose, coachId, onNa
   }, [submission?.id, submission?.fileUrl]);
 
   const handleGrade = async (gradeData) => {
+    if (submission.status === 'graded') {
+      toast.error('This submission has already been graded');
+      return;
+    }
+
     try {
       await api.post(
         `/api/v2/lms/coach/grading/submissions/${submission.id}/grade`,

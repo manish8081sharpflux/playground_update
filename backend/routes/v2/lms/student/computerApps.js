@@ -14,6 +14,11 @@ const verifyStudentOwnership = require('../../../../middleware/verifyStudentOwne
 // @access  Private
 router.get('/', authenticate, verifyStudentOwnership, computerAppsController.getComputerApps);
 
+// @route   GET /api/v2/lms/student/:studentId/courses/computer-apps/content/:contentItemId/file
+// @desc    Stream a chapter content file (PDF/video/audio/image)
+// @access  Private
+router.get('/content/:contentItemId/file', authenticate, verifyStudentOwnership, computerAppsController.getContentItemFile);
+
 // @route   GET /api/v2/lms/student/:studentId/courses/computer-apps/:courseId/hierarchy
 // @desc    Get course hierarchy (Modules/Chapters/Items)
 // @access  Private

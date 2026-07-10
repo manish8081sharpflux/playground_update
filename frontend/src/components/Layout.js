@@ -414,11 +414,10 @@ const Layout = () => {
   // Custom menus for roles with custom dashboards
   const customRoleMenus = {
     "medical-incharge": [
-      { id: 1, name: "Dashboard", link: "/dashboard" },
+      { id: 1, name: "Dashboard", link: "/dashboard", state: { activeTab: "dashboard" } },
       { id: 2, name: "Students", link: "/dashboard", state: { activeTab: "students" } },
       { id: 3, name: "Check Ins", link: "/dashboard", state: { activeTab: "checkins" } },
       { id: 4, name: "Tasks", link: "/dashboard", state: { activeTab: "tasks" } },
-      { id: 5, name: "Machines", link: "/machines" },
       { id: 6, name: "Purchases", link: "/purchase" },
       { id: 7, name: "Shop", link: "/shop" },
       { id: 8, name: "Doctors", link: "/medical/doctors" },
@@ -460,6 +459,7 @@ const Layout = () => {
   const currentRole = localStorage.getItem("role");
   const isOnDashboard = location.pathname === "/dashboard";
   const hasCustomDashboard = Object.keys(customRoleMenus).includes(currentRole);
+  const useMedicalHeaderStyle = currentRole === "medical-incharge";
 
   // Determine which menu to show
   const menuToShow = hasCustomDashboard
@@ -473,6 +473,7 @@ const Layout = () => {
     currentRole === "student" ||
     currentRole === "purchase-manager" ||
     currentRole === "balagruha-incharge" ||
+    currentRole === "medical-incharge" ||
     (hasCustomDashboard && !isOnDashboard);
 
   // Sprint 2 Fix: Unify Student Navigation
@@ -496,7 +497,7 @@ const Layout = () => {
   return (
     <div className="app-layout">
       {shouldShowLayoutMenu && (
-        <header className="header">
+        <header className={`header ${useMedicalHeaderStyle ? "medical-layout-header" : ""}`}>
           {/* Hamburger Menu Icon - CLIENT REQUEST: Hidden since WTF sidebar removed from functionality */}
           {/* Client wants ability to restore this later, so commenting out instead of deleting */}
           {/*
@@ -523,16 +524,22 @@ const Layout = () => {
           */}
 
           <div className="user-info" style={{ flexDirection: "row" }}>
-            <h2>Hi {localStorage?.getItem("name")}</h2>
-            {/* <div className="avatar">
-                            {localStorage?.getItem('name').charAt(0)}
-                        </div> */}
+            <h2>Hi {localStorage?.getItem("name")}{useMedicalHeaderStyle ? "," : ""}</h2>
+            {useMedicalHeaderStyle && (
+              <div className="layout-avatar">
+                {localStorage?.getItem("name")?.charAt(0)}
+              </div>
+            )}
           </div>
 
           {/* Top Menu */}
           <div className="top-menu scrollable-menu">
             {menuToShow.map((menu) => {
-              const isActive = location.pathname === menu.link;
+              const isActive =
+                !useMedicalHeaderStyle &&
+                location.pathname === menu.link &&
+                (!menu.state?.activeTab ||
+                  location.state?.activeTab === menu.state.activeTab);
               const isWtf = menu.name === "WTF";
               const isPurchases = menu.name === "Purchases";
               const wtfHighlight =
@@ -559,7 +566,9 @@ const Layout = () => {
                     }
                     // Navigate with state if provided (for dashboard tabs)
                     if (menu.state) {
-                      navigate(menu.link, { state: menu.state });
+                      navigate(menu.link, {
+                        state: { ...menu.state, navKey: Date.now() },
+                      });
                     } else {
                       navigate(menu.link);
                     }
@@ -624,7 +633,7 @@ const Layout = () => {
       )}
 
       <div className="app-container">
-        <main className={`main-content ${isShopRoute ? "main-content-shop" : ""} ${isLowStockReportRoute ? "main-content-full-page" : ""}`}>
+        <main className={`main-content ${isShopRoute ? "main-content-shop" : ""} ${isLowStockReportRoute ? "main-content-full-page" : ""} ${useMedicalHeaderStyle && shouldShowLayoutMenu ? "main-content-medical-header" : ""}`}>
           <SidebarContext.Provider
             value={{
               isSidebarCollapsed,

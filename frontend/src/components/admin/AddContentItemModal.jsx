@@ -19,6 +19,9 @@ export default function AddContentItemModal({ isOpen, onClose, onAdd }) {
   const { uploads, uploadFile, isUploading } = useFileUpload();
   const [uploadingFile, setUploadingFile] = useState(false);
   const [currentUploadId, setCurrentUploadId] = useState(null);
+  const [selectedFileName, setSelectedFileName] = useState('');
+  const [selectedFilePreviewUrl, setSelectedFilePreviewUrl] = useState('');
+  const [selectedFilePreviewType, setSelectedFilePreviewType] = useState('');
   const fileInputRef = useRef(null);
   const [dragActive, setDragActive] = useState(false);
 
@@ -37,6 +40,12 @@ export default function AddContentItemModal({ isOpen, onClose, onAdd }) {
     } catch {
       return false;
     }
+  };
+
+  const clearSelectedFilePreview = () => {
+    setSelectedFileName('');
+    setSelectedFilePreviewUrl('');
+    setSelectedFilePreviewType('');
   };
 
   const handleSubmit = async (e) => {
@@ -61,7 +70,16 @@ export default function AddContentItemModal({ isOpen, onClose, onAdd }) {
 
     await onAdd(formData);
     setFormData({ type: 'video', title: '', description: '', fileUrl: '' });
+    clearSelectedFilePreview();
   };
+
+  useEffect(() => {
+    return () => {
+      if (selectedFilePreviewUrl) {
+        URL.revokeObjectURL(selectedFilePreviewUrl);
+      }
+    };
+  }, [selectedFilePreviewUrl]);
 
   // Fetch quizzes when type is 'quiz'
   useEffect(() => {
@@ -138,6 +156,7 @@ export default function AddContentItemModal({ isOpen, onClose, onAdd }) {
     })();
 
     if (!isValidType) {
+      clearSelectedFilePreview();
       toast.error(`Invalid file type "${file.type}". Expected a ${formData.type} file.`);
       return;
     }
@@ -145,9 +164,14 @@ export default function AddContentItemModal({ isOpen, onClose, onAdd }) {
     // Max size check (e.g. 500MB for video, 50MB others)
     const maxSize = formData.type === 'video' ? 500 * 1024 * 1024 : 50 * 1024 * 1024;
     if (file.size > maxSize) {
+      clearSelectedFilePreview();
       toast.error(`File too large. Max size: ${formData.type === 'video' ? '500MB' : '50MB'}`);
       return;
     }
+
+    setSelectedFileName(file.name);
+    setSelectedFilePreviewType(file.type);
+    setSelectedFilePreviewUrl(URL.createObjectURL(file));
 
     try {
       const uploadId = `upload-${Date.now()}`;
@@ -232,7 +256,7 @@ export default function AddContentItemModal({ isOpen, onClose, onAdd }) {
               {quizMode === 'existing' ? (
                 <div className="space-y-3">
                   <div className="relative">
-                    <Search className="absolute left-3 top-2.5 text-gray-400" size={16} />
+                    {/* <Search className="absolute left-3 top-2.5 text-gray-400" size={16} /> */}
                     <input
                       type="text"
                       placeholder="Search quizzes..."
@@ -377,18 +401,47 @@ export default function AddContentItemModal({ isOpen, onClose, onAdd }) {
                 )}
               </div>
 
+              {selectedFileName && (
+                <div className="mb-3 flex items-center gap-2 rounded-lg border border-blue-100 bg-blue-50 px-3 py-2 text-sm text-blue-900">
+                  <File size={16} className="flex-shrink-0 text-blue-600" />
+                  <span className="font-medium">Selected file:</span>
+                  <span className="min-w-0 flex-1 truncate">{selectedFileName}</span>
+                </div>
+              )}
+
+              {selectedFilePreviewUrl && (
+                <div className="mb-3 rounded-lg border border-gray-200 bg-white p-3">
+                  {selectedFilePreviewType.startsWith('image/') ? (
+                    <img
+                      src={selectedFilePreviewUrl}
+                      alt={`${selectedFileName} preview`}
+                      className="max-h-56 w-full rounded-md bg-gray-50 object-contain"
+                    />
+                  ) : selectedFilePreviewType.startsWith('audio/') ? (
+                    <audio controls src={selectedFilePreviewUrl} className="w-full" />
+                  ) : selectedFilePreviewType.startsWith('video/') ? (
+                    <video controls src={selectedFilePreviewUrl} className="max-h-64 w-full rounded-md bg-black" />
+                  ) : selectedFilePreviewType === 'application/pdf' ? (
+                    <iframe
+                      src={selectedFilePreviewUrl}
+                      title={`${selectedFileName} preview`}
+                      className="h-64 w-full rounded-md border border-gray-200"
+                    />
+                  ) : (
+                    <p className="text-sm text-gray-600">Preview is not available for this file type.</p>
+                  )}
+                </div>
+              )}
+
               {/* Manual URL Input */}
               <div className="relative">
                 <input
                   type="text"
                   value={formData.fileUrl}
                   onChange={(e) => setFormData({ ...formData, fileUrl: e.target.value })}
-                  className="w-full px-4 py-2 border rounded-lg pl-10"
+                  className="w-full px-4 py-2 border rounded-lg"
                   placeholder={`Or enter ${formData.type} URL...`}
                 />
-                <div className="absolute left-3 top-2.5 text-gray-400">
-                  <File size={16} />
-                </div>
               </div>
             </div>
           )}

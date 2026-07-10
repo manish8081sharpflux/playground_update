@@ -62,6 +62,17 @@ export default function CourseListView({
   const [isBulkModalOpen, setIsBulkModalOpen] = useState(false);
   const [bulkOperation, setBulkOperation] = useState(null); // 'publish', 'archive', 'delete'
 
+  const getThumbnailSrc = (course) => {
+    if (!course.thumbnail) return '';
+    if (course.thumbnail.startsWith('data:') || course.thumbnail.startsWith('blob:')) {
+      return course.thumbnail;
+    }
+
+    const cacheKey = course.updatedAt || course._id;
+    const separator = course.thumbnail.includes('?') ? '&' : '?';
+    return `${course.thumbnail}${separator}v=${encodeURIComponent(cacheKey)}`;
+  };
+
   // Admin Course Assignment
   const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
   const [courseToAssign, setCourseToAssign] = useState(null);
@@ -325,7 +336,11 @@ export default function CourseListView({
         </div>
       )}
 
-      {courses.map((course) => (
+      {courses.map((course) => {
+        const thumbnailSrc = getThumbnailSrc(course);
+        const thumbnailErrorKey = `${course._id}:${thumbnailSrc}`;
+
+        return (
         <div
           key={course._id}
           className={`bg-white rounded-xl shadow-sm border-2 p-6 transition-colors ${!readOnly && selectedCourseIds.includes(course._id)
@@ -349,12 +364,13 @@ export default function CourseListView({
 
             {/* Thumbnail */}
             <div className="w-24 h-24 flex-shrink-0 bg-gray-100 rounded-lg overflow-hidden flex items-center justify-center">
-              {course.thumbnail && !imageErrors[course._id] ? (
+              {thumbnailSrc && !imageErrors[thumbnailErrorKey] ? (
                 <img
-                  src={course.thumbnail}
+                  key={thumbnailErrorKey}
+                  src={thumbnailSrc}
                   alt={course.title}
                   className="w-full h-full object-cover"
-                  onError={() => setImageErrors(prev => ({ ...prev, [course._id]: true }))}
+                  onError={() => setImageErrors(prev => ({ ...prev, [thumbnailErrorKey]: true }))}
                 />
               ) : (
                 <div className="text-4xl">
@@ -445,7 +461,8 @@ export default function CourseListView({
             </div>
           </div>
         </div>
-      ))}
+        );
+      })}
 
       {/* Context Menu — never rendered in read-only mode */}
       {!readOnly && selectedCourseId && (

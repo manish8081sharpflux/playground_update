@@ -1,7 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import "./MedicInchargeDashboard.css";
-import { useAuth } from "../../contexts/AuthContext";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import CheckInModal from "./CheckInModal";
 import ViewCheckInModal from "./ViewCheckInModal";
 import TaskManagement from "../TaskManagement/taskmanagement";
@@ -141,9 +140,8 @@ const MedicInchargeDashboard = () => {
 
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [activeTab, setActiveTab] = useState("dashboard");
-  const { logout } = useAuth();
-  const navigate = useNavigate();
   const location = useLocation();
+  const navigate = useNavigate();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [viewData, setViewData] = useState(null);
@@ -234,10 +232,10 @@ const MedicInchargeDashboard = () => {
   useEffect(() => {
     if (location.state?.activeTab) {
       setActiveTab(location.state.activeTab);
-      // Clear the state to prevent re-triggering
-      window.history.replaceState({}, document.title);
+      // Clear the state through React Router so repeated navbar clicks still update this page.
+      navigate(location.pathname, { replace: true, state: null });
     }
-  }, [location])
+  }, [location, navigate])
 
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
@@ -939,38 +937,6 @@ const MedicInchargeDashboard = () => {
 
   return (
     <div className="medic-incharge-dashboard">
-      <div className="header">
-        <div className="user-info" style={{ flexDirection: "row" }}>
-          <h2>Hi {localStorage?.getItem("name")},</h2>
-          <div className="avatar">
-            {localStorage?.getItem("name")?.charAt(0)}
-          </div>
-        </div>
-
-        {/* Top Menu */}
-        <div className="top-menu scrollable-menu">
-          {sportCoachMenu.map((menu) => (
-            <div
-              key={menu.id}
-              className={`menu-item ${activeTab === menu.activeTab ? "active" : ""
-                }`}
-              onClick={() => {
-                if (menu.link) {
-                  navigate(menu.link);
-                } else {
-                  setActiveTab(menu?.activeTab);
-                }
-              }}
-            >
-              {menu.name}
-            </div>
-          ))}
-        </div>
-
-        <button className="logout-btn" onClick={logout}>
-          Logout
-        </button>
-      </div>
       {/* Collapsible Sidebar */}
       {/* <div className={`medic-sidebar ${sidebarOpen ? 'open' : 'closed'}`}>
                 <div className="medic-sidebar-content">

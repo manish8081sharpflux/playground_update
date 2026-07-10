@@ -1,10 +1,6 @@
 import React, { useState } from 'react';
-import CanvasPreview from './CanvasPreview';
-import SubmissionModal from './SubmissionModal';
-import toast from 'react-hot-toast';
-// Use apiWithoutContentType so axios doesn't override multipart/form-data
-// boundary with application/json (which makes multer drop the file).
-import { apiWithoutContentType as api } from '../../../api';
+import ArtCourseContentList from './ArtCourseContentList';
+import ArtworkTaskCards from './ArtworkTaskCards';
 
 /**
  * ArtStoriesMode Component - Story 12.9 (FIX-014)
@@ -13,11 +9,22 @@ import { apiWithoutContentType as api } from '../../../api';
  */
 export default function ArtStoriesMode({ data, studentId, onRefresh }) {
   const [selectedStory, setSelectedStory] = useState(null);
-  const [showSubmissionModal, setShowSubmissionModal] = useState(false);
-  const [selectedFile, setSelectedFile] = useState(null);
   const [selectedTask, setSelectedTask] = useState(null);
+  const [selectedContentChapter, setSelectedContentChapter] = useState(null);
 
   const stories = data?.stories || [];
+  const visibleTasks = React.useMemo(() => {
+    const tasks = selectedStory?.tasks || [];
+    if (!selectedContentChapter?.chapterId) return tasks;
+
+    return tasks.filter(task =>
+      String(task.chapterId) === String(selectedContentChapter.chapterId)
+    );
+  }, [selectedStory, selectedContentChapter?.chapterId]);
+
+  const handleChapterChange = React.useCallback((chapter) => {
+    setSelectedContentChapter(chapter);
+  }, []);
 
   React.useEffect(() => {
     setSelectedStory(current =>
@@ -28,51 +35,8 @@ export default function ArtStoriesMode({ data, studentId, onRefresh }) {
   }, [stories]);
 
   React.useEffect(() => {
-    const tasks = selectedStory?.tasks || [];
-    setSelectedTask(tasks.find(task => !task.completed) || tasks[0] || null);
-    setSelectedFile(null);
-  }, [selectedStory]);
-
-  const handleSubmit = () => {
-    if (!selectedFile) {
-      toast.error('Please select an artwork file before submitting');
-      return;
-    }
-    setShowSubmissionModal(true);
-  };
-
-  const handleConfirmSubmission = async (metadata) => {
-    if (!selectedFile) {
-      toast.error('No file selected');
-      return;
-    }
-    try {
-      const formData = new FormData();
-      formData.append('artwork', selectedFile);
-      formData.append('type', 'art');
-      formData.append('mode', 'art_story');
-      formData.append('courseId', selectedStory?.id || '');
-      if (selectedTask?.id) {
-        formData.append('taskId', selectedTask.id);
-      }
-      formData.append(
-        'taskTitle',
-        selectedTask?.title || metadata.title || selectedStory?.title || 'Art story artwork'
-      );
-
-      await api.post(
-        `/api/v2/lms/student/${studentId}/courses/art/submissions`,
-        formData
-      );
-      toast.success('Story artwork submitted successfully!');
-      setShowSubmissionModal(false);
-      setSelectedFile(null);
-      if (onRefresh) onRefresh();
-    } catch (error) {
-      const msg = error.response?.data?.message || 'Failed to submit artwork';
-      toast.error(msg);
-    }
-  };
+    setSelectedTask(visibleTasks.find(task => !task.completed) || visibleTasks[0] || null);
+  }, [visibleTasks]);
 
   if (stories.length === 0) {
     return <div className="text-center py-12"><p className="text-gray-500">No stories available</p></div>;
@@ -102,11 +66,29 @@ export default function ArtStoriesMode({ data, studentId, onRefresh }) {
         <>
           {/* Story Header */}
           <div className="bg-pink-50 rounded-lg p-4">
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">{selectedStory.title}</h2>
+            <div className="flex flex-wrap items-start justify-between gap-3 mb-2">
+              <h2 className="text-2xl font-bold text-gray-900">{selectedStory.title}</h2>
+              {selectedStory.completed && (
+                <span className="rounded-full bg-green-100 px-4 py-1 text-sm font-semibold text-green-700">
+                  Completed
+                </span>
+              )}
+            </div>
             <div className="flex gap-4 text-sm text-gray-600">
               <span>Difficulty: {selectedStory.difficulty}</span>
               <span>Estimated Time: {selectedStory.estimatedTime} mins</span>
             </div>
+            {selectedTask && (
+              <div className="mt-3 flex flex-wrap items-center gap-2 text-sm">
+                <span className="font-semibold text-gray-700">Selected Task:</span>
+                <span className="text-gray-700">{selectedTask.title}</span>
+                {selectedTask.completed && (
+                  <span className="rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-700">
+                    Completed
+                  </span>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Audio Player (if audioUrl exists) */}
@@ -140,63 +122,21 @@ export default function ArtStoriesMode({ data, studentId, onRefresh }) {
             </div>
           )}
 
-          {selectedStory.tasks?.length > 0 && (
-            <div>
-              <h3 className="text-lg font-semibold text-gray-800 mb-3">Tasks</h3>
-              <div className="space-y-2">
-                {selectedStory.tasks.map((task, index) => (
-                  <button
-                    key={task.id}
-                    type="button"
-                    onClick={() => {
-                      setSelectedTask(task);
-                      setSelectedFile(null);
-                    }}
-                    className={`w-full rounded-lg border-2 p-4 text-left transition-colors ${
-                      selectedTask?.id === task.id
-                        ? 'border-pink-500 bg-pink-50'
-                        : 'border-gray-200 hover:border-pink-300'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between gap-3">
-                      <span className="font-semibold text-gray-900">
-                        {index + 1}. {task.title}
-                      </span>
-                      {task.completed && (
-                        <span className="rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-700">
-                          Completed
-                        </span>
-                      )}
-                    </div>
-                    {(task.instructions || task.description) && (
-                      <p className="mt-2 text-sm text-gray-600">
-                        {task.instructions || task.description}
-                      </p>
-                    )}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
+          <ArtCourseContentList
+            modules={selectedStory.modules || []}
+            studentId={studentId}
+            onChapterChange={handleChapterChange}
+          />
 
-          {/* Canvas Preview & File Upload */}
-          <CanvasPreview
-            onSubmit={handleSubmit}
-            file={selectedFile}
-            onFileChange={setSelectedFile}
+          <ArtworkTaskCards
+            tasks={visibleTasks}
+            courseId={selectedStory.id}
+            mode="art_story"
+            studentId={studentId}
+            onRefresh={onRefresh}
+            onTaskSelect={setSelectedTask}
           />
         </>
-      )}
-
-      {/* Submission Modal */}
-      {showSubmissionModal && (
-        <SubmissionModal
-          mode="art_story"
-          metadata={{ storyId: selectedStory?.id, taskId: selectedTask?.id }}
-          onClose={() => setShowSubmissionModal(false)}
-          onSubmit={handleConfirmSubmission}
-          file={selectedFile}
-        />
       )}
     </div>
   );

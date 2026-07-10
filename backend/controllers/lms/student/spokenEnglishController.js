@@ -3,12 +3,17 @@ const StudentProgress = require('../../../models/StudentProgress');
 const Submission = require('../../../models/Submission');
 const mongoose = require('mongoose');
 const s3Service = require('../../../services/aws/s3');
+const { streamCourseContentFile } = require('../../../utils/lmsContentFile');
 const fs = require('fs');
 const path = require('path');
 const { errorLogger } = require('../../../config/pino-config');
 
 // backend/controllers/lms/student/spokenEnglishController.js
 // Epic 01 Story 04: Spoken English Video Recording
+
+exports.getContentItemFile = async (req, res) => {
+  return streamCourseContentFile(req, res);
+};
 
 /**
  * Get Spoken English Task Data (Single Task - Mapped to a ContentItem)
@@ -309,10 +314,12 @@ exports.submitVideoRecording = async (req, res) => {
       taskTitle,
       submissionType: "video",
       fileUrl: s3Url,
+      s3Key: uploadResult.success ? uploadResult.s3Key : null,
       thumbnailUrl: null,
       metadata: {
         duration: duration || 0,
-        fileSize: fileSize || 0
+        fileSize: fileSize || 0,
+        mimeType: videoFile.mimetype
       },
       status: "pending",
       isFirstAttempt: !priorSubmission,
@@ -370,12 +377,30 @@ exports.getStudentSubmissions = async (req, res) => {
       .populate('courseId', 'title')
       .lean();
 
+    const resolveVideoUrl = async (sub) => {
+      if (!sub.fileUrl) return null;
+      if (sub.fileUrl.startsWith('/uploads/')) {
+        return `${req.protocol}://${req.get('host')}${sub.fileUrl}`;
+      }
+      if (sub.fileUrl.includes('/uploads/')) return sub.fileUrl;
+
+      const s3Key = sub.s3Key || s3Service.extractS3KeyFromUrl(sub.fileUrl);
+      if (!s3Key) return sub.fileUrl;
+
+      const signedUrl = await s3Service.generateLMSContentDownloadUrl(
+        s3Key,
+        60 * 60
+      );
+
+      return signedUrl.success ? signedUrl.downloadUrl : sub.fileUrl;
+    };
+
     // Map to response format
-    const formattedSubmissions = submissions.map(sub => ({
+    const formattedSubmissions = await Promise.all(submissions.map(async sub => ({
       submissionId: sub._id,
       taskId: sub.taskId,
       taskTitle: sub.taskTitle,
-      fileUrl: sub.fileUrl,
+      fileUrl: await resolveVideoUrl(sub),
       duration: sub.metadata?.duration || 0,
       status: sub.status,
       grade: sub.grade?.quality || null,
@@ -384,7 +409,7 @@ exports.getStudentSubmissions = async (req, res) => {
       submittedAt: sub.submittedAt,
       gradedAt: sub.grade?.gradedAt || null,
       coachName: "Coach" // Populate actual coach name if gradedBy exists
-    }));
+    })));
 
     res.status(200).json({
       success: true,

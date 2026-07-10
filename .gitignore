@@ -1,15 +1,13 @@
-backend/logs/*.log
-backend/node_modules
-frontend/node_modules
-frontend/.env
-backend/.env
-
 # Dependencies
 node_modules/
+backend/node_modules/
+frontend/node_modules/
 
 # Environment files
 .env
 *.env
+backend/.env
+frontend/.env
 
 # Logs
 logs/
@@ -25,6 +23,17 @@ logs/
 backend/logs/
 frontend/logs/
 
+# Uploads
+backend/uploads/
+
+# Build folders
+dist/
+build/
+frontend/build/
+
+# Package lock files
+package-lock.json
+**/package-lock.json
 # Package lock files
 package-lock.json
 **/package-lock.json

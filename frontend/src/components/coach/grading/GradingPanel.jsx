@@ -10,6 +10,7 @@ export default function GradingPanel({
   const [coinsAwarded, setCoinsAwarded] = useState(0);
   const [feedback, setFeedback] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const isAlreadyGraded = submission?.status === 'graded';
 
   // Auto-adjust coin amount based on quality rating
   useEffect(() => {
@@ -22,7 +23,18 @@ export default function GradingPanel({
     }
   }, [quality]);
 
+  useEffect(() => {
+    setQuality(submission?.grade?.quality || '');
+    setCoinsAwarded(submission?.grade?.coinsAwarded ?? 0);
+    setFeedback(submission?.grade?.feedback || '');
+    setIsSubmitting(false);
+  }, [submission?.id, submission?.grade?.coinsAwarded, submission?.grade?.feedback, submission?.grade?.quality]);
+
   const handleSubmit = async () => {
+    if (isAlreadyGraded) {
+      return;
+    }
+
     // Validation
     if (!quality) {
       alert('Please select a quality rating');
@@ -247,9 +259,14 @@ export default function GradingPanel({
 
       {/* Submit Button */}
       <div className="pt-4 border-t">
+        {isAlreadyGraded && (
+          <div className="mb-3 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm font-medium text-green-800">
+            This submission has already been graded.
+          </div>
+        )}
         <button
           onClick={handleSubmit}
-          disabled={isSubmitting || !quality}
+          disabled={isSubmitting || !quality || isAlreadyGraded}
           className="w-full px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed font-medium text-lg transition"
         >
           {isSubmitting ? 'Submitting Grade...' : 'Submit Grade →'}

@@ -16,14 +16,18 @@ export default function LifeSkillsQuizResults() {
     location.state?.quizId ||
     location.state?.results?.quizId ||
     results?.quizId;
+  const isComputerApps = location.pathname.includes('computer-apps');
+  const isArt = location.pathname.includes('/student/art');
+  const baseRoute = isComputerApps ? '/student/computer-apps' : isArt ? '/student/art' : '/student/life-skills';
+  const returnLabel = isComputerApps ? 'Return to Computer Apps' : isArt ? 'Return to Art' : 'Return to Life Skills';
 
   // If no results data, redirect back to Life Skills page
   // If no results data, redirect back to Life Skills page
   React.useEffect(() => {
     if (!results) {
-      navigate('/student/life-skills');
+      navigate(baseRoute);
     }
-  }, [results, navigate]);
+  }, [baseRoute, results, navigate]);
 
   if (!results) return null;
 
@@ -48,14 +52,9 @@ export default function LifeSkillsQuizResults() {
           percentage >= 40 ? { emoji: '💪', text: 'Keep Trying!', color: 'yellow' } :
             { emoji: '📚', text: 'Practice More!', color: 'orange' };
 
-  // Determine context
-  const isComputerApps = location.pathname.includes('computer-apps');
-  const baseRoute = isComputerApps ? '/student/computer-apps' : '/student/life-skills';
-  const returnLabel = isComputerApps ? 'Return to Computer Apps' : 'Return to Life Skills';
-
   // Try to find courseId if available in debugInfo (Computer Apps)
   const courseId = location.state?.results?.debugInfo?.courseId;
-  const returnPath = courseId ? `${baseRoute}/${courseId}` : baseRoute;
+  const returnPath = courseId && isComputerApps ? `${baseRoute}/${courseId}` : baseRoute;
 
   return (
     <div className="bg-gray-50 min-h-screen font-sans">

@@ -17,11 +17,14 @@ const { lmsUpload } = require('../../../../middleware/upload');
 // GET all tasks for spoken English course
 router.get('/', authenticate, verifyStudentOwnership, spokenEnglishController.getSpokenEnglishTasks);
 
-// GET specific task details
-router.get('/:taskId', authenticate, verifyStudentOwnership, spokenEnglishController.getSpokenEnglishTask);
+// Stream a content file used by Spoken English task instructions
+router.get('/content/:contentItemId/file', authenticate, verifyStudentOwnership, spokenEnglishController.getContentItemFile);
 
 // GET student's submissions
 router.get('/submissions/history', authenticate, verifyStudentOwnership, spokenEnglishController.getStudentSubmissions);
+
+// GET specific task details
+router.get('/:taskId', authenticate, verifyStudentOwnership, spokenEnglishController.getSpokenEnglishTask);
 
 // POST submit video recording
 router.post('/submissions', authenticate, verifyStudentOwnership, lmsUpload.single('file'), spokenEnglishController.submitVideoRecording);
