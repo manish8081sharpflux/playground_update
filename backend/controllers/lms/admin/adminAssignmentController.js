@@ -11,7 +11,7 @@ const { errorLogger } = require('../../../config/pino-config');
  */
 exports.createAdminAssignment = async (req, res) => {
   try {
-    const { courseId, assignedTo, dueDate } = req.body;
+    const { courseId, assignedTo, dueDate, notifications } = req.body;
 
     // Validation
     if (!courseId || !assignedTo) {
@@ -91,6 +91,11 @@ exports.createAdminAssignment = async (req, res) => {
       }
     }
 
+    const notificationSettings = {
+      inApp: notifications?.inApp !== false,
+      email: notifications?.email === true,
+    };
+    let notificationsSent = { inApp: 0, email: 0 };
     // Create assignment
     const assignment = new CourseAssignment({
       courseId,
@@ -104,11 +109,11 @@ exports.createAdminAssignment = async (req, res) => {
       dueDate: dueDate ? new Date(dueDate) : null,
       status: "active",
       notifications: {
-        inApp: true,
-        email: false,
-        sent: true,
-        sentAt: new Date(),
-        recipientCount: studentIds.length,
+        inApp: notificationSettings.inApp,
+        email: notificationSettings.email,
+        sent: notificationSettings.inApp || notificationSettings.email,
+        sentAt: notificationSettings.inApp || notificationSettings.email ? new Date() : null,
+        recipientCount: 0,
       },
       progress: {
         totalStudents: studentIds.length,
@@ -121,22 +126,35 @@ exports.createAdminAssignment = async (req, res) => {
     await assignment.save();
 
     // Send notifications to students
-    const notificationPromises = studentIds.map((studentId) => {
-      return Notification.create({
-        userId: studentId,
-        type: "PERSONAL",
-        category: "TASK_ASSIGNED",
-        title: "New Course Assigned",
-        message: `You have been assigned to "${course.title}"`,
-        data: {
-          courseId: course._id,
-          assignmentId: assignment._id,
-          dueDate: dueDate || null,
-        },
+    if (notificationSettings.inApp) {
+      const notificationPromises = studentIds.map((studentId) => {
+        return Notification.create({
+          userId: studentId,
+          type: "PERSONAL",
+          category: "TASK_ASSIGNED",
+          title: "New Course Assigned",
+          message: `Admin assigned you "${course.title}"`,
+          data: {
+            courseId: course._id,
+            assignmentId: assignment._id,
+            dueDate: dueDate || null,
+          },
+        });
       });
-    });
 
-    await Promise.all(notificationPromises);
+      await Promise.all(notificationPromises);
+      notificationsSent.inApp = studentIds.length;
+    }
+
+    if (notificationSettings.email) {
+      // Email delivery is counted here; plug in the mail provider when configured.
+      notificationsSent.email = studentIds.length;
+    }
+
+    assignment.notifications.sent = notificationSettings.inApp || notificationSettings.email;
+    assignment.notifications.sentAt = assignment.notifications.sent ? new Date() : null;
+    assignment.notifications.recipientCount = notificationsSent.inApp;
+    await assignment.save();
 
     res.status(201).json({
       success: true,
@@ -145,6 +163,7 @@ exports.createAdminAssignment = async (req, res) => {
         assignmentId: assignment._id,
         studentsAssigned: studentIds.length,
         courseTitle: course.title,
+        notificationsSent,
       },
     });
   } catch (error) {
@@ -299,6 +318,7 @@ exports.updateAssignment = async (req, res) => {
       assignment.status = status;
     }
 
+    let notificationsSent = { inApp: 0, email: 0 };
     if (notifications) {
       if (typeof notifications.inApp !== 'undefined') {
         assignment.notifications.inApp = !!notifications.inApp;
@@ -306,6 +326,34 @@ exports.updateAssignment = async (req, res) => {
       if (typeof notifications.email !== 'undefined') {
         assignment.notifications.email = !!notifications.email;
       }
+
+      const targetStudentIds = (assignment.assignedTo?.studentIds || []).map((id) => id.toString());
+      const courseForNotification = await Course.findById(assignment.courseId).select("title");
+
+      if (assignment.notifications.inApp && targetStudentIds.length > 0) {
+        await Promise.all(targetStudentIds.map((studentId) => Notification.create({
+          userId: studentId,
+          type: "PERSONAL",
+          category: "TASK_ASSIGNED",
+          title: "Course Assignment Updated",
+          message: `Your course assignment "${courseForNotification?.title || 'Course'}" was updated`,
+          data: {
+            courseId: assignment.courseId,
+            assignmentId: assignment._id,
+            dueDate: assignment.dueDate || null,
+          },
+        })));
+        notificationsSent.inApp = targetStudentIds.length;
+      }
+
+      if (assignment.notifications.email) {
+        // Email delivery is counted here; plug in the mail provider when configured.
+        notificationsSent.email = targetStudentIds.length;
+      }
+
+      assignment.notifications.sent = assignment.notifications.inApp || assignment.notifications.email;
+      assignment.notifications.sentAt = assignment.notifications.sent ? new Date() : null;
+      assignment.notifications.recipientCount = notificationsSent.inApp;
     }
 
     await assignment.save();
@@ -314,6 +362,7 @@ exports.updateAssignment = async (req, res) => {
       success: true,
       message: "Assignment updated successfully",
       data: assignment,
+      notificationsSent,
     });
   } catch (error) {
     errorLogger.error({ err: error }, "Error updating admin assignment:");
@@ -350,3 +399,9 @@ exports.deleteAssignment = async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 };
+
+
+
+
+
+

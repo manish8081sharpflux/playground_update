@@ -107,7 +107,6 @@ const CourseAssignmentSchema = new mongoose.Schema(
 
 // Indexes for performance
 CourseAssignmentSchema.index({ assignedBy: 1, createdAt: -1 });
-CourseAssignmentSchema.index({ courseId: 1 });
 CourseAssignmentSchema.index({ "assignedTo.balagruhaId": 1 });
 CourseAssignmentSchema.index({ "assignedTo.studentIds": 1 });
 CourseAssignmentSchema.index({ "assignedTo.balagruhaIds": 1 }); // Story 6.7: Multi-balagruha assignment lookup

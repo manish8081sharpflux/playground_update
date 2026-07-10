@@ -1,4 +1,5 @@
 const { default: mongoose } = require("mongoose");
+const path = require("path");
 const { errorLogger } = require("../config/pino-config");
 const {
   fetchTasksByUserIdAndFilter,
@@ -304,46 +305,25 @@ class Task {
       // upload the attachments to s3 bucket
       for (let i = 0; i < attachments.length; i++) {
         let file = attachments[i];
-        let fileName = file.replace("uploads/", "");
-        let fileType = getFileContentType(fileName);
-        let fileFullPath = getUploadedFilesFullPath(fileName);
+        let fileName = path.basename(file);
+        let result = await uploadFileToS3(
+          file,
+          process.env.AWS_S3_FOLDER_TASK_ATTACHMENTS,
+          fileName
+        );
 
-        const useLocalFallback =
-          !process.env.AWS_S3_ACCESS_KEY_ID ||
-          !process.env.AWS_S3_SECRET_KEY ||
-          process.env.AWS_S3_ACCESS_KEY_ID.includes("YOUR_") ||
-          process.env.AWS_S3_SECRET_KEY.includes("YOUR_");
-
-        if (!isOfflineReq && !useLocalFallback) {
-          let result = await uploadFileToS3(
-            file,
-            process.env.AWS_S3_FOLDER_TASK_ATTACHMENTS,
-            fileName
-          );
-
-          if (result.success) {
-            attachments[i] = {
-              fileName,
-              fileUrl: result.url,
-              fileType: result.contentType,
-              uploadedBy: createdBy,
-            };
-          } else {
-            console.error("S3 upload failed. Falling back to local storage.");
-
-            attachments[i] = {
-              fileName,
-              fileUrl: `/uploads/${fileName}`,
-              fileType,
-              uploadedBy: createdBy,
-            };
-          }
-        } else {
+        if (result.success) {
           attachments[i] = {
             fileName,
-            fileUrl: `/uploads/${fileName}`,
-            fileType,
+            fileUrl: result.url,
+            fileType: result.contentType,
             uploadedBy: createdBy,
+          };
+        } else {
+          return {
+            success: false,
+            data: {},
+            message: "Failed to upload attachments to S3.",
           };
         }
       }
@@ -670,14 +650,11 @@ class Task {
                 };
               }
             } else {
-              // if the request is offline, then set the file name to the attachments
-              let attachmentObj = {
-                fileName: fileName,
-                fileUrl: fileFullPath,
-                fileType: getFileContentType(fileName),
-                uploadedBy: createdById,
+              return {
+                success: false,
+                data: {},
+                message: "S3 upload is required for attachments.",
               };
-              attachments[i] = attachmentObj;
             }
           }
         }
@@ -747,57 +724,36 @@ class Task {
         // upload the attachments
         errorLogger.error({ msg: 'addOrUpdateTaskAttachment - incoming attachments', attachmentsReceived: attachments.length });
 
-        const useLocalFallback =
-          !process.env.AWS_S3_ACCESS_KEY_ID ||
-          !process.env.AWS_S3_SECRET_KEY ||
-          process.env.AWS_S3_ACCESS_KEY_ID.includes("YOUR_") ||
-          process.env.AWS_S3_SECRET_KEY.includes("YOUR_");
-
         for (let i = 0; i < attachments.length; i++) {
           let file = attachments[i];
           let fileName = file.filename;
-          let fileFullPath = getUploadedFilesFullPath(fileName);
-          if (!isOfflineReq && !useLocalFallback) {
-            let result = await uploadFileToS3(
-              file.path,
-              process.env.AWS_S3_FOLDER_TASK_ATTACHMENTS,
-              fileName
-            );
-            if (result.success) {
-              // replace the /upload from the file name to empty string
-              let attachmentObj = {
-                fileName: fileName,
-                fileUrl: result.url,
-                fileType: result.contentType,
-                uploadedBy: createdById,
-              };
-              attachments[i] = attachmentObj;
-            } else {
-              errorLogger.error(
-                {
-                  msg: 'addOrUpdateTaskAttachment - upload failed',
-                  filePath: file.path,
-                  error: result.error || result.message,
-                },
-                'S3 upload failed; falling back to local upload path'
-              );
-              let attachmentObj = {
-                fileName: fileName,
-                fileUrl: `/uploads/${fileName}`,
-                fileType: file.mimetype || getFileContentType(fileName),
-                uploadedBy: createdById,
-              };
-              attachments[i] = attachmentObj;
-            }
-          } else {
-            // if the request is offline or S3 is not configured, then set the file name to the attachments
+          let result = await uploadFileToS3(
+            file.path,
+            process.env.AWS_S3_FOLDER_TASK_ATTACHMENTS,
+            fileName
+          );
+          if (result.success) {
             let attachmentObj = {
               fileName: fileName,
-              fileUrl: `/uploads/${fileName}`,
-              fileType: file.mimetype || getFileContentType(fileName),
+              fileUrl: result.url,
+              fileType: result.contentType,
               uploadedBy: createdById,
             };
             attachments[i] = attachmentObj;
+          } else {
+            errorLogger.error(
+              {
+                msg: 'addOrUpdateTaskAttachment - S3 upload failed',
+                filePath: file.path,
+                error: result.error || result.message,
+              },
+              'S3 upload failed for task attachment'
+            );
+            return {
+              success: false,
+              data: {},
+              message: "Failed to upload attachments to S3.",
+            };
           }
         }
         let existingAttachments = task.data.attachments || [];

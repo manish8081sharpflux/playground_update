@@ -10,7 +10,7 @@ const { HTTP_STATUS_CODE } = require("../constants/general");
 exports.getUserNotifications = async (req, res) => {
   try {
     const userId = req.user.id;
-    const { limit = 50, skip = 0 } = req.query;
+    const { limit = 50, skip = 0, unreadOnly = false } = req.query;
 
     logger.info(
       {
@@ -24,11 +24,11 @@ exports.getUserNotifications = async (req, res) => {
       "Request received to get user notifications"
     );
 
-    const result = await NotificationService.getUserNotificationsSmart(
-      userId,
-      parseInt(limit),
-      parseInt(skip)
-    );
+    const parsedLimit = parseInt(limit, 10);
+    const parsedSkip = parseInt(skip, 10);
+    const result = unreadOnly === "true" || unreadOnly === true
+      ? await NotificationService.getUnreadNotifications(userId, parsedLimit, parsedSkip)
+      : await NotificationService.getUserNotifications(userId, parsedLimit, parsedSkip);
 
     if (result.success) {
       logger.info(
@@ -832,3 +832,4 @@ exports.sendCoachMessage = async (req, res) => {
       .json({ success: false, message: error.message });
   }
 };
+

@@ -17,6 +17,7 @@ const Attendance = require("../services/attendenance");
 const { UserTypes } = require("../constants/users");
 const { updateNextActionDate } = require("../data-access/medicalRecords");
 const { isRequestFromLocalhost } = require("../utils/helper");
+const { ensureUserEditFilesUseS3 } = require("../utils/ensureS3Urls");
 
 exports.getAllUsers = async (req, res) => {
   try {
@@ -57,6 +58,17 @@ exports.getAllUsers = async (req, res) => {
       User.countDocuments(queryFilter)
     ]);
     
+    for (const user of users) {
+      try {
+        await ensureUserEditFilesUseS3(user);
+      } catch (upgradeError) {
+        errorLogger.warn(
+          { error: upgradeError.message, userId: user?._id },
+          "Skipping S3 URL upgrade while listing users"
+        );
+      }
+    }
+
     // Process users
     let processedUsers = users;
     if (users && users.length > 0) {
@@ -107,9 +119,20 @@ exports.getAllUsers = async (req, res) => {
 
 exports.getUserById = async (req, res) => {
   try {
-    const user = await User.findById(req.params._id);
+    const user = await User.findById(req.params._id)
+      .populate("medicalRecords")
+      .lean();
     if (!user) {
       return res.status(404).json({ message: "User not found" });
+    }
+
+    try {
+      await ensureUserEditFilesUseS3(user);
+    } catch (upgradeError) {
+      errorLogger.warn(
+        { error: upgradeError.message, userId: user?._id },
+        "Skipping S3 URL upgrade while fetching user"
+      );
     }
     res.status(200).json(user);
   } catch (error) {

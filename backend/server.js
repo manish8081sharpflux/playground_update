@@ -4,10 +4,6 @@ dns.setServers(["8.8.8.8", "1.1.1.1"]);
 
 console.log("🌐 DNS servers:", dns.getServers());
 
-// remove the top line if you working in the office this line is because dns problem to solve.
-
-
-
 
 const express = require("express");
 const mongoose = require("mongoose");
@@ -215,7 +211,7 @@ const getMongoConnectionString = () => {
 const dbConnection = getMongoConnectionString();
 
 mongoose
-  .connect(dbConnection, { useNewUrlParser: true, useUnifiedTopology: true })
+  .connect(dbConnection)
   .then(async () => {
     console.log(
       `✅ MongoDB connected to ${process.env.NODE_ENV === "local" ? "local database" : "remote database"
@@ -349,6 +345,16 @@ async function initializeHuman() {
     } catch (error) {
       console.error("❌ Initial file cleanup failed:", error.message);
     }
+  });
+
+  server.on("error", (error) => {
+    if (error.code === "EADDRINUSE") {
+      console.error(`Port ${PORT} is already in use. Stop the existing backend or set PORT to a free port.`);
+      process.exit(1);
+    }
+
+    console.error("Server failed to start:", error.message);
+    process.exit(1);
   });
 
   try {

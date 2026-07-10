@@ -328,6 +328,10 @@ body {
     margin-bottom: 10px;
 }
 
+.data-display {
+    overflow-x: auto;
+}
+
 .data-table {
     width: 100%;
     border-collapse: separate;
@@ -355,6 +359,23 @@ body {
 
 .data-table td {
     padding: 10px;
+    vertical-align: top;
+}
+
+.data-table th,
+.data-table td {
+    min-width: 130px;
+}
+
+.data-table th:first-child,
+.data-table td:first-child,
+.remarks-cell {
+    min-width: 180px;
+}
+
+.remarks-cell {
+    max-width: 280px;
+    white-space: normal;
 }
 
 .even-row {

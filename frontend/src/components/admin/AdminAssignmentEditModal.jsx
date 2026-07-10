@@ -49,6 +49,15 @@ export default function AdminAssignmentEditModal({ isOpen, onClose, assignment, 
     }
     return '';
   };
+  const uniqueById = (items) => {
+    const seen = new Set();
+    return normalizeList(items).filter((item) => {
+      const id = getIdString(item);
+      if (!id || seen.has(id)) return false;
+      seen.add(id);
+      return true;
+    });
+  };
 
   const getStudentBalagruhaIds = (student) => {
     const values = [];
@@ -151,13 +160,13 @@ export default function AdminAssignmentEditModal({ isOpen, onClose, assignment, 
       .filter(Boolean);
     setSelectedBalagruhas(balagruhaSelection);
 
-    const studentIds = normalizeList(assignment.assignedTo?.studentIds || []).map((item) =>
-      typeof item === 'object' ? item._id : item
-    );
+    const studentIds = Array.from(new Set(normalizeList(assignment.assignedTo?.studentIds || [])
+      .map(getEntityId)
+      .filter(Boolean)));
     const studentSelection = studentIds
       .map((id) => resolveStudentById(id) || { _id: id })
       .filter(Boolean);
-    setSelectedStudents(studentSelection);
+    setSelectedStudents(uniqueById(studentSelection));
   }, [isOpen, assignment, dataLoaded, balagruhas, students]);
 
   const fetchData = async () => {
@@ -224,6 +233,7 @@ export default function AdminAssignmentEditModal({ isOpen, onClose, assignment, 
 
     return true;
   });
+  const selectedStudentCount = uniqueById(selectedStudents).length;
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -243,7 +253,7 @@ export default function AdminAssignmentEditModal({ isOpen, onClose, assignment, 
       return;
     }
 
-    if (assignmentType === 'students' && selectedStudents.length === 0) {
+    if (assignmentType === 'students' && selectedStudentCount === 0) {
       toast.error('Please select at least one student');
       return;
     }
@@ -267,7 +277,7 @@ export default function AdminAssignmentEditModal({ isOpen, onClose, assignment, 
           type: assignmentType,
           ...(assignmentType === 'balagruha'
             ? { balagruhaIds: selectedBalagruhas.map((bg) => bg._id || bg.id) }
-            : { studentIds: selectedStudents.map((student) => student._id) }
+            : { studentIds: uniqueById(selectedStudents).map((student) => student._id || student.id) }
           ),
         },
         dueDate: dueDate || null,
@@ -318,7 +328,7 @@ export default function AdminAssignmentEditModal({ isOpen, onClose, assignment, 
   const selectAllStudents = () => {
     const allStudentIds = new Set(selectedStudents.map((s) => getIdString(s)));
     const newSelections = filteredStudents.filter((student) => !allStudentIds.has(getIdString(student)));
-    setSelectedStudents([...selectedStudents, ...newSelections]);
+    setSelectedStudents(uniqueById([...selectedStudents, ...newSelections]));
   };
 
   const clearAllStudents = () => {
@@ -466,7 +476,7 @@ export default function AdminAssignmentEditModal({ isOpen, onClose, assignment, 
               <div className="flex items-center justify-between mb-3">
                 <h3 className="font-medium text-gray-900">
                   <Users className="inline mr-2" size={18} />
-                  Select Students ({selectedStudents.length} of {filteredStudents.length} shown)
+                  Select Students ({selectedStudentCount} of {filteredStudents.length} shown)
                 </h3>
                 <div className="flex gap-2">
                   <button type="button" onClick={selectAllStudents} className="text-sm text-purple-600 hover:text-purple-700">Select All Shown</button>
@@ -528,9 +538,9 @@ export default function AdminAssignmentEditModal({ isOpen, onClose, assignment, 
                 )}
               </div>
 
-              {selectedStudents.length > 0 && (
+              {selectedStudentCount > 0 && (
                 <div className="mt-3 p-3 bg-purple-50 border border-purple-200 rounded-lg">
-                  <div className="text-sm text-purple-900"><strong>{selectedStudents.length}</strong> student{selectedStudents.length !== 1 ? 's' : ''} selected</div>
+                  <div className="text-sm text-purple-900"><strong>{selectedStudentCount}</strong> student{selectedStudentCount !== 1 ? 's' : ''} selected</div>
                 </div>
               )}
             </div>
@@ -610,3 +620,4 @@ export default function AdminAssignmentEditModal({ isOpen, onClose, assignment, 
     </div>
   );
 }
+

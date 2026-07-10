@@ -42,8 +42,7 @@ const cartSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
       required: [true, 'User ID is required'],
-      unique: true,
-      index: true
+      unique: true
     },
     items: {
       type: [cartItemSchema],
@@ -60,9 +59,6 @@ const cartSchema = new mongoose.Schema(
     toObject: { virtuals: true }
   }
 );
-
-// Index for faster cart lookups
-cartSchema.index({ userId: 1 });
 
 // Virtual: Item count
 cartSchema.virtual('itemCount').get(function() {

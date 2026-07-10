@@ -64,13 +64,11 @@ class RepairRequest {
             };
           }
         } else {
-          let attachmentObj = {
-            fileName: fileName,
-            fileUrl: fileFullPath,
-            fileType: file.mimetype,
-            uploadedBy: repairRequestData.createdBy,
+          return {
+            success: false,
+            data: {},
+            message: "S3 upload is required for attachments.",
           };
-          attachments[i] = attachmentObj;
         }
       }
     }

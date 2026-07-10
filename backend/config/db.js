@@ -14,10 +14,7 @@ const connectDB = async () => {
         ? localUri || "mongodb://localhost:27017/isfplayground"
         : remoteUri || localUri || "mongodb://localhost:27017/isfplayground";
 
-    const conn = await mongoose.connect(mongoURI, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    });
+    const conn = await mongoose.connect(mongoURI);
 
     console.log(
       `MongoDB connected: ${conn.connection.host} (${

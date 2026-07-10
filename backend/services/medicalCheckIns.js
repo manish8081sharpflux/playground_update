@@ -1,4 +1,5 @@
 const { default: mongoose } = require("mongoose");
+const path = require("path");
 const { errorLogger } = require("../config/pino-config");
 const {
   createMedicalCheckIn,
@@ -110,7 +111,7 @@ class MedicalCheckIns {
       if (fileGroups?.attachments && fileGroups.attachments.length > 0) {
         for (let i = 0; i < fileGroups.attachments.length; i++) {
           let file = fileGroups.attachments[i];
-          let fileName = file.replace("uploads/", "");
+          let fileName = path.basename(file);
           let result = await uploadFileToS3(
             file,
             process.env.AWS_S3_FOLDER_MEDICAL_RECORDS,
@@ -140,7 +141,7 @@ class MedicalCheckIns {
       if (fileGroups?.prescriptions && fileGroups.prescriptions.length > 0) {
         for (let i = 0; i < fileGroups.prescriptions.length; i++) {
           let file = fileGroups.prescriptions[i];
-          let fileName = file.replace("uploads/", "");
+          let fileName = path.basename(file);
           let result = await uploadFileToS3(
             file,
             process.env.AWS_S3_FOLDER_MEDICAL_RECORDS,
@@ -170,7 +171,7 @@ class MedicalCheckIns {
       if (fileGroups?.testResults && fileGroups.testResults.length > 0) {
         for (let i = 0; i < fileGroups.testResults.length; i++) {
           let file = fileGroups.testResults[i];
-          let fileName = file.replace("uploads/", "");
+          let fileName = path.basename(file);
           let result = await uploadFileToS3(
             file,
             process.env.AWS_S3_FOLDER_MEDICAL_RECORDS,
@@ -200,7 +201,7 @@ class MedicalCheckIns {
       if (fileGroups?.followUpDescriptions && fileGroups.followUpDescriptions.length > 0) {
         for (let i = 0; i < fileGroups.followUpDescriptions.length; i++) {
           let file = fileGroups.followUpDescriptions[i];
-          let fileName = file.replace("uploads/", "");
+          let fileName = path.basename(file);
           let result = await uploadFileToS3(
             file,
             process.env.AWS_S3_FOLDER_MEDICAL_RECORDS,
@@ -230,7 +231,7 @@ class MedicalCheckIns {
       if (fileGroups?.followUpTestResults && fileGroups.followUpTestResults.length > 0) {
         for (let i = 0; i < fileGroups.followUpTestResults.length; i++) {
           let file = fileGroups.followUpTestResults[i];
-          let fileName = file.replace("uploads/", "");
+          let fileName = path.basename(file);
           let result = await uploadFileToS3(
             file,
             process.env.AWS_S3_FOLDER_MEDICAL_RECORDS,
@@ -551,7 +552,7 @@ class MedicalCheckIns {
       if (fileGroups.attachments && fileGroups.attachments.length > 0) {
         for (let i = 0; i < fileGroups.attachments.length; i++) {
           let file = fileGroups.attachments[i];
-          let fileName = file.replace("uploads/", "");
+          let fileName = path.basename(file);
           let result = await uploadFileToS3(
             file,
             process.env.AWS_S3_FOLDER_MEDICAL_ATTACHMENTS,
@@ -581,7 +582,7 @@ class MedicalCheckIns {
       if (fileGroups.prescriptions && fileGroups.prescriptions.length > 0) {
         for (let i = 0; i < fileGroups.prescriptions.length; i++) {
           let file = fileGroups.prescriptions[i];
-          let fileName = file.replace("uploads/", "");
+          let fileName = path.basename(file);
           let result = await uploadFileToS3(
             file,
             process.env.AWS_S3_FOLDER_MEDICAL_RECORDS,
@@ -604,7 +605,7 @@ class MedicalCheckIns {
       if (fileGroups.testResults && fileGroups.testResults.length > 0) {
         for (let i = 0; i < fileGroups.testResults.length; i++) {
           let file = fileGroups.testResults[i];
-          let fileName = file.replace("uploads/", "");
+          let fileName = path.basename(file);
           let result = await uploadFileToS3(
             file,
             process.env.AWS_S3_FOLDER_MEDICAL_RECORDS,
