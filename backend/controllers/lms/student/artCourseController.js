@@ -3,6 +3,7 @@ const StudentProgress = require('../../../models/StudentProgress');
 const Submission = require('../../../models/Submission');
 const ArtGallery = require('../../../models/ArtGallery');
 const ArtCompetition = require('../../../models/ArtCompetition');
+const ContentLibrary = require('../../../models/ContentLibrary');
 const s3Service = require('../../../services/aws/s3');
 const mongoose = require('mongoose');
 const fs = require('fs');
@@ -20,6 +21,81 @@ const { errorLogger } = require('../../../config/pino-config');
  */
 
 // ==================== GET ART COURSE DATA ====================
+
+const mapContentItemForStudent = (contentItem, module, chapter, courseId, completedItemIds, gradedTaskIds) => {
+  const itemId = contentItem._id.toString();
+  return {
+    id: contentItem._id,
+    courseId,
+    chapterId: chapter._id,
+    type: contentItem.type,
+    title: contentItem.title,
+    description: contentItem.description || '',
+    order: contentItem.order || 0,
+    fileUrl: contentItem.fileUrl || null,
+    externalUrl: contentItem.externalUrl || contentItem.fileUrl || null,
+    textContent: contentItem.textContent || '',
+    metadata: contentItem.metadata || {},
+    quizData: contentItem.quizData || null,
+    quizRef: contentItem.quizRef || null,
+    taskData: contentItem.taskData || null,
+    moduleTitle: module.title,
+    chapterTitle: chapter.title,
+    completed:
+      completedItemIds.has(itemId) ||
+      (contentItem.type === 'task' && gradedTaskIds.includes(itemId))
+  };
+};
+
+const escapeRegex = (value = '') => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+const findContentItemById = (course, contentItemId) => {
+  for (const module of course.modules || []) {
+    for (const chapter of module.chapters || []) {
+      const contentItem = (chapter.contentItems || []).find(item =>
+        String(item._id) === String(contentItemId)
+      );
+      if (contentItem) {
+        return { module, chapter, contentItem };
+      }
+    }
+  }
+
+  return null;
+};
+
+const contentTypeForItem = (item) => {
+  if (item.type === 'pdf') return 'application/pdf';
+  if (item.type === 'video') return 'video/mp4';
+  if (item.type === 'audio') return 'audio/mpeg';
+  if (item.type === 'image') return 'image/png';
+  return 'application/octet-stream';
+};
+
+const decodeUrlPart = (value = '') => {
+  try {
+    return decodeURIComponent(value);
+  } catch (_error) {
+    return value;
+  }
+};
+
+const formatTaskSubmission = (submission) => {
+  if (!submission) return null;
+  return {
+    id: submission._id,
+    submissionId: submission._id,
+    taskId: submission.taskId,
+    chapterId: submission.chapterId || null,
+    submissionType: submission.submissionType,
+    fileUrl: submission.fileUrl,
+    thumbnailUrl: submission.thumbnailUrl,
+    status: submission.status,
+    grade: submission.grade || null,
+    submittedAt: submission.submittedAt,
+    metadata: submission.metadata || {},
+  };
+};
 
 /**
  * @desc Get Art Course data for all modes
@@ -60,6 +136,24 @@ exports.getArtCourseData = async (req, res) => {
       gradedSubmissionMap.get(courseKey).push(taskKey);
     });
 
+    const artSubmissions = await Submission.find({
+      studentId,
+      courseId: { $in: artCourses.map(c => c._id) },
+      submissionType: 'art',
+      status: { $in: ['pending', 'graded', 'flagged', 'skipped'] }
+    }).sort({ submittedAt: -1 }).lean();
+
+    const latestSubmissionMap = new Map();
+    artSubmissions.forEach(submission => {
+      const courseKey = submission.courseId?.toString();
+      const taskKey = submission.taskId?.toString();
+      if (!courseKey || !taskKey) return;
+      const key = `${courseKey}:${taskKey}`;
+      if (!latestSubmissionMap.has(key)) {
+        latestSubmissionMap.set(key, submission);
+      }
+    });
+
     // 3. Separate courses into workshop vs story modes
     const workshops = [];
     const stories = [];
@@ -78,6 +172,21 @@ exports.getArtCourseData = async (req, res) => {
       const tasks = [];
       let firstVideoUrl = null;
       const courseTaskIds = new Set();
+      const modules = (course.modules || []).map(module => ({
+        id: module._id,
+        title: module.title,
+        description: module.description || '',
+        order: module.order || 0,
+        chapters: (module.chapters || []).map(chapter => ({
+          id: chapter._id,
+          title: chapter.title,
+          description: chapter.description || '',
+          order: chapter.order || 0,
+          contentItems: (chapter.contentItems || []).map(contentItem =>
+            mapContentItemForStudent(contentItem, module, chapter, course._id, completedItemIds, gradedTaskIds)
+          )
+        }))
+      }));
 
       (course.modules || []).forEach(module => {
         (module.chapters || []).forEach(chapter => {
@@ -96,6 +205,10 @@ exports.getArtCourseData = async (req, res) => {
                 maxFileSize: contentItem.taskData?.maxFileSize || null,
                 moduleTitle: module.title,
                 chapterTitle: chapter.title,
+                chapterId: chapter._id,
+                submission: formatTaskSubmission(
+                  latestSubmissionMap.get(`${course._id.toString()}:${contentItem._id.toString()}`)
+                ),
                 completed:
                   completedItemIds.has(contentItem._id.toString()) ||
                   gradedTaskIds.includes(contentItem._id.toString())
@@ -124,6 +237,7 @@ exports.getArtCourseData = async (req, res) => {
         videoUrl: firstVideoUrl,
         thumbnailUrl: course.thumbnail,
         instructions: course.description,
+        modules,
         completed: tasks.length > 0
           ? completedTaskCount === tasks.length
           : progress?.status === 'completed',
@@ -227,6 +341,109 @@ exports.getArtCourseData = async (req, res) => {
   }
 };
 
+/**
+ * @desc Stream a course content file for the student Art page
+ * @route GET /api/v2/lms/student/:studentId/courses/art/content/:contentItemId/file
+ * @access Private
+ */
+exports.getContentItemFile = async (req, res) => {
+  try {
+    const { contentItemId } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(contentItemId)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid content item id'
+      });
+    }
+
+    const course = await Course.findOne({
+      category: 'Art',
+      status: 'published',
+      'modules.chapters.contentItems._id': contentItemId
+    }).lean();
+
+    if (!course) {
+      return res.status(404).json({
+        success: false,
+        message: 'Content item not found'
+      });
+    }
+
+    const match = findContentItemById(course, contentItemId);
+    const contentItem = match?.contentItem;
+
+    if (!contentItem || !contentItem.fileUrl) {
+      return res.status(404).json({
+        success: false,
+        message: 'Content file not found'
+      });
+    }
+
+    let objectResult = await s3Service.getLMSContentObject(contentItem.fileUrl);
+
+    if (!objectResult.success) {
+      const extractedKey = s3Service.extractS3KeyFromUrl(contentItem.fileUrl);
+      const fileName = extractedKey?.split('/').pop();
+      const decodedFileName = decodeUrlPart(fileName || '');
+      const lookupConditions = [{ fileUrl: contentItem.fileUrl }];
+
+      if (extractedKey) {
+        lookupConditions.push({ s3Key: extractedKey });
+      }
+      if (fileName) {
+        lookupConditions.push({ s3Key: new RegExp(`${escapeRegex(fileName)}$`) });
+        lookupConditions.push({ fileUrl: new RegExp(`${escapeRegex(fileName)}$`) });
+      }
+      if (decodedFileName && decodedFileName !== fileName) {
+        lookupConditions.push({ s3Key: new RegExp(`${escapeRegex(decodedFileName)}$`) });
+        lookupConditions.push({ fileUrl: new RegExp(`${escapeRegex(decodedFileName)}$`) });
+        lookupConditions.push({ fileName: decodedFileName });
+      }
+
+      const libraryFile = await ContentLibrary.findOne({
+        fileType: contentItem.type,
+        $or: lookupConditions
+      }).sort({ uploadedAt: -1 }).lean();
+      if (libraryFile?.s3Key || libraryFile?.fileUrl) {
+        objectResult = await s3Service.getLMSContentObject(libraryFile.s3Key || libraryFile.fileUrl);
+      }
+    }
+
+    if (!objectResult.success || !objectResult.stream) {
+      return res.status(404).json({
+        success: false,
+        message: 'Content file not found in storage'
+      });
+    }
+
+    const filename = encodeURIComponent(contentItem.title || 'content-file');
+    res.setHeader('Content-Type', objectResult.contentType || contentTypeForItem(contentItem));
+    if (objectResult.contentLength) {
+      res.setHeader('Content-Length', objectResult.contentLength);
+    }
+    res.setHeader('Content-Disposition', `inline; filename="${filename}"`);
+
+    objectResult.stream.on('error', (error) => {
+      errorLogger.error({ err: error }, 'Art content stream error:');
+      if (!res.headersSent) {
+        res.status(500).end();
+      } else {
+        res.destroy(error);
+      }
+    });
+
+    objectResult.stream.pipe(res);
+  } catch (error) {
+    errorLogger.error({ err: error }, 'Get Art Content File Error:');
+    res.status(500).json({
+      success: false,
+      message: 'Server error while loading content file',
+      error: error.message
+    });
+  }
+};
+
 // ==================== SUBMIT ARTWORK ====================
 
 /**
@@ -237,13 +454,14 @@ exports.getArtCourseData = async (req, res) => {
 exports.submitArtwork = async (req, res) => {
   try {
     const { studentId } = req.params;
-    const { type, mode, courseId, taskId, taskTitle, title } = req.body;
+    const { type, mode, courseId, taskId, taskTitle, title, chapterId } = req.body;
     let metadata = req.body.metadata;
     if (typeof metadata === 'string') {
       try { metadata = JSON.parse(metadata); } catch (_e) { metadata = {}; }
     }
     const file = req.file;
     let courseTask = null;
+    let courseChapter = null;
 
     // Validate required fields
     if (!type || type !== 'art') {
@@ -290,6 +508,7 @@ exports.submitArtwork = async (req, res) => {
           );
           if (matchedTask) {
             courseTask = matchedTask;
+            courseChapter = chapter;
             break;
           }
         }
@@ -384,6 +603,7 @@ exports.submitArtwork = async (req, res) => {
     const submission = await Submission.create({
       studentId,
       courseId: resolvedCourseId || new mongoose.Types.ObjectId(), // placeholder if no course
+      chapterId: courseChapter?._id?.toString() || chapterId || metadata?.chapterId || null,
       taskId: resolvedTaskId,
       taskTitle: courseTask?.title || taskTitle || title || `Art ${mode} submission`,
       submissionType: 'art',

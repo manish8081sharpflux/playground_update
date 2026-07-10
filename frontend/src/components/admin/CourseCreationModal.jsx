@@ -144,8 +144,9 @@ export default function CourseCreationModal({
     try {
       setLoading(true);
 
+      const shouldUploadThumbnailToS3 = false;
       let thumbnailUrl = formData.thumbnail;
-      if (thumbnailFile) {
+      if (shouldUploadThumbnailToS3 && thumbnailFile) {
         try {
           const uploadResult = await uploadFile({
             file: thumbnailFile,
@@ -353,6 +354,7 @@ export default function CourseCreationModal({
                   src={thumbnailPreview}
                   alt="Thumbnail preview"
                   className="w-full h-48 object-cover rounded-lg"
+                  onError={removeThumbnail}
                 />
                 <button
                   type="button"

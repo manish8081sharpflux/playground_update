@@ -7,6 +7,7 @@ import { BookOpen, CheckCircle, ChevronRight, PlayCircle, FileText, HelpCircle, 
 import CourseAudioPlayer from '../../components/student/computer-apps/CourseAudioPlayer';
 import CourseImageViewer from '../../components/student/computer-apps/CourseImageViewer';
 import LoadingState from '../../components/common/LoadingState';
+import useLmsContentFileUrl from '../../hooks/useLmsContentFileUrl';
 
 /**
  * ComputerAppsPage Component - Epic 01 Story 02
@@ -15,6 +16,147 @@ import LoadingState from '../../components/common/LoadingState';
  * - Main Area: Grid of Content Cards (Video, PDF, Quiz)
  * - Click -> Modal (Video/PDF) or Navigation (Quiz)
  */
+function isExternalVideoEmbed(url = '') {
+  return /youtube\.com|youtu\.be|vimeo\.com/i.test(url);
+}
+
+function ComputerAppsVideoModal({ item, onClose }) {
+  const { url, loading } = useLmsContentFileUrl('computer-apps', item, { preferSignedUrl: true });
+  const directUrl = url || item.fileUrl;
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
+      <div className="bg-black rounded-2xl w-full max-w-5xl overflow-hidden shadow-2xl border border-gray-800 flex flex-col max-h-[90vh]">
+        <div className="p-4 flex justify-between items-center bg-gray-900 border-b border-gray-800">
+          <h3 className="text-lg font-bold text-white">{item.title}</h3>
+          <button
+            onClick={onClose}
+            className="text-gray-400 hover:text-white p-2 rounded-full hover:bg-gray-800 transition-colors"
+          >
+            <X size={24} />
+          </button>
+        </div>
+        <div className="aspect-video bg-black flex-1 relative">
+          {loading && (
+            <div className="flex items-center justify-center h-full text-white">Loading video...</div>
+          )}
+          {!loading && directUrl && isExternalVideoEmbed(directUrl) && (
+            <iframe
+              src={directUrl.replace('watch?v=', 'embed/')}
+              title={item.title}
+              className="absolute inset-0 w-full h-full"
+              allowFullScreen
+            />
+          )}
+          {!loading && directUrl && !isExternalVideoEmbed(directUrl) && (
+            <video
+              src={directUrl}
+              title={item.title}
+              controls
+              autoPlay
+              className="absolute inset-0 w-full h-full"
+            />
+          )}
+          {!loading && !directUrl && (
+            <div className="flex items-center justify-center h-full text-white">Video unavailable</div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ComputerAppsPdfModal({ item, onClose }) {
+  const { url, loading } = useLmsContentFileUrl('computer-apps', item);
+
+  return (
+    <div className="fixed inset-0 bg-gray-900 bg-opacity-75 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
+      <div className="bg-white rounded-2xl w-full max-w-4xl h-[85vh] flex flex-col shadow-2xl overflow-hidden">
+        <div className="p-5 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+          <div>
+            <h3 className="text-xl font-bold text-gray-900">{item.title}</h3>
+            <p className="text-sm text-gray-500">Reading Material</p>
+          </div>
+          <button
+            onClick={onClose}
+            className="text-gray-400 hover:text-gray-600 p-2 rounded-full hover:bg-gray-200 transition-colors"
+          >
+            <X size={24} />
+          </button>
+        </div>
+        <div className="flex-1 overflow-y-auto p-8 bg-white">
+          {loading && (
+            <div className="flex h-full items-center justify-center text-gray-600">Loading material...</div>
+          )}
+          {!loading && url && (
+            <iframe
+              src={url}
+              title={item.title}
+              className="w-full h-full"
+            />
+          )}
+          {!loading && !url && (
+            <div className="prose max-w-none">
+              <div dangerouslySetInnerHTML={{ __html: item.description || 'No content available.' }} />
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ComputerAppsAudioModal({ item, onClose, onComplete }) {
+  const { url, loading } = useLmsContentFileUrl('computer-apps', item);
+
+  if (loading) {
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-80 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
+        <div className="rounded-2xl bg-white px-8 py-6 text-gray-700 shadow-2xl">Loading audio...</div>
+      </div>
+    );
+  }
+
+  return (
+    <CourseAudioPlayer
+      audioUrl={url || item.fileUrl}
+      title={item.title}
+      onClose={onClose}
+      onComplete={onComplete}
+    />
+  );
+}
+
+function ComputerAppsImageModal({ item, onClose }) {
+  const { url, loading } = useLmsContentFileUrl('computer-apps', item);
+
+  if (loading) {
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-80 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
+        <div className="rounded-2xl bg-white px-8 py-6 text-gray-700 shadow-2xl">Loading image...</div>
+      </div>
+    );
+  }
+
+  return (
+    <CourseImageViewer
+      imageUrl={url || item.fileUrl}
+      title={item.title}
+      onClose={onClose}
+    />
+  );
+}
+
+function ComputerAppsImageThumbnail({ item }) {
+  const { url } = useLmsContentFileUrl('computer-apps', item);
+
+  return url ? (
+    <img src={url} alt={item.title} className="w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-opacity" />
+  ) : (
+    <span className="text-6xl filter drop-shadow-sm">ðŸ–¼ï¸</span>
+  );
+}
+
 export default function ComputerAppsPage() {
   const params = useParams();
   const { courseId } = params;
@@ -158,6 +300,14 @@ export default function ComputerAppsPage() {
     } else if (item.type === 'image') {
       setActiveImage(item);
       markContentComplete(item);
+    } else if (item.type === 'link') {
+      const targetUrl = item.externalUrl || item.fileUrl;
+      if (targetUrl) {
+        window.open(targetUrl, '_blank', 'noopener,noreferrer');
+        markContentComplete(item);
+      } else {
+        toast.error('Link unavailable');
+      }
     } else {
       // Fallback for unknown types (renders as Read & Learn)
       setActivePdf(item);
@@ -348,7 +498,7 @@ export default function ComputerAppsPage() {
                     <div key={item.id} className="bg-white border-2 border-pink-200 rounded-2xl overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 group">
                       <div className="bg-pink-50 h-40 flex items-center justify-center group-hover:bg-pink-100 transition-colors relative">
                         {item.fileUrl ? (
-                          <img src={item.fileUrl} alt={item.title} className="w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-opacity" />
+                          <ComputerAppsImageThumbnail item={item} />
                         ) : (
                           <span className="text-6xl filter drop-shadow-sm">🖼️</span>
                         )}
@@ -366,6 +516,29 @@ export default function ComputerAppsPage() {
                           className="w-full py-2.5 bg-pink-500 text-white rounded-lg font-semibold hover:bg-pink-600 transition-colors flex items-center justify-center gap-2"
                         >
                           <ImageIcon size={18} /> View Image
+                        </button>
+                      </div>
+                    </div>
+                  );
+                } else if (item.type === 'link') {
+                  return (
+                    <div key={item.id} className="bg-white border-2 border-cyan-200 rounded-2xl overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 group">
+                      <div className="bg-cyan-50 h-40 flex items-center justify-center group-hover:bg-cyan-100 transition-colors relative">
+                        <span className="text-6xl filter drop-shadow-sm">ðŸ”—</span>
+                        {isTaskCompleted(item) && (
+                          <div className="absolute top-3 right-3 bg-green-500 text-white p-1 rounded-full shadow-sm">
+                            <CheckCircle size={16} />
+                          </div>
+                        )}
+                      </div>
+                      <div className="p-5">
+                        <span className="inline-block px-2 py-1 bg-cyan-100 text-cyan-700 text-xs font-bold rounded-full mb-2 uppercase tracking-wide">Link</span>
+                        <h3 className="text-lg font-bold text-gray-900 mb-3 line-clamp-2 leading-tight">{item.title}</h3>
+                        <button
+                          onClick={() => handleLaunchContent(item)}
+                          className="w-full py-2.5 bg-cyan-600 text-white rounded-lg font-semibold hover:bg-cyan-700 transition-colors flex items-center justify-center gap-2"
+                        >
+                          Open Link
                         </button>
                       </div>
                     </div>
@@ -408,71 +581,18 @@ export default function ComputerAppsPage() {
 
       {/* Video Modal */}
       {activeVideo && (
-        <div className="fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
-          <div className="bg-black rounded-2xl w-full max-w-5xl overflow-hidden shadow-2xl border border-gray-800 flex flex-col max-h-[90vh]">
-            <div className="p-4 flex justify-between items-center bg-gray-900 border-b border-gray-800">
-              <h3 className="text-lg font-bold text-white">{activeVideo.title}</h3>
-              <button
-                onClick={() => setActiveVideo(null)}
-                className="text-gray-400 hover:text-white p-2 rounded-full hover:bg-gray-800 transition-colors"
-              >
-                <X size={24} />
-              </button>
-            </div>
-            <div className="aspect-video bg-black flex-1 relative">
-              {activeVideo.fileUrl ? (
-                <iframe
-                  src={activeVideo.fileUrl.replace('watch?v=', 'embed/')}
-                  title={activeVideo.title}
-                  className="absolute inset-0 w-full h-full"
-                  allowFullScreen
-                />
-              ) : (
-                <div className="flex items-center justify-center h-full text-white">Video unavailable</div>
-              )}
-            </div>
-          </div>
-        </div>
+        <ComputerAppsVideoModal item={activeVideo} onClose={() => setActiveVideo(null)} />
       )}
 
       {/* PDF/Text Modal */}
       {activePdf && (
-        <div className="fixed inset-0 bg-gray-900 bg-opacity-75 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl w-full max-w-4xl h-[85vh] flex flex-col shadow-2xl overflow-hidden">
-            <div className="p-5 border-b border-gray-100 flex justify-between items-center bg-gray-50">
-              <div>
-                <h3 className="text-xl font-bold text-gray-900">{activePdf.title}</h3>
-                <p className="text-sm text-gray-500">Reading Material</p>
-              </div>
-              <button
-                onClick={() => setActivePdf(null)}
-                className="text-gray-400 hover:text-gray-600 p-2 rounded-full hover:bg-gray-200 transition-colors"
-              >
-                <X size={24} />
-              </button>
-            </div>
-            <div className="flex-1 overflow-y-auto p-8 bg-white">
-              {activePdf.fileUrl ? (
-                <iframe
-                  src={activePdf.fileUrl}
-                  title={activePdf.title}
-                  className="w-full h-full"
-                />
-              ) : (
-                <div className="prose max-w-none">
-                  <div dangerouslySetInnerHTML={{ __html: activePdf.description || 'No content available.' }} />
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
+        <ComputerAppsPdfModal item={activePdf} onClose={() => setActivePdf(null)} />
       )}
 
       {/* Audio Player Modal */}
       {activeAudio && (
-        <CourseAudioPlayer
-          audioUrl={activeAudio.fileUrl}
-          title={activeAudio.title}
+        <ComputerAppsAudioModal
+          item={activeAudio}
           onClose={() => setActiveAudio(null)}
           onComplete={() => markContentComplete(activeAudio)}
         />
@@ -480,11 +600,7 @@ export default function ComputerAppsPage() {
 
       {/* Image Viewer Modal */}
       {activeImage && (
-        <CourseImageViewer
-          imageUrl={activeImage.fileUrl}
-          title={activeImage.title}
-          onClose={() => setActiveImage(null)}
-        />
+        <ComputerAppsImageModal item={activeImage} onClose={() => setActiveImage(null)} />
       )}
     </div>
   );

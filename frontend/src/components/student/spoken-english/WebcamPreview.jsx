@@ -83,15 +83,15 @@ export default function WebcamPreview({
           <div className="absolute inset-0 flex items-center justify-center bg-gray-900 bg-opacity-80">
             <div className="text-center text-white">
               <div className="text-6xl mb-4">📹</div>
-              <p className="text-xl font-semibold mb-2">Webcam not detected</p>
+              <p className="text-xl font-semibold mb-2">Ready to start recording?</p>
               <p className="text-sm text-gray-300">
-                Please connect a webcam to continue
+                Allow camera access, then click the button below to begin.
               </p>
               <button
                 onClick={() => window.location.reload()}
                 className="mt-4 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors"
               >
-                Retry Connection
+                Start Recording
               </button>
             </div>
           </div>

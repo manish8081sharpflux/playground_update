@@ -537,7 +537,7 @@ exports.deleteMedicalCheckIn = async (req, res) => {
 exports.addOrUpdateAttachments = async (req, res) => {
   try {
     const { checkInId } = req.params;
-    const { createdBy } = req.body;
+    const createdBy = req.user?._id || req.user?.id || req.body.createdBy;
     logger.info(
       {
         clientIP: req.socket.remoteAddress,
@@ -566,7 +566,7 @@ exports.addOrUpdateAttachments = async (req, res) => {
     if (!createdBy) {
       return res
         .status(HTTP_STATUS_CODE.BAD_REQUEST)
-        .json({ success: false, message: "createdBy ID is required" });
+        .json({ success: false, message: "Authenticated user ID is required" });
     }
     const result = await MedicalCheckIns.addOrUpdateAttachments(
       checkInId,

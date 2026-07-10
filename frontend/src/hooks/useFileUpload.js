@@ -78,39 +78,26 @@ export default function useFileUpload() {
         }
 
         const { uploadUrl, cdnUrl, s3Key } = uploadUrlResponse.data;
-        let directUploadReachedStorage = false;
 
-        try {
-          await axios.put(uploadUrl, file, {
-            headers: {
-              'Content-Type': file.type,
-              'x-amz-acl': 'public-read',
-            },
-            signal: controller.signal,
-            timeout: 0,
-            transformRequest: [(data) => data],
-            onUploadProgress: (progressEvent) => {
-              const total = progressEvent.total || file.size;
-              const percentCompleted = Math.round((progressEvent.loaded * 100) / total);
-              if (percentCompleted >= 100) {
-                directUploadReachedStorage = true;
+        await axios.put(uploadUrl, file, {
+          headers: {
+            'Content-Type': file.type,
+          },
+          signal: controller.signal,
+          timeout: 0,
+          transformRequest: [(data) => data],
+          onUploadProgress: (progressEvent) => {
+            const total = progressEvent.total || file.size;
+            const percentCompleted = Math.round((progressEvent.loaded * 100) / total);
+            setUploads(prev => ({
+              ...prev,
+              [id]: {
+                ...prev[id],
+                progress: percentCompleted
               }
-              setUploads(prev => ({
-                ...prev,
-                [id]: {
-                  ...prev[id],
-                  progress: percentCompleted
-                }
-              }));
-            }
-          });
-          directUploadReachedStorage = true;
-        } catch (uploadError) {
-          if (!directUploadReachedStorage) {
-            throw uploadError;
+            }));
           }
-          console.warn('Direct upload reached 100% but confirmation failed; saving metadata without re-uploading.', uploadError);
-        }
+        });
 
         const completeResponse = await api.post('/api/v2/lms/admin/content/complete-upload', {
           fileName: file.name,

@@ -4,6 +4,7 @@ const Submission = require('../../../models/Submission');
 const mongoose = require('mongoose');
 const { errorLogger } = require('../../../config/pino-config');
 const s3Service = require('../../../services/aws/s3');
+const { streamCourseContentFile } = require('../../../utils/lmsContentFile');
 const fs = require('fs');
 
 /**
@@ -108,13 +109,15 @@ exports.getLifeSkillsTasks = async (req, res) => {
         type,
         title: item.title,
         description: item.description,
-        fileUrl: item.fileUrl,
+        fileUrl: item.fileUrl || item.externalUrl,
+        externalUrl: item.externalUrl || item.fileUrl,
+        textContent: item.textContent || '',
         totalQuestions: item.quizRef?.questions?.length || item.metadata?.questions?.length || 0,
         totalCoins: (item.quizRef?.questions?.length || item.metadata?.questions?.length || 0) * 12,
         bonusCoins: item.metadata?.bonusCoins || 24,
         difficulty: item.metadata?.difficulty || 'medium',
         coinsForSubmission: item.metadata?.coins || 20,
-        instructions: item.description,
+        instructions: item.textContent || item.description,
         category: item.metadata?.category || 'general',
         duration: item.metadata?.duration,
         isCompleted: completedItems.has(item._id.toString())
@@ -170,6 +173,10 @@ exports.getLifeSkillsTasks = async (req, res) => {
       error: 'Failed to fetch Life Skills tasks'
     });
   }
+};
+
+exports.getContentItemFile = async (req, res) => {
+  return streamCourseContentFile(req, res, { category: 'Life Skills' });
 };
 
 /**

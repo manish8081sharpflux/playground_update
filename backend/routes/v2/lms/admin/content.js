@@ -7,12 +7,18 @@ const { lmsUploadWithErrorHandling } = require('../../../../middleware/upload');
 
 // ==================== CONTENT UPLOAD ENDPOINTS ====================
 
+const extendUploadTimeout = (req, _res, next) => {
+  req.setTimeout(15 * 60 * 1000);
+  next();
+};
+
 /**
  * Create presigned URL for direct browser-to-S3 upload
  * POST /api/v2/lms/admin/content/upload-url
  */
 router.post(
   '/upload-url',
+  extendUploadTimeout,
   authenticate,
   authorize('LMS Management', 'Manage'),
   contentController.createUploadUrl
@@ -24,6 +30,7 @@ router.post(
  */
 router.post(
   '/complete-upload',
+  extendUploadTimeout,
   authenticate,
   authorize('LMS Management', 'Manage'),
   contentController.completeDirectUpload
@@ -37,6 +44,7 @@ router.post(
  */
 router.post(
   '/upload',
+  extendUploadTimeout,
   authenticate,
   authorize('LMS Management', 'Manage'),
   lmsUploadWithErrorHandling,

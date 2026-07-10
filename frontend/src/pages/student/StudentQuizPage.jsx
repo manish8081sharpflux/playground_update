@@ -27,9 +27,10 @@ export default function StudentQuizPage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
 
-  // Determine Context (Life Skills vs Computer Apps)
+  // Determine Context (Life Skills vs Computer Apps vs Art)
   const isComputerApps = location.pathname.includes('computer-apps');
-  const courseSlug = isComputerApps ? 'computer-apps' : 'life-skills';
+  const isArt = location.pathname.includes('/student/art');
+  const courseSlug = isComputerApps ? 'computer-apps' : isArt ? 'art' : 'life-skills';
   const baseRoute = `/student/${courseSlug}`;
 
   useEffect(() => {
