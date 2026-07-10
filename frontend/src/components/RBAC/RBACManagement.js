@@ -38,38 +38,49 @@ const RBACManagement = () => {
 
         // Create modules array with standard actions
         const modulesList = Array.from(uniqueModules).map((moduleName) => {
+          const actions = [
+            {
+              id: "create",
+              name: "Create",
+              description: `Create new ${moduleName.toLowerCase()}`,
+              icon: "➕",
+            },
+            {
+              id: "read",
+              name: "Read",
+              description: `View ${moduleName.toLowerCase()} details`,
+              icon: "👁️",
+            },
+            {
+              id: "update",
+              name: "Update",
+              description: `Update ${moduleName.toLowerCase()} information`,
+              icon: "✏️",
+            },
+            {
+              id: "delete",
+              name: "Delete",
+              description: `Remove ${moduleName.toLowerCase()}`,
+              icon: "🗑️",
+            },
+          ];
+
+          if (["Purchase Management", "Shop Management"].includes(moduleName)) {
+            actions.push({
+              id: "manage",
+              name: "Manage",
+              description: `Manage ${moduleName.toLowerCase()}`,
+              icon: "⚙️",
+            });
+          }
+
           return {
             id: moduleName.replace(/\s+/g, ""),
             name: moduleName,
             description: `Manage ${moduleName.toLowerCase()}`,
             icon: getModuleIcon(moduleName),
             color: getModuleColor(moduleName),
-            actions: [
-              {
-                id: "create",
-                name: "Create",
-                description: `Create new ${moduleName.toLowerCase()}`,
-                icon: "➕",
-              },
-              {
-                id: "read",
-                name: "Read",
-                description: `View ${moduleName.toLowerCase()} details`,
-                icon: "👁️",
-              },
-              {
-                id: "update",
-                name: "Update",
-                description: `Update ${moduleName.toLowerCase()} information`,
-                icon: "✏️",
-              },
-              {
-                id: "delete",
-                name: "Delete",
-                description: `Remove ${moduleName.toLowerCase()}`,
-                icon: "🗑️",
-              },
-            ],
+            actions,
           };
         });
 
@@ -80,24 +91,21 @@ const RBACManagement = () => {
             const permissionsObj = {};
 
             modulesList.forEach((module) => {
-              permissionsObj[module.id] = {
-                create: false,
-                read: false,
-                update: false,
-                delete: false,
-              };
+              permissionsObj[module.id] = module.actions.reduce((acc, action) => {
+                acc[action.id] = false;
+                return acc;
+              }, {});
             });
 
             role.permissions.forEach((permission) => {
               const moduleId = permission.module.replace(/\s+/g, "");
 
               if (!permissionsObj[moduleId]) {
-                permissionsObj[moduleId] = {
-                  create: false,
-                  read: false,
-                  update: false,
-                  delete: false,
-                };
+                const moduleConfig = modulesList.find((module) => module.id === moduleId);
+                permissionsObj[moduleId] = (moduleConfig?.actions || []).reduce((acc, action) => {
+                  acc[action.id] = false;
+                  return acc;
+                }, {});
               }
 
               permission.actions.forEach((action) => {
@@ -111,6 +119,7 @@ const RBACManagement = () => {
               description: `${capitalizeFirstLetter(role.roleName)} role with specific permissions`,
               color: getRoleColor(index),
               icon: getRoleIcon(role.roleName),
+              roleName: role.roleName,
               permissions: permissionsObj,
               createdAt: role.createdAt,
               updatedAt: role.updatedAt,
@@ -194,14 +203,15 @@ const RBACManagement = () => {
     return string.charAt(0).toUpperCase() + string.slice(1);
   };
 
+  const getModulesForRole = () => modules;
   // Format permissions into the requested structure for API
-  const formatPermissionsForAPI = (permissions) => {
+  const formatPermissionsForAPI = (permissions, role = selectedRole) => {
     const formattedData = {
       permissions: [],
     };
 
     // Find module names from modules array
-    modules.forEach((module) => {
+    getModulesForRole(role).forEach((module) => {
       const moduleId = module.id;
       const moduleName = module.name;
       const modulePermissions = permissions[moduleId];
@@ -261,7 +271,7 @@ const RBACManagement = () => {
     setIsEditing(false);
 
     // Format and set permissions in the requested structure
-    const formatted = formatPermissionsForAPI(role.permissions);
+    const formatted = formatPermissionsForAPI(role.permissions, role);
     setFormattedPermissions(formatted);
   };
 
@@ -288,7 +298,7 @@ const RBACManagement = () => {
       }
 
       // Format and set permissions
-      const formatted = formatPermissionsForAPI(updated);
+      const formatted = formatPermissionsForAPI(updated, selectedRole);
       setFormattedPermissions(formatted);
 
       return updated;
@@ -315,7 +325,7 @@ const RBACManagement = () => {
       });
 
       // Format and set permissions
-      const formatted = formatPermissionsForAPI(updated);
+      const formatted = formatPermissionsForAPI(updated, selectedRole);
       setFormattedPermissions(formatted);
 
       return updated;
@@ -327,7 +337,8 @@ const RBACManagement = () => {
     if (!isEditing) return;
 
     // Check if all modules have this action enabled
-    const allEnabled = modules.every(
+    const visibleModules = getModulesForRole();
+    const allEnabled = visibleModules.every(
       (module) =>
         tempPermissions[module.id] && tempPermissions[module.id][actionId],
     );
@@ -336,7 +347,7 @@ const RBACManagement = () => {
     setTempPermissions((prev) => {
       const updated = { ...prev };
 
-      modules.forEach((module) => {
+      visibleModules.forEach((module) => {
         const moduleId = module.id;
         updated[moduleId] = { ...updated[moduleId] };
         updated[moduleId][actionId] = !allEnabled;
@@ -358,7 +369,7 @@ const RBACManagement = () => {
       });
 
       // Format and set permissions
-      const formatted = formatPermissionsForAPI(updated);
+      const formatted = formatPermissionsForAPI(updated, selectedRole);
       setFormattedPermissions(formatted);
 
       return updated;
@@ -367,7 +378,7 @@ const RBACManagement = () => {
 
   // Save permission changes
   const savePermissions = async (id) => {
-    const permissionsForAPI = formatPermissionsForAPI(tempPermissions);
+    const permissionsForAPI = formatPermissionsForAPI(tempPermissions, selectedRole);
 
     try {
       // ✅ Pass object directly, NOT JSON.stringify
@@ -408,7 +419,7 @@ const RBACManagement = () => {
     setIsEditing(false);
 
     // Reset formatted permissions to original
-    const formatted = formatPermissionsForAPI(selectedRole.permissions);
+    const formatted = formatPermissionsForAPI(selectedRole.permissions, selectedRole);
     setFormattedPermissions(formatted);
   };
 
@@ -417,11 +428,12 @@ const RBACManagement = () => {
     if (modules.length === 0) return [];
 
     // Get the first module's actions
-    const firstModuleActions = modules[0].actions;
+    const visibleModules = getModulesForRole();
+    const firstModuleActions = visibleModules[0]?.actions || [];
 
     // Check if all other modules have the same actions
     const commonActions = firstModuleActions.filter((action) =>
-      modules.every((module) => module.actions.some((a) => a.id === action.id)),
+      visibleModules.every((module) => module.actions.some((a) => a.id === action.id)),
     );
 
     return commonActions;
@@ -638,7 +650,7 @@ const RBACManagement = () => {
                                                                 <label className="checkbox-container header-checkbox">
                                                                     <input
                                                                         type="checkbox"
-                                                                        checked={modules.every(module =>
+                                                                        checked={getModulesForRole().every(module =>
                                                                             tempPermissions[module.id] &&
                                                                             tempPermissions[module.id][action.id]
                                                                         )}
@@ -654,7 +666,7 @@ const RBACManagement = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {modules.map((module) => {
+                      {getModulesForRole().map((module) => {
                         const modulePermissions = isEditing
                           ? tempPermissions[module.id]
                           : selectedRole.permissions[module.id];
@@ -759,3 +771,7 @@ const RBACManagement = () => {
 };
 
 export default RBACManagement;
+
+
+
+

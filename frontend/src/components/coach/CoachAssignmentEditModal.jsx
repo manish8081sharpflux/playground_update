@@ -345,18 +345,18 @@ export default function CoachAssignmentEditModal({ isOpen, onClose, assignment, 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Assign To <span className="text-red-500">*</span></label>
 
-            <div
+            {/* <div
               onClick={() => setAssignmentType('balagruha')}
               className={`border-2 rounded-lg p-4 cursor-pointer mb-3 transition ${assignmentType === 'balagruha' ? 'border-purple-500 bg-purple-50' : 'border-gray-300 hover:border-purple-300'}`}
-            >
-              <div className="flex items-start">
-                <input
+            > */}
+              {/* <div className="flex items-start"> */}
+                {/* <input
                   type="radio"
                   checked={assignmentType === 'balagruha'}
                   onChange={() => setAssignmentType('balagruha')}
                   className="mr-3 mt-1"
-                />
-                <div className="flex-1">
+                /> */}
+                {/* <div className="flex-1">
                   <div className="font-medium text-gray-900">Entire Balagruha(s)</div>
                   <div className="text-sm text-gray-600">All students in selected Balagruha(s) will receive this course</div>
                   <div className="mt-3 border border-gray-200 rounded-lg p-3 bg-white">
@@ -417,9 +417,9 @@ export default function CoachAssignmentEditModal({ isOpen, onClose, assignment, 
                       </div>
                     )}
                   </div>
-                </div>
-              </div>
-            </div>
+                </div> */}
+              {/* </div>
+            </div> */}
 
             <div
               onClick={() => setAssignmentType('students')}
@@ -433,8 +433,8 @@ export default function CoachAssignmentEditModal({ isOpen, onClose, assignment, 
                   className="mr-3 mt-1"
                 />
                 <div className="flex-1">
-                  <div className="font-medium text-gray-900">Specific Students</div>
-                  <div className="text-sm text-gray-600">Select individual students from any Balagruha</div>
+                  <div className="font-medium text-gray-900">Students</div>
+                  <div className="text-sm text-gray-600">Select individual students below</div>
                 </div>
               </div>
             </div>

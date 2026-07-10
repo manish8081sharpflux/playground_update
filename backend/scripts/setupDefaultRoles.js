@@ -49,6 +49,7 @@ const defaultRoles = [
       {
         module: "Shop Management",
         actions: ["Manage"],
+        scope: "balagruh",
       },
       {
         module: "notifications",
@@ -61,6 +62,7 @@ const defaultRoles = [
       {
         module: "Purchase Management",
         actions: ["Create", "Read", "Update", "Delete", "Manage"],
+        scope: "balagruh",
       },
       {
         module: "Medical Check-in",
@@ -88,20 +90,14 @@ const defaultRoles = [
     roleName: "purchase-manager",
     permissions: [
       {
-        module: "User Management",
-        actions: ["Read"],
-      },
-      {
         module: "Shop Management",
         actions: ["Manage"],
+        scope: "balagruh",
       },
       {
         module: "Purchase Management",
-        actions: ["Create", "Read", "Update", "Manage"],
-      },
-      {
-        module: "Machine Management",
-        actions: ["Read"],
+        actions: ["Create", "Read", "Update", "Delete", "Manage"],
+        scope: "balagruh",
       },
     ],
   },
@@ -363,3 +359,7 @@ if (require.main === module) {
       process.exit(1);
     });
 }
+
+
+
+

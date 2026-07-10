@@ -451,7 +451,12 @@ const BalagruhaManagement = () => {
       {/* Create/Edit Modal */}
       {showModal && (
         <div className="modal-overlay">
-          <div className="modal-content">
+          <div className="modal-content" style={{
+            padding: '0',
+            overflowY: 'auto',
+            scrollbarWidth: 'none',
+            msOverflowStyle: 'none'
+          }}>
             <div className="modal-header">
               <h3>
                 {modalMode === "create"

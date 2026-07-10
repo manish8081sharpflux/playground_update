@@ -14,10 +14,56 @@ const {
 } = require("../services/user");
 const Student = require("../services/student");
 const Attendance = require("../services/attendenance");
+const AttendanceRecord = require("../models/attendance");
 const { UserTypes } = require("../constants/users");
 const { updateNextActionDate } = require("../data-access/medicalRecords");
-const { isRequestFromLocalhost } = require("../utils/helper");
+const { dateToString, isRequestFromLocalhost } = require("../utils/helper");
 const { ensureUserEditFilesUseS3 } = require("../utils/ensureS3Urls");
+const getIdString = (value) => (value?._id || value)?.toString();
+
+const userHasBalagruhaAccess = (user, balagruhaId) => {
+  if (!balagruhaId) return false;
+  if ((user?.role || "").toLowerCase() === "admin") return true;
+
+  const allowedBalagruhas = (user?.balagruhaIds || []).map(getIdString);
+  return allowedBalagruhas.includes(balagruhaId.toString());
+};
+
+const validateAttendanceScope = async (req, res, next) => {
+  try {
+    const balagruhaId = req.params.balagruhaId || req.body?.balagruhaId;
+    const studentId = req.body?.studentId;
+
+    if (!userHasBalagruhaAccess(req.user, balagruhaId)) {
+      return res.status(403).json({
+        success: false,
+        message: "Access denied. You can mark attendance only for your assigned Balagruhas.",
+      });
+    }
+
+    if (studentId) {
+      const student = await User.findById(studentId).select("role balagruhaIds").lean();
+      const studentBalagruhas = (student?.balagruhaIds || []).map(getIdString);
+
+      if (!student || student.role !== "student" || !studentBalagruhas.includes(balagruhaId.toString())) {
+        return res.status(403).json({
+          success: false,
+          message: "Access denied. Student is not assigned to this Balagruha.",
+        });
+      }
+    }
+
+    return next();
+  } catch (error) {
+    errorLogger.error({ error: error.message }, "Attendance scope validation failed");
+    return res.status(500).json({
+      success: false,
+      message: "Failed to validate attendance access",
+    });
+  }
+};
+
+exports.validateAttendanceScope = validateAttendanceScope;
 
 exports.getAllUsers = async (req, res) => {
   try {
@@ -616,6 +662,105 @@ exports.getStudentListByBalagruhaIdWithAttendance = async (req, res) => {
   }
 };
 
+// API for fetch one student's weekly attendance from the shared attendance table
+exports.getStudentWeeklyAttendance = async (req, res) => {
+  try {
+    const requestedStudentId = req.params.studentId;
+    const authUserId = getIdString(req.user);
+    const role = (req.user?.role || "").toLowerCase();
+
+    if (role === "student" && requestedStudentId !== authUserId) {
+      return res.status(403).json({
+        success: false,
+        message: "Access denied. Students can view only their own attendance.",
+      });
+    }
+
+    if (role !== "admin" && role !== "student") {
+      const student = await User.findById(requestedStudentId).select("role balagruhaIds").lean();
+      const canViewStudent = (student?.balagruhaIds || []).some((balagruhaId) =>
+        userHasBalagruhaAccess(req.user, balagruhaId)
+      );
+
+      if (!student || student.role !== "student" || !canViewStudent) {
+        return res.status(403).json({
+          success: false,
+          message: "Access denied. Student is outside your assigned Balagruhas.",
+        });
+      }
+    }
+
+    const parseLocalDate = (value) => {
+      if (!value) return new Date();
+      const dateOnlyMatch = String(value).match(/^(\d{4})-(\d{2})-(\d{2})$/);
+      if (dateOnlyMatch) {
+        return new Date(
+          Number(dateOnlyMatch[1]),
+          Number(dateOnlyMatch[2]) - 1,
+          Number(dateOnlyMatch[3])
+        );
+      }
+      return new Date(value);
+    };
+
+    const referenceDate = parseLocalDate(req.query.date);
+    if (Number.isNaN(referenceDate.getTime())) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid date",
+      });
+    }
+
+    const weekStart = new Date(referenceDate);
+    weekStart.setHours(0, 0, 0, 0);
+    weekStart.setDate(referenceDate.getDate() - ((referenceDate.getDay() + 6) % 7));
+
+    const weekDays = Array.from({ length: 7 }, (_, index) => {
+      const day = new Date(weekStart);
+      day.setDate(weekStart.getDate() + index);
+      return day;
+    });
+
+    const dateStrings = weekDays.map((day) => dateToString(day));
+    const attendanceRecords = await AttendanceRecord.find({
+      studentId: requestedStudentId,
+      dateString: { $in: dateStrings },
+    }).lean();
+
+    const recordByDate = new Map(attendanceRecords.map((record) => [record.dateString, record]));
+    const days = weekDays.map((day) => {
+      const key = dateToString(day);
+      const record = recordByDate.get(key);
+      return {
+        date: key,
+        dayName: day.toLocaleDateString("en-US", { weekday: "short" }),
+        dayNumber: day.getDate(),
+        monthName: day.toLocaleDateString("en-US", { month: "short" }),
+        status: record?.status || "not_marked",
+      };
+    });
+
+    const markedDays = days.filter((day) => day.status !== "not_marked");
+    const presentDays = days.filter((day) => day.status === "present").length;
+    const percentage = markedDays.length > 0 ? Math.round((presentDays / markedDays.length) * 100) : 0;
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        weekStart: dateStrings[0],
+        weekEnd: dateStrings[6],
+        percentage,
+        days,
+      },
+    });
+  } catch (error) {
+    errorLogger.error({ error: error.message }, "Error fetching weekly attendance");
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch weekly attendance",
+    });
+  }
+};
 // API for facial login
 exports.facialLogin = async (req, res) => {
   try {

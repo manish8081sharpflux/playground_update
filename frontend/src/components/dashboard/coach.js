@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import './coach-styles.css';
 import WeeklyCalendar from './WeeklyCalendar';
+import AttendanceComponent from '../Attendance/attendance';
 import {
     getBalagruha,
     getTasks,
@@ -76,6 +77,7 @@ function CoachDashboard() {
     const getCurrentData = () => {
         if (coachMenuSelected === 2) return tasks;
         if (coachMenuSelected === 3) return medicalData;
+        if (coachMenuSelected === 6) return attendance;
         if (coachMenuSelected === 7) return purchaseData;
         if (coachMenuSelected === 8) return isfShopData;
         return [];
@@ -560,6 +562,12 @@ function CoachDashboard() {
             show: can("Medical Management", "Read"),
         },
         {
+            id: 6,
+            name: "Attendance",
+            count: 0,
+            show: can("User Management", "Read") || can("Attendance Management", "Read"),
+        },
+        {
             id: 7,
             name: "Purchase",
             count: purchaseData.length,
@@ -834,7 +842,7 @@ function CoachDashboard() {
                         </div>
 
                         {/* Display dummy data when coach menu is selected */}
-                        {coachMenuSelected && coachMenuSelected !== 1 && (
+                        {coachMenuSelected && coachMenuSelected !== 1 && coachMenuSelected !== 6 && (
                             <div className="data-display">
                                 <h3>{coachMenus.find(m => m.id === coachMenuSelected)?.name}</h3>
                                 <div className="table-controls">
@@ -1083,6 +1091,10 @@ function CoachDashboard() {
                                     </div>
                                 )}
                             </div>
+                        )}
+
+                        {coachMenuSelected === 6 && (
+                            <AttendanceComponent />
                         )}
 
                         {/* Weekly Calendar (shown when Daily Schedule is selected) */}

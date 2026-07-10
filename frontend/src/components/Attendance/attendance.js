@@ -8,7 +8,14 @@ const AttendanceComponent = () => {
     const [students, setStudents] = useState([]);
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage, setItemsPerPage] = useState(8);
-    const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+    const getLocalDateString = (dateValue = new Date()) => {
+        const localDate = dateValue instanceof Date ? dateValue : new Date(dateValue);
+        const year = localDate.getFullYear();
+        const month = String(localDate.getMonth() + 1).padStart(2, '0');
+        const day = String(localDate.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    };
+    const [date, setDate] = useState(getLocalDateString());
     const [metrics, setMetrics] = useState({
         present: 0,
         absent: 0,
@@ -57,13 +64,13 @@ const AttendanceComponent = () => {
         const data = {
             balagruhaId: selectedBalagruha,
             studentId: id,
-            date: new Date(date).toISOString(),
+            date,
             status: type,
             notes: ''
         };
 
         try {
-            await postmarkAttendance(JSON.stringify(data));
+            await postmarkAttendance(data);
             getStudentListBasedonDate(selectedBalagruha, date);
         } catch (error) {
             console.error('Error marking attendance:', error);
@@ -106,7 +113,7 @@ const AttendanceComponent = () => {
                         id="attendance-date"
                         value={date}
                         onChange={handleDateChange}
-                        max={new Date().toISOString().split('T')[0]}
+                        max={getLocalDateString()}
                     />
                 </div>
 
@@ -197,80 +204,49 @@ const AttendanceComponent = () => {
                                     </table>
 
                                     {totalPages > 1 && (
-                                        <>
-                                            <div className="pagination">
-                                                <div className="pagination-left">
-                                                    <button onClick={() => setCurrentPage(1)} disabled={currentPage === 1}>
-                                                        First
-                                                    </button>
+                                        <div className="pagination">
+                                            <div className="pagination-left">
+                                                <button
+                                                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                                                    disabled={currentPage === 1}
+                                                >
+                                                    Prev
+                                                </button>
 
-                                                    <button onClick={() => setCurrentPage(prev => prev - 1)} disabled={currentPage === 1}>
-                                                        Prev
-                                                    </button>
+                                                {currentPage <= 2 ? (
+                                                    <>
+                                                        <button onClick={() => setCurrentPage(1)} className={currentPage === 1 ? "active-page" : ""}>1</button>
+                                                        <button onClick={() => setCurrentPage(2)} className={currentPage === 2 ? "active-page" : ""}>2</button>
+                                                        <span className="pagination-dots">...</span>
+                                                        <button onClick={() => setCurrentPage(totalPages - 1)}>{totalPages - 1}</button>
+                                                        <button onClick={() => setCurrentPage(totalPages)}>{totalPages}</button>
+                                                    </>
+                                                ) : currentPage >= totalPages - 1 ? (
+                                                    <>
+                                                        <button onClick={() => setCurrentPage(1)}>1</button>
+                                                        <button onClick={() => setCurrentPage(2)}>2</button>
+                                                        <span className="pagination-dots">...</span>
+                                                        <button onClick={() => setCurrentPage(totalPages - 1)} className={currentPage === totalPages - 1 ? "active-page" : ""}>{totalPages - 1}</button>
+                                                        <button onClick={() => setCurrentPage(totalPages)} className={currentPage === totalPages ? "active-page" : ""}>{totalPages}</button>
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <button onClick={() => setCurrentPage(1)}>1</button>
+                                                        <span className="pagination-dots">...</span>
+                                                        <button onClick={() => setCurrentPage(currentPage)} className="active-page">{currentPage}</button>
+                                                        <span className="pagination-dots">...</span>
+                                                        <button onClick={() => setCurrentPage(totalPages)}>{totalPages}</button>
+                                                    </>
+                                                )}
 
-                                                    {Array.from({ length: Math.min(5, totalPages) }, (_, index) => {
-                                                        let pageNumber;
-
-                                                        if (currentPage <= 3) {
-                                                            pageNumber = index + 1;
-                                                        } else if (currentPage >= totalPages - 2) {
-                                                            pageNumber = totalPages - 4 + index;
-                                                        } else {
-                                                            pageNumber = currentPage - 2 + index;
-                                                        }
-
-                                                        if (pageNumber < 1 || pageNumber > totalPages) return null;
-
-                                                        return (
-                                                            <button
-                                                                key={pageNumber}
-                                                                onClick={() => setCurrentPage(pageNumber)}
-                                                                className={currentPage === pageNumber ? "active-page" : ""}
-                                                            >
-                                                                {pageNumber}
-                                                            </button>
-                                                        );
-                                                    })}
-
-                                                    {totalPages > 5 && <span className="pagination-dots">...</span>}
-
-                                                    <button
-                                                        onClick={() => setCurrentPage(prev => prev + 1)}
-                                                        disabled={currentPage === totalPages}
-                                                    >
-                                                        Next
-                                                    </button>
-
-                                                    <button
-                                                        onClick={() => setCurrentPage(totalPages)}
-                                                        disabled={currentPage === totalPages}
-                                                    >
-                                                        Last
-                                                    </button>
-                                                </div>
-
-                                                <div className="pagination-right">
-                                                    <select
-                                                        value={itemsPerPage}
-                                                        onChange={(e) => {
-                                                            setItemsPerPage(Number(e.target.value));
-                                                            setCurrentPage(1);
-                                                        }}
-                                                    >
-                                                        <option value={8}>8</option>
-                                                        <option value={10}>10</option>
-                                                        <option value={25}>25</option>
-                                                        <option value={50}>50</option>
-                                                    </select>
-
-                                                    <div>
-                                                        Displaying{" "}
-                                                        {students.length === 0 ? 0 : indexOfFirstItem + 1} to{" "}
-                                                        {Math.min(indexOfLastItem, students.length)} of {students.length} records
-                                                    </div>
-                                                </div>
+                                                <button
+                                                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                                                    disabled={currentPage === totalPages}
+                                                >
+                                                    Next
+                                                </button>
                                             </div>
-                                        </>
+                                        </div>
                                     )}
                                 </>
                             ) : (

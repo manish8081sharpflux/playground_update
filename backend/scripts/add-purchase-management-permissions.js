@@ -1,6 +1,6 @@
 /**
- * Script to add Purchase Management permissions to purchase-manager role
- * Sprint5-Story-17: Purchase Request Creation & Management
+ * Ensure purchase-manager has the permissions required by purchase manager pages.
+ * This script preserves any other modules already assigned to the role.
  *
  * Run: node backend/scripts/add-purchase-management-permissions.js
  */
@@ -11,73 +11,77 @@ const Role = require('../models/role');
 
 const MONGO_URI = process.env.MONGO_URI;
 
+const requiredPermissions = [
+  {
+    module: 'Shop Management',
+    actions: ['Manage'],
+    scope: 'balagruh',
+  },
+  {
+    module: 'Purchase Management',
+    actions: ['Create', 'Read', 'Update', 'Delete', 'Manage'],
+    scope: 'balagruh',
+  },
+];
+
+function mergeActions(currentActions = [], requiredActions = []) {
+  return Array.from(new Set([...currentActions, ...requiredActions]));
+}
+
 async function addPurchaseManagementPermissions() {
   try {
-    console.log('🔗 Connecting to MongoDB...');
+    console.log('Connecting to MongoDB...');
     await mongoose.connect(MONGO_URI, {
       useNewUrlParser: true,
-      useUnifiedTopology: true
+      useUnifiedTopology: true,
     });
-    console.log('✅ Connected to MongoDB');
+    console.log('Connected to MongoDB');
 
-    // Find purchase-manager role
     const purchaseManagerRole = await Role.findOne({ roleName: 'purchase-manager' });
 
     if (!purchaseManagerRole) {
-      console.error('❌ purchase-manager role not found in database');
-      console.log('Available roles:');
+      console.error('purchase-manager role not found in database');
       const allRoles = await Role.find({}, 'roleName');
-      allRoles.forEach(role => console.log(`  - ${role.roleName}`));
+      console.log('Available roles:');
+      allRoles.forEach((role) => console.log(`  - ${role.roleName}`));
       process.exit(1);
     }
 
-    console.log(`\n📋 Found role: ${purchaseManagerRole.roleName}`);
-    console.log(`Current permissions modules: ${purchaseManagerRole.permissions.map(p => p.module).join(', ')}`);
+    console.log(`Found role: ${purchaseManagerRole.roleName}`);
+    console.log(`Current permission modules: ${purchaseManagerRole.permissions.map((p) => p.module).join(', ')}`);
 
-    // Check if Purchase Management already exists
-    const existingPermission = purchaseManagerRole.permissions.find(
-      p => p.module === 'Purchase Management'
-    );
+    requiredPermissions.forEach((requiredPermission) => {
+      const existingPermission = purchaseManagerRole.permissions.find(
+        (permission) => permission.module === requiredPermission.module
+      );
 
-    if (existingPermission) {
-      console.log('\n⚠️  Purchase Management permissions already exist:');
-      console.log(`   Actions: ${existingPermission.actions.join(', ')}`);
-      console.log('\nℹ️  No changes needed. Exiting...');
-      await mongoose.connection.close();
-      process.exit(0);
-    }
-
-    // Add Purchase Management permissions
-    const newPermission = {
-      module: 'Purchase Management',
-      actions: ['Create', 'Read', 'Update', 'Delete']
-    };
-
-    purchaseManagerRole.permissions.push(newPermission);
-    await purchaseManagerRole.save();
-
-    console.log('\n✅ Successfully added Purchase Management permissions!');
-    console.log(`   Module: ${newPermission.module}`);
-    console.log(`   Actions: ${newPermission.actions.join(', ')}`);
-
-    console.log('\n📋 Updated permissions for purchase-manager role:');
-    purchaseManagerRole.permissions.forEach(perm => {
-      console.log(`   - ${perm.module}: ${perm.actions.join(', ')}`);
+      if (existingPermission) {
+        existingPermission.actions = mergeActions(
+          existingPermission.actions,
+          requiredPermission.actions
+        );
+        existingPermission.scope = requiredPermission.scope;
+      } else {
+        purchaseManagerRole.permissions.push(requiredPermission);
+      }
     });
 
-    console.log('\n🔄 Please restart the backend server to clear role cache.');
+    await purchaseManagerRole.save();
+
+    console.log('Purchase manager permissions synced without removing other modules.');
+    purchaseManagerRole.permissions.forEach((permission) => {
+      console.log(`  - ${permission.module}: ${permission.actions.join(', ')} (${permission.scope || 'own'})`);
+    });
 
     await mongoose.connection.close();
-    console.log('\n✅ MongoDB connection closed. Script completed successfully!');
+    console.log('MongoDB connection closed. Script completed successfully.');
     process.exit(0);
-
   } catch (error) {
-    console.error('❌ Error adding permissions:', error.message);
+    console.error('Error syncing purchase-manager permissions:', error.message);
     console.error(error);
     await mongoose.connection.close();
     process.exit(1);
   }
 }
 
-// Run the script
 addPurchaseManagementPermissions();

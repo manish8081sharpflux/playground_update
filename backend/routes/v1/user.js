@@ -8,6 +8,8 @@ const {
   createStudentAttendance,
   createManualAttendance,
   getStudentListByBalagruhaIdWithAttendance,
+  getStudentWeeklyAttendance,
+  validateAttendanceScope,
   getUsersByRoleAndBalagruhaId,
   getUserById,
   getUserInfo,
@@ -62,6 +64,7 @@ router.post(
   "/students/attendance",
   authenticate,
   authorize("User Management", "Create"),
+  validateAttendanceScope,
   createStudentAttendance
 );
 // API for create manual attendance (manual override when FR fails or unavailable)
@@ -71,6 +74,7 @@ router.post(
   "/students/attendance/manual",
   authenticate,
   authorize("User Management", "Create"),
+  validateAttendanceScope,
   createManualAttendance
 );
 // API for fetch the student list in balagruha with the attendance by given date (pass date as query )
@@ -78,7 +82,7 @@ router.get(
   "/students/attendance/:balagruhaId",
   authenticate,
   authorize("User Management", "Read"),
-  validateBalagruhaAccess,
+  validateAttendanceScope,
   getStudentListByBalagruhaIdWithAttendance
 );
 // API for find users by role and balagruha id (pass balagruhaId as query parameter)
@@ -108,6 +112,12 @@ router.put(
   authenticate,
   authorize("User Management", "Update"),
   assignBalagruhaToUser
+);
+// API for fetch a student's weekly attendance summary
+router.get(
+  "/:studentId/attendance/week",
+  authenticate,
+  getStudentWeeklyAttendance
 );
 // API for get student profile with aggregated data (Sprint5-Story-16)
 // IMPORTANT: Must be BEFORE generic /:userId routes to avoid route shadowing
