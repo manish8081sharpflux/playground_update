@@ -220,6 +220,7 @@ exports.uploadFiles = async (req, res) => {
             fileName: contentLibraryEntry.fileName,
             fileType: contentLibraryEntry.fileType,
             fileUrl: contentLibraryEntry.fileUrl,
+            s3Key: contentLibraryEntry.s3Key,
             fileSize: contentLibraryEntry.fileSize,
             mimeType: contentLibraryEntry.mimeType,
           });

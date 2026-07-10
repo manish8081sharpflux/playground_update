@@ -15,6 +15,11 @@ const SubmissionSchema = new mongoose.Schema(
       required: true,
       index: true,
     },
+    chapterId: {
+      type: String,
+      default: null,
+      index: true,
+    },
     taskId: {
       type: String,
       required: true,

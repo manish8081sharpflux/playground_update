@@ -10,14 +10,10 @@ const path = require("path");
 const VideoThumbnailService = require("../videoThumbnail");
 
 const folder = (envName, fallback) => process.env[envName] || fallback;
-const getBucketName = () =>
+const bucketName = () =>
   process.env.AWS_S3_BUCKET_NAME ||
-  process.env.AWS_S3_BUCKET_NAME_MEDICAL_RECORDS ||
-  process.env.AWS_S3_BUCKET_NAME_MEDICAL_ATTACHMENTS ||
-  process.env.AWS_S3_BUCKET_NAME_TASK_ATTACHMENTS ||
-  process.env.AWS_S3_BUCKET_NAME_SHOP_PRODUCTS ||
   process.env.AWS_S3_BUCKET_NAME_LMS_CONTENT ||
-  "";
+  process.env.AWS_S3_BUCKET_NAME_TASK_ATTACHMENTS;
 const trimSlashes = (value = "") => value.replace(/^\/+|\/+$/g, "");
 const withFolder = (folderName, key) => {
   const prefix = trimSlashes(folderName);
@@ -33,8 +29,8 @@ const publicUrl = (key) => {
     .split("/")
     .map(encodeURIComponent)
     .join("/");
-  if (endpoint) return `${endpoint}/${getBucketName()}/${encodedKey}`;
-  return `https://${getBucketName()}.s3.${process.env.AWS_S3_REGION}.amazonaws.com/${encodedKey}`;
+  if (endpoint) return `${endpoint}/${bucketName()}/${encodedKey}`;
+  return `https://${bucketName()}.s3.${process.env.AWS_S3_REGION}.amazonaws.com/${encodedKey}`;
 };
 const decodeKey = (key = "") => {
   try {
@@ -371,8 +367,8 @@ exports.extractS3KeyFromUrl = (s3Url) => {
     // https://custom-s3-endpoint/bucket-name/key
     const pathParts = pathname.split("/").filter((part) => part);
     if (pathParts.length >= 2) {
-      const bucketName = getBucketName();
-      const keyParts = pathParts[0] === bucketName ? pathParts.slice(1) : pathParts;
+      const configuredBucketName = bucketName();
+      const keyParts = pathParts[0] === configuredBucketName ? pathParts.slice(1) : pathParts;
       return decodeKey(keyParts.join("/"));
     }
 
@@ -614,15 +610,9 @@ exports.generateLMSContentUploadUrl = async (fileName, fileType, mimeType, expir
     // Note: ChecksumAlgorithm must NOT be set for browser uploads
     // The AWS SDK will add checksums automatically which browsers can't compute
     const command = new PutObjectCommand({
-      Bucket: getBucketName(),
+      Bucket: bucketName(),
       Key: s3Key,
       ContentType: mimeType,
-      ACL: "public-read",
-      Metadata: {
-        'original-filename': fileName,
-        'file-type': fileType,
-        'upload-timestamp': new Date().toISOString(),
-      },
     });
 
     // Generate presigned URL (valid for 1 hour by default)
@@ -670,7 +660,7 @@ exports.generateLMSContentDownloadUrl = async (s3Key, expiresIn = 3600) => {
       s3Key,
     );
     const command = new GetObjectCommand({
-      Bucket: getBucketName(),
+      Bucket: bucketName(),
       Key: s3Key,
     });
 
@@ -715,19 +705,42 @@ exports.getLMSContentObject = async (keyOrUrl) => {
 
     const cleanKey = trimSlashes(s3Key);
     const decodedKey = decodeKey(cleanKey);
+    const contentFolder = folder("AWS_S3_FOLDER_LMS_CONTENT", "balagruha-lms-content");
+    const cleanFolder = trimSlashes(contentFolder);
+    const unprefixedKey = cleanFolder && decodedKey.startsWith(`${cleanFolder}/`)
+      ? decodedKey.substring(cleanFolder.length + 1)
+      : null;
     const defaultKey = withFolder(
-      folder("AWS_S3_FOLDER_LMS_CONTENT", "balagruha-lms-content"),
+      contentFolder,
       decodedKey,
     );
 
-    const candidateKeys = Array.from(new Set([cleanKey, decodedKey, defaultKey]));
+    const candidateKeys = Array.from(
+      new Set([cleanKey, decodedKey, unprefixedKey, defaultKey].filter(Boolean))
+    );
+    const legacyBuckets = [
+      process.env.AWS_S3_BUCKET_NAME_LMS_CONTENT,
+      cleanFolder,
+      "balagruha-lms-content",
+    ].filter(bucket => bucket && bucket !== bucketName());
+    const bucketKeyPairs = [
+      ...candidateKeys.map(Key => ({ Bucket: bucketName(), Key })),
+      ...legacyBuckets.flatMap(Bucket =>
+        candidateKeys.map(Key => ({
+          Bucket,
+          Key: cleanFolder && Key.startsWith(`${cleanFolder}/`)
+            ? Key.substring(cleanFolder.length + 1)
+            : Key,
+        }))
+      ),
+    ];
     let lastError = null;
 
-    for (const candidateKey of candidateKeys) {
+    for (const candidate of bucketKeyPairs) {
       try {
         const command = new GetObjectCommand({
-          Bucket: getBucketName(),
-          Key: candidateKey,
+          Bucket: candidate.Bucket,
+          Key: candidate.Key,
         });
 
         const response = await s3Client.send(command);
@@ -737,7 +750,8 @@ exports.getLMSContentObject = async (keyOrUrl) => {
           stream: response.Body,
           contentType: response.ContentType,
           contentLength: response.ContentLength,
-          s3Key: candidateKey,
+          bucket: candidate.Bucket,
+          s3Key: candidate.Key,
         };
       } catch (error) {
         lastError = error;
@@ -765,10 +779,13 @@ exports.getLMSContentObject = async (keyOrUrl) => {
  */
 exports.uploadLMSContent = async (fileContent, fileName, fileType, mimeType) => {
   try {
-    // Read file if path is provided
-    const content = typeof fileContent === 'string'
-      ? fs.readFileSync(fileContent)
-      : fileContent;
+    const isFilePath = typeof fileContent === 'string';
+    const content = isFilePath ? fs.readFileSync(fileContent) : fileContent;
+    const contentLength = isFilePath
+      ? fs.statSync(fileContent).size
+      : Buffer.isBuffer(fileContent)
+        ? fileContent.length
+        : undefined;
 
     // Generate S3 key
     const timestamp = Date.now();
@@ -782,11 +799,11 @@ exports.uploadLMSContent = async (fileContent, fileName, fileType, mimeType) => 
 
     // Upload to S3
     const command = new PutObjectCommand({
-      Bucket: getBucketName(),
+      Bucket: bucketName(),
       Key: s3Key,
       Body: content,
       ContentType: mimeType,
-      ACL: "public-read",
+      ...(contentLength ? { ContentLength: contentLength } : {}),
       Metadata: {
         'original-filename': fileName,
         'file-type': fileType,

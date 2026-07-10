@@ -645,10 +645,22 @@ class MedicalCheckIns {
         updateData.doctorVisits = updatedVisits;
       } else {
         // Legacy single-visit fallback
-        const legacyPrescriptions = checkInExists.data.doctorVisit?.prescriptionFiles || [];
-        const legacyTestResults = checkInExists.data.doctorVisit?.testResultFiles || [];
-        updateData["doctorVisit.prescriptionFiles"] = [...legacyPrescriptions, ...newPrescriptions];
-        updateData["doctorVisit.testResultFiles"] = [...legacyTestResults, ...newTestResults];
+        const legacyDoctorVisit = checkInExists.data.doctorVisit || {};
+        updateData.doctorVisit = {
+          doctorName: legacyDoctorVisit.doctorName || "",
+          hospitalName: legacyDoctorVisit.hospitalName || "",
+          visitDate: legacyDoctorVisit.visitDate || undefined,
+          testDetails: legacyDoctorVisit.testDetails || "",
+          conclusion: legacyDoctorVisit.conclusion || "",
+          prescriptionFiles: [
+            ...(legacyDoctorVisit.prescriptionFiles || []),
+            ...newPrescriptions,
+          ],
+          testResultFiles: [
+            ...(legacyDoctorVisit.testResultFiles || []),
+            ...newTestResults,
+          ],
+        };
       }
 
       const result = await updateMedicalCheckInAttachments(

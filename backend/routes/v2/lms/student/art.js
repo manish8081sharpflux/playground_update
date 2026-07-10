@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router({ mergeParams: true }); // mergeParams to access :studentId from parent router
 const artCourseController = require('../../../../controllers/lms/student/artCourseController');
+const computerAppsController = require('../../../../controllers/lms/student/computerAppsController');
 const { authenticate } = require('../../../../middleware/auth');
 const verifyStudentOwnership = require('../../../../middleware/verifyStudentOwnership');
 const { lmsUpload } = require('../../../../middleware/upload');
@@ -21,6 +22,13 @@ router.get('/competition', authenticate, verifyStudentOwnership, artCourseContro
 
 // Get student's gallery
 router.get('/gallery', authenticate, verifyStudentOwnership, artCourseController.getGallery);
+
+// Get and submit quizzes linked inside Art course content items
+router.get('/quiz/:quizId', authenticate, verifyStudentOwnership, computerAppsController.getQuiz);
+router.post('/quiz/submit', authenticate, verifyStudentOwnership, computerAppsController.submitQuiz);
+
+// Stream a chapter content file (PDF/video/audio/image) for the student Art page
+router.get('/content/:contentItemId/file', authenticate, verifyStudentOwnership, artCourseController.getContentItemFile);
 
 // Submit artwork for grading or competition (with file upload)
 router.post('/submissions', authenticate, verifyStudentOwnership, artUpload, artCourseController.submitArtwork);

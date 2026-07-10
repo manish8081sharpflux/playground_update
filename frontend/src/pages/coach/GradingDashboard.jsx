@@ -78,6 +78,18 @@ export default function GradingDashboard() {
     return studentName.includes(searchLower) || courseTitle.includes(searchLower) || taskTitle.includes(searchLower);
   });
 
+  const getNavigableSubmissions = () => {
+    const pending = filteredSubmissions.filter((submission) => submission.status !== 'graded');
+    return pending.length > 0 ? pending : filteredSubmissions;
+  };
+
+  const getCurrentNavigationList = () => {
+    const navigableSubmissions = getNavigableSubmissions();
+    return navigableSubmissions.some((sub) => sub.id === currentSubmission?.id)
+      ? navigableSubmissions
+      : filteredSubmissions;
+  };
+
   const handleOpenGrading = (submission) => {
     console.log("Clicked submission:", submission);
     console.log("Submission Type:", submission?.submissionType);
@@ -105,13 +117,14 @@ export default function GradingDashboard() {
 
   // Navigation controls
   const handleNavigate = (direction) => {
-    const currentIndex = filteredSubmissions.findIndex(
+    const currentList = getCurrentNavigationList();
+    const currentIndex = currentList.findIndex(
       (sub) => sub.id === currentSubmission.id
     );
     if (direction === 'previous' && currentIndex > 0) {
-      setCurrentSubmission(filteredSubmissions[currentIndex - 1]);
-    } else if (direction === 'next' && currentIndex < filteredSubmissions.length - 1) {
-      setCurrentSubmission(filteredSubmissions[currentIndex + 1]);
+      setCurrentSubmission(currentList[currentIndex - 1]);
+    } else if (direction === 'next' && currentIndex < currentList.length - 1) {
+      setCurrentSubmission(currentList[currentIndex + 1]);
     }
   };
 
@@ -243,53 +256,57 @@ export default function GradingDashboard() {
         <div className="fixed inset-0 bg-gray-900 z-50 overflow-y-auto">
           {currentSubmission.submissionType === 'art' && (
             <ArtGradingInterface
+              key={currentSubmission.id}
               submission={currentSubmission}
               onClose={handleCloseGrading}
               coachId={user.id}
               onNavigate={handleNavigate}
               onSkip={handleSkip}
               onFlag={handleFlag}
-              currentIndex={filteredSubmissions.findIndex((sub) => sub.id === currentSubmission.id)}
-              totalCount={filteredSubmissions.length}
+              currentIndex={getCurrentNavigationList().findIndex((sub) => sub.id === currentSubmission.id)}
+              totalCount={getCurrentNavigationList().length}
             />
           )}
           {currentSubmission.submissionType === 'video' && (
             <VideoGradingInterface
+              key={currentSubmission.id}
               submission={currentSubmission}
               onClose={handleCloseGrading}
               coachId={user.id}
               onNavigate={handleNavigate}
               onSkip={handleSkip}
               onFlag={handleFlag}
-              currentIndex={filteredSubmissions.findIndex((sub) => sub.id === currentSubmission.id)}
-              totalCount={filteredSubmissions.length}
+              currentIndex={getCurrentNavigationList().findIndex((sub) => sub.id === currentSubmission.id)}
+              totalCount={getCurrentNavigationList().length}
             />
           )}
 
           {currentSubmission.submissionType === "quiz" && (
             <QuizGradingInterface
+              key={currentSubmission.id}
               submission={currentSubmission}
               onClose={handleCloseGrading}
               coachId={user.id}
               onNavigate={handleNavigate}
               onSkip={handleSkip}
               onFlag={handleFlag}
-              currentIndex={filteredSubmissions.findIndex(
+              currentIndex={getCurrentNavigationList().findIndex(
                 (sub) => sub.id === currentSubmission.id
               )}
-              totalCount={filteredSubmissions.length}
+              totalCount={getCurrentNavigationList().length}
             />
           )}
           {currentSubmission.submissionType === 'audio' && (
             <AudioGradingInterface
+              key={currentSubmission.id}
               submission={currentSubmission}
               onClose={handleCloseGrading}
               coachId={user.id}
               onNavigate={handleNavigate}
               onSkip={handleSkip}
               onFlag={handleFlag}
-              currentIndex={filteredSubmissions.findIndex((sub) => sub.id === currentSubmission.id)}
-              totalCount={filteredSubmissions.length}
+              currentIndex={getCurrentNavigationList().findIndex((sub) => sub.id === currentSubmission.id)}
+              totalCount={getCurrentNavigationList().length}
             />
           )}
         </div>

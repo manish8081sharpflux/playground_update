@@ -120,16 +120,29 @@ const collectSubmissionFileReferences = (submission, rawSubmission = {}) => {
 };
 
 const getViewableFileUrl = async (submission) => {
-  if (!submission.fileUrl || submission.submissionType !== "art") {
+  if (!submission.fileUrl) {
     return submission.fileUrl;
   }
 
-  const s3Key = s3Service.extractS3KeyFromUrl(submission.fileUrl);
+  if (submission.fileUrl.startsWith('/uploads/')) {
+    return `http://localhost:${process.env.PORT || 5001}${submission.fileUrl}`;
+  }
+
+  if (submission.fileUrl.includes('/uploads/')) {
+    return submission.fileUrl;
+  }
+
+  const downloadableTypes = new Set(["art", "video", "audio"]);
+  if (!downloadableTypes.has(submission.submissionType)) {
+    return submission.fileUrl;
+  }
+
+  const s3Key = submission.s3Key || s3Service.extractS3KeyFromUrl(submission.fileUrl);
   if (!s3Key) {
     return submission.fileUrl;
   }
 
-  const result = await s3Service.generateLMSContentDownloadUrl(s3Key);
+  const result = await s3Service.generateLMSContentDownloadUrl(s3Key, 60 * 60);
   return result.success ? result.downloadUrl : submission.fileUrl;
 };
 
@@ -167,6 +180,16 @@ const courseHasTask = (course, taskObjectId) => {
       )
     )
   );
+};
+
+const getReferenceId = (doc, path) => {
+  const value = doc?.[path];
+  if (value?._id) return value._id;
+  if (value) return value;
+
+  const populatedValue = typeof doc?.populated === "function" ? doc.populated(path) : null;
+  if (Array.isArray(populatedValue)) return populatedValue[0] || null;
+  return populatedValue || null;
 };
 
 const markArtTaskCompletedForSubmission = async (submission) => {
@@ -434,15 +457,18 @@ exports.submitGrade = async (req, res) => {
       });
     }
 
-    const hasAccess = await canCoachGradeSubmission(gradedBy, submission);
-    if (!hasAccess) {
-      return res.status(403).json({
+    const coach = await User.findById(gradedBy);
+    const coachName = coach?.name || coach?.firstName || coach?.email || "Coach";
+    const coinsAwarded = submission.isFirstAttempt === false ? 0 : calculatedCoins;
+    const studentId = getReferenceId(submission, "studentId");
+    const courseId = getReferenceId(submission, "courseId");
+
+    if (!studentId) {
+      return res.status(400).json({
         success: false,
-        error: "You are not authorized to grade this submission",
+        error: "Submission student not found",
       });
     }
-
-    const coinsAwarded = submission.isFirstAttempt === false ? 0 : calculatedCoins;
 
     // Grade data
     const gradeData = {
@@ -453,14 +479,11 @@ exports.submitGrade = async (req, res) => {
       gradedBy,
     };
 
-    // Mark as graded
-    await submission.markAsGraded(gradeData);
-    await markArtTaskCompletedForSubmission(submission);
-
-    // Award coins to student using Coin model's findOrCreateForUser + addCoins pattern
+    // Award coins before marking the submission as graded. If coin assignment fails,
+    // the coach can retry instead of getting stuck with a half-graded submission.
     let coinBalance = 0;
     if (coinsAwarded > 0) {
-      const coinRecord = await Coin.findOrCreateForUser(submission.studentId._id);
+      const coinRecord = await Coin.findOrCreateForUser(studentId);
       await coinRecord.addCoins(
         coinsAwarded,
         "earned",
@@ -468,35 +491,40 @@ exports.submitGrade = async (req, res) => {
         "grading",
         {
           submissionId: submission._id,
-          courseId: submission.courseId._id,
+          courseId,
           taskId: submission.taskId,
           quality,
         }
       );
       coinBalance = coinRecord.balance;
     } else {
-      const existingBalance = await Coin.getUserBalance(submission.studentId._id);
+      const existingBalance = await Coin.getUserBalance(studentId);
       coinBalance = existingBalance;
     }
 
+    await submission.markAsGraded(gradeData);
+
+    try {
+      await markArtTaskCompletedForSubmission(submission);
+    } catch (progressErr) {
+      errorLogger.error({ err: progressErr }, "Failed to mark graded art task completed (non-fatal)");
+    }
+
     // Send notification to student
-    const coach = await User.findById(gradedBy);
-    const coachName = coach?.name || [coach?.firstName, coach?.lastName].filter(Boolean).join(" ") || "your coach";
-    const notificationMessage = `Coach ${coachName} graded your "${submission.taskTitle}" submission! ${coinsAwarded > 0 ? `+${coinsAwarded} ISF Coins` : ""
+    const notificationMessage = `Coach ${coachName} graded your "${submission.taskTitle}" submission! ${coinsAwarded > 0 ? `+${coinsAwarded} coins` : ""
       }`;
 
     try {
       await Notification.createPersonal(
-        submission.studentId._id,
+        studentId,
         'Submission Graded',
         notificationMessage,
         'COINS_AWARDED',
         {
-          coinAmount: coinsAwarded,
-          coinSource: 'grading',
-          coachId: gradedBy,
-          relatedEntityId: submission._id,
-          relatedEntityType: 'submission',
+          submissionId: submission._id,
+          courseId,
+          coinsAwarded,
+          quality,
           feedback: feedback || null,
         }
       );
@@ -508,11 +536,9 @@ exports.submitGrade = async (req, res) => {
     res.status(200).json({
       success: true,
       submissionId: submission._id,
-      studentId: submission.studentId._id,
+      studentId,
       studentCoinBalance: coinBalance,
-      coinsAwarded,
-      quality,
-      message: `Grade submitted successfully! ${submission.studentId.name} has been notified and earned ${coinsAwarded} ISF Coins.`,
+      message: `Grade submitted successfully! ${submission.studentId?.name || "Student"} has been notified and earned ${coinsAwarded} ISF Coins.`,
     });
   } catch (error) {
     errorLogger.error({ err: error }, "Error submitting grade:");
@@ -530,8 +556,7 @@ exports.submitGrade = async (req, res) => {
  */
 exports.bulkGrade = async (req, res) => {
   try {
-    const { submissionIds, quality, coinsAwarded: coinsOverride, feedback } = req.body;
-    const gradedBy = req.user?._id || req.user?.id;
+    const { submissionIds, quality, coinsAwarded: coinsOverride, feedback, gradedBy } = req.body;
 
     // Validation
     if (!submissionIds || !Array.isArray(submissionIds) || submissionIds.length === 0) {
@@ -557,11 +582,18 @@ exports.bulkGrade = async (req, res) => {
     }
     const coinsAwarded = coinValidation.coinsAwarded;
 
+    // H2 fix: verify gradedBy matches authenticated user
+    const authenticatedUserId = req.user?._id?.toString() || req.user?.id?.toString();
+    if (req.user?.role !== 'admin' && gradedBy !== authenticatedUserId) {
+      return res.status(403).json({ success: false, error: "Cannot grade on behalf of another coach" });
+    }
+
     let gradedCount = 0;
     const failedSubmissions = [];
 
     // Get coach info
     const coach = await User.findById(gradedBy);
+    const coachName = coach?.name || coach?.firstName || coach?.email || "Coach";
 
     // Grade each submission
     for (const submissionId of submissionIds) {
@@ -582,6 +614,13 @@ exports.bulkGrade = async (req, res) => {
         // Grade data
         const submissionCoinsAwarded =
           submission.isFirstAttempt === false ? 0 : coinsAwarded;
+        const studentId = getReferenceId(submission, "studentId");
+        const courseId = getReferenceId(submission, "courseId");
+
+        if (!studentId) {
+          failedSubmissions.push(submissionId);
+          continue;
+        }
 
         const gradeData = {
           quality,
@@ -591,13 +630,9 @@ exports.bulkGrade = async (req, res) => {
           gradedBy,
         };
 
-        // Mark as graded
-        await submission.markAsGraded(gradeData);
-        await markArtTaskCompletedForSubmission(submission);
-
-        // Award coins to student using Coin model's findOrCreateForUser + addCoins pattern
+        // Award coins before marking graded so failures remain retryable.
         if (submissionCoinsAwarded > 0) {
-          const coinRecord = await Coin.findOrCreateForUser(submission.studentId._id);
+          const coinRecord = await Coin.findOrCreateForUser(studentId);
           await coinRecord.addCoins(
             submissionCoinsAwarded,
             "earned",
@@ -605,31 +640,32 @@ exports.bulkGrade = async (req, res) => {
             "grading",
             {
               submissionId: submission._id,
-              courseId: submission.courseId._id,
+              courseId,
               taskId: submission.taskId,
               quality,
             }
           );
         }
 
+        await submission.markAsGraded(gradeData);
+
+        try {
+          await markArtTaskCompletedForSubmission(submission);
+        } catch (progressErr) {
+          errorLogger.error({ err: progressErr }, "Failed to mark bulk-graded art task completed (non-fatal)");
+        }
+
         // Send notification
-        const coachName = coach?.name || [coach?.firstName, coach?.lastName].filter(Boolean).join(" ") || "your coach";
-        const notificationMessage = `Coach ${coachName} graded your "${submission.taskTitle}" submission! ${submissionCoinsAwarded > 0 ? `+${submissionCoinsAwarded} ISF Coins` : ""
+        const notificationMessage = `Coach ${coachName} graded your "${submission.taskTitle}" submission! ${submissionCoinsAwarded > 0 ? `+${submissionCoinsAwarded} coins` : ""
           }`;
 
         try {
           await Notification.createPersonal(
-            submission.studentId._id,
+            studentId,
             'Submission Graded',
             notificationMessage,
-            'COINS_AWARDED',
-            {
-              coinAmount: submissionCoinsAwarded,
-              coinSource: 'grading',
-              coachId: gradedBy,
-              relatedEntityId: submission._id,
-              relatedEntityType: 'submission',
-            }
+            'COACH_MESSAGE',
+            { submissionId: submission._id, courseId, coinsAwarded: submissionCoinsAwarded, quality }
           );
         } catch (notifErr) {
           errorLogger.error({ err: notifErr }, "Failed to send bulk grading notification (non-fatal)");

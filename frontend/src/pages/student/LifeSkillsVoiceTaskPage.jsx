@@ -6,6 +6,7 @@ import toast from 'react-hot-toast';
 import AudioQuestionCard from '../../components/student/lifeskills/AudioQuestionCard';
 import WaveformVisualizer from '../../components/student/lifeskills/WaveformVisualizer';
 import LoadingState from '../../components/common/LoadingState';
+import useLmsContentFileUrl from '../../hooks/useLmsContentFileUrl';
 
 /**
  * Life Skills Voice Recording Task Page - Epic 01 Story 05
@@ -33,6 +34,10 @@ export default function LifeSkillsVoiceTaskPage() {
   const timerIntervalRef = useRef(null);
   const audioStreamRef = useRef(null);
   const audioPlayerRef = useRef(null);
+  const { url: taskAudioUrl } = useLmsContentFileUrl(
+    'life-skills',
+    task?.audioUrl ? { id: task.id, fileUrl: task.audioUrl } : null
+  );
 
   useEffect(() => {
     fetchVoiceTask();
@@ -279,7 +284,7 @@ export default function LifeSkillsVoiceTaskPage() {
 
         {/* Audio Question Card */}
         <AudioQuestionCard
-          audioUrl={task.audioUrl}
+          audioUrl={taskAudioUrl || task.audioUrl}
           questionText={task.question}
           autoPlay={true}
         />

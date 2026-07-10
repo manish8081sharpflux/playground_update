@@ -4,7 +4,103 @@ import { api } from '../../api';
 import toast from 'react-hot-toast';
 import { CheckCircle } from 'lucide-react';
 import LoadingState from '../../components/common/LoadingState';
+import useLmsContentFileUrl from '../../hooks/useLmsContentFileUrl';
 // import StudentLayout from '../../components/student/StudentLayout';
+
+function isExternalVideoEmbed(url = '') {
+  return /youtube\.com|youtu\.be|vimeo\.com/i.test(url);
+}
+
+function LifeSkillsVideoModal({ item, onClose }) {
+  const { url, loading } = useLmsContentFileUrl('life-skills', item, { preferSignedUrl: true });
+  const directUrl = url || item.fileUrl;
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-80 z-50 flex items-center justify-center p-4">
+      <div className="bg-white rounded-xl w-full max-w-4xl overflow-hidden shadow-2xl">
+        <div className="p-4 border-b flex justify-between items-center bg-gray-50">
+          <h3 className="text-lg font-bold">{item.title}</h3>
+          <button onClick={onClose} className="text-gray-500 hover:text-red-500 text-2xl">&times;</button>
+        </div>
+        <div className="aspect-video bg-black">
+          {loading && (
+            <div className="flex h-full items-center justify-center text-white">Loading video...</div>
+          )}
+          {!loading && directUrl && isExternalVideoEmbed(directUrl) && (
+            <iframe
+              src={directUrl.replace('watch?v=', 'embed/')}
+              title={item.title}
+              className="h-full w-full"
+              allowFullScreen
+            />
+          )}
+          {!loading && directUrl && !isExternalVideoEmbed(directUrl) && (
+            <video
+              src={directUrl}
+              controls
+              autoPlay
+              className="w-full h-full"
+            >
+              Your browser does not support the video tag.
+            </video>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function LifeSkillsPdfModal({ item, onClose }) {
+  const { url, loading } = useLmsContentFileUrl('life-skills', item);
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-80 z-50 flex items-center justify-center p-4">
+      <div className="bg-white rounded-xl w-full max-w-4xl h-[90vh] overflow-hidden shadow-2xl flex flex-col">
+        <div className="p-4 border-b flex justify-between items-center bg-gray-50">
+          <h3 className="text-lg font-bold">{item.title}</h3>
+          <button onClick={onClose} className="text-gray-500 hover:text-red-500 text-2xl">&times;</button>
+        </div>
+        <div className="flex-1 bg-gray-100 p-0">
+          {loading && (
+            <div className="flex h-full items-center justify-center text-gray-600">Loading PDF...</div>
+          )}
+          {url && (
+            <iframe
+              src={url}
+              className="w-full h-full"
+              title={item.title}
+            />
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function LifeSkillsImagePreview({ item }) {
+  const { url, loading } = useLmsContentFileUrl('life-skills', item);
+
+  if (loading) {
+    return <div className="flex h-48 items-center justify-center bg-emerald-50 text-sm text-emerald-700">Loading image...</div>;
+  }
+
+  return url ? (
+    <img src={url} alt={item.title} className="h-48 w-full object-contain bg-emerald-50" />
+  ) : (
+    <div className="flex h-48 items-center justify-center bg-emerald-50 text-6xl">ðŸ–¼ï¸</div>
+  );
+}
+
+function LifeSkillsAudioPlayer({ item }) {
+  const { url, loading } = useLmsContentFileUrl('life-skills', item);
+
+  return (
+    <div className="mt-auto">
+      {loading && <p className="mb-2 text-xs text-blue-700">Loading audio...</p>}
+      {url && <audio controls src={url} className="w-full" />}
+    </div>
+  );
+}
 
 /**
  * Life Skills Course Page - Epic 01 Story 05
@@ -218,6 +314,67 @@ export default function LifeSkillsCoursePage() {
                               </button>
                             </div>
                           );
+                        } else if (item.type === 'audio') {
+                          return (
+                            <div key={item.id} className="bg-white border-2 border-blue-200 rounded-xl overflow-hidden hover:shadow-lg transition-shadow flex flex-col h-full relative p-4" style={{ width: '100%', flexShrink: 0 }}>
+                              {item.isCompleted && (
+                                <div className="absolute top-3 right-3 bg-green-500 text-white p-1 rounded-full shadow-sm z-10" aria-hidden="true">
+                                  <CheckCircle size={16} />
+                                </div>
+                              )}
+                              <span className="px-3 py-1 bg-blue-100 text-blue-700 text-sm rounded-full font-medium mb-2 inline-block">
+                                Audio
+                              </span>
+                              <h4 className="text-lg font-bold text-gray-800 mb-2 leading-tight">{item.title}</h4>
+                              <p className="text-gray-600 text-sm mb-4 line-clamp-2">{item.description}</p>
+                              <LifeSkillsAudioPlayer item={item} />
+                            </div>
+                          );
+                        } else if (item.type === 'image') {
+                          return (
+                            <div key={item.id} className="bg-white border-2 border-emerald-200 rounded-xl overflow-hidden hover:shadow-lg transition-shadow flex flex-col h-full relative" style={{ width: '100%', flexShrink: 0 }}>
+                              {item.isCompleted && (
+                                <div className="absolute top-3 right-3 bg-green-500 text-white p-1 rounded-full shadow-sm z-10" aria-hidden="true">
+                                  <CheckCircle size={16} />
+                                </div>
+                              )}
+                              <LifeSkillsImagePreview item={item} />
+                              <div className="p-4 flex flex-col flex-1">
+                                <span className="px-3 py-1 bg-emerald-100 text-emerald-700 text-sm rounded-full font-medium mb-2 inline-block">
+                                  Image
+                                </span>
+                                <h4 className="text-lg font-bold text-gray-800 mb-2 leading-tight">{item.title}</h4>
+                                <p className="text-gray-600 text-sm line-clamp-2">{item.description}</p>
+                              </div>
+                            </div>
+                          );
+                        } else if (item.type === 'link') {
+                          return (
+                            <div key={item.id} className="bg-white border-2 border-cyan-200 rounded-xl overflow-hidden hover:shadow-lg transition-shadow flex flex-col h-full relative p-4" style={{ width: '100%', flexShrink: 0 }}>
+                              <span className="px-3 py-1 bg-cyan-100 text-cyan-700 text-sm rounded-full font-medium mb-2 inline-block">
+                                Link
+                              </span>
+                              <h4 className="text-lg font-bold text-gray-800 mb-2 leading-tight">{item.title}</h4>
+                              <p className="text-gray-600 text-sm mb-4 line-clamp-2">{item.description}</p>
+                              <button
+                                type="button"
+                                onClick={() => item.fileUrl && window.open(item.fileUrl, '_blank', 'noopener,noreferrer')}
+                                className="w-full mt-auto px-4 py-2 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700"
+                              >
+                                Open Link
+                              </button>
+                            </div>
+                          );
+                        } else if (item.type === 'text') {
+                          return (
+                            <div key={item.id} className="bg-white border-2 border-gray-200 rounded-xl overflow-hidden hover:shadow-lg transition-shadow flex flex-col h-full relative p-4" style={{ width: '100%', flexShrink: 0 }}>
+                              <span className="px-3 py-1 bg-gray-100 text-gray-700 text-sm rounded-full font-medium mb-2 inline-block">
+                                Text
+                              </span>
+                              <h4 className="text-lg font-bold text-gray-800 mb-2 leading-tight">{item.title}</h4>
+                              <p className="whitespace-pre-line text-gray-600 text-sm">{item.instructions || item.description || 'No text content provided.'}</p>
+                            </div>
+                          );
                         } else {
                           // Default to Voice/Task
                           return (
@@ -262,45 +419,14 @@ export default function LifeSkillsCoursePage() {
 
         {/* Video Viewer Modal */}
         {activeVideo && (
-          <div className="fixed inset-0 bg-black bg-opacity-80 z-50 flex items-center justify-center p-4">
-            <div className="bg-white rounded-xl w-full max-w-4xl overflow-hidden shadow-2xl">
-              <div className="p-4 border-b flex justify-between items-center bg-gray-50">
-                <h3 className="text-lg font-bold">{activeVideo.title}</h3>
-                <button onClick={() => setActiveVideo(null)} className="text-gray-500 hover:text-red-500 text-2xl">&times;</button>
-              </div>
-              <div className="aspect-video bg-black">
-                <video
-                  src={activeVideo.fileUrl}
-                  controls
-                  autoPlay
-                  className="w-full h-full"
-                >
-                  Your browser does not support the video tag.
-                </video>
-              </div>
-            </div>
-          </div>
+          <LifeSkillsVideoModal item={activeVideo} onClose={() => setActiveVideo(null)} />
         )}
 
 
 
         {/* PDF Viewer Modal */}
         {activePdf && (
-          <div className="fixed inset-0 bg-black bg-opacity-80 z-50 flex items-center justify-center p-4">
-            <div className="bg-white rounded-xl w-full max-w-4xl h-[90vh] overflow-hidden shadow-2xl flex flex-col">
-              <div className="p-4 border-b flex justify-between items-center bg-gray-50">
-                <h3 className="text-lg font-bold">{activePdf.title}</h3>
-                <button onClick={() => setActivePdf(null)} className="text-gray-500 hover:text-red-500 text-2xl">&times;</button>
-              </div>
-              <div className="flex-1 bg-gray-100 p-0">
-                <iframe
-                  src={activePdf.fileUrl}
-                  className="w-full h-full"
-                  title={activePdf.title}
-                />
-              </div>
-            </div>
-          </div>
+          <LifeSkillsPdfModal item={activePdf} onClose={() => setActivePdf(null)} />
         )}
 
         {/* Instructions */}

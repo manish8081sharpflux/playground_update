@@ -2,8 +2,7 @@ const Course = require('../../../models/course');
 const StudentProgress = require('../../../models/StudentProgress');
 const mongoose = require('mongoose');
 const { errorLogger } = require('../../../config/pino-config');
-const User = require('../../../models/user');
-const { getStudentCourseAccess, assertStudentCanSubmitForCourse } = require('../../../utils/lmsAssignmentStatus');
+const { streamCourseContentFile } = require('../../../utils/lmsContentFile');
 
 // ==================== GET APPS LIST ====================
 
@@ -158,8 +157,10 @@ exports.getCourseHierarchy = async (req, res) => {
             id: item._id,
             title: item.title,
             type: item.type || 'text',
-            fileUrl: item.fileUrl,
+            fileUrl: item.fileUrl || item.externalUrl,
+            externalUrl: item.externalUrl || item.fileUrl,
             description: item.description,
+            textContent: item.textContent || '',
             isCompleted: isCompleted,
             difficulty: item.metadata?.difficulty || 'beginner',
             quizId: item.quizRef?._id?.toString() || item.quizRef?.toString() || null // Add Quiz Reference (extract ID string only)
@@ -237,6 +238,10 @@ exports.getContentDetails = async (req, res) => {
       error: error.message
     });
   }
+};
+
+exports.getContentItemFile = async (req, res) => {
+  return streamCourseContentFile(req, res, { category: 'Computer Apps' });
 };
 
 exports.getQuiz = async (req, res) => {

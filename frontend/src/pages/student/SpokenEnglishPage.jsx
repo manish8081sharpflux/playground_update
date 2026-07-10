@@ -9,6 +9,7 @@ import RecordingControls from '../../components/student/spoken-english/Recording
 import RedoModal from '../../components/student/spoken-english/RedoModal';
 import { CheckCircle } from 'lucide-react';
 import LoadingState from '../../components/common/LoadingState';
+import useLmsContentFileUrl from '../../hooks/useLmsContentFileUrl';
 
 /**
  * Spoken English Page - Epic 01 Story 04
@@ -25,6 +26,10 @@ export default function SpokenEnglishPage() {
   const [submissions, setSubmissions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const { url: instructionsAudioUrl } = useLmsContentFileUrl(
+    'spoken-english',
+    task?.instructionsAudioUrl ? { id: task.id, fileUrl: task.instructionsAudioUrl } : null
+  );
 
   // Recording State
   const [recordingState, setRecordingState] = useState('initial'); // initial, recording, recorded, playing, uploading
@@ -462,7 +467,7 @@ export default function SpokenEnglishPage() {
         {/* Audio Instructions */}
         {task.instructionsAudioUrl && (
           <AudioInstructions
-            audioUrl={task.instructionsAudioUrl}
+            audioUrl={instructionsAudioUrl || task.instructionsAudioUrl}
             instructionsText={task.instructionsText}
           />
         )}

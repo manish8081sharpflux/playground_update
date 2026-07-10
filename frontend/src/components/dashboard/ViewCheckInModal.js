@@ -26,6 +26,27 @@ const ViewCheckInModal = ({ isOpen, onClose, checkInData, onEdit }) => {
     });
   };
 
+  const getFileUrl = (file) => {
+    if (!file) return "";
+    if (typeof file === "string") return file;
+    return file.fileUrl || file.url || file.location || file.path || "";
+  };
+
+  const getFileName = (file, fallback) => {
+    if (!file || typeof file === "string") return fallback;
+    return file.fileName || file.originalName || file.name || fallback;
+  };
+
+  const normalizeFiles = (files = []) =>
+    (Array.isArray(files) ? files : [])
+      .map((file, index) => ({
+        url: getFileUrl(file),
+        name: getFileName(file, `File ${index + 1}`),
+      }))
+      .filter((file) => file.url);
+
+  const hasViewableFiles = (files) => normalizeFiles(files).length > 0;
+
   // Format symptoms helper
   const formatSymptoms = () => {
     if (!checkInData.symptoms || checkInData.symptoms.length === 0) return 'None';
@@ -49,11 +70,45 @@ const ViewCheckInModal = ({ isOpen, onClose, checkInData, onEdit }) => {
 
   // Get doctor visits (handle both old and new formats)
   const getDoctorVisits = () => {
-    if (checkInData.doctorVisits && checkInData.doctorVisits.length > 0) {
-      return checkInData.doctorVisits;
-    } else if (checkInData.doctorVisit && (checkInData.doctorVisit.doctorName || checkInData.doctorVisit.hospitalName)) {
-      return [checkInData.doctorVisit];
+    const visits = Array.isArray(checkInData.doctorVisits)
+      ? checkInData.doctorVisits.filter(Boolean)
+      : [];
+    const legacyVisit = checkInData.doctorVisit;
+    const legacyHasDetails = Boolean(
+      legacyVisit?.doctorName ||
+      legacyVisit?.hospitalName ||
+      legacyVisit?.visitDate ||
+      legacyVisit?.testDetails ||
+      legacyVisit?.conclusion
+    );
+    const legacyHasFiles = Boolean(
+      hasViewableFiles(legacyVisit?.prescriptionFiles) ||
+      hasViewableFiles(legacyVisit?.testResultFiles)
+    );
+
+    if (visits.length > 0) {
+      if (
+        legacyHasFiles &&
+        !visits.some(
+          (visit) =>
+            hasViewableFiles(visit?.prescriptionFiles) ||
+            hasViewableFiles(visit?.testResultFiles)
+        )
+      ) {
+        const lastIndex = visits.length - 1;
+        visits[lastIndex] = {
+          ...visits[lastIndex],
+          prescriptionFiles: legacyVisit.prescriptionFiles || [],
+          testResultFiles: legacyVisit.testResultFiles || [],
+        };
+      }
+      return visits;
     }
+
+    if (legacyVisit && (legacyHasDetails || legacyHasFiles)) {
+      return [legacyVisit];
+    }
+
     return [];
   };
 
@@ -83,7 +138,7 @@ const ViewCheckInModal = ({ isOpen, onClose, checkInData, onEdit }) => {
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content view-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '900px', maxHeight: '90vh', overflowY: 'auto' }}>
+      <div className="modal-content view-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '900px', maxHeight: '90vh', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
         <div className="modal-header">
           <h3>Medical Check-in Details</h3>
           <button className="close-button" onClick={onClose}>
@@ -91,7 +146,7 @@ const ViewCheckInModal = ({ isOpen, onClose, checkInData, onEdit }) => {
           </button>
         </div>
 
-        <div className="view-modal-body" style={{ padding: '20px' }}>
+        <div className="view-modal-body" style={{ padding: '20px', flex: 1, overflowY: 'auto' }}>
           {/* Basic Information Section */}
           <div className="view-section">
             <h4 style={{ borderBottom: '2px solid #4f46e5', paddingBottom: '8px', marginBottom: '15px', color: '#4f46e5' }}>Basic Information</h4>
@@ -160,7 +215,11 @@ const ViewCheckInModal = ({ isOpen, onClose, checkInData, onEdit }) => {
               <h4 style={{ borderBottom: '2px solid #4f46e5', paddingBottom: '8px', marginBottom: '15px', color: '#4f46e5' }}>
                 Doctor Visits ({doctorVisits.length})
               </h4>
-              {doctorVisits.map((visit, index) => (
+              {doctorVisits.map((visit, index) => {
+                const prescriptionFiles = normalizeFiles(visit.prescriptionFiles);
+                const testResultFiles = normalizeFiles(visit.testResultFiles);
+
+                return (
                 <div key={index} style={{
                   marginBottom: '15px',
                   padding: '15px',
@@ -193,14 +252,14 @@ const ViewCheckInModal = ({ isOpen, onClose, checkInData, onEdit }) => {
                       <div style={{ fontSize: '14px', marginTop: '3px', whiteSpace: 'pre-wrap' }}>{visit.conclusion || '-'}</div>
                     </div>
                     {/* Prescription Files */}
-                    {visit.prescriptionFiles && visit.prescriptionFiles.length > 0 && (
+                    {prescriptionFiles.length > 0 && (
                       <div style={{ gridColumn: '1 / -1' }}>
                         <label style={{ fontWeight: 600, color: '#666', fontSize: '13px' }}>Prescriptions:</label>
                         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '5px' }}>
-                          {visit.prescriptionFiles.map((file, fileIndex) => (
+                          {prescriptionFiles.map((file, fileIndex) => (
                             <a
                               key={fileIndex}
-                              href={file.fileUrl}
+                              href={file.url}
                               target="_blank"
                               rel="noopener noreferrer"
                               style={{
@@ -220,14 +279,14 @@ const ViewCheckInModal = ({ isOpen, onClose, checkInData, onEdit }) => {
                       </div>
                     )}
                     {/* Test Result Files */}
-                    {visit.testResultFiles && visit.testResultFiles.length > 0 && (
+                    {testResultFiles.length > 0 && (
                       <div style={{ gridColumn: '1 / -1' }}>
                         <label style={{ fontWeight: 600, color: '#666', fontSize: '13px' }}>Test Results:</label>
                         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '5px' }}>
-                          {visit.testResultFiles.map((file, fileIndex) => (
+                          {testResultFiles.map((file, fileIndex) => (
                             <a
                               key={fileIndex}
-                              href={file.fileUrl}
+                              href={file.url}
                               target="_blank"
                               rel="noopener noreferrer"
                               style={{
@@ -248,7 +307,8 @@ const ViewCheckInModal = ({ isOpen, onClose, checkInData, onEdit }) => {
                     )}
                   </div>
                 </div>
-              ))}
+                );
+              })}
             </div>
           )}
 
