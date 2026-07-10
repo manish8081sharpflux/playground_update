@@ -1,41 +1,28 @@
-backend/logs/*.log
-backend/node_modules
-frontend/node_modules
-frontend/.env
-backend/.env
-
 # Dependencies
 node_modules/
+backend/node_modules/
+frontend/node_modules/
 
 # Environment files
 .env
 *.env
+backend/.env
+frontend/.env
 
-# Logs
-logs/
-*.log
-
-# Build folders
-dist/
-build/
-
-<<<<<<< HEAD
 # Logs
 *.log
 logs/
 backend/logs/
 frontend/logs/
 
+# Uploads
+backend/uploads/
+
+# Build folders
+dist/
+build/
+frontend/build/
+
 # Package lock files
 package-lock.json
 **/package-lock.json
-=======
-backend/uploads/
->>>>>>> b10b8c750 (Fix art task progress and ignore uploads)
-
-backend/uploads/
-backend/logs/
-frontend/build/
-backend/uploads/
-backend/logs/
-frontend/build/
