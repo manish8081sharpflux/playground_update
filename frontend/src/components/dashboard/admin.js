@@ -1879,6 +1879,13 @@ function AdminDashboard() {
             </div>
 
             {/* Admin Menus (shown when Balagruha is selected) */}
+            {!selectedBalagruha && (
+              <div className="dashboard-selection-empty-state" role="status">
+                <div className="dashboard-selection-empty-icon">👆</div>
+                <h3>Select a Balagruha</h3>
+                <p>Select a Balagruha above to view students, management options, and coaches.</p>
+              </div>
+            )}
             {selectedBalagruha && (
               <div className="admin-menus">
                 <h3>Management Options</h3>
@@ -2197,7 +2204,11 @@ function AdminDashboard() {
                                         </div>
                                     )) :
                                     // Fallback to dummy data if no coaches found
-                                    <p>Select a balagruha to view coaches</p>
+                                    {!selectedBalagruha ? (
+                      <p>Select a Balagruha to view coaches.</p>
+                    ) : (
+                      <p>No coaches are assigned to this Balagruha.</p>
+                    )}
                                 }
                             </div>
                         </div> */}
@@ -2230,9 +2241,11 @@ function AdminDashboard() {
                         <CoachName name={coach.name} />
                       </div>
                     ))
+                   ) : (!selectedBalagruha ? (
+                    <p>Select a Balagruha to view coaches.</p>
                   ) : (
-                    <p>Select a balagruha to view coaches</p>
-                  )}
+                    <p>No coaches are assigned to this Balagruha.</p>
+                  ))}
                 </div>
                 <button
                   className="scroll-button right"
@@ -2365,6 +2378,13 @@ function AdminDashboard() {
             )} */}
 
             {/* Coach Menus */}
+            {!selectedCoach && (
+              <div className="dashboard-selection-empty-state" role="status">
+                <div className="dashboard-selection-empty-icon">👆</div>
+                <h3>Select a coach</h3>
+                <p>{selectedBalagruha ? "Select a coach to view their dashboard details." : "Select a Balagruha first, then select a coach."}</p>
+              </div>
+            )}
             {selectedCoach && (
               <div className="coach-menus">
                 {/* <h3>Coach Options</h3>

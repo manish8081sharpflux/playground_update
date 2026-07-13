@@ -390,12 +390,20 @@ const UserManagement = () => {
   const validateForm = () => {
     const errors = {};
     if (!formData.name.trim()) errors.name = "Name is required";
-    if (!formData.email.trim()) errors.email = "Email is required";
-    else if (!/\S+@\S+\.\S+/.test(formData.email)) errors.email = "Email is invalid";
-    else if (view === "add" && users.some((user) => user.email === formData.email))
+    const email = (formData.email || "").trim();
+    if (formData.role !== "student" && !email) {
+      errors.email = "Email is required";
+    } else if (email && !/\S+@\S+\.\S+/.test(email)) {
+      errors.email = "Email is invalid";
+    } else if (
+      email &&
+      view === "add" &&
+      users.some((user) => (user.email || "").toLowerCase() === email.toLowerCase())
+    ) {
       errors.email = "Email already exists";
-    if (view === "add" && !formData.password.trim()) errors.password = "Password is required";
-    else if (view === "add" && formData.password.length < 3)
+    }
+    if (formData.role !== "student" && view === "add" && !formData.password.trim()) errors.password = "Password is required";
+    else if (formData.role !== "student" && view === "add" && formData.password.length < 3)
       errors.password = "Password must be at least 4 characters";
     if (!formData.role) errors.role = "Role is required";
     if (formData.role === "student") {
@@ -418,10 +426,12 @@ const UserManagement = () => {
     try {
       const formDataToSend = new FormData();
       formDataToSend.append("name", formData.name);
-      formDataToSend.append("email", formData.email);
+      if ((formData.email || "").trim()) {
+        formDataToSend.append("email", formData.email.trim());
+      }
       formDataToSend.append("role", formData.role);
       formDataToSend.append("status", formData.status);
-      if (view === "add") formDataToSend.append("password", formData.password);
+      if (view === "add" && formData.role !== "student") formDataToSend.append("password", formData.password);
 
       if (formData.role === "student") {
         formDataToSend.append("age", formData.age);
@@ -516,8 +526,19 @@ const UserManagement = () => {
     setFormData({ ...formData, balagruhaIds: updatedIds });
   };
 
-  const handleSuccess = () => {
+  const handleSuccess = (response) => {
+    const createdUser = response?.data?.user || response?.data?.data?.user;
     getUsers();
+
+    // Student User IDs are allocated atomically by the backend on creation.
+    // Show the saved student in edit mode so the generated ID is visible in
+    // the existing read-only Student User ID field.
+    if (createdUser?.role === "student" && createdUser?.userId != null) {
+      setSelectedUser(createdUser);
+      setView("edit");
+      return;
+    }
+
     setSelectedUser(null);
     setFilterRole("all");
     setFilterStatus("all");
@@ -991,7 +1012,7 @@ const UserManagement = () => {
               <div className="user-details">
                 <h2>{selectedUser.name}</h2>
                 <div className="user-meta">
-                  <div className="user-email">{selectedUser.email}</div>
+                  <div className="user-email">{selectedUser.email || "—"}</div>
                   <div
                     className="role-badge"
                     style={{ backgroundColor: getRoleColor(selectedUser.role) }}

@@ -9,10 +9,7 @@ const userSchema = new mongoose.Schema(
       trim: true,
     },
     email: {
-      type: String,
-      unique: true,
-      sparse: true, // This allows multiple null values by indexing only non-null values
-      required: [
+      type: String,      required: [
         function () {
           return this.role !== "student";
         },
@@ -33,10 +30,7 @@ const userSchema = new mongoose.Schema(
       ],
     },
     userId: {
-      type: Number,
-      unique: true,
-      sparse: true, // This allows multiple null values by indexing only non-null values
-      required: false, // Makes the field optional
+      type: Number,      required: false, // Makes the field optional
     },
     password: {
       type: String,
@@ -189,6 +183,11 @@ userSchema.methods.getBalagruhaIdsAsStrings = function () {
 
 // RBAC Refactor: Add index on balagruhaIds for performance
 userSchema.index({ balagruhaIds: 1 });
+userSchema.index({ email: 1 }, {
+  name: "email_unique_when_present",
+  unique: true,
+  partialFilterExpression: { email: { $exists: true, $gt: "" } },
+});
 
 // Safe model definition to prevent OverwriteModelError
 const User = mongoose.models.User || mongoose.model("User", userSchema);

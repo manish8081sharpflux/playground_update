@@ -456,7 +456,7 @@ const UserForm = ({ mode = "add", user = null, existingUsers = [], onSuccess, on
     }
 
     // Password validation (for admin when adding new user or explicitly changing)
-    if (localStorage.getItem("role") === "admin") {
+    if (localStorage.getItem("role") === "admin" && formData.role !== "student") {
       if (mode === "add" && !formData.password) {
         newErrors.password = "Password is required for new users";
       } else if (formData.password) {
@@ -478,13 +478,13 @@ const UserForm = ({ mode = "add", user = null, existingUsers = [], onSuccess, on
     if (formData.role === "student") {
       // UserId validation
       const userIdValue = String(formData.userId || "").trim();
-      if (!userIdValue) {
+      if (mode === "edit" && !userIdValue) {
         newErrors.userId = "User ID is required";
-      } else if (userIdValue.length < 3) {
+      } else if (mode === "edit" && userIdValue.length < 3) {
         newErrors.userId = "User ID must be at least 3 characters long";
-      } else if (!/^\d+$/.test(userIdValue)) {
+      } else if (mode === "edit" && !/^\d+$/.test(userIdValue)) {
         newErrors.userId = "User ID must contain only numbers";
-      } else if (isDuplicateUserId(userIdValue)) {
+      } else if (mode === "edit" && isDuplicateUserId(userIdValue)) {
         newErrors.userId = "This User ID is already registered";
       }
 
@@ -663,7 +663,7 @@ const UserForm = ({ mode = "add", user = null, existingUsers = [], onSuccess, on
           break;
 
         case "password":
-          if (value && localStorage.getItem("role") === "admin") {
+          if (value && localStorage.getItem("role") === "admin" && formData.role !== "student") {
             const passwordCheck = validatePasswordStrength(value);
             if (!passwordCheck.isValid) {
               fieldError = passwordCheck.message;
@@ -673,13 +673,13 @@ const UserForm = ({ mode = "add", user = null, existingUsers = [], onSuccess, on
 
         case "userId":
           const userIdValue = String(value || "").trim();
-          if (!userIdValue) {
+          if (mode === "edit" && !userIdValue) {
             fieldError = "User ID is required";
-          } else if (userIdValue.length < 3) {
+          } else if (mode === "edit" && userIdValue.length < 3) {
             fieldError = "User ID must be at least 3 characters long";
-          } else if (!/^\d+$/.test(userIdValue)) {
+          } else if (mode === "edit" && !/^\d+$/.test(userIdValue)) {
             fieldError = "User ID must contain only numbers";
-          } else if (isDuplicateUserId(userIdValue)) {
+          } else if (mode === "edit" && isDuplicateUserId(userIdValue)) {
             fieldError = "This User ID is already registered";
           }
           break;
@@ -1058,7 +1058,7 @@ const UserForm = ({ mode = "add", user = null, existingUsers = [], onSuccess, on
         formDataToSend.append("role", formData.role);
         formDataToSend.append("status", formData.status);
 
-        if (formData.password && localStorage.getItem("role") === "admin") {
+        if (formData.password && localStorage.getItem("role") === "admin" && formData.role !== "student") {
           formDataToSend.append("password", formData.password);
         }
 
@@ -1074,7 +1074,9 @@ const UserForm = ({ mode = "add", user = null, existingUsers = [], onSuccess, on
         // Add student-specific fields if role is student
         if (formData.role === "student") {
           formDataToSend.append("age", String(formData.age || "").trim());
-          formDataToSend.append("userId", String(formData.userId || "").trim());
+          if (mode === "edit" && String(formData.userId || "").trim()) {
+            formDataToSend.append("userId", String(formData.userId || "").trim());
+          }
           formDataToSend.append("gender", formData.gender);
           formDataToSend.append("parentalStatus", formData.parentalStatus);
           appendIfNotBlank("nextActionDate", formData.nextActionDate);
@@ -1346,6 +1348,7 @@ const UserForm = ({ mode = "add", user = null, existingUsers = [], onSuccess, on
 
             {localStorage.getItem("role") !== "medical-incharge" && (
               <>
+                {!isStudentRole && (
                 <div className="form-group">
                   <label htmlFor="email">
                     Email {!isStudentRole && <span className="required">*</span>}
@@ -1367,8 +1370,8 @@ const UserForm = ({ mode = "add", user = null, existingUsers = [], onSuccess, on
                     </span>
                   )}
                 </div>
-
-                {localStorage.getItem("role") === "admin" && (
+                )}
+                {localStorage.getItem("role") === "admin" && !isStudentRole && (
                   <div className="form-group">
                     <label htmlFor="password">Password</label>
                     <div className="password-input-group">
@@ -1563,7 +1566,8 @@ const UserForm = ({ mode = "add", user = null, existingUsers = [], onSuccess, on
                   name="userId"
                   value={formData.userId}
                   onChange={handleInputChange}
-                  placeholder="Enter User ID"
+                  placeholder={mode === "add" ? "Generated automatically" : "Student User ID"}
+                  readOnly
                   className={errors.userId ? "error" : ""}
                   disabled={localStorage.getItem("role") === "medical-incharge"}
                   aria-label="Student User ID"

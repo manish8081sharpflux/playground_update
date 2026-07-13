@@ -15,6 +15,7 @@ const { getUploadedFilesFullPath } = require("../utils/helper");
 const { cleanupLocalFile } = require("../utils/fileCleanup");
 const { isRequestFromLocalhost } = require("../utils/helper");
 const { ensureUserEditFilesUseS3 } = require("../utils/ensureS3Urls");
+const { getNextStudentUserId } = require("./studentUserId");
 
 // REMOVED - Task 1: FR Rebuild
 // const { Canvas, Image, ImageData } = canvas;
@@ -63,24 +64,11 @@ exports.createUser = async (payload) => {
     // Check the user role
     let { role } = payload;
 
-    // Check duplicate Student User ID
-    if (role === UserTypes.STUDENT && payload.userId) {
-      const userIdValue = String(payload.userId).trim();
-
-      const existingStudent = await User.findOne({
-        role: UserTypes.STUDENT,
-        userId: userIdValue,
-      });
-
-      if (existingStudent) {
-        return {
-          success: false,
-          data: { user: null },
-          message: "User ID already exists. Please enter a different User ID",
-        };
-      }
-
-      payload.userId = userIdValue;
+    if (role === UserTypes.STUDENT) {
+      // IDs are allocated server-side; never accept a client-supplied value.
+      payload.userId = await getNextStudentUserId();
+    } else {
+      delete payload.userId;
     }
 
     if (payload.email) {
@@ -376,6 +364,21 @@ exports.updateUserDetailsById = async (userId, payload) => {
 
     // Handle special fields
     const updateData = { ...payload };
+    const existingUser = userExists.data;
+    const targetRole = (updateData.role || existingUser.role || "").toLowerCase();
+    delete updateData.userId;
+    if (Object.prototype.hasOwnProperty.call(updateData, "email")) {
+      const normalizedEmail = typeof updateData.email === "string" ? updateData.email.trim().toLowerCase() : "";
+      if (!normalizedEmail) delete updateData.email;
+      else {
+        const existingEmailUser = await User.findOne({ email: normalizedEmail, _id: { $ne: userId } }).select("_id").lean();
+        if (existingEmailUser) return { success: false, data: {}, message: "Email already exists" };
+        updateData.email = normalizedEmail;
+      }
+    }
+    if (targetRole !== UserTypes.STUDENT && !(updateData.email || existingUser.email)) {
+      return { success: false, data: {}, message: "Email is required for non-student users" };
+    }
 
     // Don't update password this way - use dedicated password update function
     // delete updateData.password;

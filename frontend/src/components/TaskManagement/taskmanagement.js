@@ -2254,6 +2254,7 @@ export const TaskDetailsModal = ({
   const [selectedTask, setSelectedTask] = useState(task);
   const [editMode, setEditMode] = useState({});
   const [editedValues, setEditedValues] = useState({});
+  const [fieldErrors, setFieldErrors] = useState({});
 
   const currentUser = { _id: localStorage.getItem("userId") };
   const userRole = (localStorage.getItem("role") || "").toLowerCase();
@@ -2494,6 +2495,7 @@ export const TaskDetailsModal = ({
     if (!canManageTask) return;
 
     setEditMode((prev) => ({ ...prev, [field]: true }));
+    setFieldErrors((prev) => ({ ...prev, [field]: "" }));
 
     setEditedValues((prev) => ({
       ...prev,
@@ -2509,9 +2511,31 @@ export const TaskDetailsModal = ({
   // Handle changes to editable fields
   const handleEditChange = (field, value) => {
     setEditedValues((prev) => ({ ...prev, [field]: value }));
+    setFieldErrors((prev) => ({ ...prev, [field]: "" }));
   };
   const saveFieldChange = async (field) => {
     if (!canManageTask) return;
+
+    if (field === "deadline") {
+      const deadline = editedValues.deadline;
+      const parsedDeadline = deadline ? new Date(deadline) : null;
+
+      if (!deadline || Number.isNaN(parsedDeadline?.getTime())) {
+        setFieldErrors((prev) => ({
+          ...prev,
+          deadline: "Enter a valid deadline date and time.",
+        }));
+        return;
+      }
+
+      if (parsedDeadline <= new Date()) {
+        setFieldErrors((prev) => ({
+          ...prev,
+          deadline: "Deadline must be in the future.",
+        }));
+        return;
+      }
+    }
 
     setIsUpdating(true);
 
@@ -2521,7 +2545,11 @@ export const TaskDetailsModal = ({
       if (field === "assignedUser") {
         data = { assignedUser: editedValues[field] };
       } else {
-        data = { [field]: editedValues[field] };
+        data = {
+          [field]: field === "deadline"
+            ? new Date(editedValues.deadline).toISOString()
+            : editedValues[field],
+        };
       }
 
       const response = await updateTask(selectedTask._id, JSON.stringify(data));
@@ -2557,6 +2585,7 @@ export const TaskDetailsModal = ({
   // Cancel editing for a specific field
   const cancelEdit = (field) => {
     setEditMode((prev) => ({ ...prev, [field]: false }));
+    setFieldErrors((prev) => ({ ...prev, [field]: "" }));
   };
 
   const priorityColors = {
@@ -2784,16 +2813,19 @@ export const TaskDetailsModal = ({
                   {editMode.deadline ? (
                     <div className="edit-field-container">
                       <input
-                        type="date"
+                        type="datetime-local"
                         id="deadline"
                         name="deadline"
                         className="edit-field-select"
-                        value={editedValues.deadline || selectedTask.deadline}
+                        value={editedValues.deadline || ""}
                         onChange={(e) =>
                           handleEditChange("deadline", e.target.value)
                         }
-                        min={new Date().toISOString().split("T")[0]}
+                        min={formatDateForInput(new Date())}
                       />
+                      {fieldErrors.deadline && (
+                        <div className="error-message">{fieldErrors.deadline}</div>
+                      )}
                       <div className="edit-field-actions">
                         <button
                           className="save-edit-button"
