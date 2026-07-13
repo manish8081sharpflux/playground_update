@@ -292,16 +292,18 @@ const wtfUploadWithErrorHandling = (req, res, next) => {
 // Cleanup function to remove orphaned files
 const cleanupOrphanedFiles = () => {
   try {
-    ensureUploadsDir();
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
 
-    const files = fs.readdirSync(uploadsDir);
+    const files = fs.readdirSync(uploadDir);
     const now = Date.now();
     const maxAge = 24 * 60 * 60 * 1000; // 24 hours
 
     files.forEach((file) => {
       if (file === "uploaded_files_here.txt") return; // Skip the placeholder file
 
-      const filePath = path.join(uploadsDir, file);
+      const filePath = path.join(uploadDir, file);
       const stats = fs.statSync(filePath);
       const age = now - stats.mtime.getTime();
 
@@ -345,6 +347,5 @@ module.exports = {
   lmsUpload,
   lmsUploadWithErrorHandling,
   cleanupOrphanedFiles,
-  ensureUploadsDir,
   stopCleanupTimer,
 };
