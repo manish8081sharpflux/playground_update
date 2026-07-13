@@ -190,33 +190,28 @@ describe('CoachGradingController', () => {
       );
     });
 
-    it('should map each quality rating to the correct coin amount (FIX-012)', () => {
-      const { QUALITY_COIN_MAP } = coachGradingController;
-      expect(QUALITY_COIN_MAP).toEqual({
-        excellent: 85,
-        good: 65,
-        needs_improvement: 25,
+    it('should map each quality rating to the correct coin range (FIX-012)', () => {
+      const { QUALITY_COIN_RANGES } = coachGradingController;
+      expect(QUALITY_COIN_RANGES).toEqual({
+        excellent: { min: 80, max: 100, default: 85 },
+        good: { min: 50, max: 79, default: 65 },
+        needs_improvement: { min: 0, max: 49, default: 25 },
       });
     });
 
-    it('should reject a coinsAwarded value that does not match quality (FIX-012)', async () => {
-      const mockAddCoins = jest.fn();
-      Coin.findOrCreateForUser = jest.fn().mockResolvedValue({ balance: 0, addCoins: mockAddCoins });
-
+    it('should reject a coinsAwarded value outside the quality range (FIX-012)', async () => {
       const req = buildReq({ quality: 'good', coinsAwarded: 25 });
       const res = mockResponse();
 
       await coachGradingController.submitGrade(req, res);
 
-      expect(res.status).toHaveBeenCalledWith(200);
-      expect(mockAddCoins).toHaveBeenCalledWith(
-        25,
-        'earned',
-        expect.stringContaining('Draw a Tree'),
-        'grading',
-        expect.objectContaining({ quality: 'good' })
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith(
+        expect.objectContaining({
+          success: false,
+          error: expect.stringContaining('between 50 and 79'),
+        })
       );
-      expect(mockAddCoins).not.toHaveBeenCalled();
     });
 
     it('should auto-calculate coins for needs_improvement quality (FIX-012)', async () => {
@@ -277,7 +272,7 @@ describe('CoachGradingController', () => {
         lastName: 'Smith',
       });
 
-      const req = buildReq({ coinsAwarded: 15 });
+      const req = buildReq({ coinsAwarded: 90 });
       const res = mockResponse();
 
       await coachGradingController.submitGrade(req, res);
@@ -288,6 +283,7 @@ describe('CoachGradingController', () => {
       );
       expect(sub.markAsGraded).not.toHaveBeenCalled();
     });
+
 
     it('should submit a grade when populated course document is missing but the course reference exists', async () => {
       const sub = {
@@ -300,7 +296,7 @@ describe('CoachGradingController', () => {
       });
 
       const mockAddCoins = jest.fn().mockImplementation(function () {
-        this.balance += 15;
+        this.balance += 90;
         return Promise.resolve(this);
       });
       const coinRecord = { balance: 0, addCoins: mockAddCoins };
@@ -312,14 +308,14 @@ describe('CoachGradingController', () => {
         lastName: 'Smith',
       });
 
-      const req = buildReq({ coinsAwarded: 15 });
+      const req = buildReq({ coinsAwarded: 90 });
       const res = mockResponse();
 
       await coachGradingController.submitGrade(req, res);
 
       expect(res.status).toHaveBeenCalledWith(200);
       expect(mockAddCoins).toHaveBeenCalledWith(
-        15,
+        90,
         'earned',
         expect.stringContaining('Draw a Tree'),
         'grading',
@@ -426,7 +422,7 @@ describe('CoachGradingController', () => {
 
       expect(res.status).toHaveBeenCalledWith(400);
       expect(res.json).toHaveBeenCalledWith(
-        expect.objectContaining({ success: false, error: expect.stringContaining('85 coins') })
+        expect.objectContaining({ success: false, error: expect.stringContaining('between 80 and 100') })
       );
     });
 

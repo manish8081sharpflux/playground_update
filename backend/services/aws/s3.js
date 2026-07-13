@@ -62,7 +62,7 @@ exports.uploadFileToS3 = async (filePath, folderName, keyName) => {
     // Set up S3 upload parameters
     const key = withFolder(folderName, keyName);
     const params = {
-      Bucket: getBucketName(),
+      Bucket: bucketName(),
       Key: key,
       Body: fileContent,
       ContentType: contentType,
@@ -134,7 +134,7 @@ exports.uploadWtfMedia = async (filePath, mediaType, pinId) => {
     );
 
     const params = {
-      Bucket: getBucketName(),
+      Bucket: bucketName(),
       Key: fileName,
       Body: fileContent,
       ContentType: contentType,
@@ -173,7 +173,7 @@ exports.uploadWtfMediaBuffer = async (buffer, fileName, contentType) => {
   try {
     const key = withFolder(folder("AWS_S3_FOLDER_WTF", "wtfpins"), fileName);
     const params = {
-      Bucket: getBucketName(),
+      Bucket: bucketName(),
       Key: key,
       Body: buffer,
       ContentType: contentType,
@@ -217,7 +217,7 @@ exports.uploadWtfVoiceNote = async (filePath, submissionId) => {
     );
 
     const params = {
-      Bucket: getBucketName(),
+      Bucket: bucketName(),
       Key: fileName,
       Body: fileContent,
       ContentType: contentType,
@@ -277,7 +277,7 @@ exports.generateWtfThumbnail = async (originalKey, thumbnailKey) => {
 
       const result = await thumbnailService.generateThumbnailFromS3(
         s3Client,
-        getBucketName(),
+        bucketName(),
         originalKey,
         thumbnailKey,
         {
@@ -384,7 +384,7 @@ exports.deleteFileFromS3 = async (folderName, key) => {
   try {
     const objectKey = withFolder(folderName, key);
     const params = {
-      Bucket: getBucketName(),
+      Bucket: bucketName(),
       Key: objectKey,
     };
 
@@ -434,7 +434,7 @@ exports.deleteWtfMedia = async (keyOrUrl) => {
     key = withFolder(folder("AWS_S3_FOLDER_WTF", "wtfpins"), key);
 
     const params = {
-      Bucket: getBucketName(),
+      Bucket: bucketName(),
       Key: key,
     };
 
@@ -494,7 +494,7 @@ exports.uploadShopProductImage = async (filePath, productId) => {
     );
 
     const params = {
-      Bucket: getBucketName(),
+      Bucket: bucketName(),
       Key: fileName,
       Body: fileContent,
       ContentType: contentType,
@@ -558,7 +558,7 @@ exports.deleteShopProductImage = async (keyOrUrl) => {
     );
 
     const params = {
-      Bucket: getBucketName(),
+      Bucket: bucketName(),
       Key: key,
     };
 
@@ -874,7 +874,7 @@ exports.deleteLMSContent = async (keyOrUrl) => {
     );
 
     const command = new DeleteObjectCommand({
-      Bucket: getBucketName(),
+      Bucket: bucketName(),
       Key: key,
     });
 

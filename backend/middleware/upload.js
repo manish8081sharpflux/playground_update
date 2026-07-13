@@ -394,10 +394,11 @@ const lmsUploadWithErrorHandling = (req, res, next) => {
 
 const cleanupOrphanedFiles = () => {
   try {
-    ensureUploadsDir();
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
 
-    const files = fs.readdirSync(uploadsDir);
-
+    const files = fs.readdirSync(uploadDir);
     const now = Date.now();
 
     const maxAge = 24 * 60 * 60 * 1000;
@@ -408,7 +409,9 @@ const cleanupOrphanedFiles = () => {
         return;
       }
 
-      const filePath = path.join(uploadsDir, file);
+      const filePath = path.join(uploadDir, file);
+      const stats = fs.statSync(filePath);
+      const age = now - stats.mtime.getTime();
 
       try {
         const stats = fs.statSync(filePath);
@@ -500,6 +503,5 @@ module.exports = {
   lmsUploadWithErrorHandling,
 
   cleanupOrphanedFiles,
-  ensureUploadsDir,
   stopCleanupTimer,
 };

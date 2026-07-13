@@ -74,6 +74,9 @@ exports.getSpokenEnglishTask = async (req, res) => {
       taskId: taskId
     }).sort({ submittedAt: -1 }).lean();
 
+    const student = await User.findById(studentId).select('balagruhaIds').lean();
+    const courseAccess = await getStudentCourseAccess(student, foundCourse._id);
+
     // Construct response
     const taskResponse = {
       id: task._id,
@@ -172,6 +175,7 @@ exports.getSpokenEnglishTasks = async (req, res) => {
             allTasks.push({
               id: item._id,
               title: item.title,
+              courseId: course._id,
               difficulty: course.difficultyLevel,
               estimatedTime: item.metadata?.estimatedTime || 10,
               type: item.type || "speech",
@@ -209,7 +213,8 @@ exports.getSpokenEnglishTasks = async (req, res) => {
         }
       }
       if (!sub) {
-        t.status = decorateAssignmentStatus({ baseStatus: t.status, hasSubmission: false, courseAccess });
+        const taskCourseAccess = accessByCourse.get(t.courseId?.toString());
+        t.status = decorateAssignmentStatus({ baseStatus: t.status, hasSubmission: false, courseAccess: taskCourseAccess });
       }
       return t;
     });

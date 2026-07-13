@@ -27,6 +27,7 @@ export default function TitleBar() {
 
   // Coin balance from single source of truth (CoinBalanceContext)
   const { balance: coinBalance, loading: coinLoading, refreshBalance } = useCoinBalance();
+  const coinBalanceDisplay = typeof coinBalance === 'number' ? coinBalance.toLocaleString() : '...';
 
   // State management
   const [unreadCount, setUnreadCount] = useState(0);
@@ -40,7 +41,7 @@ export default function TitleBar() {
   const notificationRef = useRef(null);
 
   // Milestone detection hook (Epic 01 Story 06 - Phase 3)
-  const { celebrationMilestone, closeCelebration } = useMilestones(coinBalance);
+  const { celebrationMilestone, closeCelebration } = useMilestones(coinBalance ?? 0);
 
   // Format session time as HH:MM:SS
   const formatTime = (seconds) => {
@@ -229,7 +230,7 @@ export default function TitleBar() {
             >
               <span className="text-2xl">💰</span>
               <span className="font-bold text-xl text-gray-900">
-                {coinLoading ? '...' : coinBalance.toLocaleString()}
+                {coinLoading ? '...' : coinBalanceDisplay}
               </span>
               {isOffline && (
                 <span className="text-xs text-gray-600 ml-1">(Offline)</span>

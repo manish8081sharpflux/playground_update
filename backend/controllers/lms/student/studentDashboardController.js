@@ -68,14 +68,19 @@ const calculateCourseProgress = (
   let completedTasks = 0;
 
   course.modules?.forEach(module => {
+    totalTasks += 1;
+
+    const moduleItems = [];
     module.chapters?.forEach(chapter => {
-      (chapter.contentItems || []).forEach(item => {
-        totalTasks += 1;
-        if (isContentItemCompleted(item, completedItems, submittedItems, quizRefCounts)) {
-          completedTasks += 1;
-        }
-      });
+      moduleItems.push(...(chapter.contentItems || []));
     });
+
+    if (
+      moduleItems.length > 0 &&
+      moduleItems.every(item => isContentItemCompleted(item, completedItems, submittedItems, quizRefCounts))
+    ) {
+      completedTasks += 1;
+    }
   });
 
   if (extraCompletedItems > 0) {
@@ -121,14 +126,10 @@ exports.getDashboard = async (req, res) => {
     const assignmentByCourse = new Map(
       courseAssignments.map(assignment => [getIdString(assignment.courseId), assignment])
     );
-    const assignedCourseIds = courseAssignments.map(assignment => assignment.courseId).filter(Boolean);
 
-    // Show assigned courses in all assignment states, with published courses as a legacy fallback.
-    const allCourses = await Course.find(
-      assignedCourseIds.length > 0
-        ? { _id: { $in: assignedCourseIds }, status: 'published' }
-        : { status: 'published' }
-    ).lean();
+    // Student course pages list published courses by category, so the dashboard
+    // must aggregate the same published course set to keep progress bars honest.
+    const allCourses = await Course.find({ status: 'published' }).lean();
 
     // Get student progress for these courses
     const progressRecords = await StudentProgress.find({
