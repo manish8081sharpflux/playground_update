@@ -561,12 +561,12 @@ function CoachDashboard() {
             count: medicalData.length,
             show: can("Medical Management", "Read"),
         },
-        {
-            id: 6,
-            name: "Attendance",
-            count: 0,
-            show: can("User Management", "Read") || can("Attendance Management", "Read"),
-        },
+        // {
+        //     id: 6,
+        //     name: "Attendance",
+        //     count: 0,
+        //     show: can("User Management", "Read") || can("Attendance Management", "Read"),
+        // },
         {
             id: 7,
             name: "Purchase",
