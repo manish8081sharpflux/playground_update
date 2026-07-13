@@ -1,6 +1,18 @@
 // frontend/src/components/coach/grading/GradingPanel.jsx
 import React, { useState, useEffect } from 'react';
 
+const QUALITY_COIN_RANGES = {
+  excellent: { min: 80, max: 100, default: 85 },
+  good: { min: 50, max: 79, default: 65 },
+  needs_improvement: { min: 0, max: 49, default: 25 },
+};
+
+const getQualityForCoins = (coins) => {
+  if (coins >= 80) return 'excellent';
+  if (coins >= 50) return 'good';
+  return 'needs_improvement';
+};
+
 export default function GradingPanel({
   submission,
   onGrade,
@@ -12,16 +24,17 @@ export default function GradingPanel({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const isAlreadyGraded = submission?.status === 'graded';
 
-  // Auto-adjust coin amount based on quality rating
-  useEffect(() => {
-    if (quality === 'excellent') {
-      setCoinsAwarded(85);
-    } else if (quality === 'good') {
-      setCoinsAwarded(65);
-    } else if (quality === 'needs_improvement') {
-      setCoinsAwarded(25);
-    }
-  }, [quality]);
+  // When a quality rating is picked directly, snap coins to that rating's default
+  const handleQualitySelect = (selectedQuality) => {
+    setQuality(selectedQuality);
+    setCoinsAwarded(QUALITY_COIN_RANGES[selectedQuality].default);
+  };
+
+  // When coins are adjusted directly, switch the quality rating to match the range
+  const handleCoinsChange = (value) => {
+    setCoinsAwarded(value);
+    setQuality(getQualityForCoins(value));
+  };
 
   useEffect(() => {
     setQuality(submission?.grade?.quality || '');
@@ -119,7 +132,7 @@ export default function GradingPanel({
         <div className="space-y-3">
           {/* Excellent */}
           <div
-            onClick={() => setQuality('excellent')}
+            onClick={() => handleQualitySelect('excellent')}
             className={`rounded-lg p-4 cursor-pointer transition ${getQualityBorderClass(
               'excellent'
             )}`}
@@ -128,7 +141,7 @@ export default function GradingPanel({
               <input
                 type="radio"
                 checked={quality === 'excellent'}
-                onChange={() => setQuality('excellent')}
+                onChange={() => handleQualitySelect('excellent')}
                 className="mr-3"
               />
               <div>
@@ -145,7 +158,7 @@ export default function GradingPanel({
 
           {/* Good */}
           <div
-            onClick={() => setQuality('good')}
+            onClick={() => handleQualitySelect('good')}
             className={`rounded-lg p-4 cursor-pointer transition ${getQualityBorderClass(
               'good'
             )}`}
@@ -154,7 +167,7 @@ export default function GradingPanel({
               <input
                 type="radio"
                 checked={quality === 'good'}
-                onChange={() => setQuality('good')}
+                onChange={() => handleQualitySelect('good')}
                 className="mr-3"
               />
               <div>
@@ -171,7 +184,7 @@ export default function GradingPanel({
 
           {/* Needs Improvement */}
           <div
-            onClick={() => setQuality('needs_improvement')}
+            onClick={() => handleQualitySelect('needs_improvement')}
             className={`rounded-lg p-4 cursor-pointer transition ${getQualityBorderClass(
               'needs_improvement'
             )}`}
@@ -180,7 +193,7 @@ export default function GradingPanel({
               <input
                 type="radio"
                 checked={quality === 'needs_improvement'}
-                onChange={() => setQuality('needs_improvement')}
+                onChange={() => handleQualitySelect('needs_improvement')}
                 className="mr-3"
               />
               <div>
@@ -211,7 +224,7 @@ export default function GradingPanel({
           min="0"
           max="100"
           value={coinsAwarded}
-          onChange={(e) => setCoinsAwarded(parseInt(e.target.value))}
+          onChange={(e) => handleCoinsChange(parseInt(e.target.value))}
           className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
           style={{
             background: `linear-gradient(to right, #2563eb 0%, #2563eb ${coinsAwarded}%, #e5e7eb ${coinsAwarded}%, #e5e7eb 100%)`,
@@ -228,7 +241,7 @@ export default function GradingPanel({
             onChange={(e) => {
               const value = parseInt(e.target.value) || 0;
               if (value >= 0 && value <= 100) {
-                setCoinsAwarded(value);
+                handleCoinsChange(value);
               }
             }}
             className="w-20 border border-gray-300 rounded-lg px-3 py-2 text-center font-bold text-lg"

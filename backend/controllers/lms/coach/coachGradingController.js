@@ -10,32 +10,38 @@ const mongoose = require("mongoose");
 const { errorLogger } = require('../../../config/pino-config');
 
 /**
- * Quality-to-coin mapping for auto-calculating coin awards from rubric score.
- * The amount is fixed by the quality rating. Keeping this mapping server-side
- * prevents modified client requests from awarding mismatched coin amounts.
+ * Quality-to-coin range mapping for validating coin awards from rubric score.
+ * A coach may pick any whole-number value within the range for the chosen
+ * quality rating. Keeping this range server-side prevents modified client
+ * requests from awarding coins outside the allowed band for that rating.
  */
-// Must match frontend GradingPanel.jsx auto-coin values (85, 65, 25).
-// If the client sends coinsAwarded, it must match these fixed values.
-const QUALITY_COIN_MAP = {
-  excellent: 85,
-  good: 65,
-  needs_improvement: 25,
+// Must match frontend GradingPanel.jsx suggested ranges (80-100, 50-79, 0-49).
+// If the client sends coinsAwarded, it must fall within this range.
+const QUALITY_COIN_RANGES = {
+  excellent: { min: 80, max: 100, default: 85 },
+  good: { min: 50, max: 79, default: 65 },
+  needs_improvement: { min: 0, max: 49, default: 25 },
 };
 
 const getCoinsForQuality = (quality, coinsAwarded) => {
-  const expectedCoins = QUALITY_COIN_MAP[quality];
-  if (expectedCoins === undefined) return { error: "Invalid quality rating" };
+  const range = QUALITY_COIN_RANGES[quality];
+  if (range === undefined) return { error: "Invalid quality rating" };
 
   if (coinsAwarded !== undefined && coinsAwarded !== null) {
     const requestedCoins = Number(coinsAwarded);
-    if (!Number.isInteger(requestedCoins) || requestedCoins !== expectedCoins) {
+    if (
+      !Number.isInteger(requestedCoins) ||
+      requestedCoins < range.min ||
+      requestedCoins > range.max
+    ) {
       return {
-        error: `ISF Coins must match the ${quality.replace("_", " ")} quality rating (${expectedCoins} coins)`,
+        error: `ISF Coins must be between ${range.min} and ${range.max} for the ${quality.replace("_", " ")} quality rating`,
       };
     }
+    return { coinsAwarded: requestedCoins };
   }
 
-  return { coinsAwarded: expectedCoins };
+  return { coinsAwarded: range.default };
 };
 
 const canCoachGradeSubmission = async (coachId, submission) => {
@@ -833,4 +839,4 @@ exports.skipSubmission = async (req, res) => {
 };
 
 // Export mapping for testing
-exports.QUALITY_COIN_MAP = QUALITY_COIN_MAP;
+exports.QUALITY_COIN_RANGES = QUALITY_COIN_RANGES;

@@ -6,12 +6,24 @@ export default function FillBlankEditor({ question, onSave, onCancel }) {
   const [questionData, setQuestionData] = useState({
     type: 'fill_blank',
     questionText: question.questionText || '',
-    points: question.points || 4,
+    points: question.points ?? 4,
     explanation: question.explanation || '',
     acceptedAnswers: question.acceptedAnswers || [''],
     caseInsensitive: question.caseInsensitive !== undefined ? question.caseInsensitive : true,
     ignoreExtraSpaces: question.ignoreExtraSpaces !== undefined ? question.ignoreExtraSpaces : true
   });
+
+  const handlePointsChange = (value) => {
+    if (value === '') {
+      setQuestionData({ ...questionData, points: '' });
+      return;
+    }
+
+    const parsedValue = Number(value);
+    if (!Number.isNaN(parsedValue)) {
+      setQuestionData({ ...questionData, points: parsedValue });
+    }
+  };
 
   const handleAnswerChange = (index, value) => {
     const newAnswers = [...questionData.acceptedAnswers];
@@ -58,7 +70,7 @@ export default function FillBlankEditor({ question, onSave, onCancel }) {
       return;
     }
 
-    if (questionData.points < 1 || questionData.points > 100) {
+    if (!Number.isInteger(questionData.points) || questionData.points < 1 || questionData.points > 100) {
       toast.error('Points must be between 1 and 100');
       return;
     }
@@ -173,7 +185,8 @@ export default function FillBlankEditor({ question, onSave, onCancel }) {
             <input
               type="number"
               value={questionData.points}
-              onChange={(e) => setQuestionData({ ...questionData, points: parseInt(e.target.value) || 0 })}
+              onChange={(e) => handlePointsChange(e.target.value)}
+              step="1"
               min="1"
               max="100"
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
