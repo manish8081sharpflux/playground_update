@@ -33,6 +33,9 @@ const { mockRequest, mockResponse } = global.testUtils;
 describe('StudentDashboardController', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    CourseAssignment.find.mockReturnValue({
+      lean: jest.fn().mockResolvedValue([]),
+    });
     Submission.find.mockReturnValue({
       select: jest.fn().mockReturnValue({
         lean: jest.fn().mockResolvedValue([]),
@@ -57,6 +60,7 @@ describe('StudentDashboardController', () => {
     it('should return dashboard data with courses and stats', async () => {
       const studentId = new mongoose.Types.ObjectId().toString();
       const courseId = new mongoose.Types.ObjectId();
+      const moduleId = new mongoose.Types.ObjectId();
 
       User.findById.mockResolvedValue({
         _id: studentId,
@@ -73,6 +77,7 @@ describe('StudentDashboardController', () => {
             thumbnail: 'thumb.jpg',
             modules: [
               {
+                _id: moduleId,
                 chapters: [
                   { contentItems: [{ _id: 'i1' }, { _id: 'i2' }] },
                 ],
@@ -87,7 +92,7 @@ describe('StudentDashboardController', () => {
           {
             course: courseId,
             status: 'in_progress',
-            completedItems: [{ itemId: 'i1' }],
+            completedItems: [{ itemId: 'i1' }, { itemId: 'i2' }],
             lastAccessedAt: new Date(),
             completionPercentage: 50,
           },
@@ -116,9 +121,12 @@ describe('StudentDashboardController', () => {
     it('should ignore stale completed items that are not in the course content', async () => {
       const studentId = new mongoose.Types.ObjectId().toString();
       const courseId = new mongoose.Types.ObjectId();
-      const contentItems = Array.from({ length: 15 }, () => ({
-        _id: new mongoose.Types.ObjectId(),
-      }));
+      const module1 = new mongoose.Types.ObjectId();
+      const module2 = new mongoose.Types.ObjectId();
+      const module3 = new mongoose.Types.ObjectId();
+      const module1Items = Array.from({ length: 5 }, () => ({ _id: new mongoose.Types.ObjectId() }));
+      const module2Items = Array.from({ length: 5 }, () => ({ _id: new mongoose.Types.ObjectId() }));
+      const module3Items = Array.from({ length: 5 }, () => ({ _id: new mongoose.Types.ObjectId() }));
 
       User.findById.mockResolvedValue({
         _id: studentId,
@@ -134,8 +142,21 @@ describe('StudentDashboardController', () => {
             category: 'Computer Apps',
             modules: [
               {
+                _id: module1,
                 chapters: [
-                  { contentItems },
+                  { contentItems: module1Items },
+                ],
+              },
+              {
+                _id: module2,
+                chapters: [
+                  { contentItems: module2Items },
+                ],
+              },
+              {
+                _id: module3,
+                chapters: [
+                  { contentItems: module3Items },
                 ],
               },
             ],
@@ -149,7 +170,8 @@ describe('StudentDashboardController', () => {
             course: courseId,
             status: 'in_progress',
             completedItems: [
-              ...contentItems.slice(0, 10).map(item => ({ itemId: item._id })),
+              ...module1Items.map(item => ({ itemId: item._id })),
+              ...module2Items.slice(0, 4).map(item => ({ itemId: item._id })),
               ...Array.from({ length: 5 }, () => ({ itemId: new mongoose.Types.ObjectId() })),
             ],
             lastAccessedAt: new Date(),
@@ -164,16 +186,158 @@ describe('StudentDashboardController', () => {
 
       expect(res.json.mock.calls[0][0].data.courses[0]).toEqual(
         expect.objectContaining({
-          totalTasks: 15,
-          completedTasks: 10,
-          progressPercentage: 67,
+          totalTasks: 3,
+          completedTasks: 1,
+          progressPercentage: 33,
         })
       );
+    });
+
+    it('should not complete a module from completedModules when visible tasks are incomplete', async () => {
+      const studentId = new mongoose.Types.ObjectId().toString();
+      const courseId = new mongoose.Types.ObjectId();
+      const moduleId = new mongoose.Types.ObjectId();
+      const completedTaskId = new mongoose.Types.ObjectId();
+      const availableTaskId = new mongoose.Types.ObjectId();
+
+      User.findById.mockResolvedValue({
+        _id: studentId,
+        name: 'Test Student',
+        streak: 0,
+      });
+
+      Course.find.mockReturnValue({
+        lean: jest.fn().mockResolvedValue([
+          {
+            _id: courseId,
+            title: 'Spoken English',
+            category: 'Spoken English',
+            modules: [
+              {
+                _id: moduleId,
+                chapters: [
+                  {
+                    contentItems: [
+                      { _id: completedTaskId },
+                      { _id: availableTaskId },
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
+        ]),
+      });
+
+      StudentProgress.find.mockReturnValue({
+        lean: jest.fn().mockResolvedValue([
+          {
+            course: courseId,
+            status: 'completed',
+            completedModules: [moduleId],
+            completedItems: [{ itemId: completedTaskId }],
+            lastAccessedAt: new Date(),
+            completionPercentage: 100,
+          },
+        ]),
+      });
+
+      const req = mockRequest({ params: { studentId } });
+      const res = mockResponse();
+      await dashboardController.getDashboard(req, res);
+
+      expect(res.json.mock.calls[0][0].data.courses[0]).toEqual(
+        expect.objectContaining({
+          totalTasks: 1,
+          completedTasks: 0,
+          progressPercentage: 0,
+          status: 'in_progress',
+        })
+      );
+    });
+
+    it('should include published category courses even when assignments exist', async () => {
+      const studentId = new mongoose.Types.ObjectId().toString();
+      const assignedCourseId = new mongoose.Types.ObjectId();
+      const publishedCourseId = new mongoose.Types.ObjectId();
+      const assignedTaskId = new mongoose.Types.ObjectId();
+      const availableTaskId = new mongoose.Types.ObjectId();
+
+      User.findById.mockResolvedValue({
+        _id: studentId,
+        name: 'Test Student',
+        streak: 0,
+        balagruhaIds: [],
+      });
+
+      CourseAssignment.find.mockReturnValue({
+        lean: jest.fn().mockResolvedValue([
+          {
+            courseId: assignedCourseId,
+            status: 'active',
+            assignedTo: { studentIds: [studentId] },
+          },
+        ]),
+      });
+
+      Course.find.mockReturnValue({
+        lean: jest.fn().mockResolvedValue([
+          {
+            _id: assignedCourseId,
+            title: 'Assigned Spoken English',
+            category: 'Spoken English',
+            modules: [
+              {
+                chapters: [
+                  { contentItems: [{ _id: assignedTaskId }] },
+                ],
+              },
+            ],
+          },
+          {
+            _id: publishedCourseId,
+            title: 'Published Spoken English',
+            category: 'Spoken English',
+            modules: [
+              {
+                chapters: [
+                  { contentItems: [{ _id: availableTaskId }] },
+                ],
+              },
+            ],
+          },
+        ]),
+      });
+
+      StudentProgress.find.mockReturnValue({
+        lean: jest.fn().mockResolvedValue([
+          {
+            course: assignedCourseId,
+            status: 'completed',
+            completedItems: [{ itemId: assignedTaskId }],
+            lastAccessedAt: new Date(),
+            completionPercentage: 100,
+          },
+        ]),
+      });
+
+      const req = mockRequest({ params: { studentId } });
+      const res = mockResponse();
+      await dashboardController.getDashboard(req, res);
+
+      const spokenCourses = res.json.mock.calls[0][0].data.courses.filter(
+        course => course.courseType === 'Spoken English'
+      );
+
+      expect(spokenCourses).toHaveLength(2);
+      expect(spokenCourses.reduce((sum, course) => sum + course.totalTasks, 0)).toBe(2);
+      expect(spokenCourses.reduce((sum, course) => sum + course.completedTasks, 0)).toBe(1);
     });
 
     it('should count completed quiz refs against their visible content item', async () => {
       const studentId = new mongoose.Types.ObjectId().toString();
       const courseId = new mongoose.Types.ObjectId();
+      const moduleId = new mongoose.Types.ObjectId();
       const contentItemId = new mongoose.Types.ObjectId();
       const quizId = new mongoose.Types.ObjectId();
 
@@ -191,6 +355,7 @@ describe('StudentDashboardController', () => {
             category: 'Computer Apps',
             modules: [
               {
+                _id: moduleId,
                 chapters: [
                   {
                     contentItems: [
@@ -232,6 +397,8 @@ describe('StudentDashboardController', () => {
     it('should count graded submissions against their visible content item', async () => {
       const studentId = new mongoose.Types.ObjectId().toString();
       const courseId = new mongoose.Types.ObjectId();
+      const completedModuleId = new mongoose.Types.ObjectId();
+      const incompleteModuleId = new mongoose.Types.ObjectId();
       const taskId = new mongoose.Types.ObjectId();
 
       User.findById.mockResolvedValue({
@@ -248,10 +415,20 @@ describe('StudentDashboardController', () => {
             category: 'Spoken English',
             modules: [
               {
+                _id: completedModuleId,
                 chapters: [
                   {
                     contentItems: [
                       { _id: taskId },
+                    ],
+                  },
+                ],
+              },
+              {
+                _id: incompleteModuleId,
+                chapters: [
+                  {
+                    contentItems: [
                       { _id: new mongoose.Types.ObjectId() },
                     ],
                   },
@@ -360,7 +537,7 @@ describe('StudentDashboardController', () => {
 
     it('should return unread notification count', async () => {
       User.findById.mockResolvedValue({ _id: 'sid' });
-      Notification.countDocuments.mockResolvedValue(5);
+      Notification.getUnreadCount.mockResolvedValue(5);
 
       const req = mockRequest({ params: { studentId: 'sid' } });
       const res = mockResponse();

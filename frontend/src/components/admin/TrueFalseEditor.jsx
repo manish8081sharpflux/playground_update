@@ -6,10 +6,22 @@ export default function TrueFalseEditor({ question, onSave, onCancel }) {
   const [questionData, setQuestionData] = useState({
     type: 'true_false',
     questionText: question.questionText || '',
-    points: question.points || 3,
+    points: question.points ?? 3,
     explanation: question.explanation || '',
     correctAnswer: question.correctAnswer !== undefined ? question.correctAnswer : true
   });
+
+  const handlePointsChange = (value) => {
+    if (value === '') {
+      setQuestionData({ ...questionData, points: '' });
+      return;
+    }
+
+    const parsedValue = Number(value);
+    if (!Number.isNaN(parsedValue)) {
+      setQuestionData({ ...questionData, points: parsedValue });
+    }
+  };
 
   const handleSave = () => {
     if (!questionData.questionText.trim()) {
@@ -17,7 +29,7 @@ export default function TrueFalseEditor({ question, onSave, onCancel }) {
       return;
     }
 
-    if (questionData.points < 1 || questionData.points > 100) {
+    if (!Number.isInteger(questionData.points) || questionData.points < 1 || questionData.points > 100) {
       toast.error('Points must be between 1 and 100');
       return;
     }
@@ -98,7 +110,8 @@ export default function TrueFalseEditor({ question, onSave, onCancel }) {
             <input
               type="number"
               value={questionData.points}
-              onChange={(e) => setQuestionData({ ...questionData, points: parseInt(e.target.value) || 0 })}
+              onChange={(e) => handlePointsChange(e.target.value)}
+              step="1"
               min="1"
               max="100"
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"

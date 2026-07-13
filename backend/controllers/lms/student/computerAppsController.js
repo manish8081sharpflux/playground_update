@@ -3,7 +3,8 @@ const StudentProgress = require('../../../models/StudentProgress');
 const mongoose = require('mongoose');
 const { errorLogger } = require('../../../config/pino-config');
 const { streamCourseContentFile } = require('../../../utils/lmsContentFile');
-
+const User = require('../../../models/user');
+const { getStudentCourseAccess, assertStudentCanSubmitForCourse } = require('../../../utils/lmsAssignmentStatus');
 // ==================== GET APPS LIST ====================
 
 const getQuizRefId = (item) =>
