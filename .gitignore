@@ -31,12 +31,12 @@ dist/
 build/
 frontend/build/
 
-# Package lock files
-package-lock.json
-**/package-lock.json
-# Package lock files
-package-lock.json
-**/package-lock.json
+# # Package lock files
+# package-lock.json
+# **/package-lock.json
+# # Package lock files
+# package-lock.json
+# **/package-lock.json
 
 backend/logs/pino-logger.log
 backend/logs/scheduler-events.log
