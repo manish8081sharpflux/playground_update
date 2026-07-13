@@ -508,7 +508,7 @@ const UserForm = ({ mode = "add", user = null, existingUsers = [], onSuccess, on
         newErrors.parentalStatus = "Parental status is required";
       }
 
-      // Guardian validation based on parental status
+      // A relevant parent/guardian name is required; contact details are optional.
       if (
         formData.parentalStatus === "has one" ||
         formData.parentalStatus === "has guardian"
@@ -1845,7 +1845,7 @@ const UserForm = ({ mode = "add", user = null, existingUsers = [], onSuccess, on
                             {formData.parentalStatus === "has one"
                               ? "Parent Contact"
                               : "Guardian Contact"}{" "}
-                            *
+                            (Optional)
                           </label>
                           <input
                             type="tel"
@@ -1870,7 +1870,7 @@ const UserForm = ({ mode = "add", user = null, existingUsers = [], onSuccess, on
                     "has both" && (
                       <>
                         <div className="form-group">
-                          <label htmlFor="guardianName1">Fathers Name*</label>
+                          <label htmlFor="guardianName1">Father's Name*</label>
                           <input
                             type="text"
                             id="guardianName1"
@@ -1888,7 +1888,7 @@ const UserForm = ({ mode = "add", user = null, existingUsers = [], onSuccess, on
                         </div>
                         <div className="form-group">
                           <label htmlFor="guardianContact">
-                            Father's Contact *
+                            Father's Contact (Optional)
                           </label>
                           <input
                             type="tel"
@@ -1925,7 +1925,7 @@ const UserForm = ({ mode = "add", user = null, existingUsers = [], onSuccess, on
                         </div>
                         <div className="form-group">
                           <label htmlFor="guardianContact2">
-                            Mother's Contact *
+                            Mother's Contact (Optional)
                           </label>
                           <input
                             type="tel"

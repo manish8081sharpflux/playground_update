@@ -315,11 +315,11 @@
 .header.medical-layout-header .top-menu .menu-item.active,
 .header.medical-layout-header .top-menu .menu-item:focus,
 .header.medical-layout-header .top-menu .menu-item:active {
-  background-color: #eef2ff;
-  color: #2f4cce;
-  border: 1px solid #c7d2fe;
+  background-color: #4361ee;
+  color: #ffffff;
+  border: 1px solid #4361ee;
   outline: none;
-  box-shadow: 0 3px 8px rgba(67, 97, 238, 0.2);
+  box-shadow: 0 4px 10px rgba(67, 97, 238, 0.35);
   font-weight: bold;
 }
 
@@ -412,10 +412,10 @@
 /* Active state for current route */
 .top-menu .menu-item.active {
   outline: none;
-  background-color: #eef2ff;
-  color: #2f4cce;
-  border: 1px solid #c7d2fe;
-  box-shadow: 0 3px 8px rgba(67, 97, 238, 0.2);
+  background-color: #4361ee;
+  color: #ffffff;
+  border: 1px solid #4361ee;
+  box-shadow: 0 4px 10px rgba(67, 97, 238, 0.35);
   font-weight: bold;
 }
 
