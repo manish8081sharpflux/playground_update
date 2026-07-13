@@ -46,6 +46,7 @@ const Layout = () => {
   // Trigger a brief shake animation on the WTF menu item in child view
   const [shouldShakeWtf, setShouldShakeWtf] = useState(false);
   const [isLoadingNotifications, setIsLoadingNotifications] = useState(false);
+  const [activeDashboardTab, setActiveDashboardTab] = useState("dashboard");
   // Story 3.9: PM pending badge state
   const [pendingPurchaseCount, setPendingPurchaseCount] = useState({ total: 0, highPriority: 0 });
 
@@ -385,6 +386,14 @@ const Layout = () => {
 
   // Removed duplicate declaration of sportCoachMenu
 
+  useEffect(() => {
+    if (location.pathname !== "/dashboard") return;
+
+    if (location.state?.activeTab) {
+      setActiveDashboardTab(location.state.activeTab);
+    }
+  }, [location.pathname, location.state?.activeTab]);
+
   // If either auth or RBAC is loading, show loading screen
   if (authLoading || rbacLoading) {
     return (
@@ -461,6 +470,7 @@ const Layout = () => {
   const hasCustomDashboard = Object.keys(customRoleMenus).includes(currentRole);
   const useMedicalHeaderStyle = currentRole === "medical-incharge";
 
+
   // Determine which menu to show
   const menuToShow = hasCustomDashboard
     ? customRoleMenus[currentRole]
@@ -535,11 +545,17 @@ const Layout = () => {
           {/* Top Menu */}
           <div className="top-menu scrollable-menu">
             {menuToShow.map((menu) => {
-              const isActive =
-                !useMedicalHeaderStyle &&
-                location.pathname === menu.link &&
-                (!menu.state?.activeTab ||
-                  location.state?.activeTab === menu.state.activeTab);
+              const isDashboardMenu = menu.link === "/dashboard";
+              const isDirectRoute =
+                !isDashboardMenu &&
+                (location.pathname === menu.link ||
+                  (menu.link !== "/" && location.pathname.startsWith(`${menu.link}/`)));
+              const isActive = isDashboardMenu
+                ? isOnDashboard &&
+                  (menu.state?.activeTab
+                    ? activeDashboardTab === menu.state.activeTab
+                    : activeDashboardTab === "dashboard")
+                : isDirectRoute;
               const isWtf = menu.name === "WTF";
               const isPurchases = menu.name === "Purchases";
               const wtfHighlight =
@@ -566,10 +582,14 @@ const Layout = () => {
                     }
                     // Navigate with state if provided (for dashboard tabs)
                     if (menu.state) {
+                      setActiveDashboardTab(menu.state.activeTab);
                       navigate(menu.link, {
                         state: { ...menu.state, navKey: Date.now() },
                       });
                     } else {
+                      if (menu.link === "/dashboard") {
+                        setActiveDashboardTab("dashboard");
+                      }
                       navigate(menu.link);
                     }
                   }}

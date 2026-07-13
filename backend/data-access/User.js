@@ -492,22 +492,22 @@ exports.getStudentListByBalagruhaIdWithAttendance = async ({
     {
       $lookup: {
         from: "attendances",
-        localField: "_id",
-        foreignField: "studentId",
-        as: "attendance",
-      },
-    },
-    {
-      $set: {
-        attendance: {
-          $filter: {
-            input: "$attendance",
-            as: "att",
-            cond: {
-              $eq: ["$$att.dateString", dateToString(new Date(date))],
+        let: { studentId: "$_id" },
+        pipeline: [
+          {
+            $match: {
+              $expr: {
+                $and: [
+                  { $eq: ["$studentId", "$$studentId"] },
+                  { $eq: ["$dateString", dateToString(new Date(date))] },
+                ],
+              },
             },
           },
-        },
+          { $sort: { updatedAt: -1, createdAt: -1 } },
+          { $limit: 1 },
+        ],
+        as: "attendance",
       },
     },
     {

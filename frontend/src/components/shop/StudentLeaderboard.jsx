@@ -186,7 +186,7 @@ const StudentLeaderboard = ({ earnersData, spendersData, onExport, filters = {},
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div>
                       <div className="text-sm font-medium text-gray-900">{student.studentName}</div>
-                      <div className="text-sm text-gray-500">{student.email}</div>
+                      <div className="text-sm text-gray-500">{student.email || "—"}</div>
                     </div>
                   </td>
                   {activeTab === 'earners' ? (
