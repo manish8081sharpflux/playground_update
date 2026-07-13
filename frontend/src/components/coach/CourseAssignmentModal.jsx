@@ -336,15 +336,15 @@ export default function CourseAssignmentModal({ isOpen, onClose, coachId, onAssi
             </label>
 
             {/* Entire Balagruha Option */}
-            <div
+            {/* <div
               onClick={() => setAssignmentType('balagruha')}
               className={`border-2 rounded-lg p-4 cursor-pointer mb-3 transition ${assignmentType === 'balagruha'
                 ? 'border-blue-500 bg-blue-50'
                 : 'border-gray-300 hover:border-blue-300'
                 }`}
             >
-              <div className="flex items-start">
-                <input
+              <div className="flex items-start"> */}
+                {/* <input
                   type="radio"
                   checked={assignmentType === 'balagruha'}
                   onChange={() => setAssignmentType('balagruha')}
@@ -356,9 +356,9 @@ export default function CourseAssignmentModal({ isOpen, onClose, coachId, onAssi
                   </div>
                   <div className="text-sm text-gray-600">
                     All students in selected Balagruha(s) will receive this course
-                  </div>
+                  </div> */}
                   {/* Balagruha multi-select checkboxes */}
-                  {balagruhasInfo.length > 0 && (
+                  {/* {balagruhasInfo.length > 0 && (
                     <div className="mt-3 border border-gray-200 rounded-lg p-3 bg-white">
                       <div className="flex items-center justify-between mb-2">
                         <span className="text-xs font-medium text-gray-500">
@@ -419,10 +419,10 @@ export default function CourseAssignmentModal({ isOpen, onClose, coachId, onAssi
                         </div>
                       )}
                     </div>
-                  )}
-                </div>
+                  )} */}
+                {/* </div>
               </div>
-            </div>
+            </div> */}
 
             {/* Specific Students Option */}
             <div
@@ -440,7 +440,7 @@ export default function CourseAssignmentModal({ isOpen, onClose, coachId, onAssi
                   className="mr-3"
                 />
                 <div>
-                  <div className="font-medium text-gray-900">Specific Students</div>
+                  <div className="font-medium text-gray-900">Students</div>
                   <div className="text-sm text-gray-600">
                     Select individual students below
                   </div>

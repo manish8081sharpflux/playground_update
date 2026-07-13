@@ -17,6 +17,21 @@ import autoTable from "jspdf-autotable";
 
 dayjs.extend(isSameOrAfter);
 dayjs.extend(isSameOrBefore);
+const getRepairDateInputValue = (value = new Date()) => {
+  const parsed = dayjs(value);
+  return parsed.isValid()
+    ? parsed.format("YYYY-MM-DDTHH:mm")
+    : dayjs().format("YYYY-MM-DDTHH:mm");
+};
+
+const getRepairDatePayload = (value) =>
+  dayjs(value).second(0).millisecond(0).toISOString();
+
+const getErrorMessage = (error, fallback = "Unknown error") =>
+  error?.response?.data?.message ||
+  error?.response?.data?.error ||
+  error?.message ||
+  fallback;
 
 export default function RepairManagement() {
   const [isInitialLoading, setIsInitialLoading] = useState(true);
@@ -36,11 +51,13 @@ export default function RepairManagement() {
   const [selectDate, setSelectDate] = useState(null);
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
+  const [repairPage, setRepairPage] = useState(1);
+  const repairsPerPage = 8;
   const [repairForm, setRepairForm] = useState({
     balagruhaId: "",
     issueName: "",
     description: "",
-    dateReported: new Date().toISOString(),
+    dateReported: getRepairDateInputValue(),
     urgency: "medium",
     estimatedCost: "",
     attachments: [],
@@ -60,7 +77,7 @@ export default function RepairManagement() {
         balagruhaId: repair.balagruhaId?._id || repair.balagruhaId || "",
         issueName: repair.issueName || "",
         description: repair.description || "",
-        dateReported: repair.dateReported || new Date().toISOString(),
+        dateReported: getRepairDateInputValue(repair.dateReported),
         urgency: repair.urgency || "medium",
         estimatedCost: repair.estimatedCost || "",
         attachments: [],
@@ -78,7 +95,7 @@ export default function RepairManagement() {
         balagruhaId: "",
         issueName: "",
         description: "",
-        dateReported: new Date().toISOString(),
+        dateReported: getRepairDateInputValue(),
         urgency: "medium",
         estimatedCost: "",
         attachments: [],
@@ -109,7 +126,7 @@ export default function RepairManagement() {
     } catch (error) {
       console.error("Error fetching repairs:", error);
       const msg =
-        "Error fetching repairs: " + (error.message || "Unknown error");
+        "Error fetching repairs: " + getErrorMessage(error);
       showToast(msg, "error");
       setFetchError(msg);
     } finally {
@@ -130,7 +147,7 @@ export default function RepairManagement() {
       } else {
         showToast(
           "Error deleting repair request: " +
-            (response.message || "Unknown error"),
+          (response.message || "Unknown error"),
           "error",
         );
       }
@@ -139,7 +156,7 @@ export default function RepairManagement() {
     } catch (error) {
       console.error("Error deleting repair request:", error);
       showToast(
-        "Error deleting repair request: " + (error.message || "Unknown error"),
+        "Error deleting repair request: " + getErrorMessage(error),
         "error",
       );
     } finally {
@@ -167,46 +184,50 @@ export default function RepairManagement() {
     }));
   };
 
+  const validateRepairForm = () => {
+    const issueName = repairForm.issueName.trim();
+    const description = repairForm.description.trim();
+    const estimatedCost = Number(repairForm.estimatedCost);
+    const reportedDate = new Date(repairForm.dateReported);
+    const allowedUrgency = ["low", "medium", "high"];
+    const allowedStatus = ["pending", "in-progress", "completed"];
+
+    if (!repairForm.balagruhaId) return "Please select a Balagruha";
+    if (!issueName) return "Please enter an issue name";
+    if (issueName.length < 3) return "Issue name must be at least 3 characters";
+    if (!description) return "Please enter a description";
+    if (description.length < 10) return "Description must be at least 10 characters";
+    if (!repairForm.dateReported || Number.isNaN(reportedDate.getTime())) return "Please select a valid reported date";
+    if (reportedDate.getTime() > Date.now()) return "Date reported cannot be in the future";
+    if (!allowedUrgency.includes(repairForm.urgency)) return "Please select a valid urgency";
+    if (editingItem && !allowedStatus.includes(repairForm.status)) return "Please select a valid status";
+    if (!repairForm.estimatedCost) return "Estimated cost is required";
+    if (Number.isNaN(estimatedCost) || estimatedCost <= 0) return "Estimated cost must be greater than 0";
+    if (estimatedCost > 100000) return "Estimated cost cannot exceed Rs. 100,000";
+
+    return "";
+  };
+
   const handleRepairSubmit = async (e) => {
     e.preventDefault();
     setIsRefreshing(true);
 
     try {
-      // Validate required fields
-      if (!repairForm.balagruhaId) {
-        showToast("Please select a Balagruha", "error");
-        setIsRefreshing(false);
-        return;
-      }
-      if (!repairForm.issueName) {
-        showToast("Please enter an issue name", "error");
-        setIsRefreshing(false);
-        return;
-      }
-      if (!repairForm.description) {
-        showToast("Please enter a description", "error");
-        setIsRefreshing(false);
-        return;
-      }
-      if (!repairForm.estimatedCost || Number(repairForm.estimatedCost) <= 0) {
-        showToast(
-          !repairForm.estimatedCost
-            ? "Estimated cost is required"
-            : "Estimated cost must be greater than 0",
-          "error",
-        );
+      const validationMessage = validateRepairForm();
+      if (validationMessage) {
+        showToast(validationMessage, "error");
         setIsRefreshing(false);
         return;
       }
 
       const formData = new FormData();
       formData.append("balagruhaId", repairForm.balagruhaId);
-      formData.append("issueName", repairForm.issueName);
-      formData.append("description", repairForm.description);
-      formData.append("dateReported", repairForm.dateReported);
+      formData.append("issueName", repairForm.issueName.trim());
+      formData.append("description", repairForm.description.trim());
+      formData.append("dateReported", getRepairDatePayload(repairForm.dateReported));
       formData.append("urgency", repairForm.urgency);
-      formData.append("estimatedCost", repairForm.estimatedCost);
-      formData.append("repairDetails", repairForm.repairDetails || "");
+      formData.append("estimatedCost", Number(repairForm.estimatedCost));
+      formData.append("repairDetails", repairForm.repairDetails?.trim() || "");
 
       if (editingItem) {
         formData.append("status", repairForm.status);
@@ -241,13 +262,13 @@ export default function RepairManagement() {
           "success",
         );
         setShowRepairModal(false);
-        fetchRepairRequests(true);
+        await fetchRepairRequests(true);
       } else {
         showToast("Error: " + (response.message || "Unknown error"), "error");
       }
     } catch (error) {
       console.error("Error submitting repair:", error);
-      showToast("Error: " + (error.message || "Unknown error"), "error");
+      showToast("Error: " + getErrorMessage(error), "error");
     } finally {
       setIsRefreshing(false);
     }
@@ -313,7 +334,7 @@ export default function RepairManagement() {
 
     return (
       <div className="file-preview">
-        {isImage(file) ? (
+        {preview && isImage(file) ? (
           <img
             src={preview}
             alt="Repair request attachment preview"
@@ -349,6 +370,10 @@ export default function RepairManagement() {
       );
     }
   };
+  useEffect(() => {
+    setRepairPage(1);
+  }, [repairSearch, filterBalagruha, filterStatus, selectDate, fromDate, toDate]);
+
   const filteredRepairRequests = repairRequests.filter((bal) => {
     if (!bal) return false;
 
@@ -400,6 +425,18 @@ export default function RepairManagement() {
       passesDateFilter && passesBalagruhaFilter && searchFilter && statusFilter
     );
   });
+
+  const repairPageCount = Math.max(1, Math.ceil(filteredRepairRequests.length / repairsPerPage));
+  const currentRepairPage = Math.min(repairPage, repairPageCount);
+  const paginatedRepairRequests = filteredRepairRequests.slice(
+    (currentRepairPage - 1) * repairsPerPage,
+    currentRepairPage * repairsPerPage,
+  );
+
+  const goToRepairPage = (page) => {
+    const nextPage = Math.min(Math.max(page, 1), repairPageCount);
+    setRepairPage(nextPage);
+  };
 
   const exportToPDF = () => {
     const doc = new jsPDF();
@@ -511,9 +548,8 @@ export default function RepairManagement() {
             <div>
               <button
                 onClick={() => setSelectDate(null)}
-                className={`date-picker-button ${
-                  selectDate === null ? "selected" : ""
-                }`}
+                className={`date-picker-button ${selectDate === null ? "selected" : ""
+                  }`}
               >
                 All
               </button>
@@ -521,9 +557,8 @@ export default function RepairManagement() {
             <div>
               <button
                 onClick={() => setSelectDate("today")}
-                className={`date-picker-button ${
-                  selectDate === "today" ? "selected" : ""
-                }`}
+                className={`date-picker-button ${selectDate === "today" ? "selected" : ""
+                  }`}
               >
                 Today
               </button>
@@ -531,9 +566,8 @@ export default function RepairManagement() {
             <div>
               <button
                 onClick={() => setSelectDate("thisWeek")}
-                className={`date-picker-button ${
-                  selectDate === "thisWeek" ? "selected" : ""
-                }`}
+                className={`date-picker-button ${selectDate === "thisWeek" ? "selected" : ""
+                  }`}
               >
                 This week
               </button>
@@ -541,9 +575,8 @@ export default function RepairManagement() {
             <div>
               <button
                 onClick={() => setSelectDate("thisMonth")}
-                className={`date-picker-button ${
-                  selectDate === "thisMonth" ? "selected" : ""
-                }`}
+                className={`date-picker-button ${selectDate === "thisMonth" ? "selected" : ""
+                  }`}
               >
                 This month
               </button>
@@ -551,9 +584,8 @@ export default function RepairManagement() {
             <div>
               <button
                 onClick={() => setSelectDate("lastMonth")}
-                className={`date-picker-button ${
-                  selectDate === "lastMonth" ? "selected" : ""
-                }`}
+                className={`date-picker-button ${selectDate === "lastMonth" ? "selected" : ""
+                  }`}
               >
                 Last Month
               </button>
@@ -563,9 +595,8 @@ export default function RepairManagement() {
                 onClick={() =>
                   setSelectDate(selectDate === "custom" ? null : "custom")
                 }
-                className={`date-picker-button ${
-                  selectDate === "custom" ? "selected" : ""
-                }`}
+                className={`date-picker-button ${selectDate === "custom" ? "selected" : ""
+                  }`}
               >
                 Custom
               </button>
@@ -574,29 +605,24 @@ export default function RepairManagement() {
           {selectDate === "custom" && (
             <div className="custom-date-container">
               <div className="from-to-container">
-                <div>
-                  <label htmlFor="repair-from-date">From date</label>
-                  <input
-                    type="date"
-                    id="repair-to-date"
-                    className="from-to-date-input"
-                    value={toDate}
-                    min={fromDate}
-                    max={dayjs().format("YYYY-MM-DD")}
-                    onChange={(e) => setToDate(e.target.value)}
-                  />
-                </div>
-                <div>
-                  <label htmlFor="repair-to-date">To date</label>
-                  <input
-                    type="date"
-                    id="repair-from-date"
-                    className="from-to-date-input"
-                    value={fromDate}
-                    max={toDate || dayjs().format("YYYY-MM-DD")}
-                    onChange={(e) => setFromDate(e.target.value)}
-                  />
-                </div>
+                <label htmlFor="repair-from-date">From date</label>
+                <input
+                  type="date"
+                  id="repair-from-date"
+                  value={fromDate}
+                  max={toDate || dayjs().format("YYYY-MM-DD")}
+                  onChange={(e) => setFromDate(e.target.value)}
+                />
+
+                <label htmlFor="repair-to-date">To date</label>
+                <input
+                  type="date"
+                  id="repair-to-date"
+                  value={toDate}
+                  min={fromDate}
+                  max={dayjs().format("YYYY-MM-DD")}
+                  onChange={(e) => setToDate(e.target.value)}
+                />
               </div>
             </div>
           )}
@@ -739,7 +765,7 @@ export default function RepairManagement() {
                 </tr>
               </thead>
               <tbody>
-                {filteredRepairRequests?.map((request) => (
+                {paginatedRepairRequests?.map((request) => (
                   <tr key={request._id}>
                     <td>{request.issueName}</td>
                     <td>{request.description}</td>
@@ -791,6 +817,45 @@ export default function RepairManagement() {
           )}
         </div>
 
+        {!isInitialLoading && filteredRepairRequests.length > repairsPerPage && (
+          <div className="repair-pagination" aria-label="Repair request pagination">
+            <div className="repair-pagination-info">
+              Showing {(currentRepairPage - 1) * repairsPerPage + 1}-
+              {Math.min(currentRepairPage * repairsPerPage, filteredRepairRequests.length)} of {filteredRepairRequests.length}
+            </div>
+            <div className="repair-pagination-controls">
+              <button
+                type="button"
+                onClick={() => goToRepairPage(currentRepairPage - 1)}
+                disabled={currentRepairPage === 1}
+              >
+                Previous
+              </button>
+              {Array.from({ length: repairPageCount }).map((_, index) => {
+                const page = index + 1;
+                return (
+                  <button
+                    type="button"
+                    key={page}
+                    onClick={() => goToRepairPage(page)}
+                    className={page === currentRepairPage ? "active" : ""}
+                    aria-current={page === currentRepairPage ? "page" : undefined}
+                  >
+                    {page}
+                  </button>
+                );
+              })}
+              <button
+                type="button"
+                onClick={() => goToRepairPage(currentRepairPage + 1)}
+                disabled={currentRepairPage === repairPageCount}
+              >
+                Next
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Confirmation Modal */}
         {showDeleteConfirmation && (
           <div className="modal-overlay">
@@ -831,7 +896,12 @@ export default function RepairManagement() {
 
       {showRepairModal && (
         <div className="modal-overlay">
-          <div className="modal-container">
+          <div className="modal-container" style={{
+            padding: '0',
+            overflowY: 'auto',
+            scrollbarWidth: 'none',
+            msOverflowStyle: 'none'
+          }}>
             <div className="modal-header">
               <h3>
                 {editingItem ? "Edit Repair Request" : "New Repair Request"}
@@ -901,11 +971,12 @@ export default function RepairManagement() {
                   <input
                     type="datetime-local"
                     id="repair-date-reported"
-                    value={repairForm.dateReported.slice(0, 16)}
+                    value={repairForm.dateReported}
+                    max={dayjs().format("YYYY-MM-DDTHH:mm")}
                     onChange={(e) =>
                       setRepairForm((prev) => ({
                         ...prev,
-                        dateReported: new Date(e.target.value).toISOString(),
+                        dateReported: e.target.value,
                       }))
                     }
                     required
@@ -942,6 +1013,8 @@ export default function RepairManagement() {
                         estimatedCost: e.target.value,
                       }))
                     }
+                    min="1"
+                    max="100000"
                     required
                   />
                 </div>
@@ -1000,23 +1073,12 @@ export default function RepairManagement() {
                   )}
 
                   {editingItem &&
-                    repairForm.existingAttachments?.filter((file) => {
-                      const url = getAttachmentUrl(file);
-                      const ext = getAttachmentExtension(file);
-                      return url && ["jpg", "jpeg", "png", "gif"].includes(ext);
-                    }).length > 0 && (
+                    repairForm.existingAttachments?.filter((file) => getAttachmentUrl(file)).length > 0 && (
                       <div className="existing-attachments">
                         <h4>Existing Attachments:</h4>
                         <div className="attachments-grid">
                           {repairForm.existingAttachments
-                            .filter((file) => {
-                              const url = getAttachmentUrl(file);
-                              const ext = getAttachmentExtension(file);
-                              return (
-                                url &&
-                                ["jpg", "jpeg", "png", "gif"].includes(ext)
-                              );
-                            })
+                            .filter((file) => getAttachmentUrl(file))
                             .map((file, index) => (
                               <div
                                 key={`existing-${index}`}
@@ -1084,3 +1146,6 @@ export default function RepairManagement() {
     </div>
   );
 }
+
+
+

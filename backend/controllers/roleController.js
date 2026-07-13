@@ -46,6 +46,8 @@ exports.updateRolePermissions = async (req, res) => {
       return res.status(404).json({ error: "Role not found" });
     }
 
+    const isPurchaseManager = role.roleName?.trim().toLowerCase() === "purchase-manager";
+
     // Iterate through the permissions array and update each module
     permissions.forEach((permission) => {
       const { module, actions } = permission;
@@ -61,18 +63,22 @@ exports.updateRolePermissions = async (req, res) => {
         (perm) => perm.module === module
       );
 
+      const scope =
+        isPurchaseManager && ["Purchase Management", "Shop Management"].includes(module)
+          ? "balagruh"
+          : permission.scope;
+
       if (moduleIndex !== -1) {
         // If the module exists, update its actions and scope
         role.permissions[moduleIndex].actions = actions;
-        if (permission.scope !== undefined) {
-          role.permissions[moduleIndex].scope = permission.scope;
+        if (scope !== undefined) {
+          role.permissions[moduleIndex].scope = scope;
         }
       } else {
         // If the module does not exist, add it to the permissions array
-        role.permissions.push({ module, actions, scope: permission.scope });
+        role.permissions.push({ module, actions, scope });
       }
     });
-
     // Save the updated role
     await role.save();
 
@@ -196,3 +202,4 @@ exports.fixAdminUserDeletePermission = async (req, res) => {
     });
   }
 };
+

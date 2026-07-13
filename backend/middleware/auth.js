@@ -146,3 +146,62 @@ exports.authorize = (module, action) => {
     }
   };
 };
+exports.authorizeAny = (allowedPermissions = []) => {
+  return async (req, res, next) => {
+    try {
+      const userRole = (req.user.role || "").trim().toLowerCase();
+
+      if (userRole === "admin") {
+        req.scopeFilter = {};
+        req.permissionScope = "all";
+        return next();
+      }
+
+      const role = await Role.findOne({
+        roleName: { $regex: new RegExp(`^${userRole}$`, "i") },
+      });
+
+      if (!role) {
+        return res.status(403).json({
+          success: false,
+          message: `Role ${userRole} not found`,
+        });
+      }
+
+      let permission = null;
+
+      for (const { module, action } of allowedPermissions) {
+        permission = role.permissions.find((rolePermission) =>
+          rolePermission.module?.trim().toLowerCase() === module.trim().toLowerCase() &&
+          rolePermission.actions?.some(
+            (a) => a.trim().toLowerCase() === action.trim().toLowerCase()
+          )
+        );
+
+        if (permission) break;
+      }
+
+      if (!permission) {
+        const allowedText = allowedPermissions
+          .map(({ module, action }) => `${action} on ${module}`)
+          .join(" or ");
+        return res.status(403).json({
+          success: false,
+          message: `Role ${userRole} is not authorized to perform ${allowedText}`,
+        });
+      }
+
+      req.scopeFilter = getScopeFilter(req.user, permission.scope);
+      req.permissionScope = permission.scope || "own";
+
+      next();
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({
+        success: false,
+        message: "Internal server error",
+      });
+    }
+  };
+};
+

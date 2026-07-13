@@ -11,20 +11,28 @@ exports.isValidEmail = (email) => {
   return emailRegex.test(email.trim());
 };
 
-// convert date to date string
+// convert date to local YYYY-MM-DD string without UTC day shifting
 exports.dateToString = (date) => {
-  // Check if date is a valid date object
   if (typeof date === "string") {
+    const dateOnlyMatch = date.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (dateOnlyMatch) {
+      return date;
+    }
+
     date = new Date(date);
-    if (isNaN(date)) {
+    if (Number.isNaN(date.getTime())) {
       return "";
     }
   }
-  if (!(date instanceof Date)) {
+
+  if (!(date instanceof Date) || Number.isNaN(date.getTime())) {
     return "";
   }
-  // Convert date string to date object if necessary
-  return date.toISOString().split("T")[0];
+
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
 };
 
 exports.isRequestFromLocalhost = (req) => {

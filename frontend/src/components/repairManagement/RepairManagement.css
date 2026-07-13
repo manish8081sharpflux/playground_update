@@ -732,3 +732,54 @@
 .remove-file {
   background-color: #ff3b30 !important;
 }
+.repair-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 16px;
+  padding: 12px 16px;
+  background: #fff;
+  border: 2px solid #e0e0e0;
+  border-radius: 12px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+}
+
+.repair-pagination-info {
+  color: #4b5563;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.repair-pagination-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.repair-pagination-controls button {
+  min-width: 36px;
+  min-height: 34px;
+  padding: 6px 12px;
+  border: 1px solid #b0c2f2;
+  border-radius: 8px;
+  background: #fff;
+  color: #2f4f9f;
+  cursor: pointer;
+  font-family: "Patrick Hand", cursive;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.repair-pagination-controls button.active {
+  background: #7699f8;
+  color: #fff;
+  border-color: #7699f8;
+}
+
+.repair-pagination-controls button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+

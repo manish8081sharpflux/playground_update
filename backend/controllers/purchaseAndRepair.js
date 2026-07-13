@@ -9,29 +9,88 @@ async function uploadRepairAttachmentsToS3(files = [], uploadedBy) {
   const attachments = [];
 
   for (const file of files) {
-    const result = await uploadFileToS3(
-      file.path,
-      process.env.AWS_S3_FOLDER_REPAIR_REQUEST_ATTACHMENTS,
-      file.filename,
-    );
+    try {
+      const result = await uploadFileToS3(
+        file.path,
+        process.env.AWS_S3_FOLDER_REPAIR_REQUEST_ATTACHMENTS,
+        file.filename,
+      );
 
-    if (!result.success) {
-      throw new Error(result.error || result.message || `Failed to upload ${file.originalname} to S3`);
+      if (!result.success) {
+        throw new Error(result.error || result.message || `Failed to upload ${file.originalname} to S3`);
+      }
+
+      attachments.push({
+        fileName: file.originalname || file.filename,
+        fileUrl: result.url,
+        s3Key: result.key,
+        fileType: result.contentType || file.mimetype,
+        uploadedBy,
+        uploadedAt: new Date(),
+      });
+    } finally {
+      cleanupLocalFile(file.path, file.filename);
     }
-
-    attachments.push({
-      fileName: file.originalname,
-      fileUrl: result.url,
-      s3Key: result.key,
-      fileType: result.contentType || file.mimetype,
-      uploadedBy,
-      uploadedAt: new Date(),
-    });
-
-    cleanupLocalFile(file.path, file.filename);
   }
 
   return attachments;
+}
+
+function validateRepairPayload(data, { isUpdate = false } = {}) {
+  const errors = [];
+  const allowedUrgency = ["low", "medium", "high"];
+  const allowedStatus = ["pending", "in-progress", "completed"];
+
+  const requiredFields = [
+    ["balagruhaId", "Balagruha is required"],
+    ["issueName", "Issue name is required"],
+    ["description", "Description is required"],
+    ["dateReported", "Date reported is required"],
+    ["urgency", "Urgency is required"],
+    ["estimatedCost", "Estimated cost is required"],
+  ];
+
+  requiredFields.forEach(([field, message]) => {
+    if (data[field] === undefined || data[field] === null || data[field].toString().trim() === "") {
+      errors.push(message);
+    }
+  });
+
+  if (data.issueName && data.issueName.trim().length < 3) {
+    errors.push("Issue name must be at least 3 characters");
+  }
+
+  if (data.description && data.description.trim().length < 10) {
+    errors.push("Description must be at least 10 characters");
+  }
+
+  if (data.urgency && !allowedUrgency.includes(data.urgency)) {
+    errors.push("Urgency must be low, medium, or high");
+  }
+
+  if (isUpdate && data.status && !allowedStatus.includes(data.status)) {
+    errors.push("Status must be pending, in-progress, or completed");
+  }
+
+  if (data.dateReported) {
+    const reportedDate = new Date(data.dateReported);
+    if (Number.isNaN(reportedDate.getTime())) {
+      errors.push("Date reported is invalid");
+    } else if (reportedDate.getTime() > Date.now()) {
+      errors.push("Date reported cannot be in the future");
+    }
+  }
+
+  const estimatedCost = Number(data.estimatedCost);
+  if (data.estimatedCost !== undefined && data.estimatedCost !== "") {
+    if (Number.isNaN(estimatedCost) || estimatedCost <= 0) {
+      errors.push("Estimated cost must be greater than 0");
+    } else if (estimatedCost > 100000) {
+      errors.push("Estimated cost cannot exceed Rs. 100,000");
+    }
+  }
+
+  return errors;
 }
 const repairRequestController = {
   // Create a new repair request
@@ -42,15 +101,32 @@ const repairRequestController = {
         createdBy: req.user._id,
       };
 
+      const validationErrors = validateRepairPayload(repairData);
+      if (validationErrors.length > 0) {
+        return res.status(400).json({
+          success: false,
+          message: validationErrors[0],
+          errors: validationErrors,
+        });
+      }
+
       // Handle file attachments if any
       if (req.files && req.files.length > 0) {
-        repairData.attachments = req.files;
+        repairData.attachments = await uploadRepairAttachmentsToS3(req.files, req.user._id);
       }
       let isOfflineReq = isRequestFromLocalhost(req);
       repairData.isOfflineReq = isOfflineReq || false;
       const newRepairRequest = await RepairRequest.createRepairRequest(
         repairData
       );
+
+      if (!newRepairRequest.success) {
+        return res.status(400).json({
+          success: false,
+          message: newRepairRequest.message || "Failed to create repair request",
+          data: newRepairRequest.data || {},
+        });
+      }
 
       return res.status(201).json({
         success: true,
@@ -149,6 +225,15 @@ const repairRequestController = {
       const { id } = req.params;
       const updateData = { ...req.body };
       let isOfflineReq = isRequestFromLocalhost(req);
+
+      const validationErrors = validateRepairPayload(updateData, { isUpdate: true });
+      if (validationErrors.length > 0) {
+        return res.status(400).json({
+          success: false,
+          message: validationErrors[0],
+          errors: validationErrors,
+        });
+      }
 
       if (updateData.existingAttachments) {
         try {
@@ -526,3 +611,4 @@ const repairRequestController = {
 };
 
 module.exports = repairRequestController;
+

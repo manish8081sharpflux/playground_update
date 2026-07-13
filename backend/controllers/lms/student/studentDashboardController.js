@@ -109,8 +109,26 @@ exports.getDashboard = async (req, res) => {
       });
     }
 
-    // Get all published courses
-    const allCourses = await Course.find({ status: 'published' }).lean();
+    const studentBalagruhaIds = (student.balagruhaIds || []).map(getIdString).filter(Boolean);
+    const courseAssignments = await CourseAssignment.find({
+      $or: [
+        { 'assignedTo.studentIds': studentId },
+        { 'assignedTo.balagruhaIds': { $in: studentBalagruhaIds } },
+        { 'assignedTo.balagruhaId': { $in: studentBalagruhaIds } }
+      ]
+    }).lean();
+
+    const assignmentByCourse = new Map(
+      courseAssignments.map(assignment => [getIdString(assignment.courseId), assignment])
+    );
+    const assignedCourseIds = courseAssignments.map(assignment => assignment.courseId).filter(Boolean);
+
+    // Show assigned courses in all assignment states, with published courses as a legacy fallback.
+    const allCourses = await Course.find(
+      assignedCourseIds.length > 0
+        ? { _id: { $in: assignedCourseIds }, status: 'published' }
+        : { status: 'published' }
+    ).lean();
 
     // Get student progress for these courses
     const progressRecords = await StudentProgress.find({
@@ -169,6 +187,15 @@ exports.getDashboard = async (req, res) => {
       );
       const progressPercentage = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
 
+      const assignment = assignmentByCourse.get(courseId);
+      const courseAssignmentStatus = (assignment?.status || 'active').toLowerCase();
+      const courseStatusLabels = {
+        active: 'Active',
+        completed: 'Completed',
+        expired: 'Expired',
+        cancelled: 'Course Cancelled'
+      };
+
       return {
         courseId: course._id,
         courseTitle: course.title,
@@ -177,7 +204,10 @@ exports.getDashboard = async (req, res) => {
         totalTasks,
         completedTasks,
         status: getProgressStatus(progress, totalTasks, completedTasks),
-        progressPercentage
+        progressPercentage,
+        courseAssignmentStatus,
+        courseStatus: courseStatusLabels[courseAssignmentStatus] || 'Active',
+        canSubmitAssignments: courseAssignmentStatus === 'active'
       };
     });
 
