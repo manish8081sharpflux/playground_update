@@ -2,23 +2,57 @@ const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
 
-const uploadDir = path.join(process.cwd(), "uploads");
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
-}
+/*
+|--------------------------------------------------------------------------
+| Upload Directory Configuration
+|--------------------------------------------------------------------------
+*/
+
+const uploadsDir = path.join(process.cwd(), "uploads");
+
+const ensureUploadsDir = () => {
+  if (!fs.existsSync(uploadsDir)) {
+    fs.mkdirSync(uploadsDir, { recursive: true });
+  }
+};
+
+// Make sure uploads directory exists when application starts
+ensureUploadsDir();
+
+/*
+|--------------------------------------------------------------------------
+| Common Storage Configuration
+|--------------------------------------------------------------------------
+*/
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, uploadDir);
+    try {
+      ensureUploadsDir();
+      cb(null, uploadsDir);
+    } catch (error) {
+      cb(error);
+    }
   },
+
   filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+    const uniqueSuffix =
+      Date.now() + "-" + Math.round(Math.random() * 1e9);
+
     cb(
       null,
-      `${file.fieldname}-${uniqueSuffix}${path.extname(file.originalname)}`
+      `${file.fieldname}-${uniqueSuffix}${path.extname(
+        file.originalname
+      )}`
     );
   },
 });
+
+/*
+|--------------------------------------------------------------------------
+| General File Upload Configuration
+|--------------------------------------------------------------------------
+*/
 
 const fileFilter = (req, file, cb) => {
   const allowedTypes = [
@@ -26,22 +60,28 @@ const fileFilter = (req, file, cb) => {
     "image/jpg",
     "image/png",
     "image/webp",
+
     "application/pdf",
+
     "application/msword",
-    "application/vnd.openxmlformats-officedocument.wordprocessingml.document", // .docx
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+
     "application/vnd.ms-excel",
-    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", // .xlsx
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+
     "application/vnd.ms-powerpoint",
-    "application/vnd.openxmlformats-officedocument.presentationml.presentation", // .pptx
+    "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+
     "text/plain",
     "text/csv",
   ];
+
   if (allowedTypes.includes(file.mimetype)) {
     cb(null, true);
   } else {
     cb(
       new Error(
-        "Invalid file type. Allowed: JPEG, JPG, PNG, WEBP, PDF, DOCX, XLSX, PPTX, TXT, CSV."
+        "Invalid file type. Allowed: JPEG, JPG, PNG, WEBP, PDF, DOC, DOCX, XLS, XLSX, PPT, PPTX, TXT, CSV."
       )
     );
   }
@@ -49,169 +89,19 @@ const fileFilter = (req, file, cb) => {
 
 const upload = multer({
   storage,
-  limits: { fileSize: 5 * 1024 * 1024 }, // Limited to 5MB max for the time being
+
+  limits: {
+    fileSize: 5 * 1024 * 1024,
+  },
+
   fileFilter,
 });
 
-// WTF-specific upload configuration with support for media files
-const wtfFileFilter = (req, file, cb) => {
-  const allowedTypes = [
-    "image/jpeg",
-    "image/png",
-    "image/gif",
-    "image/webp",
-    "video/mp4",
-    "video/webm",
-    "audio/mpeg", // Standard MP3 MIME type
-    "audio/mp3", // Alternative MP3 MIME type
-    "audio/mpeg3", // Legacy MP3 MIME type
-    "audio/wav",
-    "audio/ogg",
-    "audio/aac", // AAC audio support
-    "audio/m4a", // M4A audio support
-    "audio/webm", // Browser MediaRecorder default for many setups
-  ];
-
-  if (allowedTypes.includes(file.mimetype)) {
-    cb(null, true);
-  } else {
-    cb(
-      new Error(
-        `Invalid file type: ${
-          file.mimetype
-        }. Allowed types: ${allowedTypes.join(", ")}`
-      )
-    );
-  }
-};
-
-const wtfUpload = multer({
-  storage,
-  limits: {
-    fileSize: 100 * 1024 * 1024, // Increased to 100MB for WTF media files
-    files: 1, // Allow only 1 file at a time
-    fieldSize: 10 * 1024 * 1024, // 10MB for field data
-  },
-  fileFilter: wtfFileFilter,
-});
-
-// Font-specific upload configuration
-const fontFileFilter = (req, file, cb) => {
-  const allowedTypes = [
-    "font/woff2",
-    "font/woff",
-    "application/x-font-ttf",
-    "font/ttf",
-    "application/x-font-otf",
-    "font/otf",
-  ];
-  if (allowedTypes.includes(file.mimetype)) {
-    cb(null, true);
-  } else {
-    cb(new Error("Invalid font type. Only WOFF2/WOFF/TTF/OTF are allowed."));
-  }
-};
-
-const fontUpload = multer({
-  storage,
-  limits: { fileSize: 1 * 1024 * 1024 }, // 1MB max font size
-  fileFilter: fontFileFilter,
-});
-
-// LMS Content-specific upload configuration with support for large media files
-const lmsFileFilter = (req, file, cb) => {
-  const allowedTypes = [
-    // Video files
-    "video/mp4",
-    "video/webm",
-    "video/ogg",
-    "video/quicktime", // .mov files
-    // PDF documents
-    "application/pdf",
-    // Audio files
-    "audio/mpeg", // MP3
-    "audio/mp3",
-    "audio/wav",
-    "audio/ogg",
-    "audio/aac",
-    "audio/m4a",
-    "audio/webm",
-    // Image files
-    "image/jpeg",
-    "image/jpg",
-    "image/png",
-    "image/gif",
-    "image/webp",
-    "image/svg+xml",
-  ];
-
-  if (allowedTypes.includes(file.mimetype)) {
-    cb(null, true);
-  } else {
-    cb(
-      new Error(
-        `Invalid file type: ${file.mimetype}. Allowed types: video (mp4, webm, ogg, mov), pdf, audio (mp3, wav, ogg, aac, m4a), image (jpeg, png, gif, webp, svg)`
-      )
-    );
-  }
-};
-
-const lmsUpload = multer({
-  storage,
-  limits: {
-    fileSize: 500 * 1024 * 1024, // 500MB max for LMS content (mainly for videos)
-    files: 10, // Allow up to 10 files at a time
-    fieldSize: 10 * 1024 * 1024, // 10MB for field data
-  },
-  fileFilter: lmsFileFilter,
-});
-
-// Wrap the LMS multer middleware with error handling
-const lmsUploadWithErrorHandling = (req, res, next) => {
-  lmsUpload.array("files", 10)(req, res, (err) => {
-    if (err) {
-      console.error("🚨 LMS Multer Error:", {
-        message: err.message,
-        code: err.code,
-        field: err.field,
-        files: req.files,
-        body: req.body,
-      });
-
-      // Handle specific multer errors
-      if (err.code === "LIMIT_FILE_SIZE") {
-        return res.status(400).json({
-          success: false,
-          message: `File too large. Maximum size is 500MB.`,
-        });
-      }
-
-      if (err.code === "LIMIT_FILE_COUNT") {
-        return res.status(400).json({
-          success: false,
-          message: "Too many files. Maximum 10 files allowed per upload.",
-        });
-      }
-
-      if (err.code === "LIMIT_FIELD_SIZE") {
-        return res.status(400).json({
-          success: false,
-          message: "Field data too large. Maximum size is 10MB.",
-        });
-      }
-
-      // Generic multer error
-      return res.status(400).json({
-        success: false,
-        message: `Upload error: ${err.message}`,
-      });
-    }
-
-    // Log successful file upload for debugging
-    // No error, continue
-    next();
-  });
-};
+/*
+|--------------------------------------------------------------------------
+| General Upload Error Handling
+|--------------------------------------------------------------------------
+*/
 
 const uploadAnyWithErrorHandling = (req, res, next) => {
   upload.any()(req, res, (err) => {
@@ -229,6 +119,20 @@ const uploadAnyWithErrorHandling = (req, res, next) => {
         });
       }
 
+      if (err.code === "LIMIT_FILE_COUNT") {
+        return res.status(400).json({
+          success: false,
+          message: "Too many files.",
+        });
+      }
+
+      if (err.code === "LIMIT_FIELD_SIZE") {
+        return res.status(400).json({
+          success: false,
+          message: "Field data too large.",
+        });
+      }
+
       return res.status(400).json({
         success: false,
         message: `Upload error: ${err.message}`,
@@ -239,27 +143,80 @@ const uploadAnyWithErrorHandling = (req, res, next) => {
   });
 };
 
-// Wrap the multer middleware to add error handling
+/*
+|--------------------------------------------------------------------------
+| WTF Media Upload Configuration
+|--------------------------------------------------------------------------
+*/
+
+const wtfFileFilter = (req, file, cb) => {
+  const allowedTypes = [
+    // Images
+    "image/jpeg",
+    "image/jpg",
+    "image/png",
+    "image/gif",
+    "image/webp",
+
+    // Videos
+    "video/mp4",
+    "video/webm",
+
+    // Audio
+    "audio/mpeg",
+    "audio/mp3",
+    "audio/mpeg3",
+    "audio/wav",
+    "audio/ogg",
+    "audio/aac",
+    "audio/m4a",
+    "audio/webm",
+  ];
+
+  if (allowedTypes.includes(file.mimetype)) {
+    cb(null, true);
+  } else {
+    cb(
+      new Error(
+        `Invalid file type: ${
+          file.mimetype
+        }. Allowed types: ${allowedTypes.join(", ")}`
+      )
+    );
+  }
+};
+
+const wtfUpload = multer({
+  storage,
+
+  limits: {
+    fileSize: 100 * 1024 * 1024,
+    files: 1,
+    fieldSize: 10 * 1024 * 1024,
+  },
+
+  fileFilter: wtfFileFilter,
+});
+
+/*
+|--------------------------------------------------------------------------
+| WTF Upload Error Handling
+|--------------------------------------------------------------------------
+*/
+
 const wtfUploadWithErrorHandling = (req, res, next) => {
   wtfUpload.single("file")(req, res, (err) => {
     if (err) {
-      console.error("🚨 Multer Error:", {
+      console.error("🚨 WTF Multer Error:", {
         message: err.message,
         code: err.code,
         field: err.field,
-        file: req.file,
-        body: req.body,
       });
 
-      // Handle specific multer errors
       if (err.code === "LIMIT_FILE_SIZE") {
         return res.status(400).json({
           success: false,
-          message: `File too large. Maximum size is 100MB. Received: ${
-            req.file
-              ? (req.file.size / (1024 * 1024)).toFixed(2) + "MB"
-              : "Unknown"
-          }`,
+          message: "File too large. Maximum size is 100MB.",
         });
       }
 
@@ -277,19 +234,164 @@ const wtfUploadWithErrorHandling = (req, res, next) => {
         });
       }
 
-      // Generic multer error
       return res.status(400).json({
         success: false,
         message: `Upload error: ${err.message}`,
       });
     }
 
-    // No error, continue
     next();
   });
 };
 
-// Cleanup function to remove orphaned files
+/*
+|--------------------------------------------------------------------------
+| Font Upload Configuration
+|--------------------------------------------------------------------------
+*/
+
+const fontFileFilter = (req, file, cb) => {
+  const allowedTypes = [
+    "font/woff2",
+    "font/woff",
+    "application/x-font-ttf",
+    "font/ttf",
+    "application/x-font-otf",
+    "font/otf",
+  ];
+
+  if (allowedTypes.includes(file.mimetype)) {
+    cb(null, true);
+  } else {
+    cb(
+      new Error(
+        "Invalid font type. Only WOFF2, WOFF, TTF and OTF are allowed."
+      )
+    );
+  }
+};
+
+const fontUpload = multer({
+  storage,
+
+  limits: {
+    fileSize: 1 * 1024 * 1024,
+  },
+
+  fileFilter: fontFileFilter,
+});
+
+/*
+|--------------------------------------------------------------------------
+| LMS Upload Configuration
+|--------------------------------------------------------------------------
+*/
+
+const lmsFileFilter = (req, file, cb) => {
+  const allowedTypes = [
+    // Videos
+    "video/mp4",
+    "video/webm",
+    "video/ogg",
+    "video/quicktime",
+
+    // PDF
+    "application/pdf",
+
+    // Audio
+    "audio/mpeg",
+    "audio/mp3",
+    "audio/wav",
+    "audio/ogg",
+    "audio/aac",
+    "audio/m4a",
+    "audio/webm",
+
+    // Images
+    "image/jpeg",
+    "image/jpg",
+    "image/png",
+    "image/gif",
+    "image/webp",
+    "image/svg+xml",
+  ];
+
+  if (allowedTypes.includes(file.mimetype)) {
+    cb(null, true);
+  } else {
+    cb(
+      new Error(
+        `Invalid file type: ${file.mimetype}. Allowed types: video, PDF, audio and images.`
+      )
+    );
+  }
+};
+
+const lmsUpload = multer({
+  storage,
+
+  limits: {
+    fileSize: 500 * 1024 * 1024,
+    files: 10,
+    fieldSize: 10 * 1024 * 1024,
+  },
+
+  fileFilter: lmsFileFilter,
+});
+
+/*
+|--------------------------------------------------------------------------
+| LMS Upload Error Handling
+|--------------------------------------------------------------------------
+*/
+
+const lmsUploadWithErrorHandling = (req, res, next) => {
+  lmsUpload.array("files", 10)(req, res, (err) => {
+    if (err) {
+      console.error("🚨 LMS Multer Error:", {
+        message: err.message,
+        code: err.code,
+        field: err.field,
+      });
+
+      if (err.code === "LIMIT_FILE_SIZE") {
+        return res.status(400).json({
+          success: false,
+          message: "File too large. Maximum size is 500MB.",
+        });
+      }
+
+      if (err.code === "LIMIT_FILE_COUNT") {
+        return res.status(400).json({
+          success: false,
+          message:
+            "Too many files. Maximum 10 files allowed per upload.",
+        });
+      }
+
+      if (err.code === "LIMIT_FIELD_SIZE") {
+        return res.status(400).json({
+          success: false,
+          message: "Field data too large. Maximum size is 10MB.",
+        });
+      }
+
+      return res.status(400).json({
+        success: false,
+        message: `Upload error: ${err.message}`,
+      });
+    }
+
+    next();
+  });
+};
+
+/*
+|--------------------------------------------------------------------------
+| Cleanup Orphaned Files
+|--------------------------------------------------------------------------
+*/
+
 const cleanupOrphanedFiles = () => {
   try {
     if (!fs.existsSync(uploadDir)) {
@@ -298,54 +400,108 @@ const cleanupOrphanedFiles = () => {
 
     const files = fs.readdirSync(uploadDir);
     const now = Date.now();
-    const maxAge = 24 * 60 * 60 * 1000; // 24 hours
+
+    const maxAge = 24 * 60 * 60 * 1000;
 
     files.forEach((file) => {
-      if (file === "uploaded_files_here.txt") return; // Skip the placeholder file
+      // Ignore placeholder file
+      if (file === "uploaded_files_here.txt") {
+        return;
+      }
 
       const filePath = path.join(uploadDir, file);
       const stats = fs.statSync(filePath);
       const age = now - stats.mtime.getTime();
 
-      // Remove files older than 24 hours
-      if (age > maxAge) {
-        try {
-          fs.unlinkSync(filePath);
-          // Cleaned up orphaned file
-        } catch (error) {
-          console.error(`❌ Failed to clean up file ${file}:`, error.message);
+      try {
+        const stats = fs.statSync(filePath);
+
+        // Skip directories
+        if (!stats.isFile()) {
+          return;
         }
+
+        const age = now - stats.mtimeMs;
+
+        if (age > maxAge) {
+          fs.unlinkSync(filePath);
+
+          console.log(`🧹 Cleaned orphaned file: ${file}`);
+        }
+      } catch (fileError) {
+        console.error(
+          `❌ Failed processing file ${file}:`,
+          fileError.message
+        );
       }
     });
   } catch (error) {
-    console.error("❌ Error during cleanup:", error.message);
+    console.error(
+      "❌ Error during cleanup:",
+      error.message
+    );
   }
 };
 
-// Run cleanup every hour (skip in test environment to avoid open handles)
+/*
+|--------------------------------------------------------------------------
+| Cleanup Timer
+|--------------------------------------------------------------------------
+*/
+
 let cleanupTimer = null;
+
 if (process.env.NODE_ENV !== "test") {
-  cleanupTimer = setInterval(cleanupOrphanedFiles, 60 * 60 * 1000);
-  // Run initial cleanup
+  // Run cleanup once when server starts
   cleanupOrphanedFiles();
+
+  // Run cleanup every hour
+  cleanupTimer = setInterval(
+    cleanupOrphanedFiles,
+    60 * 60 * 1000
+  );
+
+  /*
+   * Do not keep Node.js alive only because of this timer.
+   * Useful for graceful shutdown and CLI/test environments.
+   */
+  if (typeof cleanupTimer.unref === "function") {
+    cleanupTimer.unref();
+  }
 }
 
-// Stop the cleanup timer (useful for graceful shutdown)
+/*
+|--------------------------------------------------------------------------
+| Stop Cleanup Timer
+|--------------------------------------------------------------------------
+*/
+
 const stopCleanupTimer = () => {
   if (cleanupTimer) {
     clearInterval(cleanupTimer);
+
     cleanupTimer = null;
   }
 };
 
+/*
+|--------------------------------------------------------------------------
+| Module Exports
+|--------------------------------------------------------------------------
+*/
+
 module.exports = {
   upload,
   uploadAnyWithErrorHandling,
+
   wtfUpload,
   wtfUploadWithErrorHandling,
+
   fontUpload,
+
   lmsUpload,
   lmsUploadWithErrorHandling,
+
   cleanupOrphanedFiles,
   stopCleanupTimer,
 };

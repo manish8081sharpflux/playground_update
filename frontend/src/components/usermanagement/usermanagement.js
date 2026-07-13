@@ -402,7 +402,7 @@ const UserManagement = () => {
       if (!formData.age) errors.age = "Age is required";
       if (!formData.gender) errors.gender = "Gender is required";
       if (!formData.parentalStatus) errors.parentalStatus = "Parental status is required";
-      if (!formData.guardianContact) errors.guardianContact = "Guardian contact is required";
+      // if (!formData.guardianContact) errors.guardianContact = "Guardian contact is required";
       if (!formData.balagruhaId) errors.balagruhaId = "Please select a Balagruha";
       if (view === "add" && !facialDataFile && !facialDataPreview)
         errors.facialData = "Facial photo is required";
