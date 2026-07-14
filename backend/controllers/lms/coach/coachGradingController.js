@@ -8,40 +8,53 @@ const Coin = require("../../../models/coin");
 const s3Service = require("../../../services/aws/s3");
 const mongoose = require("mongoose");
 const { errorLogger } = require('../../../config/pino-config');
+const {
+  getSettings: getCoinLimitSettings,
+  getRangeForSubmission,
+} = require("../../../services/lmsCoinLimitSettings");
 
 /**
- * Quality-to-coin range mapping for validating coin awards from rubric score.
- * A coach may pick any whole-number value within the range for the chosen
- * quality rating. Keeping this range server-side prevents modified client
- * requests from awarding coins outside the allowed band for that rating.
+ * Legacy fallback range mapping. Admin-configured LMS ranges are suggestions
+ * for defaults and display only; coach-entered coins are validated only as
+ * non-negative whole numbers.
  */
-// Must match frontend GradingPanel.jsx suggested ranges (80-100, 50-79, 0-49).
-// If the client sends coinsAwarded, it must fall within this range.
 const QUALITY_COIN_RANGES = {
   excellent: { min: 80, max: 100, default: 85 },
   good: { min: 50, max: 79, default: 65 },
   needs_improvement: { min: 0, max: 49, default: 25 },
 };
 
-const getCoinsForQuality = (quality, coinsAwarded) => {
-  const range = QUALITY_COIN_RANGES[quality];
-  if (range === undefined) return { error: "Invalid quality rating" };
+const getCoinsForSubmissionQuality = async (submission, quality, coinsAwarded) => {
+  const resolved = await getRangeForSubmission(submission, quality);
+  if (resolved.error) return { error: resolved.error };
+
+  const { range, taskTypeLabel } = resolved;
 
   if (coinsAwarded !== undefined && coinsAwarded !== null) {
     const requestedCoins = Number(coinsAwarded);
     if (
       !Number.isInteger(requestedCoins) ||
-      requestedCoins < range.min ||
-      requestedCoins > range.max
+      requestedCoins < 0
     ) {
       return {
-        error: `ISF Coins must be between ${range.min} and ${range.max} for the ${quality.replace("_", " ")} quality rating`,
+        error: "ISF Coins must be a non-negative whole number",
       };
     }
-    return { coinsAwarded: requestedCoins };
+    return { coinsAwarded: requestedCoins, taskTypeLabel, range };
   }
 
-  return { coinsAwarded: range.default };
+  return { coinsAwarded: range.default, taskTypeLabel, range };
+};
+
+const validateCoinsAgainstAnyConfiguredRange = async (quality, coinsAwarded) => {
+  if (coinsAwarded === undefined || coinsAwarded === null) return null;
+
+  const requestedCoins = Number(coinsAwarded);
+  if (!Number.isInteger(requestedCoins) || requestedCoins < 0) {
+    return "ISF Coins must be a non-negative whole number";
+  }
+
+  return null;
 };
 
 const canCoachGradeSubmission = async (coachId, submission) => {
@@ -261,7 +274,7 @@ exports.getSubmissions = async (req, res) => {
       return res.status(403).json({ success: false, error: "Cannot access another coach's submissions" });
     }
 
-    const { courseType, status, balagruhaId, dateRange, sortBy, limit, offset } = req.query;
+    const { courseType, status, balagruhaId, dateRange, sortBy, search, limit, offset } = req.query;
 
     // Build filters object
     const filters = {
@@ -270,6 +283,7 @@ exports.getSubmissions = async (req, res) => {
       balagruhaId: balagruhaId || "all",
       dateRange: dateRange || "all",
       sortBy: sortBy || "newest_first",
+      search: search || "",
       limit: parseInt(limit) || 20,
       offset: parseInt(offset) || 0,
     };
@@ -296,6 +310,19 @@ exports.getSubmissions = async (req, res) => {
     res.status(500).json({
       success: false,
       error: "Failed to fetch submissions",
+    });
+  }
+};
+
+exports.getCoinLimits = async (req, res) => {
+  try {
+    const settings = await getCoinLimitSettings();
+    res.json({ success: true, data: settings });
+  } catch (error) {
+    errorLogger.error({ err: error }, "Error fetching LMS coin limits for grading:");
+    res.status(500).json({
+      success: false,
+      error: "Failed to fetch coin limits",
     });
   }
 };
@@ -430,15 +457,6 @@ exports.submitGrade = async (req, res) => {
       });
     }
 
-    const coinValidation = getCoinsForQuality(quality, coinsOverride);
-    if (coinValidation.error) {
-      return res.status(400).json({
-        success: false,
-        error: coinValidation.error,
-      });
-    }
-    const calculatedCoins = coinValidation.coinsAwarded;
-
     if (feedback && feedback.length > 500) {
       return res.status(400).json({
         success: false,
@@ -462,6 +480,15 @@ exports.submitGrade = async (req, res) => {
         error: "Submission already graded",
       });
     }
+
+    const coinValidation = await getCoinsForSubmissionQuality(submission, quality, coinsOverride);
+    if (coinValidation.error) {
+      return res.status(400).json({
+        success: false,
+        error: coinValidation.error,
+      });
+    }
+    const calculatedCoins = coinValidation.coinsAwarded;
 
     const coach = await User.findById(gradedBy);
     const coachName = coach?.name || coach?.firstName || coach?.email || "Coach";
@@ -579,14 +606,13 @@ exports.bulkGrade = async (req, res) => {
       });
     }
 
-    const coinValidation = getCoinsForQuality(quality, coinsOverride);
-    if (coinValidation.error) {
+    const broadCoinValidationError = await validateCoinsAgainstAnyConfiguredRange(quality, coinsOverride);
+    if (broadCoinValidationError) {
       return res.status(400).json({
         success: false,
-        error: coinValidation.error,
+        error: broadCoinValidationError,
       });
     }
-    const coinsAwarded = coinValidation.coinsAwarded;
 
     // H2 fix: verify gradedBy matches authenticated user
     const authenticatedUserId = req.user?._id?.toString() || req.user?.id?.toString();
@@ -610,6 +636,13 @@ exports.bulkGrade = async (req, res) => {
           failedSubmissions.push(submissionId);
           continue;
         }
+
+        const coinValidation = await getCoinsForSubmissionQuality(submission, quality, coinsOverride);
+        if (coinValidation.error) {
+          failedSubmissions.push(submissionId);
+          continue;
+        }
+        const coinsAwarded = coinValidation.coinsAwarded;
 
         const hasAccess = await canCoachGradeSubmission(gradedBy, submission);
         if (!hasAccess) {

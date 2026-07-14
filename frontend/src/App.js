@@ -178,6 +178,22 @@ const App = () => {
                     }
                   />
                   <Route
+                    path="/student/spoken-english/quiz/results"
+                    element={
+                      <ProtectedRoute>
+                        <StudentQuizResults />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/student/spoken-english/quiz/:quizId"
+                    element={
+                      <ProtectedRoute>
+                        <StudentQuizPage />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
                     path="/student/spoken-english/:taskId"
                     element={
                       <ProtectedRoute>

@@ -9,6 +9,14 @@ const { authenticate, authorize } = require("../../../../middleware/auth");
  * Base path: /api/v2/lms/coach/grading
  */
 
+// Get admin-configured coin limits for the grading panel
+router.get(
+  "/coin-limits",
+  authenticate,
+  authorize("LMS Management", "Read"),
+  coachGradingController.getCoinLimits
+);
+
 // Get all submissions for grading with filters
 router.get(
   "/:coachId/submissions",

@@ -5,6 +5,7 @@ const mongoose = require('mongoose');
 const { errorLogger } = require('../../../config/pino-config');
 const s3Service = require('../../../services/aws/s3');
 const { streamCourseContentFile } = require('../../../utils/lmsContentFile');
+const { markContentItemComplete } = require('../../../utils/lmsProgress');
 const fs = require('fs');
 
 /**
@@ -742,7 +743,12 @@ exports.markItemComplete = async (req, res) => {
       return res.status(400).json({ success: false, error: 'Missing required fields' });
     }
 
-    await updateProgress(studentId, courseId, itemId, itemType || 'content');
+    await markContentItemComplete({
+      studentId,
+      courseId,
+      itemId,
+      itemType
+    });
 
     res.json({ success: true });
   } catch (error) {

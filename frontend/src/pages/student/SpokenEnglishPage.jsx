@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { api, apiWithoutContentType } from '../../api';
 import toast from 'react-hot-toast';
@@ -7,9 +7,105 @@ import AudioInstructions from '../../components/student/spoken-english/AudioInst
 import WebcamPreview from '../../components/student/spoken-english/WebcamPreview';
 import RecordingControls from '../../components/student/spoken-english/RecordingControls';
 import RedoModal from '../../components/student/spoken-english/RedoModal';
-import { CheckCircle } from 'lucide-react';
+import { ArrowLeft, CheckCircle, ExternalLink, FileText, HelpCircle, Image as ImageIcon, Link as LinkIcon, Music, PlayCircle, Type } from 'lucide-react';
 import LoadingState from '../../components/common/LoadingState';
 import useLmsContentFileUrl from '../../hooks/useLmsContentFileUrl';
+
+const SPOKEN_CONTENT_TYPES = new Set(['video', 'pdf', 'audio', 'image', 'text', 'link', 'quiz']);
+
+function SpokenEnglishContentCard({ item, locked, graded, underReview, onOpenTask, onStartQuiz, onMarkComplete }) {
+  const isFileContent = ['video', 'pdf', 'audio', 'image'].includes(item.type);
+  const { url, loading } = useLmsContentFileUrl(
+    'spoken-english',
+    isFileContent ? item : null,
+    { preferSignedUrl: item.type === 'video' || item.type === 'image' }
+  );
+  const displayUrl = url || item.externalUrl || item.fileUrl;
+  const typeConfig = {
+    video: { label: 'Video', icon: PlayCircle, className: 'border-indigo-200 bg-indigo-50 text-indigo-700' },
+    pdf: { label: 'PDF', icon: FileText, className: 'border-red-200 bg-red-50 text-red-700' },
+    audio: { label: 'Audio', icon: Music, className: 'border-amber-200 bg-amber-50 text-amber-700' },
+    image: { label: 'Image', icon: ImageIcon, className: 'border-pink-200 bg-pink-50 text-pink-700' },
+    text: { label: 'Text', icon: Type, className: 'border-gray-200 bg-gray-50 text-gray-700' },
+    link: { label: 'Link', icon: LinkIcon, className: 'border-cyan-200 bg-cyan-50 text-cyan-700' },
+    quiz: { label: 'Quiz', icon: HelpCircle, className: 'border-purple-200 bg-purple-50 text-purple-700' },
+    task: { label: item.difficulty || 'Beginner', icon: null, className: 'border-blue-200 bg-blue-50 text-blue-700' }
+  };
+  const config = typeConfig[item.type] || typeConfig.task;
+  const Icon = config.icon;
+
+  useEffect(() => {
+    if (!locked && item.type === 'text') {
+      onMarkComplete(item);
+    }
+  }, [item, locked, onMarkComplete]);
+
+  const openContent = () => {
+    if (locked) return;
+    if (!SPOKEN_CONTENT_TYPES.has(item.type)) {
+      onOpenTask(item.id);
+      return;
+    }
+    if (item.type === 'quiz') {
+      onStartQuiz(item);
+      return;
+    }
+    if (item.type === 'text') return;
+    if (displayUrl) {
+      onMarkComplete(item);
+      window.open(displayUrl, '_blank', 'noopener,noreferrer');
+    }
+  };
+
+  return (
+    <div className={`flex min-h-[258px] flex-col text-left bg-white border-2 rounded-xl p-5 transition-shadow relative ${locked ? 'border-gray-200 opacity-60' : 'border-blue-200 hover:shadow-lg'}`}>
+      {graded && (
+        <div className="absolute top-3 right-3 bg-green-500 text-white p-1 rounded-full shadow-sm" aria-hidden="true">
+          <CheckCircle size={16} />
+        </div>
+      )}
+      <div className="flex items-center justify-between mb-3 pr-10">
+        <span className={`inline-flex items-center gap-1 px-3 py-1 text-xs rounded-full font-medium ${config.className}`}>
+          {Icon && <Icon size={14} />}
+          {config.label}
+        </span>
+        <span className="text-2xl">{locked ? '🔒' : graded ? '✅' : underReview ? '⏳' : item.type === 'quiz' ? '📝' : item.type === 'audio' ? '🎧' : item.type === 'video' ? '🎬' : item.type === 'image' ? '🖼️' : item.type === 'link' ? '🔗' : item.type === 'text' ? '📄' : '🎤'}</span>
+      </div>
+      <div className="flex-1">
+        <h3 className="text-lg font-bold text-gray-800 mb-2">{item.title}</h3>
+        {item.description && <p className="text-sm text-gray-600 mb-3 line-clamp-2">{item.description}</p>}
+        {item.type === 'image' && displayUrl && (
+          <img src={displayUrl} alt={item.title} className="mb-3 h-32 w-full rounded-lg border border-gray-200 object-contain bg-gray-50" />
+        )}
+        {item.type === 'audio' && (
+          <audio controls src={displayUrl} className="mb-3 w-full" />
+        )}
+        {item.type === 'text' && (
+          <div className="mb-3 whitespace-pre-line rounded-lg bg-gray-50 p-3 text-sm text-gray-700">
+            {item.textContent || item.description || 'No text content provided.'}
+          </div>
+        )}
+      </div>
+      <div className="mt-auto">
+        <div className="flex items-center justify-between gap-3 text-sm text-gray-500">
+          <span>{item.estimatedTime || 10} min</span>
+          <span className="capitalize">{(item.status || 'available').replace('_', ' ')}</span>
+        </div>
+        {!['audio', 'text'].includes(item.type) && (
+          <button
+            type="button"
+            disabled={locked || loading}
+            onClick={openContent}
+            className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 font-semibold text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-300"
+          >
+            {SPOKEN_CONTENT_TYPES.has(item.type) ? <ExternalLink size={16} /> : null}
+            {loading ? 'Loading...' : item.type === 'quiz' ? 'Start Quiz' : SPOKEN_CONTENT_TYPES.has(item.type) ? 'Open' : 'Record'}
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
 
 /**
  * Spoken English Page - Epic 01 Story 04
@@ -103,6 +199,21 @@ export default function SpokenEnglishPage() {
       console.error('Error fetching submissions:', err);
     }
   };
+
+  const markContentComplete = useCallback(async (item) => {
+    try {
+      if (!item?.id || !item?.courseId) return;
+      const studentId = localStorage.getItem('userId') || 'student1';
+
+      await api.post(`/api/v2/lms/student/${studentId}/courses/spoken-english/mark-complete`, {
+        itemId: item.id,
+        itemType: item.type,
+        courseId: item.courseId
+      });
+    } catch (err) {
+      console.error('Failed to mark Spoken English content complete:', err);
+    }
+  }, []);
 
   /**
    * Fetch task data from API
@@ -317,6 +428,13 @@ export default function SpokenEnglishPage() {
 
     return (
       <div className="max-w-6xl mx-auto px-4 py-8">
+        <button
+          onClick={() => navigate('/student/dashboard')}
+          className="text-sm text-blue-700 font-bold mb-4 hover:underline flex items-center gap-1"
+        >
+          <ArrowLeft size={16} /> Back to Courses
+        </button>
+
         <div className="mb-8">
           <h1 className="text-4xl font-bold text-blue-900 mb-2">SPOKEN ENGLISH</h1>
           <p className="text-lg text-gray-600">Pick a task to record your video.</p>
@@ -339,34 +457,21 @@ export default function SpokenEnglishPage() {
               const graded = t.status === 'graded';
               const underReview = t.status === 'under_review';
               return (
-                <button
+                <SpokenEnglishContentCard
                   key={t.id}
-                  type="button"
-                  disabled={locked}
-                  onClick={() => !locked && navigate(`/student/spoken-english/${t.id}`)}
-                  className={`text-left bg-white border-2 rounded-xl p-5 transition-shadow relative ${
-                    locked
-                      ? 'border-gray-200 opacity-60 cursor-not-allowed'
-                      : 'border-blue-200 hover:shadow-lg cursor-pointer'
-                  }`}
-                >
-                  {graded && (
-                    <div className="absolute top-3 right-3 bg-green-500 text-white p-1 rounded-full shadow-sm" aria-hidden="true">
-                      <CheckCircle size={16} />
-                    </div>
-                  )}
-                  <div className="flex items-center justify-between mb-3 pr-10">
-                    <span className="px-3 py-1 bg-blue-100 text-blue-700 text-xs rounded-full font-medium">
-                      {t.difficulty || 'Beginner'}
-                    </span>
-                    <span className="text-2xl">{locked ? '🔒' : graded ? '✅' : underReview ? '⏳' : '🎤'}</span>
-                  </div>
-                  <h3 className="text-lg font-bold text-gray-800 mb-2">{t.title}</h3>
-                  <div className="flex items-center justify-between text-sm text-gray-500">
-                    <span>{t.estimatedTime || 10} min</span>
-                    <span className="capitalize">{(t.status || 'available').replace('_', ' ')}</span>
-                  </div>
-                </button>
+                  item={t}
+                  locked={locked}
+                  graded={graded}
+                  underReview={underReview}
+                  onOpenTask={(id) => navigate(`/student/spoken-english/${id}`)}
+                  onStartQuiz={(item) => navigate(`/student/spoken-english/quiz/${item.quizId || item.id}`, {
+                    state: {
+                      courseId: item.courseId,
+                      contentItemId: item.id,
+                    },
+                  })}
+                  onMarkComplete={markContentComplete}
+                />
               );
             })}
           </div>
@@ -380,7 +485,7 @@ export default function SpokenEnglishPage() {
               You haven't submitted any recordings yet. Pick a task above to get started.
             </p>
           ) : (
-            <div className="space-y-3">
+            <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
               {submissions.map((s) => {
                 const statusStyle = s.status === 'graded'
                   ? 'bg-green-100 text-green-700'
@@ -413,7 +518,7 @@ export default function SpokenEnglishPage() {
                     </div>
 
                     {s.fileUrl && (
-                      <video src={s.fileUrl} controls className="mt-3 w-full max-w-md rounded-lg border border-gray-200" />
+                      <video src={s.fileUrl} controls className="mt-3 w-full rounded-lg border border-gray-200" />
                     )}
 
                     {s.status === 'graded' && (

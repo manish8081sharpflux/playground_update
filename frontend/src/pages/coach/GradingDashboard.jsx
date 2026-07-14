@@ -34,7 +34,7 @@ export default function GradingDashboard() {
     if (user && user.id) {
       fetchSubmissions();
     }
-  }, [user, filters.courseType, filters.status, filters.sortBy]);
+  }, [user, filters.courseType, filters.status, filters.sortBy, filters.search]);
 
   const fetchSubmissions = async () => {
     try {
@@ -51,6 +51,10 @@ export default function GradingDashboard() {
 
       if (filters.status !== 'all') {
         queryParams.append('status', filters.status);
+      }
+
+      if (filters.search?.trim()) {
+        queryParams.append('search', filters.search.trim());
       }
 
       const response = await api.get(

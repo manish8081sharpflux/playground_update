@@ -30,7 +30,8 @@ export default function StudentQuizPage() {
   // Determine Context (Life Skills vs Computer Apps vs Art)
   const isComputerApps = location.pathname.includes('computer-apps');
   const isArt = location.pathname.includes('/student/art');
-  const courseSlug = isComputerApps ? 'computer-apps' : isArt ? 'art' : 'life-skills';
+  const isSpokenEnglish = location.pathname.includes('spoken-english');
+  const courseSlug = isComputerApps ? 'computer-apps' : isArt ? 'art' : isSpokenEnglish ? 'spoken-english' : 'life-skills';
   const baseRoute = `/student/${courseSlug}`;
 
   useEffect(() => {

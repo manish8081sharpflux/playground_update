@@ -210,7 +210,12 @@ export default function ArtworkTaskCards({
                           <p><span className="font-semibold">Submitted:</span> {formatDate(submission.submittedAt)}</p>
                           <p><span className="font-semibold">Status:</span> {statusInfo.label}</p>
                           {submission.grade?.quality && (
-                            <p><span className="font-semibold">Grade:</span> {submission.grade.quality}</p>
+                            <p>
+                              <span className="font-semibold">Grade:</span>{' '}
+                              {submission.grade.quality === 'needs_improvement'
+                                ? 'Needs Improvement'
+                                : submission.grade.quality.charAt(0).toUpperCase() + submission.grade.quality.slice(1)}
+                            </p>
                           )}
                           {submission.grade?.coinsAwarded !== null && submission.grade?.coinsAwarded !== undefined && (
                             <p><span className="font-semibold">Coins:</span> {submission.grade.coinsAwarded}</p>

@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../../api';
 import toast from 'react-hot-toast';
-import { CheckCircle } from 'lucide-react';
+import { ArrowLeft, CheckCircle } from 'lucide-react';
 import LoadingState from '../../components/common/LoadingState';
 import useLmsContentFileUrl from '../../hooks/useLmsContentFileUrl';
 // import StudentLayout from '../../components/student/StudentLayout';
@@ -91,15 +91,23 @@ function LifeSkillsImagePreview({ item }) {
   );
 }
 
-function LifeSkillsAudioPlayer({ item }) {
+function LifeSkillsAudioPlayer({ item, onPlayed }) {
   const { url, loading } = useLmsContentFileUrl('life-skills', item);
 
   return (
     <div className="mt-auto">
       {loading && <p className="mb-2 text-xs text-blue-700">Loading audio...</p>}
-      {url && <audio controls src={url} className="w-full" />}
+      {url && <audio controls src={url} onPlay={onPlayed} className="w-full" />}
     </div>
   );
+}
+
+function ViewedContentMarker({ item, courseId, onViewed }) {
+  useEffect(() => {
+    onViewed(item, courseId);
+  }, [courseId, item, onViewed]);
+
+  return null;
 }
 
 /**
@@ -154,7 +162,7 @@ export default function LifeSkillsCoursePage() {
     navigate(`/student/life-skills/quiz/${quizId}`);
   };
 
-  const markContentComplete = async (item, parentCourseId) => {
+  const markContentComplete = useCallback(async (item, parentCourseId) => {
     try {
       const studentId = localStorage.getItem('userId') || 'student1';
       if (!parentCourseId) return;
@@ -167,7 +175,7 @@ export default function LifeSkillsCoursePage() {
     } catch (e) {
       console.error("Failed to mark complete", e);
     }
-  };
+  }, []);
 
   if (loading) {
     return <LoadingState message="Loading Life Skills tasks..." fullScreen />;
@@ -192,6 +200,13 @@ export default function LifeSkillsCoursePage() {
   return (
     <>
       <div className="max-w-6xl mx-auto px-4 py-8">
+        <button
+          onClick={() => navigate('/student/dashboard')}
+          className="text-sm text-green-700 font-bold mb-4 hover:underline flex items-center gap-1"
+        >
+          <ArrowLeft size={16} /> Back to Courses
+        </button>
+
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-4xl font-bold text-blue-900 mb-2" style={{ fontFamily: 'Patrick Hand, cursive' }}>
@@ -327,12 +342,13 @@ export default function LifeSkillsCoursePage() {
                               </span>
                               <h4 className="text-lg font-bold text-gray-800 mb-2 leading-tight">{item.title}</h4>
                               <p className="text-gray-600 text-sm mb-4 line-clamp-2">{item.description}</p>
-                              <LifeSkillsAudioPlayer item={item} />
+                              <LifeSkillsAudioPlayer item={item} onPlayed={() => markContentComplete(item, course.courseId)} />
                             </div>
                           );
                         } else if (item.type === 'image') {
                           return (
                             <div key={item.id} className="bg-white border-2 border-emerald-200 rounded-xl overflow-hidden hover:shadow-lg transition-shadow flex flex-col h-full relative" style={{ width: '100%', flexShrink: 0 }}>
+                              <ViewedContentMarker item={item} courseId={course.courseId} onViewed={markContentComplete} />
                               {item.isCompleted && (
                                 <div className="absolute top-3 right-3 bg-green-500 text-white p-1 rounded-full shadow-sm z-10" aria-hidden="true">
                                   <CheckCircle size={16} />
@@ -358,7 +374,10 @@ export default function LifeSkillsCoursePage() {
                               <p className="text-gray-600 text-sm mb-4 line-clamp-2">{item.description}</p>
                               <button
                                 type="button"
-                                onClick={() => item.fileUrl && window.open(item.fileUrl, '_blank', 'noopener,noreferrer')}
+                                onClick={() => {
+                                  markContentComplete(item, course.courseId);
+                                  item.fileUrl && window.open(item.fileUrl, '_blank', 'noopener,noreferrer');
+                                }}
                                 className="w-full mt-auto px-4 py-2 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700"
                               >
                                 Open Link
@@ -368,6 +387,7 @@ export default function LifeSkillsCoursePage() {
                         } else if (item.type === 'text') {
                           return (
                             <div key={item.id} className="bg-white border-2 border-gray-200 rounded-xl overflow-hidden hover:shadow-lg transition-shadow flex flex-col h-full relative p-4" style={{ width: '100%', flexShrink: 0 }}>
+                              <ViewedContentMarker item={item} courseId={course.courseId} onViewed={markContentComplete} />
                               <span className="px-3 py-1 bg-gray-100 text-gray-700 text-sm rounded-full font-medium mb-2 inline-block">
                                 Text
                               </span>

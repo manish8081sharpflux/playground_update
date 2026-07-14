@@ -453,6 +453,96 @@
   border-radius: 8px;
 }
 
+.purchase-request-attachments {
+  background: #fff;
+}
+
+.purchase-request-attachments-grid {
+  grid-template-columns: repeat(auto-fill, minmax(180px, 220px));
+  align-items: start;
+}
+
+.purchase-request-attachment-item {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+  padding: 12px;
+  overflow: hidden;
+}
+
+.purchase-request-attachment-item .file-preview {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 116px;
+  overflow: hidden;
+  border-radius: 8px;
+  background: #f8fafc;
+  border: 1px dashed #cbd5e1;
+}
+
+.purchase-request-attachment-item .preview-image {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.purchase-request-attachment-item .preview-document {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  height: 100%;
+  padding: 12px;
+  color: #475569;
+  background: transparent;
+  border: 0;
+}
+
+.purchase-request-attachment-item .preview-document i {
+  font-size: 34px;
+  color: #ef4444;
+}
+
+.purchase-request-attachment-item .preview-document span {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 700;
+}
+
+.purchase-request-attachment-item .attachment-actions {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  margin-top: 0;
+}
+
+.purchase-request-attachment-item .file-name {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: left;
+  color: #334155;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.purchase-request-attachment-item .remove-file {
+  min-width: 36px;
+  height: 32px;
+  padding: 0 10px;
+  font-size: 16px;
+  line-height: 1;
+}
+
 .view-button,
 .remove-file {
   padding: 5px 10px;

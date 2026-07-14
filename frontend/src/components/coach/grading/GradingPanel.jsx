@@ -1,16 +1,50 @@
 // frontend/src/components/coach/grading/GradingPanel.jsx
 import React, { useState, useEffect } from 'react';
+import { api } from '../../../api';
 
-const QUALITY_COIN_RANGES = {
-  excellent: { min: 80, max: 100, default: 85 },
-  good: { min: 50, max: 79, default: 65 },
-  needs_improvement: { min: 0, max: 49, default: 25 },
+const DEFAULT_TASK_COIN_LIMITS = {
+  story: {
+    label: 'Stories',
+    keywords: ['story', 'stories'],
+    excellent: { min: 40, max: 50, default: 45 },
+    good: { min: 25, max: 39, default: 30 },
+    needs_improvement: { min: 0, max: 24, default: 10 },
+  },
 };
 
-const getQualityForCoins = (coins) => {
-  if (coins >= 80) return 'excellent';
-  if (coins >= 50) return 'good';
+const QUALITY_LABELS = {
+  outstanding: 'Outstanding',
+  excellent: 'Excellent',
+  good: 'Good',
+  needs_improvement: 'Needs Improvement',
+};
+
+const resolveTaskCoinLimit = (submission, taskTypes) => {
+  const searchableText = [
+    submission?.taskTitle,
+    submission?.courseTitle,
+    submission?.metadata?.taskType,
+    submission?.metadata?.category,
+  ]
+    .filter(Boolean)
+    .join(' ')
+    .toLowerCase();
+
+  const entries = Object.entries(taskTypes || {});
+  return entries.find(([, config]) =>
+    (config.keywords || []).some((keyword) => searchableText.includes(keyword.toLowerCase()))
+  )?.[1] || taskTypes?.story || DEFAULT_TASK_COIN_LIMITS.story;
+};
+
+const getQualityForCoins = (coins, taskLimit) => {
+  if (coins >= taskLimit.excellent.min) return 'excellent';
+  if (coins >= taskLimit.good.min) return 'good';
   return 'needs_improvement';
+};
+
+const toWholeNumber = (value) => {
+  const parsed = parseInt(value, 10);
+  return Number.isNaN(parsed) ? 0 : parsed;
 };
 
 export default function GradingPanel({
@@ -20,25 +54,95 @@ export default function GradingPanel({
 }) {
   const [quality, setQuality] = useState('');
   const [coinsAwarded, setCoinsAwarded] = useState(0);
+  const [suggestedCoins, setSuggestedCoins] = useState(0);
+  const [suggestedCoinsInput, setSuggestedCoinsInput] = useState('0');
+  const [customCoinsInput, setCustomCoinsInput] = useState('0');
   const [feedback, setFeedback] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [coinLimitSettings, setCoinLimitSettings] = useState(DEFAULT_TASK_COIN_LIMITS);
   const isAlreadyGraded = submission?.status === 'graded';
+  const taskCoinLimit = resolveTaskCoinLimit(submission, coinLimitSettings);
+  const maxCoins = taskCoinLimit.excellent.max;
+  const selectedCoinRange = quality ? taskCoinLimit[quality] : null;
+  const effectiveQuality = coinsAwarded > maxCoins ? 'outstanding' : quality;
+  const sliderValue = Math.min(suggestedCoins, maxCoins);
+  const sliderPercent = maxCoins > 0 ? Math.round((sliderValue / maxCoins) * 100) : 0;
 
   // When a quality rating is picked directly, snap coins to that rating's default
   const handleQualitySelect = (selectedQuality) => {
     setQuality(selectedQuality);
-    setCoinsAwarded(QUALITY_COIN_RANGES[selectedQuality].default);
+    const defaultCoins = taskCoinLimit[selectedQuality].default;
+    setSuggestedCoins(defaultCoins);
+    setCoinsAwarded(defaultCoins);
+    setSuggestedCoinsInput(String(Math.min(defaultCoins, maxCoins)));
+    setCustomCoinsInput(String(defaultCoins));
   };
 
   // When coins are adjusted directly, switch the quality rating to match the range
   const handleCoinsChange = (value) => {
-    setCoinsAwarded(value);
-    setQuality(getQualityForCoins(value));
+    const boundedValue = Math.min(Math.max(value, 0), maxCoins);
+    setSuggestedCoins(boundedValue);
+    setSuggestedCoinsInput(String(boundedValue));
+    setQuality(getQualityForCoins(boundedValue, taskCoinLimit));
+  };
+
+  const handleSuggestedCoinsChange = (value) => {
+    if (value === '') {
+      setSuggestedCoinsInput('');
+      setSuggestedCoins(0);
+      return;
+    }
+
+    const sanitizedValue = value.replace(/[^\d]/g, '');
+    const boundedValue = Math.min(Math.max(toWholeNumber(sanitizedValue), 0), maxCoins);
+    setSuggestedCoinsInput(String(boundedValue));
+    setSuggestedCoins(boundedValue);
+    setQuality(getQualityForCoins(boundedValue, taskCoinLimit));
+  };
+
+  const handleCustomCoinsChange = (value) => {
+    if (value === '') {
+      setCustomCoinsInput('');
+      setCoinsAwarded(0);
+      return;
+    }
+
+    const sanitizedValue = value.replace(/[^\d]/g, '');
+    const boundedValue = Math.max(toWholeNumber(sanitizedValue), 0);
+    setCustomCoinsInput(sanitizedValue);
+    setCoinsAwarded(boundedValue);
   };
 
   useEffect(() => {
+    let cancelled = false;
+
+    const fetchCoinLimits = async () => {
+      try {
+        const response = await api.get('/api/v2/lms/coach/grading/coin-limits');
+        if (!cancelled && response.data?.success) {
+          setCoinLimitSettings(response.data.data?.taskTypes || DEFAULT_TASK_COIN_LIMITS);
+        }
+      } catch (error) {
+        if (!cancelled) {
+          setCoinLimitSettings(DEFAULT_TASK_COIN_LIMITS);
+        }
+      }
+    };
+
+    fetchCoinLimits();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
     setQuality(submission?.grade?.quality || '');
-    setCoinsAwarded(submission?.grade?.coinsAwarded ?? 0);
+    const initialCoins = submission?.grade?.coinsAwarded ?? 0;
+    setCoinsAwarded(initialCoins);
+    setSuggestedCoins(Math.min(initialCoins, maxCoins));
+    setSuggestedCoinsInput(String(Math.min(initialCoins, maxCoins)));
+    setCustomCoinsInput(String(initialCoins));
     setFeedback(submission?.grade?.feedback || '');
     setIsSubmitting(false);
   }, [submission?.id, submission?.grade?.coinsAwarded, submission?.grade?.feedback, submission?.grade?.quality]);
@@ -49,13 +153,16 @@ export default function GradingPanel({
     }
 
     // Validation
-    if (!quality) {
+    if (!effectiveQuality) {
       alert('Please select a quality rating');
       return;
     }
 
-    if (coinsAwarded < 0 || coinsAwarded > 100) {
-      alert('Coin amount must be between 0 and 100');
+    if (
+      !Number.isInteger(coinsAwarded) ||
+      coinsAwarded < 0
+    ) {
+      alert('Coin amount must be a non-negative whole number');
       return;
     }
 
@@ -63,7 +170,7 @@ export default function GradingPanel({
 
     try {
       await onGrade({
-        quality,
+        quality: effectiveQuality,
         coinsAwarded,
         feedback: feedback || null,
         gradedBy: coachId,
@@ -81,6 +188,8 @@ export default function GradingPanel({
       switch (qualityType) {
         case 'excellent':
           return 'border-2 border-green-500 bg-green-50';
+        case 'outstanding':
+          return 'border-2 border-purple-500 bg-purple-50';
         case 'good':
           return 'border-2 border-yellow-500 bg-yellow-50';
         case 'needs_improvement':
@@ -150,7 +259,7 @@ export default function GradingPanel({
                   Shows creativity, good technique
                 </div>
                 <div className="text-xs text-gray-500 mt-1">
-                  Suggested Coins: 80-100
+                  Suggested Coins: {taskCoinLimit.excellent.min}-{taskCoinLimit.excellent.max}
                 </div>
               </div>
             </div>
@@ -176,7 +285,7 @@ export default function GradingPanel({
                   Meets requirements, some effort
                 </div>
                 <div className="text-xs text-gray-500 mt-1">
-                  Suggested Coins: 50-79
+                  Suggested Coins: {taskCoinLimit.good.min}-{taskCoinLimit.good.max}
                 </div>
               </div>
             </div>
@@ -202,7 +311,7 @@ export default function GradingPanel({
                   Incomplete or minimal effort
                 </div>
                 <div className="text-xs text-gray-500 mt-1">
-                  Suggested Coins: 0-49
+                  Suggested Coins: {taskCoinLimit.needs_improvement.min}-{taskCoinLimit.needs_improvement.max}
                 </div>
               </div>
             </div>
@@ -222,12 +331,12 @@ export default function GradingPanel({
         <input
           type="range"
           min="0"
-          max="100"
-          value={coinsAwarded}
+          max={maxCoins}
+          value={sliderValue}
           onChange={(e) => handleCoinsChange(parseInt(e.target.value))}
           className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
           style={{
-            background: `linear-gradient(to right, #2563eb 0%, #2563eb ${coinsAwarded}%, #e5e7eb ${coinsAwarded}%, #e5e7eb 100%)`,
+            background: `linear-gradient(to right, #2563eb 0%, #2563eb ${sliderPercent}%, #e5e7eb ${sliderPercent}%, #e5e7eb 100%)`,
           }}
         />
 
@@ -236,17 +345,60 @@ export default function GradingPanel({
           <input
             type="number"
             min="0"
-            max="100"
-            value={coinsAwarded}
-            onChange={(e) => {
-              const value = parseInt(e.target.value) || 0;
-              if (value >= 0 && value <= 100) {
-                handleCoinsChange(value);
+            max={maxCoins}
+            value={suggestedCoinsInput}
+            onChange={(e) => handleSuggestedCoinsChange(e.target.value)}
+            onFocus={() => {
+              if (suggestedCoinsInput === '0') {
+                setSuggestedCoinsInput('');
+              }
+            }}
+            onBlur={() => {
+              if (suggestedCoinsInput === '') {
+                setSuggestedCoinsInput('0');
               }
             }}
             className="w-20 border border-gray-300 rounded-lg px-3 py-2 text-center font-bold text-lg"
           />
           <span className="text-gray-600">coins</span>
+        </div>
+        <p className="mt-2 text-xs text-gray-500">
+          Task type: {taskCoinLimit.label}. Suggested range: {selectedCoinRange?.min ?? 0}-{selectedCoinRange?.max ?? maxCoins} coins.
+        </p>
+
+        <div className="mt-4 rounded-lg border border-blue-200 bg-blue-50 p-4">
+          <label className="block text-sm font-medium text-gray-900 mb-2">
+            Coach Custom Coins
+          </label>
+          <div className="flex items-center gap-2">
+            <input
+              type="text"
+              inputMode="numeric"
+              pattern="[0-9]*"
+              value={customCoinsInput}
+              onChange={(e) => handleCustomCoinsChange(e.target.value)}
+              onFocus={() => {
+                if (customCoinsInput === '0') {
+                  setCustomCoinsInput('');
+                }
+              }}
+              onBlur={() => {
+                if (customCoinsInput === '') {
+                  setCustomCoinsInput('0');
+                }
+              }}
+              className="w-full border border-blue-300 rounded-lg px-3 py-2 text-center font-bold text-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+            <span className="text-gray-600">coins</span>
+          </div>
+          <p className="mt-2 text-xs text-gray-600">
+            This is the final coin amount awarded by the coach.
+          </p>
+          {coinsAwarded > maxCoins && (
+            <p className="mt-2 rounded-md bg-purple-100 px-3 py-2 text-sm font-semibold text-purple-800">
+              Grade will be shown as Outstanding.
+            </p>
+          )}
         </div>
       </div>
 
@@ -279,7 +431,7 @@ export default function GradingPanel({
         )}
         <button
           onClick={handleSubmit}
-          disabled={isSubmitting || !quality || isAlreadyGraded}
+          disabled={isSubmitting || !effectiveQuality || isAlreadyGraded}
           className="w-full px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed font-medium text-lg transition"
         >
           {isSubmitting ? 'Submitting Grade...' : 'Submit Grade →'}

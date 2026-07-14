@@ -1,5 +1,5 @@
 // frontend/src/components/coach/grading/SubmissionQueue.jsx
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 export default function SubmissionQueue({
   submissions,
@@ -20,6 +20,14 @@ export default function SubmissionQueue({
   );
   const gradableSubmissions = submissions.filter(isGradableSubmission);
   const allPendingSelected = pendingSubmissions.length > 0 && pendingSubmissions.every(s => selectedIds.has(s.id));
+
+  useEffect(() => {
+    const visibleIds = new Set(pendingSubmissions.map((submission) => submission.id));
+    setSelectedIds((prev) => {
+      const next = new Set([...prev].filter((id) => visibleIds.has(id)));
+      return next.size === prev.size ? prev : next;
+    });
+  }, [pendingSubmissions]);
 
   const toggleSelect = (id) => {
     setSelectedIds(prev => {
@@ -117,6 +125,7 @@ export default function SubmissionQueue({
               <option value="pending">Pending</option>
               <option value="graded">Graded</option>
               <option value="flagged">Flagged</option>
+              <option value="skipped">Skipped</option>
             </select>
           </div>
 

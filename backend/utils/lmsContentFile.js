@@ -3,6 +3,7 @@ const Course = require('../models/course');
 const ContentLibrary = require('../models/ContentLibrary');
 const s3Service = require('../services/aws/s3');
 const { errorLogger } = require('../config/pino-config');
+const { markContentItemViewed } = require('./lmsProgress');
 
 const escapeRegex = (value = '') => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
@@ -28,7 +29,7 @@ const findContentItemById = (course, contentItemId) => {
       const contentItem = (chapter.contentItems || []).find(item =>
         String(item._id) === String(contentItemId)
       );
-      if (contentItem) return contentItem;
+      if (contentItem) return { module, chapter, contentItem };
     }
   }
 
@@ -60,7 +61,8 @@ const streamCourseContentFile = async (req, res, { category } = {}) => {
       });
     }
 
-    const contentItem = findContentItemById(course, contentItemId);
+    const match = findContentItemById(course, contentItemId);
+    const contentItem = match?.contentItem;
     if (!contentItem || !contentItem.fileUrl) {
       return res.status(404).json({
         success: false,
@@ -70,6 +72,7 @@ const streamCourseContentFile = async (req, res, { category } = {}) => {
 
     if (req.query.signed === '1') {
       if (contentItem.fileUrl.startsWith('/uploads/')) {
+        await markContentItemViewed(req.params.studentId, course, contentItem);
         return res.json({
           success: true,
           fileUrl: `${req.protocol}://${req.get('host')}${contentItem.fileUrl}`
@@ -77,6 +80,7 @@ const streamCourseContentFile = async (req, res, { category } = {}) => {
       }
 
       if (contentItem.fileUrl.includes('/uploads/')) {
+        await markContentItemViewed(req.params.studentId, course, contentItem);
         return res.json({
           success: true,
           fileUrl: contentItem.fileUrl
@@ -85,6 +89,9 @@ const streamCourseContentFile = async (req, res, { category } = {}) => {
 
       const s3Key = s3Service.extractS3KeyFromUrl(contentItem.fileUrl) || contentItem.fileUrl;
       const signedUrl = await s3Service.generateLMSContentDownloadUrl(s3Key, 60 * 60);
+      if (signedUrl.success) {
+        await markContentItemViewed(req.params.studentId, course, contentItem);
+      }
 
       return res.json({
         success: signedUrl.success,
@@ -127,6 +134,8 @@ const streamCourseContentFile = async (req, res, { category } = {}) => {
         message: 'Content file not found in storage'
       });
     }
+
+    await markContentItemViewed(req.params.studentId, course, contentItem);
 
     const filename = encodeURIComponent(contentItem.title || 'content-file');
     res.setHeader('Content-Type', objectResult.contentType || contentTypeForItem(contentItem));

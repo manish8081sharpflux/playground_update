@@ -75,7 +75,21 @@ async function openContentFile(item, studentId, download = false) {
   }
 }
 
-function ContentActions({ item, studentId }) {
+async function markArtContentComplete(item, studentId) {
+  try {
+    if (!studentId || !item?.id) return;
+
+    await api.post(`/api/v2/lms/student/${studentId}/courses/art/mark-complete`, {
+      itemId: item.id,
+      itemType: item.type,
+      courseId: item.courseId
+    });
+  } catch (error) {
+    console.error('Failed to mark Art content complete:', error);
+  }
+}
+
+function ContentActions({ item, studentId, onView }) {
   const url = getItemUrl(item);
   if (!url) {
     return <span className="text-xs font-semibold text-gray-400">No file attached</span>;
@@ -85,7 +99,10 @@ function ContentActions({ item, studentId }) {
     <div className="flex flex-wrap gap-2">
       <button
         type="button"
-        onClick={() => openContentFile(item, studentId, false)}
+        onClick={() => {
+          onView?.();
+          openContentFile(item, studentId, false);
+        }}
         className="inline-flex items-center gap-1 rounded-md border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50"
       >
         <ExternalLink size={14} />
@@ -328,6 +345,12 @@ function ContentItemCard({ item, studentId }) {
     }
   }, [item]);
 
+  useEffect(() => {
+    if (item.type === 'text') {
+      markArtContentComplete(item, studentId);
+    }
+  }, [item, studentId]);
+
   const handleStartQuiz = () => {
     const quizId = getQuizId(item);
     if (!quizId) {
@@ -365,7 +388,13 @@ function ContentItemCard({ item, studentId }) {
           )}
         </div>
         {item.type === 'pdf' && <ContentActions item={item} studentId={studentId} />}
-        {item.type === 'link' && <ContentActions item={{ ...item, fileUrl: item.externalUrl }} studentId={studentId} />}
+        {item.type === 'link' && (
+          <ContentActions
+            item={{ ...item, fileUrl: item.externalUrl }}
+            studentId={studentId}
+            onView={() => markArtContentComplete(item, studentId)}
+          />
+        )}
       </div>
 
       {item.type === 'video' && <VideoPreview item={item} studentId={studentId} />}
