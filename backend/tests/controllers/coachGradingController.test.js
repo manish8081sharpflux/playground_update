@@ -12,17 +12,45 @@ jest.mock('../../models/user');
 jest.mock('../../models/course');
 jest.mock('../../models/notification');
 jest.mock('../../models/coin');
+jest.mock('../../services/lmsCoinLimitSettings', () => ({
+  getSettings: jest.fn(),
+  getRangeForSubmission: jest.fn(),
+}));
 
 const Submission = require('../../models/Submission');
 const User = require('../../models/user');
 const Notification = require('../../models/notification');
 const Coin = require('../../models/coin');
+const LmsCoinLimitSettingsService = require('../../services/lmsCoinLimitSettings');
 const coachGradingController = require('../../controllers/lms/coach/coachGradingController');
 const { mockRequest, mockResponse } = global.testUtils;
 
 describe('CoachGradingController', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    LmsCoinLimitSettingsService.getSettings.mockResolvedValue({
+      taskTypes: {
+        story: {
+          label: 'Stories',
+          keywords: ['story', 'stories'],
+          excellent: { min: 80, max: 100, default: 85 },
+          good: { min: 50, max: 79, default: 65 },
+          needs_improvement: { min: 0, max: 49, default: 25 },
+        },
+      },
+    });
+    LmsCoinLimitSettingsService.getRangeForSubmission.mockImplementation((_submission, quality) => {
+      const ranges = {
+        excellent: { min: 80, max: 100, default: 85 },
+        good: { min: 50, max: 79, default: 65 },
+        needs_improvement: { min: 0, max: 49, default: 25 },
+      };
+      return Promise.resolve({
+        taskTypeKey: 'story',
+        taskTypeLabel: 'Stories',
+        range: ranges[quality],
+      });
+    });
   });
 
   describe('submitGrade', () => {
@@ -199,17 +227,43 @@ describe('CoachGradingController', () => {
       });
     });
 
-    it('should reject a coinsAwarded value outside the quality range (FIX-012)', async () => {
+    it('should allow a coinsAwarded value outside the suggested quality range', async () => {
+      const sub = mockSubmissionObj();
+      Submission.findById.mockReturnValue({
+        populate: jest.fn().mockResolvedValue(sub),
+      });
+
+      const mockAddCoins = jest.fn().mockImplementation(function () {
+        this.balance += 25;
+        return Promise.resolve(this);
+      });
+      const coinRecord = { balance: 0, addCoins: mockAddCoins };
+      Coin.findOrCreateForUser = jest.fn().mockResolvedValue(coinRecord);
+
+      User.findById.mockResolvedValue({
+        _id: coachId,
+        firstName: 'Coach',
+        lastName: 'Smith',
+        balagruhaIds: [balagruhaId],
+      });
+
       const req = buildReq({ quality: 'good', coinsAwarded: 25 });
       const res = mockResponse();
 
       await coachGradingController.submitGrade(req, res);
 
-      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(mockAddCoins).toHaveBeenCalledWith(
+        25,
+        'earned',
+        expect.stringContaining('Draw a Tree'),
+        'grading',
+        expect.objectContaining({ quality: 'good' })
+      );
       expect(res.json).toHaveBeenCalledWith(
         expect.objectContaining({
-          success: false,
-          error: expect.stringContaining('between 50 and 79'),
+          success: true,
+          studentCoinBalance: 25,
         })
       );
     });
@@ -414,15 +468,37 @@ describe('CoachGradingController', () => {
       );
     });
 
-    it('should return 400 if coinsAwarded is out of range', async () => {
+    it('should allow bulk coinsAwarded outside the suggested quality range', async () => {
       const req = buildReq(['id1'], { coinsAwarded: 150 });
       const res = mockResponse();
 
+      const sub = mockSubmission('id1');
+      Submission.findById.mockReturnValue({
+        populate: jest.fn().mockResolvedValue(sub),
+      });
+
+      User.findById.mockResolvedValue({
+        _id: coachId,
+        firstName: 'Coach',
+        lastName: 'Smith',
+        balagruhaIds: [balagruhaId],
+      });
+
+      const mockAddCoins = jest.fn().mockResolvedValue(true);
+      Coin.findOrCreateForUser = jest.fn().mockResolvedValue({ balance: 150, addCoins: mockAddCoins });
+
       await coachGradingController.bulkGrade(req, res);
 
-      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(mockAddCoins).toHaveBeenCalledWith(
+        150,
+        'earned',
+        expect.stringContaining('Graded submission'),
+        'grading',
+        expect.any(Object)
+      );
       expect(res.json).toHaveBeenCalledWith(
-        expect.objectContaining({ success: false, error: expect.stringContaining('between 80 and 100') })
+        expect.objectContaining({ success: true, gradedCount: 1, failedSubmissions: [] })
       );
     });
 

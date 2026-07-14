@@ -332,7 +332,7 @@ export default function ComputerAppsPage() {
             onClick={() => navigate('/student/dashboard')}
             className="text-sm text-indigo-600 font-bold mb-4 hover:underline flex items-center gap-1"
           >
-            <ArrowLeft size={16} /> Back to Dashboard
+            <ArrowLeft size={16} /> Back to Courses
           </button>
           <div className="bg-orange-100 rounded-2xl p-8 mb-8 shadow-sm">
             <h1 className="text-3xl font-bold text-gray-900 mb-2" style={{ fontFamily: 'Patrick Hand, cursive' }}>Computer Applications 💻</h1>

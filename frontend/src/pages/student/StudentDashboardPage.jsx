@@ -232,11 +232,17 @@ export default function StudentDashboardPage() {
               c => c.courseType === category.courseType
             ) || [];
 
-            // Aggregate progress
-            const courseData = categoryCourses.reduce((acc, curr) => ({
-              totalTasks: acc.totalTasks + (curr.totalTasks || 0),
-              completedTasks: acc.completedTasks + (curr.completedTasks || 0)
-            }), { totalTasks: 0, completedTasks: 0 });
+            // Aggregate progress. Computer Apps page shows one card per course, so
+            // the dashboard card mirrors those visible cards instead of nested items.
+            const courseData = category.courseType === 'Computer Apps'
+              ? categoryCourses.reduce((acc, curr) => ({
+                totalTasks: acc.totalTasks + ((curr.totalTasks || 0) > 0 ? 1 : 0),
+                completedTasks: acc.completedTasks + (curr.totalTasks > 0 && curr.completedTasks >= curr.totalTasks ? 1 : 0)
+              }), { totalTasks: 0, completedTasks: 0 })
+              : categoryCourses.reduce((acc, curr) => ({
+                totalTasks: acc.totalTasks + (curr.totalTasks || 0),
+                completedTasks: acc.completedTasks + (curr.completedTasks || 0)
+              }), { totalTasks: 0, completedTasks: 0 });
 
             return (
               <CourseCategoryCard

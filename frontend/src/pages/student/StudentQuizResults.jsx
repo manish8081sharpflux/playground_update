@@ -18,8 +18,9 @@ export default function LifeSkillsQuizResults() {
     results?.quizId;
   const isComputerApps = location.pathname.includes('computer-apps');
   const isArt = location.pathname.includes('/student/art');
-  const baseRoute = isComputerApps ? '/student/computer-apps' : isArt ? '/student/art' : '/student/life-skills';
-  const returnLabel = isComputerApps ? 'Return to Computer Apps' : isArt ? 'Return to Art' : 'Return to Life Skills';
+  const isSpokenEnglish = location.pathname.includes('spoken-english');
+  const baseRoute = isComputerApps ? '/student/computer-apps' : isArt ? '/student/art' : isSpokenEnglish ? '/student/spoken-english' : '/student/life-skills';
+  const returnLabel = isComputerApps ? 'Return to Computer Apps' : isArt ? 'Return to Art' : isSpokenEnglish ? 'Return to Spoken English' : 'Return to Life Skills';
 
   // If no results data, redirect back to Life Skills page
   // If no results data, redirect back to Life Skills page

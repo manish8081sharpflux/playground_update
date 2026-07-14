@@ -91,13 +91,12 @@ const SubmissionSchema = new mongoose.Schema(
     grade: {
       quality: {
         type: String,
-        enum: ["excellent", "good", "needs_improvement"],
+        enum: ["outstanding", "excellent", "good", "needs_improvement"],
         default: null,
       },
       coinsAwarded: {
         type: Number,
         min: 0,
-        max: 100,
         default: null,
       },
       feedback: {
@@ -130,13 +129,12 @@ const SubmissionSchema = new mongoose.Schema(
     draft: {
       quality: {
         type: String,
-        enum: ["excellent", "good", "needs_improvement"],
+        enum: ["outstanding", "excellent", "good", "needs_improvement"],
         default: null,
       },
       coinsAwarded: {
         type: Number,
         min: 0,
-        max: 100,
         default: null,
       },
       feedback: {
@@ -202,6 +200,8 @@ SubmissionSchema.index({ submissionType: 1, status: 1 });
 SubmissionSchema.index({ "grade.gradedBy": 1 });
 SubmissionSchema.index({ submittedAt: -1 });
 
+const escapeRegex = (value = "") => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
 // Static method to find submissions by coach
 SubmissionSchema.statics.findByCoach = async function (coachId, filters = {}) {
   const User = mongoose.model("User");
@@ -250,19 +250,12 @@ SubmissionSchema.statics.findByCoach = async function (coachId, filters = {}) {
     }
   }
 
-  // Sorting
-  let sort = { submittedAt: 1 }; // oldest first by default
-  if (filters.sortBy === "newest_first") {
-    sort = { submittedAt: -1 };
-  } else if (filters.sortBy === "student_name") {
-    sort = { studentId: 1 };
-  }
-
   // Pagination
   const limit = filters.limit || 20;
   const offset = filters.offset || 0;
+  const search = typeof filters.search === "string" ? filters.search.trim() : "";
 
-  const submissions = await this.find(query)
+  let submissions = await this.find(query)
     .populate({
       path: "studentId",
       select: "name email role balagruhaIds",
@@ -272,10 +265,30 @@ SubmissionSchema.statics.findByCoach = async function (coachId, filters = {}) {
       }
     })
     .populate("courseId", "title category")
-    .populate("grade.gradedBy", "name email")
-    .sort(sort)
-    .limit(limit)
-    .skip(offset);
+    .populate("grade.gradedBy", "name email");
+
+  if (search) {
+    const searchRegex = new RegExp(escapeRegex(search), "i");
+    submissions = submissions.filter((submission) =>
+      searchRegex.test(submission.studentId?.name || "") ||
+      searchRegex.test(submission.studentId?.email || "") ||
+      searchRegex.test(submission.courseId?.title || "") ||
+      searchRegex.test(submission.courseId?.category || "") ||
+      searchRegex.test(submission.taskTitle || "")
+    );
+  }
+
+  submissions.sort((a, b) => {
+    if (filters.sortBy === "newest_first") {
+      return new Date(b.submittedAt || 0) - new Date(a.submittedAt || 0);
+    }
+    if (filters.sortBy === "student_name") {
+      return (a.studentId?.name || "").localeCompare(b.studentId?.name || "");
+    }
+    return new Date(a.submittedAt || 0) - new Date(b.submittedAt || 0);
+  });
+
+  submissions = submissions.slice(offset, offset + limit);
 
   return submissions;
 };

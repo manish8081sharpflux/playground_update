@@ -4,6 +4,7 @@ const Submission = require('../../../models/Submission');
 const mongoose = require('mongoose');
 const s3Service = require('../../../services/aws/s3');
 const { streamCourseContentFile } = require('../../../utils/lmsContentFile');
+const { markContentItemComplete } = require('../../../utils/lmsProgress');
 const fs = require('fs');
 const path = require('path');
 const { errorLogger } = require('../../../config/pino-config');
@@ -15,6 +16,32 @@ const { decorateAssignmentStatus, getStudentCourseAccess, assertStudentCanSubmit
 
 exports.getContentItemFile = async (req, res) => {
   return streamCourseContentFile(req, res);
+};
+
+exports.markContentComplete = async (req, res) => {
+  try {
+    const { studentId } = req.params;
+    const { itemId, itemType, courseId } = req.body;
+
+    if (!itemId || !courseId) {
+      return res.status(400).json({ success: false, message: 'Missing itemId or courseId' });
+    }
+
+    await markContentItemComplete({
+      studentId,
+      courseId,
+      itemId,
+      itemType
+    });
+
+    res.json({ success: true });
+  } catch (error) {
+    errorLogger.error({ err: error }, 'Mark Spoken English Content Complete Error');
+    res.status(500).json({
+      success: false,
+      message: 'Server error marking content complete'
+    });
+  }
 };
 
 /**
@@ -36,17 +63,7 @@ exports.getSpokenEnglishTask = async (req, res) => {
     // However, Mongoose subdoc search is tricky.
     // Let's search for the Course containing this contentItem in 'modules.chapters.contentItems'
 
-    // Optimized query to find specific content item
-    const course = await Course.findOne(
-      { "modules.chapters.contentItems._id": taskId },
-      { "modules.chapters.contentItems.$": 1 }
-    ).lean();
-
-    // The projection "modules.chapters.contentItems.$" returns only the first matching array element, 
-    // but standard Mongo positional operator only works one level deep easily.
-    // We will do a broad search then filter in JS for reliability given deep nesting.
-
-    // Re-approach: Find course with the ID
+    // Find course with the ID and filter in JS for reliability with nested content items.
     const foundCourse = await Course.findOne({
       "modules.chapters.contentItems._id": taskId
     }).lean();
@@ -74,7 +91,9 @@ exports.getSpokenEnglishTask = async (req, res) => {
       taskId: taskId
     }).sort({ submittedAt: -1 }).lean();
 
-    const student = await User.findById(studentId).select('balagruhaIds').lean();
+    const student = mongoose.Types.ObjectId.isValid(studentId)
+      ? await User.findById(studentId).select('balagruhaIds').lean()
+      : null;
     const courseAccess = await getStudentCourseAccess(student, foundCourse._id);
 
     // Construct response
@@ -135,7 +154,9 @@ exports.getSpokenEnglishTasks = async (req, res) => {
       });
     }
 
-    const student = await User.findById(studentId).select('balagruhaIds').lean();
+    const student = mongoose.Types.ObjectId.isValid(studentId)
+      ? await User.findById(studentId).select('balagruhaIds').lean()
+      : null;
     const accessByCourse = new Map();
     await Promise.all(courses.map(async (course) => {
       accessByCourse.set(course._id.toString(), await getStudentCourseAccess(student, course._id));
@@ -175,10 +196,17 @@ exports.getSpokenEnglishTasks = async (req, res) => {
             allTasks.push({
               id: item._id,
               title: item.title,
+              description: item.description || '',
               courseId: course._id,
+              chapterId: c._id,
               difficulty: course.difficultyLevel,
               estimatedTime: item.metadata?.estimatedTime || 10,
               type: item.type || "speech",
+              fileUrl: item.fileUrl || null,
+              externalUrl: item.externalUrl || item.fileUrl || null,
+              textContent: item.textContent || '',
+              metadata: item.metadata || {},
+              quizId: item.quizRef?._id?.toString?.() || item.quizRef?.toString?.() || item.metadata?.quizId?.toString?.() || null,
               status: isCompleted ? 'graded' : (isLocked ? 'locked' : 'available'),
               // Note: 'graded' is simplified; real logic checks Submission model for 'under_review' vs 'graded'
               // But 'completed' in StudentProgress usually implies passing grade or submission done.
@@ -274,7 +302,9 @@ exports.submitVideoRecording = async (req, res) => {
       return res.status(404).json({ success: false, message: "Task not found." });
     }
 
-    const student = await User.findById(studentId).select('balagruhaIds').lean();
+    const student = mongoose.Types.ObjectId.isValid(studentId)
+      ? await User.findById(studentId).select('balagruhaIds').lean()
+      : null;
     await assertStudentCanSubmitForCourse({ student, courseId: course._id });
 
     // Find item to get title

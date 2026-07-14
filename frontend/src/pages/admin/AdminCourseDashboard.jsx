@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Search, FileQuestion, Users } from 'lucide-react';
+import { Plus, Search, FileQuestion, Users, Coins } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../../api';
 import toast from 'react-hot-toast';
 import { useRBAC } from '../../contexts/RBACContext';
 import CourseListView from '../../components/admin/CourseListView';
 import CourseCreationModal from '../../components/admin/CourseCreationModal';
+import SuggestedCoinLimitModal from '../../components/admin/SuggestedCoinLimitModal';
 import LoadingState from '../../components/common/LoadingState';
 
 /**
@@ -27,6 +28,7 @@ export default function AdminCourseDashboard() {
 
   // Modal states
   const [isCreationModalOpen, setIsCreationModalOpen] = useState(false);
+  const [isCoinLimitModalOpen, setIsCoinLimitModalOpen] = useState(false);
 
   // SECURITY CHECK: Redirect unauthorized users
   useEffect(() => {
@@ -136,6 +138,13 @@ export default function AdminCourseDashboard() {
             </div>
             <div className="flex items-center gap-4">
               <button
+                onClick={() => setIsCoinLimitModalOpen(true)}
+                className="flex items-center gap-2 px-6 py-3 bg-white text-purple-600 rounded-lg hover:bg-purple-50 transition-colors font-semibold shadow-md hover:shadow-lg"
+              >
+                <Coins size={20} />
+                Suggest Coin Limit
+              </button>
+              <button
                 onClick={handleAssignCourse}
                 className=" flex items-center gap-2 px-6 py-3 bg-white text-purple-600 rounded-lg hover:bg-purple-50 transition-colors font-semibold shadow-md hover:shadow-lg"
               >
@@ -241,6 +250,11 @@ export default function AdminCourseDashboard() {
           onCourseCreated={handleCourseCreated}
         />
       )}
+
+      <SuggestedCoinLimitModal
+        isOpen={isCoinLimitModalOpen}
+        onClose={() => setIsCoinLimitModalOpen(false)}
+      />
     </div>
   );
 }

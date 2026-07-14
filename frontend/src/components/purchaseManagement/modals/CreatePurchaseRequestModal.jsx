@@ -264,6 +264,12 @@ export default function CreatePurchaseRequestModal({
       return imageTypes.includes(extension);
     };
 
+    const getFileExtension = (file) => {
+      const source = file.name || file.fileUrl || file.url || "";
+      const extension = source.split(".").pop();
+      return extension ? extension.toUpperCase().slice(0, 5) : "FILE";
+    };
+
     return (
       <div className="file-preview">
         {isImage(file) ? (
@@ -274,8 +280,8 @@ export default function CreatePurchaseRequestModal({
           />
         ) : (
           <div className="preview-document">
-            <i className="fas fa-file-pdf"></i>
-            <span>{file.name || "Document"}</span>
+            <i className="fas fa-file-alt"></i>
+            <span>{getFileExtension(file)}</span>
           </div>
         )}
       </div>
@@ -2466,14 +2472,14 @@ export default function CreatePurchaseRequestModal({
 
               {/* File Previews */}
               {formData.attachments.length > 0 && (
-                <div className="new-attachments">
+                <div className="new-attachments purchase-request-attachments">
                   <h4>Selected Files ({formData.attachments.length}):</h4>
-                  <div className="attachments-grid">
+                  <div className="attachments-grid purchase-request-attachments-grid">
                     {formData.attachments.map((file, index) => (
-                      <div key={`new-${index}`} className="attachment-item">
+                      <div key={`new-${index}`} className="attachment-item purchase-request-attachment-item">
                         <FilePreview file={file} />
                         <div className="attachment-actions">
-                          <span className="file-name">{file.name}</span>
+                          <span className="file-name" title={file.name}>{file.name}</span>
                           <button
                             type="button"
                             className="remove-file"

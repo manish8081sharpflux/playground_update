@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const courseController = require('../../../../controllers/lms/admin/courseController');
 const adminAssignmentController = require('../../../../controllers/lms/admin/adminAssignmentController');
+const lmsCoinLimitController = require('../../../../controllers/lms/admin/lmsCoinLimitController');
 const { authenticate, authorize } = require('../../../../middleware/auth');
 
 // ==================== ADMIN COURSE ASSIGNMENT (MUST BE BEFORE :id ROUTES) ====================
@@ -69,6 +70,30 @@ router.get(
   authenticate,
   authorize('LMS Management', 'Manage'),
   courseController.getCourseAuditLog
+);
+
+/**
+ * @route GET /api/v2/lms/admin/courses/coin-limits
+ * @desc Get admin-managed LMS suggested coin limits
+ * @access Private (Admin only)
+ */
+router.get(
+  '/coin-limits',
+  authenticate,
+  authorize('LMS Management', 'Manage'),
+  lmsCoinLimitController.getCoinLimits
+);
+
+/**
+ * @route PUT /api/v2/lms/admin/courses/coin-limits
+ * @desc Update admin-managed LMS suggested coin limits
+ * @access Private (Admin only)
+ */
+router.put(
+  '/coin-limits',
+  authenticate,
+  authorize('LMS Management', 'Manage'),
+  lmsCoinLimitController.updateCoinLimits
 );
 
 // ==================== COURSE CRUD OPERATIONS ====================

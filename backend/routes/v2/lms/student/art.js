@@ -29,6 +29,7 @@ router.post('/quiz/submit', authenticate, verifyStudentOwnership, computerAppsCo
 
 // Stream a chapter content file (PDF/video/audio/image) for the student Art page
 router.get('/content/:contentItemId/file', authenticate, verifyStudentOwnership, artCourseController.getContentItemFile);
+router.post('/mark-complete', authenticate, verifyStudentOwnership, artCourseController.markContentComplete);
 
 // Submit artwork for grading or competition (with file upload)
 router.post('/submissions', authenticate, verifyStudentOwnership, artUpload, artCourseController.submitArtwork);
