@@ -7,6 +7,8 @@ const ContentLibrary = require('../../../models/ContentLibrary');
 const s3Service = require('../../../services/aws/s3');
 const mongoose = require('mongoose');
 const fs = require('fs');
+const os = require('os');
+const path = require('path');
 const { errorLogger } = require('../../../config/pino-config');
 
 /**
@@ -905,6 +907,105 @@ exports.saveToGallery = async (req, res) => {
       message: 'Server error while saving artwork',
       error: error.message
     });
+  }
+};
+
+exports.submitArtweaverDrawing = async (req, res) => {
+  let tempFilePath = null;
+
+  try {
+    const { studentId } = req.params;
+    const { imageData, title, description, sessionDuration } = req.body;
+
+    if (!imageData || typeof imageData !== 'string') {
+      return res.status(400).json({
+        success: false,
+        message: 'imageData is required'
+      });
+    }
+
+    const match = imageData.match(/^data:(image\/(?:png|jpeg|jpg|webp));base64,(.+)$/);
+    if (!match) {
+      return res.status(400).json({
+        success: false,
+        message: 'Only PNG, JPG, and WebP drawings are supported'
+      });
+    }
+
+    const mimeType = match[1] === 'image/jpg' ? 'image/jpeg' : match[1];
+    const extension = mimeType === 'image/png'
+      ? 'png'
+      : mimeType === 'image/webp'
+        ? 'webp'
+        : 'jpg';
+    const buffer = Buffer.from(match[2], 'base64');
+
+    if (!buffer.length) {
+      return res.status(400).json({
+        success: false,
+        message: 'Drawing file is empty'
+      });
+    }
+
+    tempFilePath = path.join(os.tmpdir(), `artweaver-${studentId}-${Date.now()}.${extension}`);
+    fs.writeFileSync(tempFilePath, buffer);
+
+    const fileName = `${title || 'ArtWeaver Drawing'}.${extension}`;
+    const uploadResult = await s3Service.uploadLMSContent(
+      tempFilePath,
+      fileName,
+      'image',
+      mimeType
+    );
+
+    if (!uploadResult.success) {
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to upload ArtWeaver drawing',
+        error: uploadResult.error
+      });
+    }
+
+    const galleryItem = await ArtGallery.create({
+      student: studentId,
+      title: title || 'ArtWeaver Drawing',
+      fileUrl: uploadResult.url,
+      s3Key: uploadResult.s3Key,
+      canvasSize: { width: 1024, height: 768 },
+      metadata: {
+        fileSize: buffer.length,
+        mimeType,
+        sessionDuration: sessionDuration ? parseInt(sessionDuration, 10) : 0,
+        source: 'artweaver',
+        description: description || ''
+      },
+      submitted: false,
+    });
+
+    res.status(201).json({
+      success: true,
+      artwork: {
+        id: galleryItem._id,
+        title: galleryItem.title,
+        artworkUrl: galleryItem.fileUrl,
+        createdAt: galleryItem.createdAt,
+        canvasSize: galleryItem.canvasSize,
+        sessionDuration: galleryItem.metadata.sessionDuration,
+        submitted: false,
+      },
+      message: 'ArtWeaver drawing saved to your gallery!'
+    });
+  } catch (error) {
+    errorLogger.error({ err: error }, 'Submit ArtWeaver Drawing Error:');
+    res.status(500).json({
+      success: false,
+      message: 'Server error while saving ArtWeaver drawing',
+      error: error.message
+    });
+  } finally {
+    if (tempFilePath && fs.existsSync(tempFilePath)) {
+      fs.unlinkSync(tempFilePath);
+    }
   }
 };
 

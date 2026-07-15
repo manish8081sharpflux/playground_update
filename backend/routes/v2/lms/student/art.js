@@ -36,6 +36,7 @@ router.post('/submissions', authenticate, verifyStudentOwnership, artUpload, art
 
 // Save artwork to personal gallery (with file upload)
 router.post('/gallery', authenticate, verifyStudentOwnership, artUpload, artCourseController.saveToGallery);
+router.post('/artweaver/submit', authenticate, verifyStudentOwnership, artCourseController.submitArtweaverDrawing);
 
 // Delete gallery item
 router.delete('/gallery/:artworkId', authenticate, verifyStudentOwnership, artCourseController.deleteGalleryItem);

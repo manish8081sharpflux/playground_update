@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import CanvasPreview from './CanvasPreview';
 import CanvasDrawingTool from './CanvasDrawingTool';
 import toast from 'react-hot-toast';
-import { api, apiWithoutContentType } from '../../../api';
+import { apiWithoutContentType } from '../../../api';
+import config from '../../../config';
 
 /**
  * FreeSketchMode Component - Story 12.9 (FIX-014)
@@ -108,6 +109,19 @@ export default function FreeSketchMode({ data, studentId, onRefresh }) {
     }
   };
 
+  const handleOpenArtWeaver = () => {
+    const token = localStorage.getItem('token') || '';
+    const params = new URLSearchParams({
+      token,
+      studentId,
+      serverUrl: config.API_BASE_URL,
+      t: String(Date.now()),
+    });
+
+    window.location.href = `eduart://open?${params.toString()}`;
+    toast('Opening ArtWeaver. Save your drawing as PNG or JPG, then close ArtWeaver to upload it.');
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -116,6 +130,27 @@ export default function FreeSketchMode({ data, studentId, onRefresh }) {
         <p className="text-gray-700">
           Create anything you like! Draw directly in the browser or upload your artwork.
         </p>
+      </div>
+
+      <div className="rounded-2xl border border-pink-200 bg-gradient-to-r from-pink-50 via-white to-fuchsia-50 p-5 shadow-sm">
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <div>
+            <div className="mb-2 inline-flex items-center rounded-full bg-pink-100 px-3 py-1 text-xs font-bold uppercase tracking-wide text-pink-700">
+              ArtWeaver Studio
+            </div>
+            <h3 className="text-xl font-bold text-gray-900">Draw with the desktop art app</h3>
+            <p className="mt-1 max-w-2xl text-sm leading-6 text-gray-600">
+              Open ArtWeaver, create your picture, save it in the Drawings folder, and close ArtWeaver. The drawing will be added to your gallery.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={handleOpenArtWeaver}
+            className="rounded-xl bg-pink-600 px-5 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-pink-700"
+          >
+            Open ArtWeaver
+          </button>
+        </div>
       </div>
 
       {/* Input Mode Toggle */}
