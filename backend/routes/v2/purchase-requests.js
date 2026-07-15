@@ -131,6 +131,23 @@ router.get(
 // Sprint5-Story-24: Changed to multi-role access
 // NOTE: This must come AFTER all static routes like /pending-count, /stats, /
 router.get(
+  '/:id/attachments/:attachmentId',
+  authenticate,
+  checkPurchaseRequestAccess(),
+  validateRequestId,
+  purchaseRequestController.getPurchaseRequestAttachment
+);
+
+// Sprint5-Story-EditDelete: Remove a single attachment from a purchase request
+router.delete(
+  '/:id/attachments/:attachmentId',
+  authenticate,
+  checkPurchaseRequestAccess(),
+  validateRequestId,
+  purchaseRequestController.deletePurchaseRequestAttachment
+);
+
+router.get(
   '/:id',
   authenticate,
   checkPurchaseRequestAccess(),

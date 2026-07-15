@@ -28,6 +28,7 @@ const wtfRoutes = require("./routes/v1/wtf");
 const coinRoutes = require("./routes/v1/coin");
 const schedulerRoutes = require("./routes/v1/scheduler");
 const websocketRoutes = require("./routes/v1/websocket");
+const gcomprisRoutes = require("./routes/gcompris");
 const wtfWebSocketService = require("./services/wtfWebSocket");
 const { swaggerUi, swaggerDocs } = require("./swagger");
 // Newly added routes from deployed backend
@@ -160,6 +161,7 @@ app.use("/api/v1/wtf", wtfRoutes);
 app.use("/api/v1/coin", coinRoutes);
 app.use("/api/v1/scheduler", schedulerRoutes);
 app.use("/api/v1/websocket", websocketRoutes);
+app.use("/api/gcompris", gcomprisRoutes);
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 // Newly added route mounts
 app.use("/api/schedules", scheduleRoutes);

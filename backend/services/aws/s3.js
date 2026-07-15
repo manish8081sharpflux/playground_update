@@ -379,6 +379,47 @@ exports.extractS3KeyFromUrl = (s3Url) => {
   }
 };
 
+/**
+ * Fetch a generic S3 object as a stream by stored key or URL.
+ * Used when objects are private and must be proxied through an authenticated API.
+ */
+exports.getS3Object = async (keyOrUrl) => {
+  try {
+    let s3Key = keyOrUrl;
+    if (keyOrUrl && keyOrUrl.startsWith("http")) {
+      s3Key = exports.extractS3KeyFromUrl(keyOrUrl);
+    }
+
+    if (!s3Key) {
+      return {
+        success: false,
+        message: "No valid S3 key or URL provided",
+      };
+    }
+
+    const command = new GetObjectCommand({
+      Bucket: bucketName(),
+      Key: trimSlashes(s3Key),
+    });
+    const response = await s3Client.send(command);
+
+    return {
+      success: true,
+      stream: response.Body,
+      contentType: response.ContentType,
+      contentLength: response.ContentLength,
+      s3Key,
+    };
+  } catch (error) {
+    console.error("Error fetching S3 object:", error);
+    return {
+      success: false,
+      message: "Failed to fetch S3 object",
+      error: error.message,
+    };
+  }
+};
+
 // Delete file from S3 by bucket and key
 exports.deleteFileFromS3 = async (folderName, key) => {
   try {

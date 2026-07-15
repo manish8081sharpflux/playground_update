@@ -6,6 +6,7 @@ import toast from 'react-hot-toast';
 import { BookOpen, CheckCircle, ChevronRight, PlayCircle, FileText, HelpCircle, X, Music, Image as ImageIcon, ArrowLeft } from 'lucide-react'; // Added Icons
 import CourseAudioPlayer from '../../components/student/computer-apps/CourseAudioPlayer';
 import CourseImageViewer from '../../components/student/computer-apps/CourseImageViewer';
+import GComprisLauncher from '../../components/student/computer-apps/GComprisLauncher';
 import LoadingState from '../../components/common/LoadingState';
 import useLmsContentFileUrl from '../../hooks/useLmsContentFileUrl';
 
@@ -173,6 +174,7 @@ export default function ComputerAppsPage() {
   const [activePdf, setActivePdf] = useState(null);
   const [activeAudio, setActiveAudio] = useState(null);
   const [activeImage, setActiveImage] = useState(null);
+  const [showGCompris, setShowGCompris] = useState(false);
 
   const [loading, setLoading] = useState(true);
 
@@ -270,7 +272,10 @@ export default function ComputerAppsPage() {
   };
 
   const handleLaunchContent = (item) => {
-    if (item.type === 'video') {
+    if (item.type === 'gcompris') {
+      setShowGCompris(true);
+      markContentComplete(item);
+    } else if (item.type === 'video') {
       setActiveVideo(item);
       markContentComplete(item);
     } else if (item.type === 'text' || item.type === 'pdf') { // assuming text is pdf-like for now or generic viewer
@@ -325,6 +330,12 @@ export default function ComputerAppsPage() {
       <LoadingState message="Loading computer apps..." fullScreen />
     );
 
+    if (showGCompris) {
+      return (
+        <GComprisLauncher onBack={() => setShowGCompris(false)} />
+      );
+    }
+
     return (
       <div className="p-6 h-full overflow-y-auto bg-gray-50">
         <div className="max-w-7xl mx-auto">
@@ -340,6 +351,22 @@ export default function ComputerAppsPage() {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <button
+              type="button"
+              onClick={() => setShowGCompris(true)}
+              className="text-left bg-gradient-to-br from-indigo-600 to-cyan-500 rounded-2xl p-6 shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 text-white min-h-[240px] flex flex-col"
+            >
+              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white/20 text-2xl font-black mb-5">
+                GC
+              </div>
+              <h2 className="text-2xl font-black mb-2">GCompris Games</h2>
+              <p className="text-sm text-blue-50 leading-6 flex-1">
+                Practice math, reading, science, memory, and strategy activities.
+              </p>
+              <span className="mt-5 inline-flex items-center justify-center rounded-xl bg-white px-4 py-2 text-sm font-black text-indigo-700">
+                Open Games
+              </span>
+            </button>
             {apps.map(app => (
               <AppCard
                 key={app.id}
@@ -356,6 +383,13 @@ export default function ComputerAppsPage() {
           </div>
         </div>
       </div>
+    );
+  }
+
+  // Render Player View (Life Skills Style)
+  if (showGCompris) {
+    return (
+      <GComprisLauncher onBack={() => setShowGCompris(false)} />
     );
   }
 
@@ -464,6 +498,29 @@ export default function ComputerAppsPage() {
                           className="w-full mt-auto py-2.5 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 transition-colors flex items-center justify-center gap-2"
                         >
                           <HelpCircle size={18} /> Start Quiz
+                        </button>
+                      </div>
+                    </div>
+                  );
+                } else if (item.type === 'gcompris') {
+                  return (
+                    <div key={item.id} className="bg-white border-2 border-indigo-200 rounded-2xl overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 group flex flex-col h-full">
+                      <div className="bg-indigo-50 h-40 flex items-center justify-center group-hover:bg-indigo-100 transition-colors relative">
+                        <span className="text-5xl font-black text-indigo-600">GC</span>
+                        {isTaskCompleted(item) && (
+                          <div className="absolute top-3 right-3 bg-green-500 text-white p-1 rounded-full shadow-sm">
+                            <CheckCircle size={16} />
+                          </div>
+                        )}
+                      </div>
+                      <div className="p-5 flex flex-col flex-1">
+                        <span className="inline-block px-2 py-1 bg-indigo-100 text-indigo-700 text-xs font-bold rounded-full mb-2 uppercase tracking-wide">GCompris</span>
+                        <h3 className="text-lg font-bold text-gray-900 mb-3 line-clamp-2 leading-tight">{item.title}</h3>
+                        <button
+                          onClick={() => handleLaunchContent(item)}
+                          className="w-full mt-auto py-2.5 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition-colors flex items-center justify-center gap-2"
+                        >
+                          <PlayCircle size={18} /> Open Games
                         </button>
                       </div>
                     </div>

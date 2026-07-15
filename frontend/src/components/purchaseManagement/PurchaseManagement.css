@@ -457,6 +457,10 @@
   background: #fff;
 }
 
+.view-request-attachments {
+  margin-top: 0;
+}
+
 .purchase-request-attachments-grid {
   grid-template-columns: repeat(auto-fill, minmax(180px, 220px));
   align-items: start;
@@ -465,17 +469,18 @@
 .purchase-request-attachment-item {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
   min-width: 0;
   padding: 12px;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .purchase-request-attachment-item .file-preview {
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 116px;
+  height: 96px;
+  min-height: 96px;
   overflow: hidden;
   border-radius: 8px;
   background: #f8fafc;
@@ -521,6 +526,7 @@
   align-items: center;
   gap: 8px;
   margin-top: 0;
+  min-height: 24px;
 }
 
 .purchase-request-attachment-item .file-name {

@@ -2,7 +2,13 @@ import React from 'react';
 import { useState } from 'react';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
-import { cancelPurchaseRequest, updatePurchaseRequestStatus, approvePurchaseRequest, rejectPurchaseRequest } from '../../../api';
+import {
+  cancelPurchaseRequest,
+  updatePurchaseRequestStatus,
+  approvePurchaseRequest,
+  rejectPurchaseRequest,
+  downloadPurchaseRequestAttachment
+} from '../../../api';
 import showToast from '../../../utils/toast';
 import { formatDateTime } from '../../../utils/dateFormatter';  // Sprint5-Story-23
 import { UserTypes, normalizeUserRole } from '../../../constants/userTypes';
@@ -25,6 +31,80 @@ export default function ViewRequestModal({ request, onClose, userRole, onRefresh
   // Story 2.6: State for repair technician name prompt
   const [showTechnicianPrompt, setShowTechnicianPrompt] = useState(false);
   const [repairTechnicianName, setRepairTechnicianName] = useState('');
+
+  const getAttachmentName = (file) =>
+    file?.filename || file?.name || file?.fileUrl || file?.url || 'Attachment';
+
+  const getAttachmentHref = (file) => {
+    if (request?._id && file?._id) {
+      return `/api/v2/shop/admin/purchase-requests/${request._id}/attachments/${file._id}`;
+    }
+    return file?.fileUrl || file?.url || '#';
+  };
+
+  const isImageAttachment = (file) => {
+    const source = file?.filename || file?.name || file?.fileUrl || file?.url || '';
+    const extension = source.split('.').pop()?.toLowerCase();
+    return ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(extension);
+  };
+
+  const getFileExtension = (file) => {
+    const source = file?.filename || file?.name || file?.fileUrl || file?.url || '';
+    const extension = source.split('.').pop();
+    return extension ? extension.toUpperCase().slice(0, 5) : 'FILE';
+  };
+
+  const handleAttachmentOpen = async (event, file) => {
+    if (!request?._id || !file?._id) {
+      return;
+    }
+
+    event.preventDefault();
+    const openedWindow = window.open('', '_blank');
+
+    try {
+      const response = await downloadPurchaseRequestAttachment(request._id, file._id);
+      const blobUrl = window.URL.createObjectURL(response.data);
+
+      if (openedWindow) {
+        openedWindow.opener = null;
+        openedWindow.location.href = blobUrl;
+      } else {
+        const fallbackWindow = window.open(blobUrl, '_blank');
+        if (fallbackWindow) {
+          fallbackWindow.opener = null;
+        }
+      }
+
+      window.setTimeout(() => window.URL.revokeObjectURL(blobUrl), 60000);
+    } catch (error) {
+      if (openedWindow) {
+        openedWindow.close();
+      }
+      showToast('Unable to open attachment', 'error');
+    }
+  };
+
+  const AttachmentPreview = ({ file }) => {
+    const previewUrl = file?.fileUrl || file?.url;
+
+    return (
+      <div className="file-preview">
+        {isImageAttachment(file) && previewUrl ? (
+          <img
+            src={previewUrl}
+            alt="Purchase request attachment preview"
+            className="preview-image"
+          />
+        ) : (
+          <div className="preview-document">
+            <i className="fas fa-file-alt"></i>
+            <span>{getFileExtension(file)}</span>
+          </div>
+        )}
+      </div>
+    );
+  };
 
   const getStatusBadge = (status) => {
     const badge = getPurchaseRequestStatusMeta(status);
@@ -267,6 +347,37 @@ export default function ViewRequestModal({ request, onClose, userRole, onRefresh
               </table>
             </div>
           </div>
+
+          {/* Uploaded Files */}
+          {request.attachments && request.attachments.length > 0 && (
+            <div className="detail-section">
+              <h4 className="section-title">
+                Uploaded Files ({request.attachments.length})
+              </h4>
+              <div className="existing-attachments purchase-request-attachments view-request-attachments">
+                <div className="attachments-grid purchase-request-attachments-grid">
+                  {request.attachments.map((file, index) => (
+                    <a
+                      key={file._id || file.fileUrl || `attachment-${index}`}
+                      href={getAttachmentHref(file)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="attachment-item purchase-request-attachment-item"
+                      title={getAttachmentName(file)}
+                      onClick={(event) => handleAttachmentOpen(event, file)}
+                    >
+                      <AttachmentPreview file={file} />
+                      <div className="attachment-actions">
+                        <span className="file-name">
+                          {getAttachmentName(file)}
+                        </span>
+                      </div>
+                    </a>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Request Details */}
           <div className="detail-section">

@@ -3,6 +3,7 @@ import {
   api,
   createPurchaseRequest,
   updatePurchaseRequest, // Sprint5-Story-EditDelete
+  downloadPurchaseRequestAttachment,
   getLowStockProducts,
   getAllShopItems,
   getShopItemsByCategory,
@@ -48,7 +49,9 @@ export default function CreatePurchaseRequestModal({
     items: [], // Array of {productId, productName, productSKU, requestedQuantity}
     attachments: [], // NEW - File array
   });
+  const [existingAttachments, setExistingAttachments] = useState([]);
   const [deleteConfirmIndex, setDeleteConfirmIndex] = useState(null);
+  const [attachmentToRemove, setAttachmentToRemove] = useState(null);
 
   const [products, setProducts] = useState([]);
   const [lowStockProducts, setLowStockProducts] = useState([]);
@@ -288,6 +291,84 @@ export default function CreatePurchaseRequestModal({
     );
   };
 
+  const getAttachmentName = (file) =>
+    file?.filename || file?.name || file?.fileUrl || file?.url || "Attachment";
+
+  const getAttachmentHref = (file) => {
+    if (requestToEdit?._id && file?._id) {
+      return `/api/v2/shop/admin/purchase-requests/${requestToEdit._id}/attachments/${file._id}`;
+    }
+    return file?.fileUrl || file?.url || "#";
+  };
+
+  const handleExistingAttachmentOpen = async (event, file) => {
+    if (!requestToEdit?._id || !file?._id) {
+      return;
+    }
+
+    event.preventDefault();
+    const openedWindow = window.open("", "_blank");
+
+    try {
+      const response = await downloadPurchaseRequestAttachment(
+        requestToEdit._id,
+        file._id,
+      );
+      const blobUrl = window.URL.createObjectURL(response.data);
+
+      if (openedWindow) {
+        openedWindow.opener = null;
+        openedWindow.location.href = blobUrl;
+      } else {
+        const fallbackWindow = window.open(blobUrl, "_blank");
+        if (fallbackWindow) {
+          fallbackWindow.opener = null;
+        }
+      }
+
+      window.setTimeout(() => window.URL.revokeObjectURL(blobUrl), 60000);
+    } catch (error) {
+      if (openedWindow) {
+        openedWindow.close();
+      }
+      showToast("Unable to open attachment", "error");
+    }
+  };
+
+  const handleRemoveExistingAttachment = async (event, file) => {
+    event.preventDefault();
+    event.stopPropagation();
+
+    if (!requestToEdit?._id || !file?._id) {
+      return;
+    }
+
+    setAttachmentToRemove(file);
+  };
+
+  const confirmRemoveExistingAttachment = async () => {
+    const file = attachmentToRemove;
+    if (!requestToEdit?._id || !file?._id) {
+      setAttachmentToRemove(null);
+      return;
+    }
+
+    try {
+      await api.delete(
+        `/api/v2/shop/admin/purchase-requests/${requestToEdit._id}/attachments/${file._id}`,
+      );
+      setExistingAttachments((prev) => prev.filter((f) => f._id !== file._id));
+      showToast("Attachment removed", "success");
+    } catch (error) {
+      showToast(
+        error.response?.data?.message || "Failed to remove attachment",
+        "error",
+      );
+    } finally {
+      setAttachmentToRemove(null);
+    }
+  };
+
   // ============================================================================
   // EFFECTS
   // ============================================================================
@@ -302,6 +383,7 @@ export default function CreatePurchaseRequestModal({
   useEffect(() => {
     if (!requestToEdit) {
       hasInitializedEdit.current = false;
+      setExistingAttachments([]);
     }
   }, [requestToEdit]);
 
@@ -314,6 +396,7 @@ export default function CreatePurchaseRequestModal({
       }
 
       hasInitializedEdit.current = true;
+      setExistingAttachments(requestToEdit.attachments || []);
 
       setFormData({
         balagruhaId:
@@ -348,12 +431,14 @@ export default function CreatePurchaseRequestModal({
     }
     // Set default balagruha if only one assigned
     else if (userBalagruhas.length === 1 && balagruhas.length > 0) {
+      setExistingAttachments([]);
       const defaultBalagruha = balagruhas[0];
       setFormData((prev) => ({ ...prev, balagruhaId: defaultBalagruha._id }));
       fetchProducts(defaultBalagruha._id);
     }
     // Handle initial product selection (Reorder flow)
     else if (initialProduct && initialProduct.balagruhaId) {
+      setExistingAttachments([]);
       // Sprint5-Story-20: Valid purchase categories
       const validCategories = [
         "ISF Shop",
@@ -947,6 +1032,13 @@ export default function CreatePurchaseRequestModal({
         : await createPurchaseRequest(submitData);
 
       if (response.success) {
+        const savedRequest =
+          response.data?.purchaseRequest || response.data?.request;
+        if (savedRequest?.attachments) {
+          setExistingAttachments(savedRequest.attachments);
+          setFormData((prev) => ({ ...prev, attachments: [] }));
+        }
+
         showToast(
           requestToEdit
             ? "Purchase request updated successfully"
@@ -2452,6 +2544,43 @@ export default function CreatePurchaseRequestModal({
 
             <div className="form-group">
               <label className="form-label">Attachments (Optional)</label>
+              {existingAttachments.length > 0 && (
+                <div className="existing-attachments purchase-request-attachments">
+                  <h4>Uploaded Files ({existingAttachments.length}):</h4>
+                  <div className="attachments-grid purchase-request-attachments-grid">
+                    {existingAttachments.map((file, index) => (
+                      <a
+                        key={file._id || file.fileUrl || `existing-${index}`}
+                        href={getAttachmentHref(file)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="attachment-item purchase-request-attachment-item"
+                        title={getAttachmentName(file)}
+                        onClick={(event) =>
+                          handleExistingAttachmentOpen(event, file)
+                        }
+                      >
+                        <FilePreview file={file} />
+                        <div className="attachment-actions">
+                          <span className="file-name">
+                            {getAttachmentName(file)}
+                          </span>
+                          <button
+                            type="button"
+                            className="remove-file"
+                            onClick={(event) =>
+                              handleRemoveExistingAttachment(event, file)
+                            }
+                            title="Remove file"
+                          >
+                            ×
+                          </button>
+                        </div>
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              )}
               <div className="file-upload-container">
                 <input
                   type="file"
@@ -2517,7 +2646,13 @@ export default function CreatePurchaseRequestModal({
               className="btn btn-primary"
               disabled={loading || formData.items.length === 0}
             >
-              {loading ? "Creating..." : "Create Request"}
+              {loading
+                ? requestToEdit
+                  ? "Updating..."
+                  : "Creating..."
+                : requestToEdit
+                  ? "Update Request"
+                  : "Create Request"}
             </button>
           </div>
         </form>
@@ -2530,6 +2665,13 @@ export default function CreatePurchaseRequestModal({
               setDeleteConfirmIndex(null);
             }}
             onNo={() => setDeleteConfirmIndex(null)}
+          />
+        )}
+        {attachmentToRemove && (
+          <ConfirmDialog
+            message={`Remove "${getAttachmentName(attachmentToRemove)}"? This cannot be undone.`}
+            onYes={confirmRemoveExistingAttachment}
+            onNo={() => setAttachmentToRemove(null)}
           />
         )}
       </div>

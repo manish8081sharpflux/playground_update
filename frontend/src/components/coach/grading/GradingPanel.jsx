@@ -20,6 +20,10 @@ const QUALITY_LABELS = {
 };
 
 const resolveTaskCoinLimit = (submission, taskTypes) => {
+  if (submission?.courseTaskType && taskTypes?.[submission.courseTaskType]) {
+    return taskTypes[submission.courseTaskType];
+  }
+
   const searchableText = [
     submission?.taskTitle,
     submission?.courseTitle,

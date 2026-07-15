@@ -4,6 +4,12 @@ const CourseAssignment = require("../../../models/CourseAssignment");
 const User = require("../../../models/user");
 const mongoose = require("mongoose");
 const { errorLogger } = require('../../../config/pino-config');
+const { getSettings } = require("../../../services/lmsCoinLimitSettings");
+
+async function getValidTaskTypeKeys() {
+  const settings = await getSettings();
+  return ["", ...Object.keys(settings.taskTypes || {})];
+}
 
 /**
  * Helper: Return the set of course IDs a coach may access via an active
@@ -194,6 +200,7 @@ exports.createCourse = async (req, res) => {
       description,
       category,
       difficultyLevel,
+      taskType = "",
       thumbnail,
       icon,
     } = req.body;
@@ -226,11 +233,19 @@ exports.createCourse = async (req, res) => {
       });
     }
 
+    const validTaskTypes = await getValidTaskTypeKeys();
+    if (!validTaskTypes.includes(taskType)) {
+      return res.status(400).json({
+        error: "Task type must be one of the configured suggested coin task types",
+      });
+    }
+
     const course = new Course({
       title: title.trim(),
       description: description.trim(),
       category,
       difficultyLevel,
+      taskType,
       thumbnail,
       icon: icon || "📚",
       createdBy: req.user._id, // From auth middleware
@@ -273,12 +288,24 @@ exports.updateCourse = async (req, res) => {
       return res.status(404).json({ error: "Course not found" });
     }
 
+    const validTaskTypes = await getValidTaskTypeKeys();
+    if (
+      Object.prototype.hasOwnProperty.call(updates, "taskType") &&
+      !validTaskTypes.includes(updates.taskType) &&
+      updates.taskType !== course.taskType
+    ) {
+      return res.status(400).json({
+        error: "Task type must be one of the configured suggested coin task types",
+      });
+    }
+
     // Allowed fields for update
     const allowedUpdates = [
       "title",
       "description",
       "category",
       "difficultyLevel",
+      "taskType",
       "thumbnail",
       "icon",
       "enableCoinReward",
