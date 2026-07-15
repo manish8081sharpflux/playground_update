@@ -1,4 +1,4 @@
-import { api, headers } from './client';
+import { api, apiWithoutContentType, headers } from './client';
 
 export const getLowStockProducts = async (balagruhaId) => {
   try {
@@ -15,7 +15,9 @@ export const getLowStockProducts = async (balagruhaId) => {
 
 export const createPurchaseRequest = async (data) => {
   try {
-    const response = await api.post('/api/v2/shop/admin/purchase-requests', data, { headers });
+    const client = data instanceof FormData ? apiWithoutContentType : api;
+    const config = data instanceof FormData ? {} : { headers };
+    const response = await client.post('/api/v2/shop/admin/purchase-requests', data, config);
     return response.data;
   } catch (error) {
     console.error("Error creating purchase request:", error);
@@ -25,7 +27,9 @@ export const createPurchaseRequest = async (data) => {
 
 export const updatePurchaseRequest = async (id, data) => {
   try {
-    const response = await api.put(`/api/v2/shop/admin/purchase-requests/${id}`, data, { headers });
+    const client = data instanceof FormData ? apiWithoutContentType : api;
+    const config = data instanceof FormData ? {} : { headers };
+    const response = await client.put(`/api/v2/shop/admin/purchase-requests/${id}`, data, config);
     return response.data;
   } catch (error) {
     console.error("Error updating purchase request:", error);
@@ -93,6 +97,19 @@ export const getPurchaseRequestById = async (requestId) => {
     return response.data;
   } catch (error) {
     console.error("Error fetching purchase request:", error);
+    throw error;
+  }
+};
+
+export const downloadPurchaseRequestAttachment = async (requestId, attachmentId) => {
+  try {
+    const response = await api.get(
+      `/api/v2/shop/admin/purchase-requests/${requestId}/attachments/${attachmentId}`,
+      { responseType: 'blob' }
+    );
+    return response;
+  } catch (error) {
+    console.error("Error downloading purchase request attachment:", error);
     throw error;
   }
 };

@@ -1,10 +1,12 @@
 const PurchaseRequest = require("../models/purchaseRequest");
 const ShopItem = require("../models/shopItem");
 const User = require("../models/user");
+const Balagruha = require("../models/balagruha");
+require("../models/vendor");
 const InventoryTransaction = require("../models/inventoryTransaction");
 const mongoose = require("mongoose");
 const { errorLogger } = require("../config/pino-config");
-const { uploadFileToS3 } = require("../services/aws/s3");
+const { uploadFileToS3, getS3Object } = require("../services/aws/s3");
 const { cleanupLocalFile } = require("../utils/fileCleanup");
 
 /**
@@ -59,6 +61,78 @@ function logPmOperation(userId, requestId, action, error) {
     },
     `PM operation failed: ${action}`,
   );
+}
+
+async function hydrateBalagruhaNames(requests) {
+  const requestList = Array.isArray(requests) ? requests : [requests];
+  const balagruhaIds = [
+    ...new Set(
+      requestList
+        .map((request) => request?.balagruhaId)
+        .filter((balagruhaId) => {
+          if (!balagruhaId || balagruhaId === "STOCK") return false;
+          if (typeof balagruhaId === "object" && balagruhaId.name) return false;
+          const id = balagruhaId?._id || balagruhaId;
+          return mongoose.Types.ObjectId.isValid(id);
+        })
+        .map((balagruhaId) => (balagruhaId?._id || balagruhaId).toString()),
+    ),
+  ];
+
+  if (!balagruhaIds.length) {
+    return requests;
+  }
+
+  const balagruhas = await Balagruha.find(
+    { _id: { $in: balagruhaIds } },
+    "name",
+  ).lean();
+  const balagruhaById = new Map(
+    balagruhas.map((balagruha) => [
+      balagruha._id.toString(),
+      { _id: balagruha._id, name: balagruha.name },
+    ]),
+  );
+
+  for (const request of requestList) {
+    const balagruhaId = request?.balagruhaId;
+    if (!balagruhaId || balagruhaId === "STOCK") continue;
+
+    const id = (balagruhaId?._id || balagruhaId).toString();
+    const balagruha = balagruhaById.get(id);
+    if (balagruha) {
+      request.balagruhaId = balagruha;
+    }
+  }
+
+  return requests;
+}
+
+function canViewPurchaseRequest(request, user) {
+  const userRole = user.role;
+  const userId = user._id;
+
+  if (userRole === "admin") {
+    return true;
+  }
+
+  if (userRole === "purchase-manager") {
+    const requestBalagruhaId = request.balagruhaId;
+    const userBalagruhaIds = (user.balagruhaIds || []).map((bgId) =>
+      bgId.toString(),
+    );
+    const requestBalagruhaIdStr =
+      requestBalagruhaId?.toString?.() ?? requestBalagruhaId;
+
+    return (
+      requestBalagruhaId === "STOCK" ||
+      userBalagruhaIds.includes(requestBalagruhaIdStr)
+    );
+  }
+
+  const requestedById =
+    request.requestedBy?._id?.toString?.() ?? request.requestedBy?.toString?.();
+  return requestedById === userId.toString();
 }
 
 /**
@@ -324,10 +398,7 @@ exports.createPurchaseRequest = async (req, res) => {
       "items.productId",
       "name sku stock lowStockThreshold",
     );
-    // Sprint5-Story-21: Skip populate if STOCK
-    if (balagruhaId && balagruhaId !== "STOCK") {
-      await purchaseRequest.populate("balagruhaId", "name");
-    }
+    await hydrateBalagruhaNames(purchaseRequest);
 
     res.status(201).json({
       success: true,
@@ -422,12 +493,7 @@ exports.getMyPurchaseRequests = async (req, res) => {
       })
       .sort({ createdAt: -1 });
 
-    // Sprint5-Story-21: Manually populate balagruhaId (skip if STOCK)
-    for (const request of requests) {
-      if (request.balagruhaId && request.balagruhaId !== "STOCK") {
-        await request.populate("balagruhaId", "name");
-      }
-    }
+    await hydrateBalagruhaNames(requests);
 
     res.json({
       success: true,
@@ -607,7 +673,6 @@ exports.getAllPurchaseRequests = async (req, res) => {
           select: "name sku stock lowStockThreshold images approvedVendors",
           populate: { path: "approvedVendors.vendorId", select: "name" },
         })
-        .populate("balagruhaId", "name")
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(parseInt(limit)),
@@ -623,6 +688,8 @@ exports.getAllPurchaseRequests = async (req, res) => {
       // Secondary sort: newest first (createdAt desc) — already from DB, but ensure stability
       return new Date(b.createdAt) - new Date(a.createdAt);
     });
+
+    await hydrateBalagruhaNames(requests);
 
     res.json({
       success: true,
@@ -772,10 +839,7 @@ exports.getPurchaseRequestById = async (req, res) => {
       }
     }
 
-    // Sprint5-Story-21: Populate balagruhaId only when not STOCK
-    if (request.balagruhaId && request.balagruhaId !== "STOCK") {
-      await request.populate("balagruhaId", "name");
-    }
+    await hydrateBalagruhaNames(request);
 
     res.json({
       success: true,
@@ -786,6 +850,164 @@ exports.getPurchaseRequestById = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Error fetching purchase request",
+      error: error.message,
+    });
+  }
+};
+
+/**
+ * @route   GET /api/v2/shop/admin/purchase-requests/:id/attachments/:attachmentId
+ * @desc    Stream a purchase request attachment through authenticated API access
+ * @access  Private
+ */
+exports.getPurchaseRequestAttachment = async (req, res) => {
+  try {
+    const { id, attachmentId } = req.params;
+
+    const request = await PurchaseRequest.findById(id);
+    if (!request) {
+      return res.status(404).json({
+        success: false,
+        errorCode: PR_ERROR.NOT_FOUND,
+        message: "Purchase request not found",
+      });
+    }
+
+    if (!canViewPurchaseRequest(request, req.user)) {
+      return res.status(403).json({
+        success: false,
+        message: "You do not have permission to view this purchase request",
+      });
+    }
+
+    const attachment =
+      request.attachments.id(attachmentId) ||
+      request.attachments.find(
+        (file) => file._id?.toString() === attachmentId,
+      );
+
+    if (!attachment) {
+      return res.status(404).json({
+        success: false,
+        message: "Attachment not found",
+      });
+    }
+
+    const objectResult = await getS3Object(
+      attachment.s3Key || attachment.fileUrl,
+    );
+    if (!objectResult.success || !objectResult.stream) {
+      return res.status(404).json({
+        success: false,
+        message: "Attachment file not found in storage",
+      });
+    }
+
+    const filename = encodeURIComponent(attachment.filename || "attachment");
+    res.setHeader(
+      "Content-Type",
+      objectResult.contentType || "application/octet-stream",
+    );
+    if (objectResult.contentLength) {
+      res.setHeader("Content-Length", objectResult.contentLength);
+    }
+    res.setHeader("Content-Disposition", `inline; filename="${filename}"`);
+
+    objectResult.stream.on("error", (error) => {
+      errorLogger.error({ err: error }, "Purchase attachment stream error:");
+      if (!res.headersSent) {
+        res.status(500).end();
+      } else {
+        res.destroy(error);
+      }
+    });
+
+    objectResult.stream.pipe(res);
+  } catch (error) {
+    errorLogger.error({ err: error }, "Error fetching purchase attachment:");
+    res.status(500).json({
+      success: false,
+      message: "Error fetching purchase attachment",
+      error: error.message,
+    });
+  }
+};
+
+/**
+ * @route   DELETE /api/v2/shop/admin/purchase-requests/:id/attachments/:attachmentId
+ * @desc    Remove a single attachment from a purchase request
+ * @access  Private
+ */
+exports.deletePurchaseRequestAttachment = async (req, res) => {
+  try {
+    const { id, attachmentId } = req.params;
+    const userId = req.user._id;
+
+    const request = await PurchaseRequest.findById(id);
+    if (!request) {
+      return res.status(404).json({
+        success: false,
+        errorCode: PR_ERROR.NOT_FOUND,
+        message: "Purchase request not found",
+      });
+    }
+
+    // Only requester or Admin can remove attachments
+    if (
+      req.user.role !== "admin" &&
+      String(request.requestedBy) !== String(userId)
+    ) {
+      return res.status(403).json({
+        success: false,
+        message: "You do not have permission to modify this request",
+      });
+    }
+
+    const attachment =
+      request.attachments.id(attachmentId) ||
+      request.attachments.find(
+        (file) => file._id?.toString() === attachmentId,
+      );
+
+    if (!attachment) {
+      return res.status(404).json({
+        success: false,
+        message: "Attachment not found",
+      });
+    }
+
+    // Best-effort deletion from S3 storage; do not fail the request if this
+    // fails or if a delete helper isn't available in the storage service.
+    try {
+      const s3Service = require("../services/aws/s3");
+      if (typeof s3Service.deleteS3Object === "function") {
+        await s3Service.deleteS3Object(
+          attachment.s3Key || attachment.fileUrl,
+        );
+      }
+    } catch (storageError) {
+      errorLogger.error(
+        { err: storageError },
+        "Error deleting attachment file from storage (continuing to remove DB reference):",
+      );
+    }
+
+    request.attachments = request.attachments.filter(
+      (file) => file._id?.toString() !== attachmentId,
+    );
+
+    await request.save();
+
+    res.json({
+      success: true,
+      message: "Attachment removed successfully",
+      data: { attachments: request.attachments },
+    });
+  } catch (error) {
+    errorLogger.error({ err: error }, "Error removing purchase attachment:");
+    res.status(500).json({
+      success: false,
+      message: "Error removing purchase attachment",
       error: error.message,
     });
   }
@@ -849,7 +1071,7 @@ exports.approvePurchaseRequest = async (req, res) => {
     await request.populate("reviewedBy", "name email");
     await request.populate("requestedBy", "name email");
     await request.populate("items.productId", "name sku");
-    await request.populate("balagruhaId", "name");
+    await hydrateBalagruhaNames(request);
 
     res.json({
       success: true,
@@ -914,7 +1136,7 @@ exports.rejectPurchaseRequest = async (req, res) => {
     await request.populate("reviewedBy", "name email");
     await request.populate("requestedBy", "name email");
     await request.populate("items.productId", "name sku");
-    await request.populate("balagruhaId", "name");
+    await hydrateBalagruhaNames(request);
 
     res.json({
       success: true,
@@ -1220,7 +1442,7 @@ exports.completePurchaseRequest = async (req, res) => {
     await request.populate("requestedBy", "name email");
     await request.populate("reviewedBy", "name email");
     await request.populate("items.productId", "name sku stock");
-    await request.populate("balagruhaId", "name");
+    await hydrateBalagruhaNames(request);
     await request.populate("inventoryTransactionIds");
 
     res.json({
@@ -2009,9 +2231,7 @@ exports.updatePurchaseRequest = async (req, res) => {
       "items.productId",
       "name sku stock lowStockThreshold",
     );
-    if (request.balagruhaId && request.balagruhaId !== "STOCK") {
-      await request.populate("balagruhaId", "name");
-    }
+    await hydrateBalagruhaNames(request);
 
     res.json({
       success: true,

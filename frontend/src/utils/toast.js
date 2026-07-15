@@ -2,9 +2,16 @@ import React from "react";
 import { toast } from "react-hot-toast";
 
 const showToast = (message, type = "success") => {
-  toast.custom(
+  const dismissToast = (event, toastId) => {
+    event?.preventDefault();
+    event?.stopPropagation();
+    toast.remove(toastId);
+  };
+
+  return toast.custom(
     (t) => (
       <div
+        role="status"
         style={{
           background: type === "success" ? "#4caf50" : "#f44336",
           color: "#fff",
@@ -32,7 +39,9 @@ const showToast = (message, type = "success") => {
         {/* Close Button */}
         <button
           type="button"
-          onClick={() => toast.dismiss(t.id)}
+          onMouseDown={(event) => dismissToast(event, t.id)}
+          onTouchStart={(event) => dismissToast(event, t.id)}
+          onClick={(event) => dismissToast(event, t.id)}
           aria-label="Close notification"
           style={{
             background: "transparent",
@@ -43,6 +52,9 @@ const showToast = (message, type = "success") => {
             cursor: "pointer",
             padding: "0 4px",
             lineHeight: 1,
+            pointerEvents: "auto",
+            position: "relative",
+            zIndex: 1,
           }}
         >
           ×

@@ -175,6 +175,7 @@ const formatSubmissionForGrading = async (submission) => ({
   courseId: submission.courseId?._id || null,
   courseTitle: submission.courseId?.title || "Unknown Course",
   courseCategory: submission.courseId?.category || "",
+  courseTaskType: submission.courseId?.taskType || "",
   taskId: submission.taskId,
   taskTitle: submission.taskTitle,
   submissionType: submission.submissionType,
@@ -338,7 +339,7 @@ exports.getSubmissionById = async (req, res) => {
 
     const submission = await Submission.findById(submissionId)
       .populate("studentId", "name email balagruhaIds")
-      .populate("courseId", "title category")
+      .populate("courseId", "title category taskType")
       .populate("grade.gradedBy", "name email");
 
     if (!submission) {

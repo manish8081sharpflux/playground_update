@@ -264,7 +264,7 @@ SubmissionSchema.statics.findByCoach = async function (coachId, filters = {}) {
         select: "name"
       }
     })
-    .populate("courseId", "title category")
+    .populate("courseId", "title category taskType")
     .populate("grade.gradedBy", "name email");
 
   if (search) {

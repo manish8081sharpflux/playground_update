@@ -6,6 +6,12 @@ const {
 const QUALITY_KEYS = ['excellent', 'good', 'needs_improvement'];
 
 const cloneDefaults = () => JSON.parse(JSON.stringify(DEFAULT_LMS_COIN_LIMITS));
+const toSlug = (value) =>
+  String(value || '')
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '_')
+    .replace(/^_+|_+$/g, '');
 
 const toPlainTaskTypes = (taskTypes) => {
   if (!taskTypes) return cloneDefaults();
@@ -51,22 +57,29 @@ const validateRange = (range, label, previousMax = null) => {
 };
 
 const normalizeTaskType = (key, incoming, fallback) => {
-  const label = String(incoming?.label || fallback.label || key).trim();
+  const label = String(incoming?.label || fallback?.label || key).trim();
+  if (!label) {
+    throw new Error('Task type label is required');
+  }
+
   const keywords = Array.isArray(incoming?.keywords)
     ? incoming.keywords.map(keyword => String(keyword).trim().toLowerCase()).filter(Boolean)
-    : fallback.keywords;
+    : fallback?.keywords;
+  const normalizedKeywords = keywords?.length
+    ? keywords
+    : [label.toLowerCase(), key.replace(/_/g, ' ')];
 
-  const excellent = validateRange(incoming?.excellent || fallback.excellent, `${label} excellent`);
-  const good = validateRange(incoming?.good || fallback.good, `${label} good`, excellent.min);
+  const excellent = validateRange(incoming?.excellent || fallback?.excellent, `${label} excellent`);
+  const good = validateRange(incoming?.good || fallback?.good, `${label} good`, excellent.min);
   const needsImprovement = validateRange(
-    incoming?.needs_improvement || fallback.needs_improvement,
+    incoming?.needs_improvement || fallback?.needs_improvement,
     `${label} needs improvement`,
     good.min
   );
 
   return {
     label,
-    keywords,
+    keywords: [...new Set(normalizedKeywords)],
     excellent,
     good,
     needs_improvement: needsImprovement,
@@ -76,9 +89,23 @@ const normalizeTaskType = (key, incoming, fallback) => {
 const updateSettings = async (taskTypes, updatedBy) => {
   const defaults = cloneDefaults();
   const normalizedTaskTypes = {};
+  const incomingTaskTypes = toPlainTaskTypes(taskTypes);
+  const taskTypeKeys = new Set([
+    ...Object.keys(defaults),
+    ...Object.keys(incomingTaskTypes || {}),
+  ]);
 
-  Object.keys(defaults).forEach((key) => {
-    normalizedTaskTypes[key] = normalizeTaskType(key, taskTypes?.[key], defaults[key]);
+  taskTypeKeys.forEach((key) => {
+    const normalizedKey = toSlug(key);
+    if (!normalizedKey) {
+      throw new Error('Task type key is required');
+    }
+
+    normalizedTaskTypes[normalizedKey] = normalizeTaskType(
+      normalizedKey,
+      incomingTaskTypes?.[key],
+      defaults[normalizedKey]
+    );
   });
 
   const settings = await LmsCoinLimitSettings.findOneAndUpdate(
@@ -101,6 +128,17 @@ const updateSettings = async (taskTypes, updatedBy) => {
 };
 
 const resolveTaskTypeKey = (submission, taskTypes) => {
+  const explicitTaskType = [
+    submission?.courseTaskType,
+    submission?.courseId?.taskType,
+    submission?.metadata?.taskType,
+  ]
+    .find((taskType) => taskType && taskTypes[taskType]);
+
+  if (explicitTaskType) {
+    return explicitTaskType;
+  }
+
   const searchableText = [
     submission?.taskTitle,
     submission?.courseTitle,

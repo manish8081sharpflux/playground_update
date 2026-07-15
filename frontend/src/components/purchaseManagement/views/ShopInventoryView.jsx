@@ -12,6 +12,7 @@ import {
   getVendorsWithProductCount, // Story 3.6: Supplier List tab
   getPurchaseRequestRequesters, // FIX-037: Server-side coach filter
   batchOrderPurchaseRequests, // FIX-038: Batch order endpoint
+  getPurchaseRequestById,
 } from "../../../api";
 import showToast from "../../../utils/toast";
 import { confirmDialog, promptDialog } from "../../../utils/dialogs";
@@ -969,8 +970,15 @@ export default function ShopInventoryView({
   };
 
   // Sprint5-Story-EditDelete: Handle editing a pending request
-  const handleEditRequest = (request) => {
-    setSelectedRequest(request);
+  const handleEditRequest = async (request) => {
+    try {
+      const response = await getPurchaseRequestById(request._id);
+      setSelectedRequest(response?.data?.request || request);
+    } catch (error) {
+      console.error("Error fetching purchase request details:", error);
+      setSelectedRequest(request);
+    }
+
     setShowCreateModal(true);
   };
 

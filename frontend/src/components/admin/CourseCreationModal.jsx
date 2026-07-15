@@ -4,6 +4,15 @@ import { api } from '../../api';
 import toast from 'react-hot-toast';
 import useFileUpload from '../../hooks/useFileUpload';
 
+const DEFAULT_TASK_TYPE_OPTIONS = [
+  { value: 'story', label: 'Stories' },
+  { value: 'scene', label: 'Scenes' },
+  { value: 'revision', label: 'Revision' },
+  { value: 'poem', label: 'Poem' },
+  { value: 'buddy_system', label: 'Buddy System' },
+];
+const DEFAULT_TASK_ORDER = DEFAULT_TASK_TYPE_OPTIONS.map((option) => option.value);
+
 /**
  * CourseCreationModal - Sprint 2 Epic 02 Story 01
  * Modal for creating new courses or editing existing ones
@@ -21,6 +30,7 @@ export default function CourseCreationModal({
     category: '',
     difficultyLevel: '',
     icon: '📚',
+    taskType: '',
     thumbnail: ''
   });
 
@@ -28,10 +38,51 @@ export default function CourseCreationModal({
   const [thumbnailFile, setThumbnailFile] = useState(null);
   const [thumbnailPreview, setThumbnailPreview] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [taskTypeOptions, setTaskTypeOptions] = useState(DEFAULT_TASK_TYPE_OPTIONS);
 
   const { uploadFile } = useFileUpload();
 
   const isEditMode = !!courseToEdit;
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    let cancelled = false;
+
+    const fetchTaskTypes = async () => {
+      try {
+        const response = await api.get('/api/v2/lms/admin/courses/coin-limits');
+        const configuredTaskTypes = response.data.data?.taskTypes || {};
+        const options = Object.entries(configuredTaskTypes)
+          .map(([value, config]) => ({
+            value,
+            label: config.label || value,
+          }))
+          .sort((first, second) => {
+            const firstIndex = DEFAULT_TASK_ORDER.indexOf(first.value);
+            const secondIndex = DEFAULT_TASK_ORDER.indexOf(second.value);
+            if (firstIndex !== -1 || secondIndex !== -1) {
+              return (firstIndex === -1 ? 999 : firstIndex) - (secondIndex === -1 ? 999 : secondIndex);
+            }
+            return first.label.localeCompare(second.label);
+          });
+
+        if (!cancelled) {
+          setTaskTypeOptions(options.length ? options : DEFAULT_TASK_TYPE_OPTIONS);
+        }
+      } catch (error) {
+        if (!cancelled) {
+          setTaskTypeOptions(DEFAULT_TASK_TYPE_OPTIONS);
+        }
+      }
+    };
+
+    fetchTaskTypes();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isOpen]);
 
   // Populate form if editing
   useEffect(() => {
@@ -42,6 +93,7 @@ export default function CourseCreationModal({
         category: courseToEdit.category || '',
         difficultyLevel: courseToEdit.difficultyLevel || '',
         icon: courseToEdit.icon || '📚',
+        taskType: courseToEdit.taskType || '',
         thumbnail: courseToEdit.thumbnail || ''
       });
 
@@ -317,6 +369,29 @@ export default function CourseCreationModal({
                 </p>
               )}
             </div>
+          </div>
+
+          {/* Task Type */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Task Type
+            </label>
+            <select
+              value={formData.taskType}
+              onChange={(e) => handleChange('taskType', e.target.value)}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+            >
+              <option value="">Select task type</option>
+              {formData.taskType &&
+                !taskTypeOptions.some((taskType) => taskType.value === formData.taskType) && (
+                  <option value={formData.taskType}>{formData.taskType}</option>
+                )}
+              {taskTypeOptions.map((taskType) => (
+                <option key={taskType.value} value={taskType.value}>
+                  {taskType.label}
+                </option>
+              ))}
+            </select>
           </div>
 
           {/* Thumbnail Upload */}

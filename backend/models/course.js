@@ -128,6 +128,11 @@ const CourseSchema = new mongoose.Schema(
       enum: ["Beginner", "Intermediate", "Advanced"],
     },
     icon: { type: String, default: "📚" }, // Sprint 2: Emoji icon
+    taskType: {
+      type: String,
+      default: "",
+      trim: true,
+    },
     thumbnail: { type: String },
     enableCoinReward: { type: Boolean, default: false },
     coinsOnCompletion: { type: Number, default: 0 },
