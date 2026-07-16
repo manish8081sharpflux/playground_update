@@ -65,7 +65,9 @@ describe('ArtCourseController', () => {
 
       ArtGallery.find.mockReturnValue({
         sort: jest.fn().mockReturnValue({
-          lean: jest.fn().mockResolvedValue([]),
+          populate: jest.fn().mockReturnValue({
+            lean: jest.fn().mockResolvedValue([]),
+          }),
         }),
       });
 
@@ -107,7 +109,9 @@ describe('ArtCourseController', () => {
 
       ArtGallery.find.mockReturnValue({
         sort: jest.fn().mockReturnValue({
-          lean: jest.fn().mockResolvedValue([]),
+          populate: jest.fn().mockReturnValue({
+            lean: jest.fn().mockResolvedValue([]),
+          }),
         }),
       });
 
@@ -355,22 +359,94 @@ describe('ArtCourseController', () => {
     });
   });
 
+  // ==================== submitArtweaverDrawing ====================
+  describe('submitArtweaverDrawing', () => {
+    it('should save the JPEG and create a pending coach submission', async () => {
+      const studentId = new mongoose.Types.ObjectId().toString();
+      const courseId = new mongoose.Types.ObjectId();
+      const galleryId = new mongoose.Types.ObjectId();
+      const submissionId = new mongoose.Types.ObjectId();
+      const galleryItem = {
+        _id: galleryId,
+        title: 'ArtWeaver Drawing',
+        fileUrl: 'https://s3.example.com/artweaver.jpg',
+        createdAt: new Date(),
+        canvasSize: { width: 1024, height: 768 },
+        metadata: { sessionDuration: 120 },
+        submitted: false,
+        submissionId: null,
+        save: jest.fn().mockResolvedValue(true),
+      };
+
+      s3Service.uploadLMSContent.mockResolvedValue({
+        success: true,
+        url: galleryItem.fileUrl,
+        s3Key: 'lms/artweaver.jpg',
+      });
+      ArtGallery.create.mockResolvedValue(galleryItem);
+      Course.findOne.mockReturnValue({
+        select: jest.fn().mockReturnValue({
+          lean: jest.fn().mockResolvedValue({ _id: courseId }),
+        }),
+      });
+      Submission.create.mockResolvedValue({ _id: submissionId, status: 'pending' });
+
+      jest.spyOn(fs, 'writeFileSync').mockImplementation(() => {});
+      jest.spyOn(fs, 'existsSync').mockReturnValue(true);
+      jest.spyOn(fs, 'unlinkSync').mockImplementation(() => {});
+
+      const req = mockRequest({
+        params: { studentId },
+        body: {
+          imageData: `data:image/jpeg;base64,${Buffer.from('jpeg-data').toString('base64')}`,
+          title: 'ArtWeaver Drawing',
+          sessionDuration: 120,
+        },
+      });
+      const res = mockResponse();
+
+      await artController.submitArtweaverDrawing(req, res);
+
+      expect(Submission.create).toHaveBeenCalledWith(expect.objectContaining({
+        studentId,
+        courseId,
+        submissionType: 'art',
+        status: 'pending',
+        fileUrl: galleryItem.fileUrl,
+      }));
+      expect(galleryItem.submitted).toBe(true);
+      expect(galleryItem.submissionId).toEqual(submissionId);
+      expect(galleryItem.save).toHaveBeenCalled();
+      expect(res.status).toHaveBeenCalledWith(201);
+      expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
+        success: true,
+        artwork: expect.objectContaining({ submitted: true, reviewStatus: 'pending' }),
+      }));
+
+      fs.writeFileSync.mockRestore();
+      fs.existsSync.mockRestore();
+      fs.unlinkSync.mockRestore();
+    });
+  });
+
   // ==================== getGallery ====================
   describe('getGallery', () => {
     it('should return gallery items', async () => {
       ArtGallery.find.mockReturnValue({
         sort: jest.fn().mockReturnValue({
-          lean: jest.fn().mockResolvedValue([
-            {
-              _id: new mongoose.Types.ObjectId(),
-              title: 'Art 1',
-              fileUrl: 'url',
-              createdAt: new Date(),
-              canvasSize: { width: 800, height: 600 },
-              metadata: { sessionDuration: 20 },
-              submitted: false,
-            },
-          ]),
+          populate: jest.fn().mockReturnValue({
+            lean: jest.fn().mockResolvedValue([
+              {
+                _id: new mongoose.Types.ObjectId(),
+                title: 'Art 1',
+                fileUrl: 'url',
+                createdAt: new Date(),
+                canvasSize: { width: 800, height: 600 },
+                metadata: { sessionDuration: 20 },
+                submitted: false,
+              },
+            ]),
+          }),
         }),
       });
 

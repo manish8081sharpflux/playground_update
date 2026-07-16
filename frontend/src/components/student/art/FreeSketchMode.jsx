@@ -119,7 +119,7 @@ export default function FreeSketchMode({ data, studentId, onRefresh }) {
     });
 
     window.location.href = `eduart://open?${params.toString()}`;
-    toast('Opening ArtWeaver. Save your drawing as PNG or JPG, then close ArtWeaver to upload it.');
+    toast('Opening ArtWeaver with a prepared JPEG. Draw, press Ctrl+S, then close ArtWeaver to upload it.');
   };
 
   return (
@@ -140,7 +140,7 @@ export default function FreeSketchMode({ data, studentId, onRefresh }) {
             </div>
             <h3 className="text-xl font-bold text-gray-900">Draw with the desktop art app</h3>
             <p className="mt-1 max-w-2xl text-sm leading-6 text-gray-600">
-              Open ArtWeaver, create your picture, save it in the Drawings folder, and close ArtWeaver. The drawing will be added to your gallery.
+              Open ArtWeaver, create your picture, press Ctrl+S, and close ArtWeaver. The prepared JPEG will be added to your gallery and sent for coach review.
             </p>
           </div>
           <button
@@ -229,14 +229,22 @@ export default function FreeSketchMode({ data, studentId, onRefresh }) {
                     {new Date(artwork.createdAt).toLocaleDateString()}
                   </p>
                   {artwork.submitted && (
-                    <div className="mt-1 flex items-center gap-1">
+                    <div className="mt-2 space-y-1">
                       <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">
-                        Submitted
+                        {artwork.reviewStatus === 'graded' ? 'Reviewed' : 'Pending coach review'}
                       </span>
                       {artwork.grade && (
-                        <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
-                          Grade: {artwork.grade}
-                        </span>
+                        <div className="rounded bg-blue-50 p-2 text-xs text-blue-900">
+                          <p className="font-semibold capitalize">
+                            {artwork.grade.quality?.replaceAll('_', ' ')}
+                            {Number.isFinite(artwork.grade.coinsAwarded)
+                              ? ` · ${artwork.grade.coinsAwarded} coins`
+                              : ''}
+                          </p>
+                          {artwork.grade.feedback && (
+                            <p className="mt-1">Coach: {artwork.grade.feedback}</p>
+                          )}
+                        </div>
                       )}
                     </div>
                   )}
