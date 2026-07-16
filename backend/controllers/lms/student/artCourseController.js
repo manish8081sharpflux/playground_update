@@ -11,6 +11,25 @@ const os = require('os');
 const path = require('path');
 const { errorLogger } = require('../../../config/pino-config');
 
+const formatGalleryItem = (galleryItem) => {
+  const submission = galleryItem.submissionId && galleryItem.submissionId.status
+    ? galleryItem.submissionId
+    : null;
+
+  return {
+    id: galleryItem._id,
+    title: galleryItem.title,
+    artworkUrl: galleryItem.fileUrl,
+    createdAt: galleryItem.createdAt,
+    canvasSize: galleryItem.canvasSize,
+    sessionDuration: galleryItem.metadata?.sessionDuration || 0,
+    submitted: galleryItem.submitted,
+    submissionId: submission?._id || galleryItem.submissionId || null,
+    reviewStatus: submission?.status || (galleryItem.submitted ? 'pending' : null),
+    grade: submission?.grade || null,
+  };
+};
+
 /**
  * Art Course Controller - Epic 01 Story 03 / Story 12.9 (FIX-014)
  * Handles Art Course with 4 modes:
@@ -350,18 +369,10 @@ exports.getArtCourseData = async (req, res) => {
     // 4. Fetch student's gallery from ArtGallery collection
     const gallery = await ArtGallery.find({ student: studentId })
       .sort({ createdAt: -1 })
+      .populate('submissionId', 'status grade submittedAt')
       .lean();
 
-    const galleryItems = gallery.map(g => ({
-      id: g._id,
-      title: g.title,
-      artworkUrl: g.fileUrl,
-      createdAt: g.createdAt,
-      canvasSize: g.canvasSize,
-      sessionDuration: g.metadata?.sessionDuration || 0,
-      submitted: g.submitted,
-      grade: null // Would be populated if submission was graded
-    }));
+    const galleryItems = gallery.map(formatGalleryItem);
 
     // 5. Fetch active competition
     const activeCompetition = await ArtCompetition.findOne({
@@ -982,6 +993,35 @@ exports.submitArtweaverDrawing = async (req, res) => {
       submitted: false,
     });
 
+    const artCourse = await Course.findOne({ category: 'Art', status: 'published' })
+      .select('_id')
+      .lean();
+    const parsedSessionDuration = parseInt(sessionDuration, 10);
+    const submission = await Submission.create({
+      studentId,
+      courseId: artCourse?._id || new mongoose.Types.ObjectId(),
+      taskId: `artweaver-${galleryItem._id}`,
+      taskTitle: galleryItem.title || 'ArtWeaver Drawing',
+      submissionType: 'art',
+      fileUrl: uploadResult.url,
+      s3Key: uploadResult.s3Key,
+      thumbnailUrl: null,
+      metadata: {
+        fileSize: buffer.length,
+        mimeType,
+      },
+      timeSpent: Number.isFinite(parsedSessionDuration)
+        ? Math.max(0, Math.round(parsedSessionDuration / 60))
+        : 0,
+      status: 'pending',
+      offlineSubmission: false,
+      isFirstAttempt: true,
+    });
+
+    galleryItem.submitted = true;
+    galleryItem.submissionId = submission._id;
+    await galleryItem.save();
+
     res.status(201).json({
       success: true,
       artwork: {
@@ -991,9 +1031,12 @@ exports.submitArtweaverDrawing = async (req, res) => {
         createdAt: galleryItem.createdAt,
         canvasSize: galleryItem.canvasSize,
         sessionDuration: galleryItem.metadata.sessionDuration,
-        submitted: false,
+        submitted: true,
+        submissionId: submission._id,
+        reviewStatus: submission.status,
+        grade: null,
       },
-      message: 'ArtWeaver drawing saved to your gallery!'
+      message: 'ArtWeaver drawing saved to your gallery and submitted for coach review!'
     });
   } catch (error) {
     errorLogger.error({ err: error }, 'Submit ArtWeaver Drawing Error:');
@@ -1022,19 +1065,12 @@ exports.getGallery = async (req, res) => {
 
     const gallery = await ArtGallery.find({ student: studentId })
       .sort({ createdAt: -1 })
+      .populate('submissionId', 'status grade submittedAt')
       .lean();
 
     res.json({
       success: true,
-      gallery: gallery.map(g => ({
-        id: g._id,
-        title: g.title,
-        artworkUrl: g.fileUrl,
-        createdAt: g.createdAt,
-        canvasSize: g.canvasSize,
-        sessionDuration: g.metadata?.sessionDuration || 0,
-        submitted: g.submitted,
-      }))
+      gallery: gallery.map(formatGalleryItem)
     });
   } catch (error) {
     errorLogger.error({ err: error }, 'Get Gallery Error:');

@@ -66,19 +66,40 @@ If Not fso.FileExists(artPath) Then
 End If
 
 If Not fso.FileExists(artPath) Then
-    MsgBox "ArtWeaver was not found. Please install ArtWeaver or update artweaver.vbs with the correct path.", vbExclamation, "Art Course"
+    MsgBox "ArtWeaver is not installed on this computer." & vbCrLf & vbCrLf & _
+           "You have to download and install ArtWeaver before you can use ArtWeaver Studio.", _
+           vbExclamation, "ArtWeaver Required"
+    WScript.Quit
+End If
+
+timestamp = Year(Now()) & Right("0" & Month(Now()), 2) & Right("0" & Day(Now()), 2) & "-" & _
+            Right("0" & Hour(Now()), 2) & Right("0" & Minute(Now()), 2) & Right("0" & Second(Now()), 2)
+starterFile = saveFolder & "\ArtWeaver-" & timestamp & ".jpg"
+
+' Start ArtWeaver with an existing JPEG so normal Save/Ctrl+S keeps JPEG format.
+powerShellCommand = "powershell.exe -NoProfile -WindowStyle Hidden -Command " & Chr(34) & _
+    "Add-Type -AssemblyName System.Drawing; " & _
+    "$bitmap = New-Object System.Drawing.Bitmap 1000,600; " & _
+    "$graphics = [System.Drawing.Graphics]::FromImage($bitmap); " & _
+    "$graphics.Clear([System.Drawing.Color]::White); " & _
+    "$bitmap.Save('" & starterFile & "',[System.Drawing.Imaging.ImageFormat]::Jpeg); " & _
+    "$graphics.Dispose(); $bitmap.Dispose()" & Chr(34)
+objShell.Run powerShellCommand, 0, True
+
+If Not fso.FileExists(starterFile) Then
+    MsgBox "Could not prepare the JPEG drawing file. Please contact support.", vbCritical, "Art Course"
     WScript.Quit
 End If
 
 MsgBox "ArtWeaver will open now." & vbCrLf & vbCrLf & _
        "1. Draw your picture" & vbCrLf & _
-       "2. Save or export it as PNG/JPG" & vbCrLf & _
-       "3. Save it to: " & saveFolder & "\" & vbCrLf & _
-       "4. Close ArtWeaver to upload it", _
+       "2. Press Ctrl+S to save it" & vbCrLf & _
+       "3. Close ArtWeaver to upload it for coach review" & vbCrLf & vbCrLf & _
+       "The JPEG file is already prepared in: " & saveFolder & "\", _
        vbInformation, "Art Course"
 
 startTime = Now()
-Set oExec = objShell.Exec(Chr(34) & artPath & Chr(34))
+Set oExec = objShell.Exec(Chr(34) & artPath & Chr(34) & " " & Chr(34) & starterFile & Chr(34))
 Do While oExec.Status = 0
     WScript.Sleep 2000
 Loop
@@ -87,7 +108,7 @@ durationMs = DateDiff("s", startTime, Now()) * 1000
 Set foundFile = Nothing
 For Each drawingFile In fso.GetFolder(saveFolder).Files
     ext = LCase(fso.GetExtensionName(drawingFile.Name))
-    If ext = "png" Or ext = "jpg" Or ext = "jpeg" Or ext = "webp" Then
+    If (ext = "jpg" Or ext = "jpeg") And drawingFile.DateLastModified > startTime Then
         If foundFile Is Nothing Then
             Set foundFile = drawingFile
         ElseIf drawingFile.DateLastModified > foundFile.DateLastModified Then
@@ -97,7 +118,7 @@ For Each drawingFile In fso.GetFolder(saveFolder).Files
 Next
 
 If foundFile Is Nothing Then
-    MsgBox "No drawing found. Please save your drawing to:" & vbCrLf & saveFolder & "\", vbExclamation, "Art Course"
+    MsgBox "The drawing was not uploaded because it was not saved. Open ArtWeaver again, draw, and press Ctrl+S before closing.", vbExclamation, "Art Course"
     WScript.Quit
 End If
 
@@ -116,10 +137,7 @@ base64String = xmlElem.text
 base64String = Replace(base64String, vbCrLf, "")
 base64String = Replace(base64String, vbLf, "")
 
-mimeType = "image/png"
-ext = LCase(fso.GetExtensionName(foundFile.Name))
-If ext = "jpg" Or ext = "jpeg" Then mimeType = "image/jpeg"
-If ext = "webp" Then mimeType = "image/webp"
+mimeType = "image/jpeg"
 
 imageData = "data:" & mimeType & ";base64," & base64String
 safeTitle = Replace(fso.GetBaseName(foundFile.Name), """", "'")
@@ -142,7 +160,7 @@ objHTTP.send jsonBody
 If Err.Number <> 0 Then
     MsgBox "Upload failed: " & Err.Description, vbCritical, "Art Course"
 ElseIf objHTTP.status = 200 Or objHTTP.status = 201 Then
-    MsgBox "Your ArtWeaver drawing was saved to your gallery.", vbInformation, "Art Course"
+    MsgBox "Your ArtWeaver drawing was saved to your gallery and submitted for coach review.", vbInformation, "Art Course"
 Else
     MsgBox "Upload failed: " & objHTTP.status & vbCrLf & objHTTP.responseText, vbCritical, "Art Course"
 End If

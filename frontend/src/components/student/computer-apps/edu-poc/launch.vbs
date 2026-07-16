@@ -77,7 +77,9 @@ If Not fso.FileExists(gcomprisPath) Then
 End If
 
 If Not fso.FileExists(gcomprisPath) Then
-    MsgBox "GCompris was not found. Please check the GCompris install path."
+    MsgBox "GCompris is not installed on this computer." & vbCrLf & vbCrLf & _
+           "You have to download and install GCompris before you can open this activity.", _
+           vbExclamation, "GCompris Required"
     WScript.Quit
 End If
 
