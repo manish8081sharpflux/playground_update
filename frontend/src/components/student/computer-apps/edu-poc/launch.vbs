@@ -2,6 +2,72 @@ Set objShell = CreateObject("WScript.Shell")
 Set objHTTP = CreateObject("MSXML2.XMLHTTP")
 Set fso = CreateObject("Scripting.FileSystemObject")
 
+Function FindExecutable(executableNames, productName)
+    Dim name, hive, value, roots, root, folder, file
+
+    ' Prefer Windows' registered application paths. These support custom install folders.
+    For Each hive In Array("HKCU", "HKLM")
+        For Each name In executableNames
+            On Error Resume Next
+            value = objShell.RegRead(hive & "\Software\Microsoft\Windows\CurrentVersion\App Paths\" & name & "\")
+            If Err.Number = 0 Then
+                value = Replace(Trim(value), """", "")
+                If fso.FileExists(value) Then
+                    FindExecutable = value
+                    On Error GoTo 0
+                    Exit Function
+                End If
+            End If
+            Err.Clear
+            On Error GoTo 0
+        Next
+    Next
+
+    ' Fall back to environment-provided application roots, not fixed drive paths.
+    roots = Array(objShell.ExpandEnvironmentStrings("%ProgramFiles%"), _
+                  objShell.ExpandEnvironmentStrings("%ProgramFiles(x86)%"), _
+                  objShell.ExpandEnvironmentStrings("%LOCALAPPDATA%\Programs"))
+    For Each root In roots
+        If root <> "" And InStr(root, "%") = 0 And fso.FolderExists(root) Then
+            For Each folder In fso.GetFolder(root).SubFolders
+                If InStr(1, folder.Name, productName, vbTextCompare) > 0 Then
+                    file = FindInFolder(folder, executableNames, 4)
+                    If file <> "" Then
+                        FindExecutable = file
+                        Exit Function
+                    End If
+                End If
+            Next
+        End If
+    Next
+
+    FindExecutable = ""
+End Function
+
+Function FindInFolder(folder, executableNames, depth)
+    Dim name, candidate, child, result
+    For Each name In executableNames
+        candidate = fso.BuildPath(folder.Path, name)
+        If fso.FileExists(candidate) Then
+            FindInFolder = candidate
+            Exit Function
+        End If
+    Next
+    If depth > 0 Then
+        On Error Resume Next
+        For Each child In folder.SubFolders
+            result = FindInFolder(child, executableNames, depth - 1)
+            If result <> "" Then
+                FindInFolder = result
+                On Error GoTo 0
+                Exit Function
+            End If
+        Next
+        On Error GoTo 0
+    End If
+    FindInFolder = ""
+End Function
+
 If WScript.Arguments.Count = 0 Then
     MsgBox "No EduBridge URL received."
     WScript.Quit
@@ -70,11 +136,7 @@ On Error GoTo 0
 If startLevel < 1 Then startLevel = 1
 If startLevel > 6 Then startLevel = 6
 
-gcomprisPath = "C:\Program Files\GCompris-Qt\bin\GCompris.exe"
-
-If Not fso.FileExists(gcomprisPath) Then
-    gcomprisPath = "C:\Program Files\GCompris-Qt\gcompris-qt.exe"
-End If
+gcomprisPath = FindExecutable(Array("GCompris.exe", "gcompris-qt.exe"), "GCompris")
 
 If Not fso.FileExists(gcomprisPath) Then
     MsgBox "GCompris is not installed on this computer." & vbCrLf & vbCrLf & _
